@@ -1,0 +1,12 @@
+{
+    "extends": [
+      "next",
+      "next/core-web-vitals"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "rules": {
+      "indent": ["error", 2],
+      "semi": ["error", "never"],
+      "comma-dangle": ["error", "always-multiline"]
+    }
+  }
