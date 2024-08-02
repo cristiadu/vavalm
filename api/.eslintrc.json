@@ -1,7 +1,7 @@
 {
     "extends": [],
     "parser": "@typescript-eslint/parser",
-    "ignorePatterns": ["node_modules", "dist"],
+    "ignorePatterns": ["node_modules", "dist", "migrations", "seeders"],
     "rules": {
       "indent": ["error", 2],
       "semi": ["error", "never"],

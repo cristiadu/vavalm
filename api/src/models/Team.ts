@@ -1,20 +1,12 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
 
-interface TeamAttributes {
-  id?: number
-  short_name: string
-  logo_url?: string
-  full_name: string
-  description?: string
-}
-
-class Team extends Model<TeamAttributes> implements TeamAttributes {
-  declare id: number
-  declare short_name: string
-  declare logo_url: string
-  declare full_name: string
-  declare description: string
+class Team extends Model {
+  logo_image_file: any
+  short_name!: string
+  full_name!: string
+  description!: string
+  country!: string
 }
 
 Team.init({
@@ -22,17 +14,19 @@ Team.init({
     type: DataTypes.STRING,
     allowNull: false,
   },
-  logo_url: {
-    type: DataTypes.STRING,
-    defaultValue: 'https://tecdn.b-cdn.net/img/new/slides/041.jpg',
+  logo_image_file: {
+    type: DataTypes.BLOB,
+    allowNull: true,
   },
   full_name: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: '', // Set a static default value
   },
   description: {
     type: DataTypes.TEXT,
+  },
+  country: {
+    type: DataTypes.STRING,
   },
 }, {
   sequelize,

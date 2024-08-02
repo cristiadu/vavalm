@@ -4,13 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import 'react-quill/dist/quill.snow.css'
+import CountryApi, { Country } from '../../calls/CountryApi'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
-
-interface Country {
-  name: string
-  flag: string
-}
 
 const quill_modules = {
   toolbar: [
@@ -24,6 +20,7 @@ const quill_modules = {
 }
 
 export default function NewTeam() {
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageSrc, setImageSrc] = useState('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
   const [countries, setCountries] = useState<Country[]>([])
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
@@ -32,16 +29,8 @@ export default function NewTeam() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all?fields=name,flags')
-      .then(response => response.json())
-      .then(data => {
-        const countryData = data.map((country: { name: { common: string }, flags: { png: string } }) => ({
-          name: country.name.common,
-          flag: country.flags.png,
-        }))
-        setCountries(countryData)
-      })
-      .catch(error => console.error('Error fetching countries:', error))
+    CountryApi.fetchCountries(setCountries)
+      .then(() => console.log('Countries fetched'))
   }, [])
 
   useEffect(() => {
@@ -62,6 +51,7 @@ export default function NewTeam() {
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
+        setImageFile(file)
         setImageSrc(reader.result as string)
       }
       reader.readAsDataURL(file)
@@ -77,20 +67,23 @@ export default function NewTeam() {
     event.preventDefault()
 
     const formData = new FormData()
-    formData.append('image', imageSrc)
-    formData.append('fullName', (event.target as any)['full-name'].value)
-    formData.append('shortName', (event.target as any)['short-name'].value)
+    if(imageFile) {
+      formData.append('logo_image_file', imageFile)
+    }
+
+    formData.append('full_name', (event.target as any)['full-name'].value)
+    formData.append('short_name', (event.target as any)['short-name'].value)
     formData.append('country', selectedCountry?.name || '')
     formData.append('description', description)
 
     try {
-      const response = await fetch('/api/teams', {
+      const response = await fetch('http://localhost:8000/teams', {
         method: 'POST',
         body: formData,
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", Array.from(formData).map(([key, value]) => `${key}: ${value}`).join(', '))
+        console.log("Network response was not ok: ", formData)
         return
       }
 

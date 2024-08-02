@@ -17,7 +17,8 @@
     "backend:dev": "npm --prefix api run dev",
     "backend:build": "npm --prefix api run build",
     "backend:start": "npm --prefix api run start",
-    "backend:lint": "npm --prefix api run lint"
+    "backend:lint": "npm --prefix api run lint",
+    "backend:migrate": "npm --prefix api run migrate"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"

@@ -7,10 +7,13 @@
     "watch": "webpack --config webpack.config.js --mode development --watch &",
     "build": "webpack --config webpack.config.js --mode production",
     "start": "node dist/bundle.js",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "migrate": "cd src && npx sequelize-cli db:migrate"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.3",
@@ -21,7 +24,9 @@
     "@babel/preset-env": "^7.25.0",
     "@babel/preset-typescript": "^7.24.7",
     "@types/body-parser": "^1.19.5",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.11",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.6",
     "@types/sequelize": "^4.28.20",
