@@ -3,26 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint --fix"
+    "postinstall": "npm-run-all frontend:install backend:install",
+    "dev": "npm-run-all --parallel frontend:dev backend:dev",
+    "build": "npm-run-all frontend:build backend:build",
+    "start": "npm-run-all --parallel frontend:start backend:start",
+    "lint": "npm-run-all frontend:lint backend:lint",
+    "frontend:install": "npm --prefix ui install",
+    "frontend:dev": "npm --prefix ui run dev",
+    "frontend:build": "npm --prefix ui run build",
+    "frontend:start": "npm --prefix ui run start",
+    "frontend:lint": "npm --prefix ui run lint",
+    "backend:install": "npm --prefix api install",
+    "backend:dev": "npm --prefix api run dev",
+    "backend:build": "npm --prefix api run build",
+    "backend:start": "npm --prefix api run start",
+    "backend:lint": "npm --prefix api run lint"
   },
-  "dependencies": {
-    "@headlessui/react": "^1.7.14",
-    "@tailwindcss/forms": "^0.5.3",
-    "@types/node": "20.2.1",
-    "@types/react": "18.2.6",
-    "@types/react-dom": "18.2.4",
-    "autoprefixer": "10.4.14",
-    "eslint": "8.40.0",
-    "eslint-config-next": "13.4.3",
-    "next": "13.4.3",
-    "postcss": "8.4.23",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-quill": "^2.0.0",
-    "tailwindcss": "3.3.2",
-    "typescript": "5.0.4"
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
   }
 }

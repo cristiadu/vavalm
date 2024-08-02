@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import ReactQuill from 'react-quill'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import 'react-quill/dist/quill.snow.css'
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 
 interface Country {
   name: string
