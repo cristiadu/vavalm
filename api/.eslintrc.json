@@ -8,4 +8,4 @@
       "comma-dangle": ["error", "always-multiline"],
       "eol-last": 2
     }
-  }
+}
