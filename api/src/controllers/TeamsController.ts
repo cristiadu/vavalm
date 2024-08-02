@@ -16,23 +16,29 @@ router.get('/', async (req, res) => {
 
 // Add a new team
 router.post('/', async (req, res) => {
-  const { short_name, full_name, logo_url, description } = req.body
+  const { short_name, full_name, logo_url, description, country } = req.body
 
   // Validate input data
-  if (!short_name || !full_name) {
-    return res.status(400).json({ error: 'short_name and full_name are required' })
+  if (!short_name || !full_name || !country) {
+    return res.status(400).json({ error: 'short_name, country and full_name are required' })
   }
 
   try {
+    console.log('Creating team with data:', { short_name, full_name, logo_url, description, country })
     const team = await Team.create({
       short_name,
       full_name,
       logo_url,
       description,
+      country,
     })
     res.status(201).json(team)
   } catch (err) {
-    console.error('Error executing query', (err as Error).stack)
+    console.error('Error executing query:', err)
+    if (err instanceof Error) {
+      console.error('Error message:', err.message)
+      console.error('Error stack:', err.stack)
+    }
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })

@@ -76,21 +76,25 @@ export default function NewTeam() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const formData = new FormData()
-    formData.append('image', imageSrc)
-    formData.append('fullName', (event.target as any)['full-name'].value)
-    formData.append('shortName', (event.target as any)['short-name'].value)
-    formData.append('country', selectedCountry?.name || '')
-    formData.append('description', description)
+    const formData = {
+      //logo_url: imageSrc,
+      full_name: (event.target as any)['full-name'].value,
+      short_name: (event.target as any)['short-name'].value,
+      country: selectedCountry?.name || '',
+      description: description,
+    }
 
     try {
-      const response = await fetch('/api/teams', {
+      const response = await fetch('http://localhost:8000/teams', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", Array.from(formData).map(([key, value]) => `${key}: ${value}`).join(', '))
+        console.log("Network response was not ok: ",JSON.stringify(formData))
         return
       }
 
