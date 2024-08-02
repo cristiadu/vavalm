@@ -1,32 +1,16 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
 
-interface TeamAttributes {
-  id?: number
-  short_name: string
-  logo_url?: string
-  full_name: string
-  description?: string
-  country: string
-}
-
-class Team extends Model<TeamAttributes> implements TeamAttributes {
-  declare id: number
-  declare short_name: string
-  declare logo_url?: string
-  declare full_name: string
-  declare description?: string
-  declare country: string
-}
+class Team extends Model {}
 
 Team.init({
   short_name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  logo_url: {
-    type: DataTypes.STRING,
-    defaultValue: 'https://tecdn.b-cdn.net/img/new/slides/041.jpg',
+  logo_image_file: {
+    type: DataTypes.BLOB,
+    allowNull: true,
   },
   full_name: {
     type: DataTypes.STRING,

@@ -1,5 +1,5 @@
 const path = require('path')
-const { Configuration } = require('webpack')
+const { Configuration, IgnorePlugin } = require('webpack')
 
 const config = {
   entry: './src/index.ts', // Adjust the entry point as needed
@@ -32,6 +32,11 @@ const config = {
     sequelize: 'commonjs sequelize',
   },
   devtool: 'source-map', // Enable source maps for debugging
+  plugins: [
+    new IgnorePlugin({
+      resourceRegExp: /migrations/, // Adjust the regex to match your migrations directory or files
+    }),
+  ],
 }
 
 module.exports = config

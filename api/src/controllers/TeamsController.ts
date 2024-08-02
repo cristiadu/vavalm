@@ -1,7 +1,9 @@
 import { Router } from 'express'
+import Multer from 'multer'
 import Team from '../models/Team'
 
 const router = Router()
+const upload = Multer({ storage: Multer.memoryStorage() });
 
 // Fetch all teams
 router.get('/', async (req, res) => {
@@ -15,8 +17,9 @@ router.get('/', async (req, res) => {
 })
 
 // Add a new team
-router.post('/', async (req, res) => {
-  const { short_name, full_name, logo_url, description, country } = req.body
+router.post('/', upload.single('logo_image_file'), async (req, res) => {
+  const { short_name, full_name, description, country } = req.body
+  const logo_image_file = req.file ? req.file.buffer : null
 
   // Validate input data
   if (!short_name || !full_name || !country) {
@@ -24,11 +27,11 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    console.log('Creating team with data:', { short_name, full_name, logo_url, description, country })
+    console.log('Creating team with data:', { short_name, full_name, logo_image_file, description, country })
     const team = await Team.create({
       short_name,
       full_name,
-      logo_url,
+      logo_image_file,
       description,
       country,
     })
