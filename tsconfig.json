@@ -3,11 +3,9 @@
     "target": "esnext", // Ensure this is set to es2017 or higher
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "outDir": "./dist",
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext", // Set this to esnext
     "moduleResolution": "node",

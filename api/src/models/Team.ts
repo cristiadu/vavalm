@@ -1,34 +1,42 @@
 import { Model, DataTypes } from 'sequelize'
-import databaseInstance from '../Database'
+import { sequelize } from './index'
 
-class Team extends Model {}
-
-async function initializeTeamModel() {
-  Team.init({
-    short_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    logo_url: {
-      type: DataTypes.STRING,
-      defaultValue: 'https://tecdn.b-cdn.net/img/new/slides/041.jpg',
-    },
-    full_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue(this: Team) {
-        return this.getDataValue('short_name')
-      },
-    },
-    description: {
-      type: DataTypes.TEXT,
-    },
-  }, {
-    sequelize: await databaseInstance.getClient(),
-    modelName: 'Team',
-  })
+interface TeamAttributes {
+  id?: number
+  short_name: string
+  logo_url?: string
+  full_name: string
+  description?: string
 }
 
-initializeTeamModel()
+class Team extends Model<TeamAttributes> implements TeamAttributes {
+  declare id: number
+  declare short_name: string
+  declare logo_url: string
+  declare full_name: string
+  declare description: string
+}
+
+Team.init({
+  short_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  logo_url: {
+    type: DataTypes.STRING,
+    defaultValue: 'https://tecdn.b-cdn.net/img/new/slides/041.jpg',
+  },
+  full_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: '', // Set a static default value
+  },
+  description: {
+    type: DataTypes.TEXT,
+  },
+}, {
+  sequelize,
+  modelName: 'Team',
+})
 
 export default Team

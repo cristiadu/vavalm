@@ -1,16 +1,14 @@
-import path from 'path'
-import { Configuration } from 'webpack'
+const path = require('path')
+const { Configuration } = require('webpack')
 
-declare const __dirname: string // Add this line to declare __dirname
-
-const config: Configuration = {
-  entry: './src/api/index.ts', // Adjust the entry point as needed
+const config = {
+  entry: './src/index.ts', // Adjust the entry point as needed
   target: 'node',
   mode: 'development', // Change to 'production' for production builds
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
       },
@@ -22,13 +20,18 @@ const config: Configuration = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts', '.js'],
   },
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
+  externals: {
+    pg: 'commonjs pg',
+    express: 'commonjs express',
+    sequelize: 'commonjs sequelize',
+  },
   devtool: 'source-map', // Enable source maps for debugging
 }
 
-export default config
+module.exports = config

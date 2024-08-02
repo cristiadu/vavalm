@@ -11,13 +11,13 @@ const db = {}
 
 let sequelize
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config)
+  sequelize = new Sequelize(process.env[config.use_env_variable], { logging: console.log, ...config })
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config)
+  sequelize = new Sequelize(config.database, config.username, config.password, { logging: console.log, ...config })
 }
 
-fs
-  .readdirSync(__dirname)
+// Read all files in the current directory and import them as models
+fs.readdirSync(__dirname)
   .filter(file => {
     return (
       file.indexOf('.') !== 0 &&
@@ -36,6 +36,20 @@ Object.keys(db).forEach(modelName => {
     db[modelName].associate(db)
   }
 })
+
+// Validate database connection
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.')
+    // Ensure all tables are created
+    return sequelize.sync()
+  })
+  .then(() => {
+    console.log('All tables have been created successfully.')
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err)
+  })
 
 db.sequelize = sequelize
 db.Sequelize = Sequelize
