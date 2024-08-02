@@ -3,7 +3,7 @@ interface Country {
     flag: string
     }
 
-export const CountryApi = {
+const CountryApi = {
   fetchCountries: async (closure: (countryData: Country[]) => void) => {
     try {
       const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flags')

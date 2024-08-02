@@ -6,34 +6,11 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import CountryApi from '../calls/CountryApi'
 import Link from 'next/link'
-
-interface Team {
-  short_name: string
-  logo_image_file: Blob | null
-  full_name: string
-  description: string
-  country: string
-  id: number
-}
+import TeamsApi, { Team } from '../calls/TeamsApi'
 
 export default function Home() {
   const [teams, setTeams] = useState<Team[]>([])
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
-
-  async function fetchTeams() {
-    const response = await fetch('http://localhost:8000/teams')
-    const data = await response.json()
-    // Convert Buffer to Blob
-    const teamsWithBlob = data.map((team: any) => {
-      if (team.logo_image_file) {
-        const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-        return { ...team, logo_image_file: blob }
-      }
-      return team
-    })
-
-    setTeams(teamsWithBlob)
-  }
 
   useEffect(() => {
     CountryApi.fetchCountries((countries) => {
@@ -44,7 +21,7 @@ export default function Home() {
       setCountriesToFlagMap(countriesToFlagMap)
     })
 
-    fetchTeams()
+    TeamsApi.fetchTeams(setTeams)
   }, [])
 
   function asSafeHTML(description: string): React.ReactNode {

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import 'react-quill/dist/quill.snow.css'
 import CountryApi, { Country } from '../../calls/CountryApi'
+import TeamsApi, { Team } from '../../calls/TeamsApi'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 
@@ -20,7 +21,7 @@ const quill_modules = {
 }
 
 export default function NewTeam() {
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [imageSrc, setImageSrc] = useState('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
   const [countries, setCountries] = useState<Country[]>([])
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
@@ -66,32 +67,16 @@ export default function NewTeam() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const formData = new FormData()
-    if(imageFile) {
-      formData.append('logo_image_file', imageFile)
+    const newTeam: Team = {
+      short_name: (event.target as any)['short-name'].value,
+      logo_image_file: imageFile ? imageFile: null,
+      full_name: (event.target as any)['full-name'].value,
+      description: description,
+      country: selectedCountry?.name || '',
     }
 
-    formData.append('full_name', (event.target as any)['full-name'].value)
-    formData.append('short_name', (event.target as any)['short-name'].value)
-    formData.append('country', selectedCountry?.name || '')
-    formData.append('description', description)
-
-    try {
-      const response = await fetch('http://localhost:8000/teams', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        console.log("Network response was not ok: ", formData)
-        return
-      }
-
-      const result = await response.json()
-      console.log('Success:', result)
-    } catch (error) {
-      console.error('Error:', error)
-    }
+    TeamsApi.newTeam(newTeam, (teamData) => console.log(teamData))
+      .then(() => console.log('Team created'))
   }
 
   return (
