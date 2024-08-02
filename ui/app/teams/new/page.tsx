@@ -4,13 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import 'react-quill/dist/quill.snow.css'
+import CountryApi, { Country } from '../../calls/CountryApi'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
-
-interface Country {
-  name: string
-  flag: string
-}
 
 const quill_modules = {
   toolbar: [
@@ -33,16 +29,8 @@ export default function NewTeam() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all?fields=name,flags')
-      .then(response => response.json())
-      .then(data => {
-        const countryData = data.map((country: { name: { common: string }, flags: { png: string } }) => ({
-          name: country.name.common,
-          flag: country.flags.png,
-        }))
-        setCountries(countryData)
-      })
-      .catch(error => console.error('Error fetching countries:', error))
+    CountryApi.fetchCountries(setCountries)
+      .then(() => console.log('Countries fetched'))
   }, [])
 
   useEffect(() => {

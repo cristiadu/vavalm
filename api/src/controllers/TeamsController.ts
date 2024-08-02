@@ -3,13 +3,19 @@ import Multer from 'multer'
 import Team from '../models/Team'
 
 const router = Router()
-const upload = Multer({ storage: Multer.memoryStorage() });
+const upload = Multer({ storage: Multer.memoryStorage() })
 
 // Fetch all teams
 router.get('/', async (req, res) => {
   try {
     const teams = await Team.findAll()
-    res.json(teams)
+    const teamsWithBlob = teams.map(team => {
+      if (team.logo_image_file) {
+        team.logo_image_file = new Blob([team.logo_image_file], { type: 'image/png' })
+      }
+      return team
+    })
+    res.json(teamsWithBlob)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
     res.status(500).json({ error: 'Internal Server Error' })

@@ -1,7 +1,13 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
 
-class Team extends Model {}
+class Team extends Model {
+  logo_image_file: any
+  short_name!: string
+  full_name!: string
+  description!: string
+  country!: string
+}
 
 Team.init({
   short_name: {
