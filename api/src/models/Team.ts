@@ -1,5 +1,6 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
+import Player from './Player'
 
 class Team extends Model {
   logo_image_file: any
@@ -7,6 +8,8 @@ class Team extends Model {
   full_name!: string
   description!: string
   country!: string
+
+  public getPlayers!: () => Promise<Player[]>
 }
 
 Team.init({
@@ -32,5 +35,9 @@ Team.init({
   sequelize,
   modelName: 'Team',
 })
+
+// Establish the relationship
+Team.hasMany(Player, { foreignKey: 'team_id' })
+Player.belongsTo(Team, { foreignKey: 'team_id' })
 
 export default Team

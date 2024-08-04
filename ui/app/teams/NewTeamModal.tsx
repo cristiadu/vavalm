@@ -91,7 +91,7 @@ export default function NewTeamModal({ isOpen, onClose }: { isOpen: boolean, onC
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={closeModal}>
       <form className="w-full max-w-2xl mx-auto" onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-2 mb-4 items-center">
           <div className="w-full md:w-1/2 px-4 mb-6 md:mb-0">

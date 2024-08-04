@@ -24,6 +24,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    console.log('Creating player with data:', { nickname, full_name, age, country, team_id, player_attributes })
     const player = await Player.create({
       nickname,
       full_name,
@@ -34,7 +35,11 @@ router.post('/', async (req, res) => {
     })
     res.status(201).json(player)
   } catch (err) {
-    console.error('Error executing query', (err as Error).stack)
+    console.error('Error executing query:', err)
+    if (err instanceof Error) {
+      console.error('Error message:', err.message)
+      console.error('Error stack:', err.stack)
+    }
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })

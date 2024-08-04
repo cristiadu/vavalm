@@ -22,7 +22,7 @@ const TeamsApi = {
 
     closure(teamsWithBlob)
   },
-  newTeam: async (team: Team, closure: (teamData: Team[]) => void) => {
+  newTeam: async (team: Team, closure: (teamData: Team) => void) => {
     const formData = new FormData()
     if(team.logo_image_file) {
       formData.append('logo_image_file', team.logo_image_file)
