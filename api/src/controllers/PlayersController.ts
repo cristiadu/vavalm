@@ -18,8 +18,6 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { nickname, full_name, age, country, team_id, player_attributes } = req.body
 
-  console.log('req.body:', req.body)
-
   // Validate input data
   if (!nickname || !full_name || !age || !country || !player_attributes) {
     return res.status(400).json({ error: 'nickname, full_name, age, country, and player_attributes are required' })
