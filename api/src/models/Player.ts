@@ -1,41 +1,15 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
+import Team from './Team'
 
-interface PlayerAttributes {
-    id?: number
-    nickname: string
-    full_name: string
-    age: number,
-    country: string,
-    team_id: number
-    player_attributes: {
-        clutch: number,
-        awareness: number,
-        aim: number,
-        positioning: number,
-        game_reading: number,
-        resilience: number,
-        confidence: number,
-        strategy: number,
-        adaptability: number,
-        communication: number,
-        unpredictability: number,
-        game_sense: number,
-        decision_making: number,
-        rage_fuel: number,
-        teamwork: number,
-        utility_usage: number
-    }
-}
-
-class Player extends Model<PlayerAttributes> implements PlayerAttributes {
-  declare id: number
-  declare nickname: string
-  declare full_name: string
-  declare age: number
-  declare country: string
-  declare team_id: number
-  declare player_attributes: {
+class Player extends Model {
+  id!: number
+  nickname!: string
+  full_name!: string
+  age!: number
+  country!: string
+  team_id!: number
+  player_attributes!: {
     clutch: number,
     awareness: number,
     aim: number,
