@@ -22,6 +22,17 @@ const TeamsApi = {
 
     closure(teamsWithBlob)
   },
+  fetchTeam: async (teamId: number, closure: (teamData: Team) => void) => {
+    const response = await fetch(`http://localhost:8000/teams/${teamId}`)
+    const data = await response.json()
+    // Convert Buffer to Blob
+    if (data.logo_image_file) {
+      const blob = new Blob([new Uint8Array(data.logo_image_file.data)], { type: 'image/png' })
+      closure({ ...data, logo_image_file: blob })
+    } else {
+      closure(data)
+    }
+  },
   newTeam: async (team: Team, closure: (teamData: Team) => void) => {
     const formData = new FormData()
     if(team.logo_image_file) {

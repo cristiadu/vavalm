@@ -8,10 +8,12 @@ import Link from 'next/link'
 import PlayersApi, { Player } from '../calls/PlayersApi'
 import 'react-quill/dist/quill.snow.css'
 import NewPlayerModal from './NewPlayerModal'
+import TeamsApi, { Team } from '../calls/TeamsApi'
 
 export default function ListPlayers() {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
+  const [playerToTeamAttributes, setPlayerToTeamAttributes] = useState<Record<string, Team>>({})
   const [newPlayerModalOpened, setNewPlayerModalOpened] = useState<boolean>(false)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
 
@@ -24,8 +26,21 @@ export default function ListPlayers() {
       setCountriesToFlagMap(countriesToFlagMap)
     })
 
-    PlayersApi.fetchPlayers(setPlayers)
+    PlayersApi.fetchPlayers(refreshListData) 
   }, [])
+
+  const refreshListData = (playerData: Player[]) => {
+    const playerToTeamAttributes: Record<number, Team> = {}
+    playerData.forEach((player) => {
+      TeamsApi.fetchTeam(player.team_id, (team) => {
+        if (player.id) {
+          playerToTeamAttributes[player.id] = team
+        }
+      })
+    })
+    setPlayerToTeamAttributes(playerToTeamAttributes)
+    setPlayers(playerData)
+  }
 
   const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
@@ -45,7 +60,7 @@ export default function ListPlayers() {
 
   const closeNewPlayerModal = () => {
     setNewPlayerModalOpened(false)
-    PlayersApi.fetchPlayers(setPlayers)
+    PlayersApi.fetchPlayers(refreshListData)
   }
 
   // List all players in a table/grid
@@ -105,12 +120,29 @@ export default function ListPlayers() {
                     </span>
                   )}
                 </td>
-                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.team_id}</td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {playerToTeamAttributes[String(player.id)] && (
+                    <span className="flex items-center">
+                      <Image src={URL.createObjectURL(playerToTeamAttributes[String(player.id)].logo_image_file as Blob)} alt={playerToTeamAttributes[String(player.id)].short_name} width={30} height={30} className="mr-2" />
+                      {playerToTeamAttributes[String(player.id)].short_name}
+                    </span>
+                  )}
+                </td>
                 <td className="px-3 py-4 whitespace-normal text-sm font-medium text-gray-500">
-                  <div className="ql-container ql-snow" style={{ border: "0" }}>
-                    {Object.entries(player.player_attributes).map(([key, value]) => (
-                      <div key={key}>{`${key}: ${value}`}</div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">
+                    {Object.entries(player.player_attributes).map(([key, value]) => {
+                      let bgColor = "bg-gray-200" // Default background color
+                      if (value === 3) bgColor = "bg-green-500"
+                      else if (value === 2) bgColor = "bg-yellow-500"
+                      else if (value === 1) bgColor = "bg-gray-500"
+
+                      return (
+                        <div key={key} className="flex items-center space-x-1">
+                          <span className={`w-6 h-6 flex items-center justify-center rounded text-xs text-white ${bgColor}`}>{value}</span>
+                          <span className="text-xs text-gray-900 truncate">{key}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </td>
               </tr>

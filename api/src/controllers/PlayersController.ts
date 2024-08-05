@@ -14,6 +14,22 @@ router.get('/', async (req, res) => {
   }
 })
 
+// Fetch players
+router.get('/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const player = await Player.findByPk(id)
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' })
+    }
+    res.json(player)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 // Add a new player
 router.post('/', async (req, res) => {
   const { nickname, full_name, age, country, team_id, player_attributes } = req.body

@@ -22,6 +22,25 @@ router.get('/', async (req, res) => {
   }
 })
 
+// Fetch team
+router.get('/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const team = await Team.findByPk(id)
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' })
+    }
+    if (team.logo_image_file) {
+      team.logo_image_file = new Blob([team.logo_image_file], { type: 'image/png' })
+    }
+    res.json(team)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 // Add a new team
 router.post('/', upload.single('logo_image_file'), async (req, res) => {
   const { short_name, full_name, description, country } = req.body
