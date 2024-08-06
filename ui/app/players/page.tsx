@@ -13,7 +13,7 @@ import TeamsApi, { Team } from '../calls/TeamsApi'
 export default function ListPlayers() {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
-  const [playerToTeamAttributes, setPlayerToTeamAttributes] = useState<Record<string, Team>>({})
+  const [playerToTeam, setPlayerToTeam] = useState<Record<string, Team>>({})
   const [newPlayerModalOpened, setNewPlayerModalOpened] = useState<boolean>(false)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
 
@@ -29,16 +29,20 @@ export default function ListPlayers() {
     PlayersApi.fetchPlayers(refreshListData) 
   }, [])
 
-  const refreshListData = (playerData: Player[]) => {
-    const playerToTeamAttributes: Record<number, Team> = {}
-    playerData.forEach((player) => {
-      TeamsApi.fetchTeam(player.team_id, (team) => {
+  const refreshListData = async (playerData: Player[]) => {
+    const playerToTeam: Record<number, Team> = {}
+
+    const teamFetchPromises = playerData.map((player) =>
+      TeamsApi.fetchTeam(player.team_id, team => {
         if (player.id) {
-          playerToTeamAttributes[player.id] = team
+          playerToTeam[player.id] = team
         }
       })
-    })
-    setPlayerToTeamAttributes(playerToTeamAttributes)
+    )
+
+    await Promise.all(teamFetchPromises)
+
+    setPlayerToTeam(playerToTeam)
     setPlayers(playerData)
   }
 
@@ -59,8 +63,8 @@ export default function ListPlayers() {
   }
 
   const closeNewPlayerModal = () => {
-    setNewPlayerModalOpened(false)
     PlayersApi.fetchPlayers(refreshListData)
+    setNewPlayerModalOpened(false)
   }
 
   // List all players in a table/grid
@@ -121,11 +125,13 @@ export default function ListPlayers() {
                   )}
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {playerToTeamAttributes[String(player.id)] && (
+                  {playerToTeam && playerToTeam[String(player.id)] ? (
                     <span className="flex items-center">
-                      <Image src={URL.createObjectURL(playerToTeamAttributes[String(player.id)].logo_image_file as Blob)} alt={playerToTeamAttributes[String(player.id)].short_name} width={30} height={30} className="mr-2" />
-                      {playerToTeamAttributes[String(player.id)].short_name}
+                      <Image src={URL.createObjectURL(playerToTeam[String(player.id)].logo_image_file as Blob)} alt={playerToTeam[String(player.id)].short_name} width={30} height={30} className="mr-2" />
+                      {playerToTeam[String(player.id)].short_name}
                     </span>
+                  ) : (
+                    'No Team'
                   )}
                 </td>
                 <td className="px-3 py-4 whitespace-normal text-sm font-medium text-gray-500">
