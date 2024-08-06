@@ -88,7 +88,7 @@ export default function ListPlayers() {
   // List all players in a table/grid
   return (
     <>
-      <PlayerActionModal isOpen={actionPlayerModalOpened} isEdit={isEditActionOpened} player={playerToEdit} onClose={closeActionPlayerModal} />
+      <PlayerActionModal isOpen={actionPlayerModalOpened} isEdit={isEditActionOpened} object={playerToEdit} onClose={closeActionPlayerModal} />
       <div className="flex min-h-screen flex-col items-center p-24">
         <header className="w-full flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Players</h1>

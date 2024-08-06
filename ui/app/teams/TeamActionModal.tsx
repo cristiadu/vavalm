@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import 'react-quill/dist/quill.snow.css'
 import CountryApi, { Country } from '../calls/CountryApi'
 import TeamsApi, { Team } from '../calls/TeamsApi'
 import Modal from '../base/Modal'
+import { ItemActionModalProps } from '../common/CommonModels'
+import 'react-quill/dist/quill.snow.css'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 
@@ -21,40 +22,68 @@ const quill_modules = {
   ],
 }
 
-export default function NewTeamModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void}) {
-  const [imageFile, setImageFile] = useState<File | null>(null)
+const initialState : Team = {
+  short_name: '',
+  logo_image_file: null,
+  full_name: '',
+  description: '',
+  country: '',
+}
+
+const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
+  const team = object as Team
+  const [teamState, setTeamState] = useState<Team>(initialState)
   const [imageSrc, setImageSrc] = useState('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
   const [countries, setCountries] = useState<Country[]>([])
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
-  const [description, setDescription] = useState('')
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownCountryRef = useRef<HTMLDivElement>(null)
+
+  const setInitialValues = useCallback((cleanup: boolean = false) => {
+    if (isEdit && team && !cleanup) {
+      setTeamState({
+        full_name: team.full_name,
+        short_name: team.short_name,
+        description: team.description,
+        logo_image_file: team.logo_image_file,
+        country: team.country,
+      })
+    } else {
+      setTeamState(initialState)
+    }
+  }, [isEdit, team])
 
   useEffect(() => {
-    CountryApi.fetchCountries(setCountries)
-      .then(() => console.log('Countries fetched'))
-  }, [])
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    const handleClickOutsideDropdown = (event: MouseEvent) => {
+      if (dropdownCountryRef.current && !dropdownCountryRef.current.contains(event.target as Node)) {
         setDropdownOpen(false)
       }
     }
-
-    document.addEventListener('mousedown', handleClickOutside)
+  
+    document.addEventListener('mousedown', handleClickOutsideDropdown)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('mousedown', handleClickOutsideDropdown)
     }
-  }, [])
+  })
+
+  useEffect(() => {
+    if (isOpen) {
+      CountryApi.fetchCountries(setCountries)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isEdit && team) {
+      setInitialValues()
+    }
+  }, [team, isEdit, setInitialValues])
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImageFile(file)
         setImageSrc(reader.result as string)
+        setTeamState({ ...teamState, logo_image_file: file })
       }
       reader.readAsDataURL(file)
     }
@@ -63,32 +92,43 @@ export default function NewTeamModal({ isOpen, onClose }: { isOpen: boolean, onC
   const closeModal = () => {
     onClose()
     isOpen = false
-    setImageFile(null)
+    setInitialValues(true)
     setImageSrc('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
-    setSelectedCountry(null)
-    setDescription('')
     setDropdownOpen(false)
   }
 
   const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country)
+    setTeamState({ ...teamState, country: country.name })
     setDropdownOpen(false)
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const newTeam: Team = {
-      short_name: (event.target as any)['short-name'].value,
-      logo_image_file: imageFile ? imageFile: null,
-      full_name: (event.target as any)['full-name'].value,
-      description: description,
+    const requestTeam: Team = {
+      id: team.id,
+      short_name: teamState.short_name,
+      logo_image_file: teamState.logo_image_file,
+      full_name: teamState.full_name,
+      description: teamState.description,
       country: selectedCountry?.name || '',
     }
 
-    TeamsApi.newTeam(newTeam, (teamData: any) => console.log(teamData))
-      .then(() => closeModal())
+    if (isEdit) {
+      await TeamsApi.editTeam(requestTeam, (editedTeam: Team) => {
+        console.log('Team edited', editedTeam)
+        closeModal()
+      })
+      return
+    }
+
+    await TeamsApi.newTeam(requestTeam, (newTeam: Team) => {
+      console.log('Team created', newTeam)
+      closeModal()
+    })
   }
+
+  const selectedCountry = countries.find(country => country.name === teamState.country) || null
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal}>
@@ -128,19 +168,25 @@ export default function NewTeamModal({ isOpen, onClose }: { isOpen: boolean, onC
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="full-name">
                 Full Name
               </label>
-              <input className="w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="full-name" name="full-name" type="text" placeholder="Full Name" />
+              <input className="w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" 
+                value={teamState.full_name} 
+                onChange={(event) => setTeamState({ ...teamState, full_name: event.target.value })}
+                id="full-name" name="full-name" type="text" placeholder="Full Name" />
             </div>
             <div className="w-full mt-4">
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="short-name">
                 Short Name
               </label>
-              <input className="w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="short-name" name="short-name" type="text" placeholder="Short Name" />
+              <input className="w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" 
+                value={teamState.short_name} 
+                onChange={(event) => setTeamState({ ...teamState, short_name: event.target.value })}
+                id="short-name" name="short-name" type="text" placeholder="Short Name" />
             </div>
             <div className="w-full mt-4">
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="country">
                 Country
               </label>
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative" ref={dropdownCountryRef}>
                 <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer" onClick={() => setDropdownOpen(!dropdownOpen)}>
                   {selectedCountry ? (
                     <div className="flex items-center">
@@ -171,8 +217,8 @@ export default function NewTeamModal({ isOpen, onClose }: { isOpen: boolean, onC
               Description
             </label>
             <ReactQuill
-              value={description}
-              onChange={setDescription}
+              value={teamState.description}
+              onChange={(value) => setTeamState({ ...teamState, description: value })}
               className="h-96"
               placeholder="Description"
               modules={quill_modules}
@@ -188,3 +234,5 @@ export default function NewTeamModal({ isOpen, onClose }: { isOpen: boolean, onC
     </Modal>
   )
 }
+
+export default TeamActionModal

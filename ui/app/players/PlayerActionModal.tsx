@@ -1,16 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import PlayersApi, { Player, PlayerAttributes } from '../calls/PlayersApi'
 import Image from 'next/image'
 import Modal from '../base/Modal'
 import CountryApi, { Country } from '../calls/CountryApi'
 import TeamsApi, { Team } from '../calls/TeamsApi'
-
-interface PlayerActionModalProps {
-  isOpen: boolean;
-  isEdit: boolean;
-  player: Player | null;
-  onClose: () => void;
-}
+import { ItemActionModalProps } from '../common/CommonModels'
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -40,13 +34,17 @@ const initialPlayerState = {
   selectedCountry: null as Country | null,
 }
 
-const PlayerActionModal: React.FC<PlayerActionModalProps> = ({ isOpen, onClose, isEdit, player }) => {
+const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
+  const player = object ? object as Player: null
   const [playerState, setPlayerState] = useState(initialPlayerState)
   const [teams, setTeams] = useState<Team[]>([])
   const [countries, setCountries] = useState<Country[]>([])
   const [dropdownOpenTeam, setDropdownOpenTeam] = useState(false)
   const [dropdownOpenCountry, setDropdownOpenCountry] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const dropdownCountryRef = useRef<HTMLDivElement>(null)
+  const dropdownTeamRef = useRef<HTMLDivElement>(null)
+
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
     if (isEdit && player && !cleanup) {
@@ -62,6 +60,23 @@ const PlayerActionModal: React.FC<PlayerActionModalProps> = ({ isOpen, onClose, 
       setPlayerState(initialPlayerState)
     }
   }, [isEdit, player, countries])
+
+  useEffect(() => {
+    const handleClickOutsideDropdowns = (event: MouseEvent) => {
+      if (dropdownCountryRef.current && !dropdownCountryRef.current.contains(event.target as Node)) {
+        setDropdownOpenCountry(false)
+      }
+
+      if (dropdownTeamRef.current && !dropdownTeamRef.current.contains(event.target as Node)) {
+        setDropdownOpenTeam(false)
+      }
+    }
+  
+    document.addEventListener('mousedown', handleClickOutsideDropdowns)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideDropdowns)
+    }
+  })
 
   useEffect(() => {
     if (isOpen) {
@@ -181,7 +196,7 @@ const PlayerActionModal: React.FC<PlayerActionModalProps> = ({ isOpen, onClose, 
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="country">
                 Country
               </label>
-              <div className="relative">
+              <div className="relative" ref={dropdownCountryRef}>
                 <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
                   onClick={() => setDropdownOpenCountry(!dropdownOpenCountry)}>
                   {playerState.selectedCountry ? (
@@ -207,7 +222,7 @@ const PlayerActionModal: React.FC<PlayerActionModalProps> = ({ isOpen, onClose, 
             </div>
             <div>
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Team</label>
-              <div className="relative">
+              <div className="relative" ref={dropdownTeamRef}>
                 <div
                   className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
                   onClick={() => setDropdownOpenTeam(!dropdownOpenTeam)}

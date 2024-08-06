@@ -9,14 +9,16 @@ import CountryApi from '../calls/CountryApi'
 import Link from 'next/link'
 import TeamsApi, { Team } from '../calls/TeamsApi'
 import 'react-quill/dist/quill.snow.css'
-import NewTeamModal from './NewTeamModal'
+import TeamActionModal from './TeamActionModal'
 import { handleBackClick } from '../base/LinkUtils'
 
 export default function ListTeams() {
   const router = useRouter()
   const [teams, setTeams] = useState<Team[]>([])
-  const [newTeamModalOpened, setNewTeamModalOpened] = useState<boolean>(false)
+  const [teamActionModalOpened, setTeamActionModalOpened] = useState<boolean>(false)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
+  const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
+  const [teamToEdit, setTeamToEdit] = useState<Team | null>(null)
 
   useEffect(() => {
     CountryApi.fetchCountries((countries) => {
@@ -38,18 +40,43 @@ export default function ListTeams() {
 
   const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
-    setNewTeamModalOpened(true)
+    setIsEditActionOpened(false)
+    setTeamActionModalOpened(true)
   }
 
   const closeNewTeamModal = () => {
-    setNewTeamModalOpened(false)
+    setTeamActionModalOpened(false)
+    setIsEditActionOpened(false)
     TeamsApi.fetchTeams(setTeams)
+  }
+
+  const handleView = (team: Team) => {
+    // Send user to player details page
+    router.push(`/teams/${team.id}`)
+  }
+
+  const handleEdit = (team: Team) => {
+    // Use same modal as NewPlayerModal but with prefilled data
+    setTeamToEdit(team)
+    setIsEditActionOpened(true)
+    setTeamActionModalOpened(true)
+  }
+
+  const handleDelete = (team: Team) => {
+    // Show confirm dialog and if confirmed delete player
+    const confirmed = confirm(`Are you sure you want to delete team '${team.short_name}'?`)
+    if(!confirmed) return
+
+    TeamsApi.deleteTeam(team, () => {
+      TeamsApi.fetchTeams(setTeams)
+    })
+    
   }
 
   // List all teams in a table/grid
   return (
     <>
-      <NewTeamModal isOpen={newTeamModalOpened} onClose={closeNewTeamModal} />
+      <TeamActionModal isOpen={teamActionModalOpened} onClose={closeNewTeamModal} isEdit={isEditActionOpened} object={teamToEdit} />
       <div className="flex min-h-screen flex-col items-center p-24">
         <header className="w-full flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Teams</h1>
@@ -83,6 +110,9 @@ export default function ListTeams() {
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Description
               </th>
+              <th className="py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase w-auto">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -110,6 +140,11 @@ export default function ListTeams() {
                 </td>
                 <td className="px-3 py-4 whitespace-normal text-sm font-medium text-gray-500">
                   <div className="ql-container ql-snow" style={{ border: "0" }}>{asSafeHTML(team.description || "")}</div>
+                </td>
+                <td className="py-4 whitespace-nowrap text-sm text-left text-gray-900 w-auto">
+                  <button onClick={() => handleView(team)} className="text-blue-600 hover:text-blue-900 p0">👀</button>
+                  <button onClick={() => handleEdit(team)} className="text-blue-600 hover:text-blue-900 p0">✏️</button>
+                  <button onClick={() => handleDelete(team)} className="text-red-600 hover:text-red-900 p0">🗑️</button>
                 </td>
               </tr>
             ))}
