@@ -32,7 +32,7 @@ const initialPlayerAttributes = {
 const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
   const [nickname, setNickname] = useState('')
   const [fullName, setFullName] = useState('')
-  const [age, setAge] = useState(0)
+  const [age, setAge] = useState(15)
   const [teamId, setTeamId] = useState<number | null>(null)
   const [playerAttributes, setPlayerAttributes] = useState(initialPlayerAttributes)
   const [teams, setTeams] = useState<Team[]>([])
@@ -76,7 +76,7 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
 
   const closeModal = () => {
     onClose()
-    setAge(0)
+    setAge(15)
     setNickname('')
     setFullName('')
     setTeamId(null)
@@ -111,7 +111,7 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal}>
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-3xl">
+      <div className="bg-white p-8 w-full max-w-3xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl">New Player</h2>
         </div>
@@ -131,6 +131,8 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
               <label className="block text-gray-700">Age</label>
               <input
                 type="number"
+                min={15}
+                max={50}
                 value={age}
                 onChange={(e) => setAge(Number(e.target.value))}
                 className="w-full px-3 py-2 border rounded"
@@ -211,6 +213,8 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
                   <label className="block text-gray-700 capitalize">{attribute.replace('_', ' ')}</label>
                   <input
                     type="number"
+                    min={0}
+                    max={3}
                     name={attribute}
                     value={playerAttributes[attribute as keyof typeof initialPlayerAttributes]}
                     onChange={(e) =>

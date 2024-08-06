@@ -46,6 +46,13 @@ export default function ListPlayers() {
     setPlayers(playerData)
   }
 
+  const asWord = (key: string): string => {
+    const words = key.split('_')
+    const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    const formattedString = capitalizedWords.join(' ')
+    return formattedString
+  }
+
   const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
     const referrer = document.referrer
@@ -102,7 +109,7 @@ export default function ListPlayers() {
                 Country
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Team ID
+                Team
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Attributes
@@ -138,14 +145,14 @@ export default function ListPlayers() {
                   <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">
                     {Object.entries(player.player_attributes).map(([key, value]) => {
                       let bgColor = "bg-gray-200" // Default background color
-                      if (value === 3) bgColor = "bg-green-500"
-                      else if (value === 2) bgColor = "bg-yellow-500"
+                      if (value === 3) bgColor = "bg-green-600"
+                      else if (value === 2) bgColor = "bg-yellow-600"
                       else if (value === 1) bgColor = "bg-gray-500"
 
                       return (
                         <div key={key} className="flex items-center space-x-1">
                           <span className={`w-6 h-6 flex items-center justify-center rounded text-xs text-white ${bgColor}`}>{value}</span>
-                          <span className="text-xs text-gray-900 truncate">{key}</span>
+                          <span className="text-xs text-gray-900 truncate">{asWord(key)}</span>
                         </div>
                       )
                     })}
