@@ -18,6 +18,7 @@ const CountryApi = {
     
       // Run the closure function after fetching data
       closure(countryData)
+      return countryData as Country[]
     } catch (error) {
       console.error('Error fetching countries:', error)
     }

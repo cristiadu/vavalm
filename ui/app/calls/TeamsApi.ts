@@ -19,8 +19,8 @@ const TeamsApi = {
       }
       return team
     })
-
     closure(teamsWithBlob)
+    return teamsWithBlob as Team[]
   },
   fetchTeam: async (teamId: number, closure: (teamData: Team) => void) => {
     const response = await fetch(`http://localhost:8000/teams/${teamId}`)
@@ -29,6 +29,7 @@ const TeamsApi = {
     if (data.logo_image_file) {
       const blob = new Blob([new Uint8Array(data.logo_image_file.data)], { type: 'image/png' })
       closure({ ...data, logo_image_file: blob })
+      return { ...data, logo_image_file: blob } as Team
     } else {
       closure(data)
     }
@@ -58,6 +59,7 @@ const TeamsApi = {
       const result = await response.json()
       closure(result)
       console.log('Success:', result)
+      return result as Team
     } catch (error) {
       console.error('Error:', error)
     }
@@ -87,6 +89,7 @@ const TeamsApi = {
       const result = await response.json()
       closure(result)
       console.log('Success:', result)
+      return result as Team
     } catch (error) {
       console.error('Error:', error)
     }
@@ -109,6 +112,7 @@ const TeamsApi = {
       const result = await response.json()
       closure(result)
       console.log('Success:', result)
+      return result
     } catch (error) {
       console.error('Error:', error)
     }

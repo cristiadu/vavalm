@@ -32,6 +32,13 @@ const PlayersApi = {
     const response = await fetch('http://localhost:8000/players')
     const data = await response.json()
     closure(data)
+    return data as Player[]
+  },
+  fetchPlayer: async (playerId: number, closure: (playerData: Player) => void) => {
+    const response = await fetch(`http://localhost:8000/players/${playerId}`)
+    const data = await response.json()
+    closure(data)
+    return data as Player
   },
   newPlayer: async (player: Player, closure: (playerData: Player) => void) => {
     try {
@@ -51,6 +58,7 @@ const PlayersApi = {
       const result = await response.json()
       closure(result)
       console.log('Success:', result)
+      return result as Player
     } catch (error) {
       console.error('Error:', error)
     }
@@ -73,6 +81,7 @@ const PlayersApi = {
       const result = await response.json()
       closure(result)
       console.log('Success:', result)
+      return result as Player
     } catch (error) {
       console.error('Error:', error)
     }
@@ -95,6 +104,7 @@ const PlayersApi = {
       const result = await response.json()
       closure(result)
       console.log('Success:', result)
+      return result
     } catch (error) {
       console.error('Error:', error)
     }

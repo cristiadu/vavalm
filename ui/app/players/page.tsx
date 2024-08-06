@@ -10,6 +10,7 @@ import 'react-quill/dist/quill.snow.css'
 import PlayerActionModal from './PlayerActionModal'
 import TeamsApi, { Team } from '../calls/TeamsApi'
 import { handleBackClick } from '../base/LinkUtils'
+import { asWord } from '../base/StringUtils'
 
 export default function ListPlayers() {
   const router = useRouter()
@@ -47,13 +48,6 @@ export default function ListPlayers() {
 
     setPlayerToTeam(playerToTeam)
     setPlayers(playerData)
-  }
-
-  const asWord = (key: string): string => {
-    const words = key.split('_')
-    const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    const formattedString = capitalizedWords.join(' ')
-    return formattedString
   }
 
   const openNewPlayerModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
