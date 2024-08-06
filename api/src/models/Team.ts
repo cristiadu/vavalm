@@ -3,11 +3,11 @@ import { sequelize } from './index'
 import Player from './Player'
 
 class Team extends Model {
-  logo_image_file: any
-  short_name!: string
-  full_name!: string
-  description!: string
-  country!: string
+  declare logo_image_file: any
+  declare short_name: string
+  declare full_name: string
+  declare description: string
+  declare country: string
 
   public getPlayers!: () => Promise<Player[]>
 }
@@ -20,6 +20,9 @@ Team.init({
   logo_image_file: {
     type: DataTypes.BLOB,
     allowNull: true,
+    set(value: any) {
+      this.setDataValue('logo_image_file', new Blob([value], { type: 'image/png' }))
+    },
   },
   full_name: {
     type: DataTypes.STRING,

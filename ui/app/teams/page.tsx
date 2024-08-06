@@ -10,6 +10,7 @@ import Link from 'next/link'
 import TeamsApi, { Team } from '../calls/TeamsApi'
 import 'react-quill/dist/quill.snow.css'
 import NewTeamModal from './NewTeamModal'
+import { handleBackClick } from '../base/LinkUtils'
 
 export default function ListTeams() {
   const router = useRouter()
@@ -35,17 +36,6 @@ export default function ListTeams() {
     return <div className="ql-editor" dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
   }
 
-  const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    e.preventDefault()
-    const referrer = document.referrer
-    const isInternal = referrer && referrer.includes(window.location.hostname)
-    if (isInternal && referrer !== '') {
-      router.back()
-    } else {
-      router.push('/')
-    }
-  }
-
   const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
     setNewTeamModalOpened(true)
@@ -64,7 +54,7 @@ export default function ListTeams() {
         <header className="w-full flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Teams</h1>
           <div className="space-x-4">
-            <Link href="#" onClick={handleBackClick} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
               Back
             </Link>
             <Link href="#" onClick={openNewTeamModal} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">

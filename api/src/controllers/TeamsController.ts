@@ -8,14 +8,8 @@ const upload = Multer({ storage: Multer.memoryStorage() })
 // Fetch all teams
 router.get('/', async (req, res) => {
   try {
-    const teams = await Team.findAll()
-    const teamsWithBlob = teams.map(team => {
-      if (team.logo_image_file) {
-        team.logo_image_file = new Blob([team.logo_image_file], { type: 'image/png' })
-      }
-      return team
-    })
-    res.json(teamsWithBlob)
+    const teams = await Team.findAll({ order: [['id', 'ASC']] })
+    res.json(teams)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
     res.status(500).json({ error: 'Internal Server Error' })
@@ -30,9 +24,6 @@ router.get('/:id', async (req, res) => {
     const team = await Team.findByPk(id)
     if (!team) {
       return res.status(404).json({ error: 'Team not found' })
-    }
-    if (team.logo_image_file) {
-      team.logo_image_file = new Blob([team.logo_image_file], { type: 'image/png' })
     }
     res.json(team)
   } catch (err) {

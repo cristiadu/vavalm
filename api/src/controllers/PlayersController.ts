@@ -6,7 +6,7 @@ const router = Router()
 // Fetch all players
 router.get('/', async (req, res) => {
   try {
-    const teams = await Player.findAll()
+    const teams = await Player.findAll({ order: [['id', 'ASC']] })
     res.json(teams)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
@@ -56,6 +56,55 @@ router.post('/', async (req, res) => {
       console.error('Error message:', err.message)
       console.error('Error stack:', err.stack)
     }
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Update an existing player
+router.put('/:id', async (req, res) => {
+  const { id } = req.params
+  const { nickname, full_name, age, country, team_id, player_attributes } = req.body
+
+  // Validate input data
+  if (!nickname || !full_name || !age || !country || !player_attributes) {
+    return res.status(400).json({ error: 'nickname, full_name, age, country, and player_attributes are required' })
+  }
+
+  try {
+    const player = await Player.findByPk(id)
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' })
+    }
+
+    player.nickname = nickname
+    player.full_name = full_name
+    player.age = age
+    player.country = country
+    player.team_id = team_id
+    player.player_attributes = player_attributes
+
+    await player.save()
+    res.json(player)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Delete an existing player
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const player = await Player.findByPk(id)
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' })
+    }
+
+    await player.destroy()
+    res.json({ message: 'Player deleted successfully' })
+  } catch (err) {
+    console.error('Error executing query:', err)
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })

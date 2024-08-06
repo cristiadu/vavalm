@@ -7,14 +7,17 @@ import CountryApi from '../calls/CountryApi'
 import Link from 'next/link'
 import PlayersApi, { Player } from '../calls/PlayersApi'
 import 'react-quill/dist/quill.snow.css'
-import NewPlayerModal from './NewPlayerModal'
+import PlayerActionModal from './PlayerActionModal'
 import TeamsApi, { Team } from '../calls/TeamsApi'
+import { handleBackClick } from '../base/LinkUtils'
 
 export default function ListPlayers() {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
+  const [playerToEdit, setPlayerToEdit] = useState<Player | null>(null)
   const [playerToTeam, setPlayerToTeam] = useState<Record<string, Team>>({})
-  const [newPlayerModalOpened, setNewPlayerModalOpened] = useState<boolean>(false)
+  const [actionPlayerModalOpened, setActionPlayerModalOpened] = useState<boolean>(false)
+  const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -53,36 +56,51 @@ export default function ListPlayers() {
     return formattedString
   }
 
-  const handleBackClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    e.preventDefault()
-    const referrer = document.referrer
-    const isInternal = referrer && referrer.includes(window.location.hostname)
-    if (isInternal && referrer !== '') {
-      router.back()
-    } else {
-      router.push('/')
-    }
-  }
-
   const openNewPlayerModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
-    setNewPlayerModalOpened(true)
+    setActionPlayerModalOpened(true)
   }
 
-  const closeNewPlayerModal = () => {
+  const closeActionPlayerModal = () => {
+    setIsEditActionOpened(false)
+    setPlayerToEdit(null)
+    setActionPlayerModalOpened(false)
     PlayersApi.fetchPlayers(refreshListData)
-    setNewPlayerModalOpened(false)
+  }
+
+  const handleView = (player: Player) => {
+    // Send user to player details page
+    router.push(`/players/${player.id}`)
+  }
+
+  const handleEdit = (player: Player) => {
+    // Use same modal as NewPlayerModal but with prefilled data
+    setPlayerToEdit(player)
+    setIsEditActionOpened(true)
+    setActionPlayerModalOpened(true)
+  }
+
+  const handleDelete = (player: Player) => {
+    // Show confirm dialog and if confirmed delete player
+    const confirmed = confirm(`Are you sure you want to delete player '${player.nickname}'?`)
+
+    if(!confirmed) return
+
+    PlayersApi.deletePlayer(player, () => {
+      PlayersApi.fetchPlayers(refreshListData)
+    })
+    
   }
 
   // List all players in a table/grid
   return (
     <>
-      <NewPlayerModal isOpen={newPlayerModalOpened} onClose={closeNewPlayerModal} />
+      <PlayerActionModal isOpen={actionPlayerModalOpened} isEdit={isEditActionOpened} player={playerToEdit} onClose={closeActionPlayerModal} />
       <div className="flex min-h-screen flex-col items-center p-24">
         <header className="w-full flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Players</h1>
           <div className="space-x-4">
-            <Link href="#" onClick={handleBackClick} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
               Back
             </Link>
             <Link href="#" onClick={openNewPlayerModal} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -93,26 +111,29 @@ export default function ListPlayers() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 ID
               </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Nickname
               </th>
-              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Full Name
               </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Age
               </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Country
               </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Team
               </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Attributes
+              </th>
+              <th className="py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase w-auto">
+                Actions
               </th>
             </tr>
           </thead>
@@ -121,7 +142,7 @@ export default function ListPlayers() {
               <tr key={player.id}>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.id}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.nickname}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.full_name}</td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.full_name}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.age}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {player.country && (
@@ -141,7 +162,7 @@ export default function ListPlayers() {
                     'No Team'
                   )}
                 </td>
-                <td className="px-3 py-4 whitespace-normal text-sm font-medium text-gray-500">
+                <td className="px-6 py-4 whitespace-normal text-sm font-medium text-gray-500">
                   <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">
                     {Object.entries(player.player_attributes).map(([key, value]) => {
                       let bgColor = "bg-gray-200" // Default background color
@@ -157,6 +178,11 @@ export default function ListPlayers() {
                       )
                     })}
                   </div>
+                </td>
+                <td className="py-4 whitespace-nowrap text-sm text-left text-gray-900 w-auto">
+                  <button onClick={() => handleView(player)} className="text-blue-600 hover:text-blue-900 p0">👀</button>
+                  <button onClick={() => handleEdit(player)} className="text-blue-600 hover:text-blue-900 p0">✏️</button>
+                  <button onClick={() => handleDelete(player)} className="text-red-600 hover:text-red-900 p0">🗑️</button>
                 </td>
               </tr>
             ))}

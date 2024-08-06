@@ -53,6 +53,50 @@ const PlayersApi = {
       console.error('Error:', error)
     }
   },
+  editPlayer: async (player: Player, closure: (playerData: Player) => void) => {
+    try {
+      const response = await fetch(`http://localhost:8000/players/${player.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(player),
+      })
+  
+      if (!response.ok) {
+        console.log("Network response was not ok: ", player)
+        return
+      }
+  
+      const result = await response.json()
+      closure(result)
+      console.log('Success:', result)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  },
+  deletePlayer: async (player: Player, closure: (playerData: Player) => void) => {
+    try {
+      const response = await fetch(`http://localhost:8000/players/${player.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(player),
+      })
+  
+      if (!response.ok) {
+        console.log("Network response was not ok: ", player)
+        return
+      }
+  
+      const result = await response.json()
+      closure(result)
+      console.log('Success:', result)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  },
 }
   
 export default PlayersApi

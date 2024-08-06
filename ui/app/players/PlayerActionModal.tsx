@@ -1,16 +1,18 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import PlayersApi, { Player } from '../calls/PlayersApi'
 import Image from 'next/image'
 import Modal from '../base/Modal'
 import CountryApi, { Country } from '../calls/CountryApi'
-import { Team } from '../calls/TeamsApi'
+import TeamsApi, { Team } from '../calls/TeamsApi'
 
-interface NewPlayerModalProps {
-  isOpen: boolean
-  onClose: () => void
+interface PlayerActionModalProps {
+  isOpen: boolean;
+  isEdit: boolean;
+  player: Player | null;
+  onClose: () => void;
 }
 
-const initialPlayerAttributes = {
+const defaultPlayerAttributes = {
   clutch: 0,
   awareness: 0,
   aim: 0,
@@ -29,100 +31,124 @@ const initialPlayerAttributes = {
   utility_usage: 0,
 }
 
-const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
-  const [nickname, setNickname] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [age, setAge] = useState(15)
-  const [teamId, setTeamId] = useState<number | null>(null)
-  const [playerAttributes, setPlayerAttributes] = useState(initialPlayerAttributes)
+const initialPlayerState = {
+  nickname: '',
+  fullName: '',
+  age: 15,
+  teamId: null as number | null,
+  playerAttributes: defaultPlayerAttributes,
+  selectedCountry: null as Country | null,
+}
+
+const PlayerActionModal: React.FC<PlayerActionModalProps> = ({ isOpen, onClose, isEdit, player }) => {
+  const [playerState, setPlayerState] = useState(initialPlayerState)
   const [teams, setTeams] = useState<Team[]>([])
+  const [countries, setCountries] = useState<Country[]>([])
   const [dropdownOpenTeam, setDropdownOpenTeam] = useState(false)
   const [dropdownOpenCountry, setDropdownOpenCountry] = useState(false)
-  const [countries, setCountries] = useState<Country[]>([])
-  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
+
+  const setInitialValues = useCallback((cleanup: boolean = false) => {
+    if (isEdit && player && !cleanup) {
+      setPlayerState({
+        nickname: player.nickname,
+        fullName: player.full_name,
+        age: player.age,
+        teamId: player.team_id,
+        playerAttributes: player.player_attributes,
+        selectedCountry: countries.find(country => country.name === player.country) || null,
+      })
+    } else {
+      setPlayerState(initialPlayerState)
+    }
+  }, [isEdit, player, countries])
 
   useEffect(() => {
     if (isOpen) {
       CountryApi.fetchCountries(setCountries)
-        .then(() => console.log('Countries fetched'))
-      fetchTeams()
+      TeamsApi.fetchTeams(setTeams)
     }
   }, [isOpen])
 
-  const fetchTeams = async () => {
-    const response = await fetch('http://localhost:8000/teams')
-    const data = await response.json()
-    // Convert Buffer to Blob
-    const teamsWithBlob = data.map((team: any) => {
-      if (team.logo_image_file) {
-        const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-        return { ...team, logo_image_file: blob }
-      }
-      return team
-    })
-    setTeams(teamsWithBlob)
-  }
+  useEffect(() => {
+    if (isEdit && player) {
+      setInitialValues()
+    }
+  }, [player, isEdit, setInitialValues])
 
   const handleTeamSelect = (team: Team) => {
-    setTeamId(team.id ?? null)
+    setPlayerState(prevState => ({ ...prevState, teamId: team.id ?? null }))
     setDropdownOpenTeam(false)
   }
 
   const handleCountrySelect = (country: Country) => {
-    setSelectedCountry(country)
+    setPlayerState(prevState => ({ ...prevState, selectedCountry: country }))
     setDropdownOpenCountry(false)
   }
 
   const closeModal = () => {
     onClose()
-    setAge(15)
-    setNickname('')
-    setFullName('')
-    setTeamId(null)
-    setPlayerAttributes(initialPlayerAttributes)
-    setSelectedCountry(null)
+    setInitialValues(true)
     setDropdownOpenTeam(false)
     setDropdownOpenCountry(false)
+    setValidationError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setValidationError(null)
 
-    if (teamId === null) {
-      console.error('Team must be selected')
+    if (playerState.teamId === null || playerState.selectedCountry === null) {
+      setValidationError("Please select both a team and a country.")
       return
     }
 
-    const newPlayer: Player = {
-      nickname,
-      full_name: fullName,
-      age,
-      country: selectedCountry?.name || '',
-      team_id: teamId,
-      player_attributes: playerAttributes,
+    const requestPlayer: Player = {
+      id: player?.id,
+      nickname: playerState.nickname,
+      full_name: playerState.fullName,
+      age: playerState.age,
+      country: playerState.selectedCountry?.name || '',
+      team_id: playerState.teamId,
+      player_attributes: playerState.playerAttributes,
     }
 
-    await PlayersApi.newPlayer(newPlayer, (players) => {
-      console.log('Player created:', players)
+    if (isEdit) {
+      await PlayersApi.editPlayer(requestPlayer, (editedPlayer) => {
+        console.log('Player edited:', editedPlayer)
+        closeModal()
+      })
+      return
+    }
+
+    await PlayersApi.newPlayer(requestPlayer, (newPlayer) => {
+      console.log('Player created:', newPlayer)
       closeModal()
     })
   }
+
+  const selectedTeam = teams.find(team => team.id === playerState.teamId)
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal}>
       <div className="bg-white p-8 w-full max-w-3xl">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl">New Player</h2>
+          <h2 className="text-2xl">{isEdit ? "Edit Player" : "New Player"}</h2>
         </div>
+        {validationError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 text-sm rounded relative mb-4" role="alert">
+            <strong className="font-bold">❌ Error: </strong>
+            <span className="block sm:inline">{validationError}</span>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-10 gap-4 mb-4">
             <div className="col-span-8">
               <label className="block text-gray-700">Nickname</label>
               <input
                 type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                value={playerState.nickname}
+                onChange={(e) => setPlayerState({ ...playerState, nickname: e.target.value })}
                 className="w-full px-3 py-2 border rounded"
                 required
               />
@@ -133,8 +159,8 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
                 type="number"
                 min={15}
                 max={50}
-                value={age}
-                onChange={(e) => setAge(Number(e.target.value))}
+                value={playerState.age}
+                onChange={(e) => setPlayerState({ ...playerState, age: Number(e.target.value) })}
                 className="w-full px-3 py-2 border rounded"
                 required
               />
@@ -144,8 +170,8 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
             <label className="block text-gray-700">Full Name</label>
             <input
               type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              value={playerState.fullName}
+              onChange={(e) => setPlayerState({ ...playerState, fullName: e.target.value })}
               className="w-full px-3 py-2 border rounded"
               required
             />
@@ -155,13 +181,13 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="country">
                 Country
               </label>
-              <div className="relative" ref={dropdownRef}>
-                <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer" 
+              <div className="relative">
+                <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
                   onClick={() => setDropdownOpenCountry(!dropdownOpenCountry)}>
-                  {selectedCountry ? (
+                  {playerState.selectedCountry ? (
                     <div className="flex items-center">
-                      <Image src={selectedCountry.flag} alt={selectedCountry.name} width={30} height={30} className="mr-2" />
-                      {selectedCountry.name}
+                      <Image src={playerState.selectedCountry.flag} alt={playerState.selectedCountry.name} width={30} height={30} className="mr-2" />
+                      {playerState.selectedCountry.name}
                     </div>
                   ) : (
                     'Select a country'
@@ -180,13 +206,20 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
             <div>
-              <label className="block text-gray-700">Team</label>
+              <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Team</label>
               <div className="relative">
                 <div
                   className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
                   onClick={() => setDropdownOpenTeam(!dropdownOpenTeam)}
                 >
-                  {teams.find(team => team.id === teamId)?.short_name || 'Select a team'}
+                  {selectedTeam ? (
+                    <div className="flex items-center">
+                      <Image src={selectedTeam.logo_image_file ? URL.createObjectURL(selectedTeam.logo_image_file) : ''} alt={selectedTeam.short_name || 'No Team'} width={30} height={30} className="mr-2" />
+                      {selectedTeam.short_name}
+                    </div>
+                  ) : (
+                    'Select a team'
+                  )}
                 </div>
                 {dropdownOpenTeam && (
                   <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
@@ -208,7 +241,7 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
           <div className="mb-4">
             <h3 className="text-xl mb-2">Player Attributes</h3>
             <div className="grid grid-cols-3 gap-4">
-              {Object.keys(initialPlayerAttributes).map((attribute) => (
+              {Object.keys(defaultPlayerAttributes).map((attribute) => (
                 <div key={attribute} className="mb-2">
                   <label className="block text-gray-700 capitalize">{attribute.replace('_', ' ')}</label>
                   <input
@@ -216,11 +249,14 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
                     min={0}
                     max={3}
                     name={attribute}
-                    value={playerAttributes[attribute as keyof typeof initialPlayerAttributes]}
+                    value={playerState.playerAttributes[attribute as keyof typeof defaultPlayerAttributes]}
                     onChange={(e) =>
-                      setPlayerAttributes({
-                        ...playerAttributes,
-                        [attribute]: Number(e.target.value),
+                      setPlayerState({
+                        ...playerState,
+                        playerAttributes: {
+                          ...playerState.playerAttributes,
+                          [attribute]: Number(e.target.value),
+                        },
                       })
                     }
                     className="w-full px-3 py-2 border rounded"
@@ -241,4 +277,4 @@ const NewPlayerModal: React.FC<NewPlayerModalProps> = ({ isOpen, onClose }) => {
   )
 }
 
-export default NewPlayerModal
+export default PlayerActionModal
