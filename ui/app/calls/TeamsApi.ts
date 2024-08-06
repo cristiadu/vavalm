@@ -62,6 +62,57 @@ const TeamsApi = {
       console.error('Error:', error)
     }
   },
+  editTeam: async (team: Team, closure: (teamData: Team) => void) => {
+    const formData = new FormData()
+    if(team.logo_image_file) {
+      formData.append('logo_image_file', team.logo_image_file)
+    }
+
+    formData.append('full_name', team.full_name)
+    formData.append('short_name', team.short_name)
+    formData.append('country', team.country)
+    formData.append('description', team.description || '')
+
+    try {
+      const response = await fetch(`http://localhost:8000/teams/${team.id}`, {
+        method: 'PUT',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        console.log("Network response was not ok: ", formData)
+        return
+      }
+
+      const result = await response.json()
+      closure(result)
+      console.log('Success:', result)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  },
+  deleteTeam: async (team: Team, closure: (teamData: Team) => void) => {
+    try {
+      const response = await fetch(`http://localhost:8000/teams/${team.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(team),
+      })
+
+      if (!response.ok) {
+        console.log("Network response was not ok: ", team)
+        return
+      }
+
+      const result = await response.json()
+      closure(result)
+      console.log('Success:', result)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  },
 }
 
 export default TeamsApi

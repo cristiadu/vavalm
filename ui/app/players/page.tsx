@@ -83,7 +83,6 @@ export default function ListPlayers() {
   const handleDelete = (player: Player) => {
     // Show confirm dialog and if confirmed delete player
     const confirmed = confirm(`Are you sure you want to delete player '${player.nickname}'?`)
-
     if(!confirmed) return
 
     PlayersApi.deletePlayer(player, () => {

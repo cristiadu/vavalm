@@ -62,4 +62,49 @@ router.post('/', upload.single('logo_image_file'), async (req, res) => {
   }
 })
 
+// Update a team
+router.put('/:id', upload.single('logo_image_file'), async (req, res) => {
+  const { id } = req.params
+  const { short_name, full_name, description, country } = req.body
+  const logo_image_file = req.file ? req.file.buffer : null
+
+  try {
+    const team = await Team.findByPk(id)
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' })
+    }
+
+    console.log('Updating team with data:', { short_name, full_name, logo_image_file, description, country })
+    team.short_name = short_name
+    team.full_name = full_name
+    team.logo_image_file = logo_image_file
+    team.description = description
+    team.country = country
+    await team.save()
+
+    res.json(team)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Delete a team
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const team = await Team.findByPk(id)
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' })
+    }
+
+    await team.destroy()
+    res.json({ message: 'Team deleted successfully' })
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 export default router

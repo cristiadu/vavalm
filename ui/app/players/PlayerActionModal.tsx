@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import PlayersApi, { Player } from '../calls/PlayersApi'
+import { useState, useEffect, useCallback } from 'react'
+import PlayersApi, { Player, PlayerAttributes } from '../calls/PlayersApi'
 import Image from 'next/image'
 import Modal from '../base/Modal'
 import CountryApi, { Country } from '../calls/CountryApi'
@@ -12,7 +12,7 @@ interface PlayerActionModalProps {
   onClose: () => void;
 }
 
-const defaultPlayerAttributes = {
+const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
   awareness: 0,
   aim: 0,
@@ -249,7 +249,7 @@ const PlayerActionModal: React.FC<PlayerActionModalProps> = ({ isOpen, onClose, 
                     min={0}
                     max={3}
                     name={attribute}
-                    value={playerState.playerAttributes[attribute as keyof typeof defaultPlayerAttributes]}
+                    value={playerState.playerAttributes[attribute as keyof PlayerAttributes]}
                     onChange={(e) =>
                       setPlayerState({
                         ...playerState,
