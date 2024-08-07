@@ -8,6 +8,7 @@ const basename = path.basename(__filename)
 const env = process.env.NODE_ENV || 'development'
 const config = require(__dirname + '/../config/config.json')[env]
 const db = {}
+let executed = false
 
 let sequelize
 if (config.use_env_variable) {
@@ -16,21 +17,23 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, { logging: console.log, ...config })
 }
 
-// Use Webpack's require.context to read all files in the current directory and import them as models
-const requireModel = require.context(__dirname, false, /\.js$/)
+if (!executed) {
+  // Create a context for the models directory
+  const context = require.context(__dirname, false, /\.js$/)
 
-requireModel.keys().forEach(file => {
-  if (file.indexOf('.') !== 0 && file !== `./${basename}` && file.indexOf('.test.js') === -1) {
-    const model = requireModel(file)(sequelize, Sequelize.DataTypes)
-    db[model.name] = model
-  }
-})
+  context.keys().forEach(file => {
+    if (file.indexOf('.') !== 0 && file !== './' + basename && file !== './associations.js' && file.indexOf('.test.js') === -1) {
+      const model = context(file)(sequelize, Sequelize.DataTypes)
+      db[model.name] = model
+    }
+  })
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db)
-  }
-})
+  Object.keys(db).forEach(modelName => {
+    if (db[modelName].associate) {
+      db[modelName].associate(db)
+    }
+  })
+}
 
 // Validate database connection
 sequelize.authenticate()
@@ -43,6 +46,7 @@ sequelize.authenticate()
   })
   .then(() => {
     console.log('All tables have been created successfully.')
+    executed = true
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err)

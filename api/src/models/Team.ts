@@ -39,7 +39,6 @@ Team.init({
   modelName: 'Team',
 })
 
-// Establish the relationship
 Team.hasMany(Player, { foreignKey: 'team_id', sourceKey: 'id', as: 'players' })
 Player.belongsTo(Team, { foreignKey: 'team_id', as: 'team' })
 

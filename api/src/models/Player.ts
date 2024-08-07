@@ -1,15 +1,7 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
 import Team from './Team'
-
-enum PlayerRole {
-  Initiator = 'Initiator',
-  Duelist = 'Duelist',
-  Controller = 'Controller',
-  Sentinel = 'Sentinel',
-  Flex = 'Flex',
-  IGL = 'IGL',
-}
+import { PlayerRole } from './enums'
 
 class Player extends Model {
   declare id: number
