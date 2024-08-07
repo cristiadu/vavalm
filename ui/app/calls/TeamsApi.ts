@@ -32,6 +32,7 @@ const TeamsApi = {
       return { ...data, logo_image_file: blob } as Team
     } else {
       closure(data)
+      return data
     }
   },
   newTeam: async (team: Team, closure: (teamData: Team) => void) => {

@@ -1,16 +1,17 @@
 
 "use client"
 
-import DOMPurify from 'dompurify'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import CountryApi from '../calls/CountryApi'
 import Link from 'next/link'
 import TeamsApi, { Team } from '../calls/TeamsApi'
-import 'react-quill/dist/quill.snow.css'
 import TeamActionModal from './TeamActionModal'
 import { handleBackClick } from '../base/LinkUtils'
+import 'react-quill/dist/quill.snow.css'
+import { asSafeHTML } from '../base/StringUtils'
+
 
 export default function ListTeams() {
   const router = useRouter()
@@ -31,12 +32,6 @@ export default function ListTeams() {
 
     TeamsApi.fetchTeams(setTeams)
   }, [])
-
-  function asSafeHTML(description: string): React.ReactNode {
-    // Sanitize HTML content
-    const sanitizedHTML = DOMPurify.sanitize(description)
-    return <div className="ql-editor" dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
-  }
 
   const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
@@ -141,7 +136,7 @@ export default function ListTeams() {
                   </span>)}
                 </td>
                 <td className="px-3 py-4 whitespace-normal text-sm font-medium text-gray-500">
-                  <div className="ql-container ql-snow" style={{ border: "0" }}>{asSafeHTML(team.description || "")}</div>
+                  <div className="ql-container ql-snow" style={{ border: "0" }}><div className="ql-editor" dangerouslySetInnerHTML={{ __html: asSafeHTML(team.description || "") }} /></div>
                 </td>
                 <td className="py-4 whitespace-nowrap text-sm text-left text-gray-900 w-auto">
                   <button onClick={() => handleView(team)} className="text-blue-600 hover:text-blue-900 p0">👀</button>

@@ -1,4 +1,4 @@
-import { Model, DataTypes } from 'sequelize'
+import { Model, DataTypes, Association } from 'sequelize'
 import { sequelize } from './index'
 import Player from './Player'
 
@@ -8,8 +8,11 @@ class Team extends Model {
   declare full_name: string
   declare description: string
   declare country: string
+  declare readonly players?: Player[]
 
-  public getPlayers!: () => Promise<Player[]>
+  public static associations: {
+    players: Association<Team, Player>
+  }
 }
 
 Team.init({
@@ -37,7 +40,7 @@ Team.init({
 })
 
 // Establish the relationship
-Team.hasMany(Player, { foreignKey: 'team_id' })
-Player.belongsTo(Team, { foreignKey: 'team_id' })
+Team.hasMany(Player, { foreignKey: 'team_id', sourceKey: 'id', as: 'players' })
+Player.belongsTo(Team, { foreignKey: 'team_id', as: 'team' })
 
 export default Team

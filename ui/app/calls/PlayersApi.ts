@@ -26,8 +26,19 @@ export interface Player {
     team_id: number
     player_attributes: PlayerAttributes
 }
+
+export interface PlayerWithFlag extends Player {
+  countryFlag?: string | null;
+}
+
   
 const PlayersApi = {
+  fetchPlayersByTeam: async (teamId: number, closure: (playerData: Player[]) => void) => {
+    const response = await fetch(`http://localhost:8000/teams/${teamId}/players`)
+    const data = await response.json()
+    closure(data)
+    return data as Player[]
+  },
   fetchPlayers: async (closure: (playerData: Player[]) => void) => {
     const response = await fetch('http://localhost:8000/players')
     const data = await response.json()

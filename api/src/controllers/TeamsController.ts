@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import Multer from 'multer'
 import Team from '../models/Team'
+import Player from '../models/Player'
 
 const router = Router()
 const upload = Multer({ storage: Multer.memoryStorage() })
@@ -101,6 +102,23 @@ router.delete('/:id', async (req, res) => {
 
     await team.destroy()
     res.json({ message: 'Team deleted successfully' })
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Fetch players by team
+router.get('/:id/players', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const team = await Team.findByPk(id, {include: [{ model: Player, as: 'players'  }]})
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' })
+    }
+
+    res.json(team.players)
   } catch (err) {
     console.error('Error executing query:', err)
     res.status(500).json({ error: 'Internal Server Error' })
