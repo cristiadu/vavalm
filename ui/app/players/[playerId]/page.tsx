@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import PlayersApi, { Player } from '../../calls/PlayersApi'
+import PlayersApi, { getRoleBgColor, Player } from '../../calls/PlayersApi'
 import CountryApi from '../../calls/CountryApi'
 import TeamsApi, { Team } from '../../calls/TeamsApi'
 import Link from 'next/link'
@@ -75,6 +75,12 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
               'No Team'
             )}
           </div>
+        </div>
+        <div className="text-lg mb-4">
+          <strong>Role:</strong> 
+          <span className={getRoleBgColor(player.role)}>
+            {player.role}
+          </span>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Player Attributes</h3>

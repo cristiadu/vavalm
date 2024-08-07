@@ -8,6 +8,7 @@ import TeamsApi, { Team } from '../calls/TeamsApi'
 import Modal from '../base/Modal'
 import { ItemActionModalProps } from '../common/CommonModels'
 import 'react-quill/dist/quill.snow.css'
+import ErrorAlert from '../base/ErrorAlert'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 
@@ -32,11 +33,13 @@ const initialState : Team = {
 
 const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
   const team = object as Team
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [teamState, setTeamState] = useState<Team>(initialState)
   const [imageSrc, setImageSrc] = useState('images/nologo.svg')
   const [countries, setCountries] = useState<Country[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownCountryRef = useRef<HTMLDivElement>(null)
+  const selectedCountry = countries.find(country => country.name === teamState.country) || null
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
     if (isEdit && team && !cleanup) {
@@ -94,6 +97,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     setInitialValues(true)
     setImageSrc('/images/nologo.svg')
     setDropdownOpen(false)
+    setValidationError(null)
   }
 
   const handleCountrySelect = (country: Country) => {
@@ -105,12 +109,17 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     event.preventDefault()
 
     const requestTeam: Team = {
-      id: team?.id ?? undefined,
+      id: team?.id,
       short_name: teamState.short_name,
       logo_image_file: teamState.logo_image_file,
       full_name: teamState.full_name,
       description: teamState.description,
       country: selectedCountry?.name || '',
+    }
+
+    if(!requestTeam.short_name || !requestTeam.full_name || !requestTeam.country) {
+      setValidationError('Please fill in all required fields: Short Name, Full Name, Country')
+      return
     }
 
     if (isEdit) {
@@ -127,10 +136,9 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     })
   }
 
-  const selectedCountry = countries.find(country => country.name === teamState.country) || null
-
   return (
-    <Modal isOpen={isOpen} onClose={closeModal}>
+    <Modal isOpen={isOpen} onClose={closeModal} title={isEdit ? "Edit Team" : "New Team"}>
+      <ErrorAlert validationError={validationError} />
       <form className="w-full max-w-2xl mx-auto" onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-2 mb-4 items-center">
           <div className="w-full md:w-1/2 px-4 mb-6 md:mb-0">

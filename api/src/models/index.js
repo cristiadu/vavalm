@@ -16,20 +16,15 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, { logging: console.log, ...config })
 }
 
-// Read all files in the current directory and import them as models
-fs.readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    )
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes)
+// Use Webpack's require.context to read all files in the current directory and import them as models
+const requireModel = require.context(__dirname, false, /\.js$/)
+
+requireModel.keys().forEach(file => {
+  if (file.indexOf('.') !== 0 && file !== `./${basename}` && file.indexOf('.test.js') === -1) {
+    const model = requireModel(file)(sequelize, Sequelize.DataTypes)
     db[model.name] = model
-  })
+  }
+})
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
@@ -45,7 +40,6 @@ sequelize.authenticate()
     // Set FORCE_SYNC environment variable to 'true' to drop and recreate tables
     const forceSync = process.env.FORCE_SYNC === 'true'
     return sequelize.sync({ force: forceSync })
-
   })
   .then(() => {
     console.log('All tables have been created successfully.')

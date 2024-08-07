@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import PlayersApi, { Player, PlayerWithFlag } from '../../calls/PlayersApi'
+import PlayersApi, { getRoleBgColor, Player, PlayerWithFlag } from '../../calls/PlayersApi'
 import CountryApi from '../../calls/CountryApi'
 import TeamsApi, { Team } from '../../calls/TeamsApi'
 import Link from 'next/link'
@@ -78,6 +78,9 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             {players && players.map(player => (
               <div key={player.id} className="flex items-center space-x-2">
+                <span className={getRoleBgColor(player.role)}>
+                  {player.role}
+                </span>
                 {player.countryFlag && <Image src={player.countryFlag} alt={player.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
                 <span className="text-lg">{player.nickname}</span>
                 <span className="text-sm text-gray-600 mt-1">({player.full_name})</span>

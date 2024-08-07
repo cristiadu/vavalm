@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import CountryApi from '../calls/CountryApi'
 import Link from 'next/link'
-import PlayersApi, { Player } from '../calls/PlayersApi'
+import PlayersApi, { getRoleBgColor, Player } from '../calls/PlayersApi'
 import 'react-quill/dist/quill.snow.css'
 import PlayerActionModal from './PlayerActionModal'
 import TeamsApi, { Team } from '../calls/TeamsApi'
@@ -122,6 +122,9 @@ export default function ListPlayers() {
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Team
               </th>
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+                Role
+              </th>
               <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 Attributes
               </th>
@@ -154,6 +157,11 @@ export default function ListPlayers() {
                   ) : (
                     'No Team'
                   )}
+                </td>
+                <td>
+                  <span className={getRoleBgColor(player.role)}>
+                    {player.role}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-normal text-sm font-medium text-gray-500">
                   <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">

@@ -32,11 +32,11 @@ router.get('/:id', async (req, res) => {
 
 // Add a new player
 router.post('/', async (req, res) => {
-  const { nickname, full_name, age, country, team_id, player_attributes } = req.body
+  const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
 
   // Validate input data
-  if (!nickname || !full_name || !age || !country || !player_attributes) {
-    return res.status(400).json({ error: 'nickname, full_name, age, country, and player_attributes are required' })
+  if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
+    return res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
   }
 
   try {
@@ -46,6 +46,7 @@ router.post('/', async (req, res) => {
       full_name,
       age,
       country,
+      role,
       team_id,
       player_attributes,
     })
@@ -63,11 +64,11 @@ router.post('/', async (req, res) => {
 // Update an existing player
 router.put('/:id', async (req, res) => {
   const { id } = req.params
-  const { nickname, full_name, age, country, team_id, player_attributes } = req.body
+  const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
 
   // Validate input data
-  if (!nickname || !full_name || !age || !country || !player_attributes) {
-    return res.status(400).json({ error: 'nickname, full_name, age, country, and player_attributes are required' })
+  if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
+    return res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
   }
 
   try {
@@ -79,6 +80,7 @@ router.put('/:id', async (req, res) => {
     player.nickname = nickname
     player.full_name = full_name
     player.age = age
+    player.role = role
     player.country = country
     player.team_id = team_id
     player.player_attributes = player_attributes

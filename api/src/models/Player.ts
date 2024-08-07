@@ -2,6 +2,15 @@ import { Model, DataTypes } from 'sequelize'
 import { sequelize } from './index'
 import Team from './Team'
 
+enum PlayerRole {
+  Initiator = 'Initiator',
+  Duelist = 'Duelist',
+  Controller = 'Controller',
+  Sentinel = 'Sentinel',
+  Flex = 'Flex',
+  IGL = 'IGL',
+}
+
 class Player extends Model {
   declare id: number
   declare nickname: string
@@ -10,6 +19,7 @@ class Player extends Model {
   declare country: string
   declare team_id: number
   declare team: Team
+  declare role: PlayerRole
   declare player_attributes: {
     clutch: number,
     awareness: number,
@@ -46,6 +56,11 @@ Player.init({
   country: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  role: {
+    type: DataTypes.ENUM(...Object.values(PlayerRole)),
+    allowNull: false,
+    defaultValue: PlayerRole.Flex,
   },
   team_id: {
     type: DataTypes.INTEGER,
