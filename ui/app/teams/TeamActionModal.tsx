@@ -91,7 +91,6 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
 
   const closeModal = () => {
     onClose()
-    isOpen = false
     setInitialValues(true)
     setImageSrc('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
     setDropdownOpen(false)
@@ -106,7 +105,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     event.preventDefault()
 
     const requestTeam: Team = {
-      id: team.id,
+      id: team?.id ?? undefined,
       short_name: teamState.short_name,
       logo_image_file: teamState.logo_image_file,
       full_name: teamState.full_name,
@@ -140,7 +139,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 width={600}
                 height={600}
                 className="w-full h-auto max-w-screen-sm max-h-80"
-                src={imageSrc}
+                src={teamState.logo_image_file ? URL.createObjectURL(teamState.logo_image_file) : imageSrc} 
                 alt="Team Logo"
               />
             </div>

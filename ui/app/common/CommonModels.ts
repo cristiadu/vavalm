@@ -1,5 +1,5 @@
 import { Player } from "../calls/PlayersApi"
-import { Team } from "../calls/TeamsApi";
+import { Team } from "../calls/TeamsApi"
 
 export interface ItemActionModalProps {
     isOpen: boolean;

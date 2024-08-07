@@ -20,9 +20,6 @@ Team.init({
   logo_image_file: {
     type: DataTypes.BLOB,
     allowNull: true,
-    set(value: any) {
-      this.setDataValue('logo_image_file', new Blob([value], { type: 'image/png' }))
-    },
   },
   full_name: {
     type: DataTypes.STRING,

@@ -45,8 +45,9 @@ export default function ListTeams() {
   }
 
   const closeNewTeamModal = () => {
-    setTeamActionModalOpened(false)
     setIsEditActionOpened(false)
+    setTeamActionModalOpened(false)
+    setTeamToEdit(null)
     TeamsApi.fetchTeams(setTeams)
   }
 
@@ -56,9 +57,10 @@ export default function ListTeams() {
   }
 
   const handleEdit = (team: Team) => {
-    // Use same modal as NewPlayerModal but with prefilled data
-    setTeamToEdit(team)
+    // Use same modal as NewPlayerModal but with prefilled data'
+    console.log('Editing team:', team)
     setIsEditActionOpened(true)
+    setTeamToEdit(team)
     setTeamActionModalOpened(true)
   }
 
