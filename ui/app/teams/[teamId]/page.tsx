@@ -44,6 +44,8 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
     return <div>Loading...</div>
   }
 
+  const logoSrc = team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"
+
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
       <header className="w-full flex justify-between items-center mb-8">
@@ -53,7 +55,8 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
         </Link>
       </header>
       <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
-        <div className="bg-blue-300 p-4 rounded mb-4">
+        <div className="bg-blue-300 p-4 rounded mb-4 flex items-center justify-center">
+          {logoSrc && <Image src={logoSrc} alt={`${team.short_name} logo`} width={50} height={50} className="inline-block mr-4" />}
           <h2 className="text-3xl font-bold text-center text-white">{team.short_name}</h2>
         </div>
         <div className="grid grid-cols-2 gap-4 mb-4">

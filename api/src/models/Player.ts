@@ -9,6 +9,7 @@ class Player extends Model {
   declare age: number
   declare country: string
   declare team_id: number
+  declare team: Team
   declare player_attributes: {
     clutch: number,
     awareness: number,

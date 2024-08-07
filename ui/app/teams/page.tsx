@@ -117,15 +117,13 @@ export default function ListTeams() {
               <tr key={team.id}>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{team.id}</td>
                 <td className="py-4 whitespace-nowrap text-sm text-gray-500">
-                  {team.logo_image_file && team.logo_image_file instanceof Blob && (
-                    <Image
-                      width={600}
-                      height={600}
-                      src={URL.createObjectURL(team.logo_image_file)}
-                      alt={`${team.short_name} logo`}
-                      className='rounded-lg w-24 h-24 shadow-lg'
-                    />
-                  )}
+                  <Image
+                    width={600}
+                    height={600}
+                    src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"}
+                    alt={`${team.short_name} logo`}
+                    className='rounded-lg w-24 h-24 shadow-lg'
+                  />
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{team.short_name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{team.full_name}</td>

@@ -68,7 +68,7 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
           <div className="text-lg flex items-center">
             <strong>Team:</strong> {team ? (
               <span className="flex items-center ml-2">
-                <Image src={URL.createObjectURL(team.logo_image_file as Blob)} alt={team.short_name} width={30} height={30} className="mr-2" />
+                <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={30} height={30} className="mr-2" />
                 {team.short_name}
               </span>
             ) : (

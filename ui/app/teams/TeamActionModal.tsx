@@ -33,7 +33,7 @@ const initialState : Team = {
 const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
   const team = object as Team
   const [teamState, setTeamState] = useState<Team>(initialState)
-  const [imageSrc, setImageSrc] = useState('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
+  const [imageSrc, setImageSrc] = useState('images/nologo.svg')
   const [countries, setCountries] = useState<Country[]>([])
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownCountryRef = useRef<HTMLDivElement>(null)
@@ -92,7 +92,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
   const closeModal = () => {
     onClose()
     setInitialValues(true)
-    setImageSrc('https://tecdn.b-cdn.net/img/new/slides/041.jpg')
+    setImageSrc('/images/nologo.svg')
     setDropdownOpen(false)
   }
 

@@ -229,7 +229,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
                 >
                   {selectedTeam ? (
                     <div className="flex items-center">
-                      <Image src={selectedTeam.logo_image_file ? URL.createObjectURL(selectedTeam.logo_image_file) : ''} alt={selectedTeam.short_name || 'No Team'} width={30} height={30} className="mr-2" />
+                      <Image src={selectedTeam.logo_image_file ? URL.createObjectURL(selectedTeam.logo_image_file) : '/images/nologo.svg'} alt={selectedTeam.short_name || 'No Team'} width={30} height={30} className="mr-2" />
                       {selectedTeam.short_name}
                     </div>
                   ) : (
@@ -244,7 +244,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
                         className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleTeamSelect(team)}
                       >
-                        <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : ''} alt={team.short_name} width={30} height={30} className="mr-2" />
+                        <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : '/images/nologo.svg'} alt={team.short_name} width={30} height={30} className="mr-2" />
                         {team.short_name}
                       </div>
                     ))}
