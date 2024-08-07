@@ -113,7 +113,7 @@ router.get('/:id/players', async (req, res) => {
   const { id } = req.params
 
   try {
-    const team = await Team.findByPk(id, {include: [{ model: Player, as: 'players'  }]})
+    const team = await Team.findByPk(id, {include: [{ model: Player, as: 'players' }]})
     if (!team) {
       return res.status(404).json({ error: 'Team not found' })
     }

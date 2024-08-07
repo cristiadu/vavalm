@@ -13,4 +13,20 @@ router.get('/', async (req, res) => {
   }
 })
 
+// Fetch tournament
+router.get('/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const tournament = await Tournament.findByPk(id, { include: [{all: true}] })
+    if (!tournament) {
+      return res.status(404).json({ error: 'Tournament not found' })
+    }
+    res.json(tournament)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 export default router
