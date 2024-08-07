@@ -1,14 +1,19 @@
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from './index'
+import { Association, DataTypes, Model } from 'sequelize'
 import { GameMap } from './enums'
 import GameLog from './GameLog'
 import GameStats from './GameStats'
+import { sequelize } from './index'
 
 class Game extends Model {
   declare date: Date
   declare map: GameMap
-  declare log: GameLog[]
+  declare logs: GameLog[]
   declare stats: GameStats
+
+  public static associations: {
+    logs: Association<Game, GameLog>
+    stats: Association<Game, GameStats>
+  }
 }
 
 Game.init({

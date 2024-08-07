@@ -1,12 +1,16 @@
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from './index'
+import { Association, DataTypes, Model } from 'sequelize'
 import Player from './Player'
+import { sequelize } from './index'
 
 class PlayerGameStats extends Model {
   declare player: Player
   declare kills: number
   declare deaths: number
   declare assists: number
+
+  static associations: {
+    player: Association<PlayerGameStats, Player>
+  }
 }
 
 PlayerGameStats.init({

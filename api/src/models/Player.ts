@@ -1,7 +1,7 @@
-import { Model, DataTypes } from 'sequelize'
-import { sequelize } from './index'
+import { Model, DataTypes, Association } from 'sequelize'
 import Team from './Team'
 import { PlayerRole } from './enums'
+import { sequelize } from './index'
 
 class Player extends Model {
   declare id: number
@@ -29,6 +29,10 @@ class Player extends Model {
     rage_fuel: number,
     teamwork: number,
     utility_usage: number
+  }
+
+  static associations: {
+    team: Association<Player, Team>
   }
 }
 

@@ -1,6 +1,6 @@
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from './index'
+import { Association, DataTypes, Model } from 'sequelize'
 import Team from './Team'
+import { sequelize } from './index'
 
 class Standings extends Model {
   declare team: Team
@@ -10,6 +10,10 @@ class Standings extends Model {
   declare maps_lost: number
   declare rounds_won: number
   declare rounds_lost: number
+
+  static associations: {
+    team: Association<Standings, Team>
+  }
 }
 
 Standings.init({

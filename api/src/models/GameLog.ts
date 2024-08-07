@@ -1,6 +1,6 @@
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from './index'
+import { Association, DataTypes, Model } from 'sequelize'
 import Player from './Player'
+import { sequelize } from './index'
 
 export class GameLog extends Model {
   declare date: Date
@@ -10,6 +10,12 @@ export class GameLog extends Model {
   declare team1_player: Player
   declare team2_player: Player
   declare player_killed: Player
+
+  static associations: {
+    team1_player: Association<GameLog, Player>
+    team2_player: Association<GameLog, Player>
+    player_killed: Association<GameLog, Player>
+  }
 }
 
 GameLog.init({

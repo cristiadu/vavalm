@@ -1,5 +1,4 @@
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from './index'
+import { Association, DataTypes, Model } from 'sequelize'
 import { TournamentType } from './enums'
 import Team from './Team'
 import Standings from './Standings'
@@ -8,6 +7,7 @@ import GameStats from './GameStats'
 import GameLog from './GameLog'
 import PlayerGameStats from './PlayerGameStats'
 import Player from './Player'
+import { sequelize } from './index'
 
 class Tournament extends Model {
   declare type: TournamentType
@@ -17,6 +17,12 @@ class Tournament extends Model {
   declare start_date: Date
   declare started: boolean
   declare ended: boolean
+
+  static associations: {
+    schedule: Association<Tournament, Game>
+    teams: Association<Tournament, Team>
+    standings: Association<Tournament, Standings>
+  }
 }
 Tournament.init({
   type: {
@@ -46,7 +52,7 @@ Game.belongsTo(Tournament)
 Tournament.hasMany(Standings, { as: 'standings' })
 Standings.belongsTo(Tournament)
 
-Game.hasMany(GameLog, { as: 'log' })
+Game.hasMany(GameLog, { as: 'logs' })
 GameLog.belongsTo(Game)
 
 Game.hasOne(GameStats, { as: 'stats' })

@@ -1,7 +1,7 @@
-import { DataTypes, Model } from 'sequelize'
-import { sequelize } from './index'
+import { Association, DataTypes, Model } from 'sequelize'
 import Team from './Team'
 import PlayerGameStats from './PlayerGameStats'
+import { sequelize } from './index'
 
 class GameStats extends Model {
   declare team1: Team
@@ -11,6 +11,14 @@ class GameStats extends Model {
   declare team1_score: number
   declare team2_score: number
   declare winner: Team
+
+  static associations: {
+    team1: Association<GameStats, Team>
+    team2: Association<GameStats, Team>
+    players_stats_team1: Association<GameStats, PlayerGameStats>
+    players_stats_team2: Association<GameStats, PlayerGameStats>
+    winner: Association<GameStats, Team>
+  }
 }
 
 GameStats.init({

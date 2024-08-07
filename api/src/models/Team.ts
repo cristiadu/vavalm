@@ -10,7 +10,7 @@ class Team extends Model {
   declare country: string
   declare readonly players?: Player[]
 
-  public static associations: {
+  static associations: {
     players: Association<Team, Player>
   }
 }
