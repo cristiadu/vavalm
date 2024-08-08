@@ -58,7 +58,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
   }
 
   const showGameLogs = (gameId: number): void => {
-    router.push(`/tournaments/${gameId}/logs`)
+    router.push(`/tournaments/${tournament.id}/logs/${gameId}`)
   }
 
   return (

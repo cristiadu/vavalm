@@ -4,15 +4,19 @@ import Game from '../models/Game'
 import Team from '../models/Team'
 import Standings from '../models/Standings'
 import GameStats from '../models/GameStats'
+import PlayerGameStats from '../models/PlayerGameStats'
+import Player from '../models/Player'
 
 const router = Router()
 
 router.get('/', async (req, res) => {
   try {
-    const tournaments = await Tournament.findAll({ order: [['id', 'ASC']], include: [
-      { model: Game, as: 'schedule' },
-      { model: Standings, as: 'standings' },
-      { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }] })
+    const tournaments = await Tournament.findAll({
+      order: [['id', 'ASC']], include: [
+        { model: Game, as: 'schedule' },
+        { model: Standings, as: 'standings' },
+        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }],
+    })
     res.json(tournaments)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
@@ -25,10 +29,26 @@ router.get('/:id', async (req, res) => {
   const { id } = req.params
 
   try {
-    const tournament = await Tournament.findByPk(id, { include: [
-      { model: Game, as: 'schedule', include: [{model: GameStats, as: 'stats', include: [{model: Team, as: 'team1'}, {model: Team, as: 'team2'}]}] },
-      { model: Standings, as: 'standings', include: [{model: Team, as: 'team'}] },
-      { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }] } )
+    const tournament = await Tournament.findByPk(id, {
+      include: [
+        {
+          model: Game, as: 'schedule', include: [
+            {
+              model: GameStats, as: 'stats', include: [
+                { model: Team, as: 'team1' },
+                { model: Team, as: 'team2' },
+                { model: Team, as: 'winner' },
+                { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
+                { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
+              ],
+            },
+          ],
+        },
+        { model: Standings, as: 'standings', include: [{ model: Team, as: 'team' }] },
+        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] },
+      ],
+    })
+
     if (!tournament) {
       return res.status(404).json({ error: 'Tournament not found' })
     }
@@ -73,10 +93,12 @@ router.post('/', async (req, res) => {
       await tournament.addTeams(teams.map((team: any) => team.id))
     }
 
-    const tournamentCreated = await Tournament.findByPk(tournament.id, { include: [
-      { model: Game, as: 'schedule' },
-      { model: Standings, as: 'standings' },
-      { model: Team, as: 'teams', attributes: ['id', 'short_name'] }] }) as Tournament
+    const tournamentCreated = await Tournament.findByPk(tournament.id, {
+      include: [
+        { model: Game, as: 'schedule' },
+        { model: Standings, as: 'standings' },
+        { model: Team, as: 'teams', attributes: ['id', 'short_name'] }],
+    }) as Tournament
     res.status(201).json(tournamentCreated)
   } catch (err) {
     console.error('Error executing query:', err)
@@ -116,10 +138,12 @@ router.put('/:id', async (req, res) => {
     // Associate existing teams with the new tournament
     await tournament.setTeams(teams.map((team: any) => team.id))
 
-    const tournamentUpdated = await Tournament.findByPk(tournament.id, { include: [
-      { model: Game, as: 'schedule' },
-      { model: Standings, as: 'standings' },
-      { model: Team, as: 'teams', attributes: ['id', 'short_name'] }] }) as Tournament
+    const tournamentUpdated = await Tournament.findByPk(tournament.id, {
+      include: [
+        { model: Game, as: 'schedule' },
+        { model: Standings, as: 'standings' },
+        { model: Team, as: 'teams', attributes: ['id', 'short_name'] }],
+    }) as Tournament
     res.json(tournamentUpdated)
   } catch (err) {
     console.error('Error executing query:', err)

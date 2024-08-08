@@ -7,7 +7,6 @@ class PlayerGameStats extends Model {
   declare kills: number
   declare deaths: number
   declare assists: number
-  declare game_stats_id: number
   declare player_id: number
 
   static associations: {

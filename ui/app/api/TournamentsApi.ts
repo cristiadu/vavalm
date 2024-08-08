@@ -23,7 +23,7 @@ const TournamentsApi = {
     const response = await fetch(`http://localhost:8000/tournaments/${tournamentId}`)
     const data = await response.json()
     // Convert Buffer to Blob for team logos
-    const teamsWithBlob = data.teams.map((team: any) => {
+    const teamsWithBlob = data.teams?.map((team: any) => {
       if (team.logo_image_file) {
         const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
         return { ...team, logo_image_file: blob }
@@ -31,7 +31,7 @@ const TournamentsApi = {
       return team
     })
 
-    const standingsTeamsWithBlob = data.standings.map((standing: any) => {
+    const standingsTeamsWithBlob = data.standings?.map((standing: any) => {
       if (standing.team.logo_image_file) {
         const blob = new Blob([new Uint8Array(standing.team.logo_image_file.data)], { type: 'image/png' })
         return { ...standing, team: { ...standing.team, logo_image_file: blob } }
@@ -39,7 +39,7 @@ const TournamentsApi = {
       return standing
     })
 
-    const gameSchedulesTeamsWithBlob = data.schedule.map((game: Game) => {
+    const gameSchedulesTeamsWithBlob = data.schedule?.map((game: Game) => {
       const team1WithBlob = teamsWithBlob.find((team: any) => team.id === game.stats.team1_id)
       const team2WithBlob = teamsWithBlob.find((team: any) => team.id === game.stats.team2_id)
       return { ...game, stats: { ...game.stats, team1: team1WithBlob, team2: team2WithBlob } }

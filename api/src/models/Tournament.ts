@@ -84,9 +84,11 @@ GameStats.belongsTo(Team, { as: 'team1', foreignKey: 'team1_id', targetKey: 'id'
 GameStats.belongsTo(Team, { as: 'team2', foreignKey: 'team2_id', targetKey: 'id' })
 GameStats.belongsTo(Team, { as: 'winner', foreignKey: 'winner_id', targetKey: 'id' })
 
-GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team1', foreignKey: 'game_stats_id', sourceKey: 'id' })
-GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team2', foreignKey: 'game_stats_id', sourceKey: 'id' })
-PlayerGameStats.belongsTo(GameStats, { as: 'game_stats', foreignKey: 'game_stats_id', targetKey: 'id' })
+GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team1', foreignKey: 'game_stats_player1_id', sourceKey: 'id' })
+GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team2', foreignKey: 'game_stats_player2_id', sourceKey: 'id' })
+PlayerGameStats.belongsTo(GameStats, { as: 'game_stats_player1', foreignKey: 'game_stats_player1_id', targetKey: 'id' })
+PlayerGameStats.belongsTo(GameStats, { as: 'game_stats_player2', foreignKey: 'game_stats_player2_id', targetKey: 'id' })
+
 
 PlayerGameStats.belongsTo(Player, { as: 'player', foreignKey: 'player_id', targetKey: 'id' })
 

@@ -6,6 +6,7 @@ import Standings from "../models/Standings"
 import Game from "../models/Game"
 import { env } from "process"
 import GameStats from "../models/GameStats"
+import PlayerGameStats from "../models/PlayerGameStats"
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -85,13 +86,26 @@ const setupTestData = async () => {
       { date: new Date(), map: GameMap.BIND, tournament_id: 1, stats: { team1_score: 13, team2_score: 5, team1_id: 1, team2_id: 2, winner_id: 1, players_stats_team1: [], players_stats_team2: [] } },
       { date: new Date(), map: GameMap.SPLIT, tournament_id: 1, stats: { team1_score: 13, team2_score: 5, team1_id: 1, team2_id: 2, winner_id: 1, players_stats_team1: [], players_stats_team2: [] } },
       { date: new Date(), map: GameMap.ASCENT, tournament_id: 1, stats: { team1_score: 8, team2_score: 13, team1_id: 1, team2_id: 2, winner_id: 2, players_stats_team1: [], players_stats_team2: [] } },
+      {date: new Date(), map: GameMap.ABYSS, tournament_id: 1, stats: { team1_id: 1, team2_id: 2, winner_id: 1, team1_score: 13, team2_score: 5 , players_stats_team1: [
+        { player_id: 1, game_stats_id: 1, kills: 10, deaths: 5, assists: 3 },
+        { player_id: 2, game_stats_id: 1, kills: 5, deaths: 10, assists: 3 },
+        { player_id: 3, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
+        { player_id: 4, game_stats_id: 1, kills: 5, deaths: 3, assists: 10 },
+        { player_id: 5, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
+      ], players_stats_team2: [
+        { player_id: 6, game_stats_id: 1, kills: 10, deaths: 5, assists: 3 },
+        { player_id: 7, game_stats_id: 1, kills: 5, deaths: 10, assists: 3 },
+        { player_id: 8, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
+        { player_id: 9, game_stats_id: 1, kills: 5, deaths: 3, assists: 10 },
+        { player_id: 10, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
+      ]}},
     ]
   
     for (const gameData of gamesData) {
       console.log('Creating game with data:', gameData)
       await Game.create(gameData, { 
         include: [
-          { model: GameStats, as: 'stats' },
+          { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }]},
         ],
       })
     } 
