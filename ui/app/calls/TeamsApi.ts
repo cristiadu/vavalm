@@ -95,7 +95,7 @@ const TeamsApi = {
       console.error('Error:', error)
     }
   },
-  deleteTeam: async (team: Team, closure: (teamData: Team) => void) => {
+  deleteTeam: async (team: Team, closure: ({message}: {message: string}) => void) => {
     try {
       const response = await fetch(`http://localhost:8000/teams/${team.id}`, {
         method: 'DELETE',

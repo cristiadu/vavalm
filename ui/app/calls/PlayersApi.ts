@@ -127,7 +127,7 @@ const PlayersApi = {
       console.error('Error:', error)
     }
   },
-  deletePlayer: async (player: Player, closure: (playerData: Player) => void) => {
+  deletePlayer: async (player: Player, closure: ({message}: {message: string}) => void) => {
     try {
       const response = await fetch(`http://localhost:8000/players/${player.id}`, {
         method: 'DELETE',

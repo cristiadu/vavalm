@@ -3,6 +3,7 @@ import { PlayerRole, TournamentType } from "../models/enums"
 import Player, { PlayerAttributes } from "../models/Player"
 import Team from "../models/Team"
 import Tournament from "../models/Tournament"
+import Standings from "../models/Standings"
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -57,8 +58,18 @@ const setupTestData = async () => {
     await Tournament.create({name: 'Tournament 2', description: 'Description for Tournament 2', start_date: new Date(), started: false, ended: false, country: 'Brazil', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
     await Tournament.create({name: 'Tournament 3', description: 'Description for Tournament 3', start_date: new Date(), started: false, ended: false, country: 'China', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
     await Tournament.create({name: 'Tournament 4', description: 'Description for Tournament 4', start_date: new Date(), started: false, ended: false, country: 'Denmark', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
-  }  else {
+  } else {
     console.log('Initial tournament data already exists')
+  }
+
+  const standings = await Standings.findAll()
+  if (standings.length === 0) {
+    const tournament = await Tournament.findByPk(1)
+    await tournament?.addTeams([1, 2])
+    await Standings.create({team_id: 1, tournament_id: 1, wins: 10, losses: 2, maps_won: 15, maps_lost: 3, rounds_won: 80, rounds_lost: 25})
+    await Standings.create({team_id: 2, tournament_id: 1, wins: 4, losses: 8, maps_won: 6, maps_lost: 15, rounds_won: 30, rounds_lost: 45})
+  } else {
+    console.log('Initial standing data already exists')
   }
 }
 

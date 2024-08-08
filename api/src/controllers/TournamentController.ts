@@ -8,7 +8,10 @@ const router = Router()
 
 router.get('/', async (req, res) => {
   try {
-    const tournaments = await Tournament.findAll({ order: [['id', 'ASC']] })
+    const tournaments = await Tournament.findAll({ order: [['id', 'ASC']], include: [
+      { model: Game, as: 'schedule' },
+      { model: Standings, as: 'standings' },
+      { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }] })
     res.json(tournaments)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
@@ -21,7 +24,10 @@ router.get('/:id', async (req, res) => {
   const { id } = req.params
 
   try {
-    const tournament = await Tournament.findByPk(id, { include: [{all: true}] })
+    const tournament = await Tournament.findByPk(id, { include: [
+      { model: Game, as: 'schedule' },
+      { model: Standings, as: 'standings', include: [{model: Team, as: 'team'}] },
+      { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }] } )
     if (!tournament) {
       return res.status(404).json({ error: 'Tournament not found' })
     }
@@ -32,7 +38,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// Add a new team
+// Add a new tournament
 router.post('/', async (req, res) => {
   const { type, name, description, country, teams, start_date } = req.body
 
@@ -77,6 +83,24 @@ router.post('/', async (req, res) => {
       console.error('Error message:', err.message)
       console.error('Error stack:', err.stack)
     }
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Delete a tournament
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const team = await Tournament.findByPk(id)
+    if (!team) {
+      return res.status(404).json({ error: 'Tournament not found' })
+    }
+
+    await team.destroy()
+    res.json({ message: 'Tournament deleted successfully' })
+  } catch (err) {
+    console.error('Error executing query:', err)
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })
