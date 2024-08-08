@@ -1,6 +1,6 @@
-import { Player } from "../calls/PlayersApi"
-import { Team } from "../calls/TeamsApi"
-import { Tournament } from "../calls/TournamentsApi";
+import { Player } from "../api/models/Player"
+import { Team } from "../api/models/Team"
+import { Tournament } from "../api/models/Tournament"
 
 export interface ItemActionModalProps {
     isOpen: boolean;

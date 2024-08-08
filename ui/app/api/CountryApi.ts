@@ -1,7 +1,4 @@
-interface Country {
-    name: string
-    flag: string
-    }
+import { Country } from "./models/Country"
 
 const CountryApi = {
   fetchCountries: async (closure: (countryData: Country[]) => void) => {
@@ -26,4 +23,3 @@ const CountryApi = {
 }
 
 export default CountryApi
-export type { Country }

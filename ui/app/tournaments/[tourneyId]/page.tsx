@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import CountryApi from '../../calls/CountryApi'
-import TournamentsApi, { Standing, Tournament } from '../../calls/TournamentsApi'
+import CountryApi from '../../api/CountryApi'
+import TournamentsApi from '../../api/TournamentsApi'
+import { Standing, Tournament } from '../../api/models/Tournament'
 import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
@@ -34,7 +35,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
     return <div>Loading...</div>
   }
 
-  function standingsCalculation(a: Standing, b: Standing): number {
+  const standingsCalculation = (a: Standing, b: Standing): number => {
     if (a.wins > b.wins) {
       return -1
     } else if (a.wins < b.wins) {
@@ -54,6 +55,10 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
         }
       }
     }
+  }
+
+  const showGameLogs = (gameId: number): void => {
+    router.push(`/tournaments/${gameId}/logs`)
   }
 
   return (
@@ -158,7 +163,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
               </thead>
               <tbody>
                 {tournament.schedule && tournament.schedule.map((game) => (
-                  <tr key={game.id}>
+                  <tr key={game.id} onClick={() => showGameLogs(game.id)}>
                     <td className="py-2 border-b bg-gray-100 text-center">{new Date(game.date).toLocaleDateString()}</td>
                     <td className="py-2 border-b bg-gray-100 text-center">{game.map}</td>
                     <td className="py-2 border-b bg-gray-100 items-center">

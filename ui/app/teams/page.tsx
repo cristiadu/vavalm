@@ -4,15 +4,16 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import CountryApi, { Country } from '../calls/CountryApi'
+import CountryApi from '../api/CountryApi'
 import Link from 'next/link'
-import TeamsApi, { Team } from '../calls/TeamsApi'
+import TeamsApi from '../api/TeamsApi'
+import { Team } from '../api/models/Team'
 import TeamActionModal from './TeamActionModal'
 import { handleBackClick } from '../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../base/StringUtils'
-import PlayersApi, { getRoleBgColor, Player } from '../calls/PlayersApi'
-
+import PlayersApi from '../api/PlayersApi'
+import { getRoleBgColor } from '../api/models/Player'
 
 export default function ListTeams() {
   const router = useRouter()

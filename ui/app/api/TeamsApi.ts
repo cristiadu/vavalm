@@ -1,14 +1,4 @@
-import { PlayerWithFlag } from "./PlayersApi"
-
-interface Team {
-    short_name: string
-    logo_image_file?: Blob | null
-    full_name: string
-    description?: string
-    country: string
-    id?: number
-    players?: PlayerWithFlag[]
-}
+import { Team } from "./models/Team"
 
 const TeamsApi = {
   fetchTeams: async (closure: (teamData: Team[]) => void) => {
@@ -124,4 +114,3 @@ const TeamsApi = {
 }
 
 export default TeamsApi
-export type { Team }
