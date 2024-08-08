@@ -10,6 +10,7 @@ import { Standing, Tournament } from '../../api/models/Tournament'
 import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
+import { getWinOrLossColor } from '../../api/models/Team'
 
 export default function ViewTournament({ params }: { params: { tourneyId: string } }) {
   const [tournament, setTournament] = useState<Tournament | null>(null)
@@ -192,9 +193,9 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                     </td>
                     <td className="py-2 border-b bg-gray-100 text-center">
                       <strong>
-                        <span className={game.stats?.winner_id == game.stats.team1.id ? 'text-green-700': 'text-red-700'}>{game.stats?.team1_score}</span>
+                        <span className={getWinOrLossColor(game.stats?.team1, game.stats)}>{game.stats?.team1_score}</span>
                         - 
-                        <span className={game.stats?.winner_id == game.stats.team2.id ? 'text-green-700': 'text-red-700'}>{game.stats?.team2_score}</span>
+                        <span className={getWinOrLossColor(game.stats?.team2, game.stats)}>{game.stats?.team2_score}</span>
                       </strong>
                     </td>
                   </tr>

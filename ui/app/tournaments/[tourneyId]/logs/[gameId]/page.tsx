@@ -3,18 +3,20 @@
 import { useEffect, useState } from "react"
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Game, Tournament } from "../../../../api/models/Tournament"
+import { Game, PlayerGameStats, Tournament } from "../../../../api/models/Tournament"
 import TournamentsApi from "../../../../api/TournamentsApi"
 import { handleBackClick } from '../../../../base/LinkUtils'
 import Image from 'next/image'
+import { getWinOrLossColor } from "../../../../api/models/Team"
 
 interface ViewGameLogsProps {
   tourneyId: string
   gameId: string
 }
 
-export default function ViewGameLogs({ params }: { params: ViewGameLogsProps}) {
+export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) {
   const [game, setGame] = useState<Game | null>(null)
+  const [tournament, setTournament] = useState<Tournament | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -22,11 +24,34 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps}) {
       await TournamentsApi.fetchTournament(Number(params.tourneyId), (data: Tournament) => {
         const game = data.schedule?.find((game) => game.id === Number(params.gameId)) || null
         setGame(game)
+        setTournament(data)
       })
     }
 
     fetchGameData()
   }, [params.gameId, params.tourneyId])
+
+  const orderPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
+    if (p1.kills > p2.kills) {
+      return -1
+    } else if (p1.kills < p2.kills) {
+      return 1
+    } else {
+      if (p1.assists > p2.assists) {
+        return -1
+      } else if (p1.assists < p2.assists) {
+        return 1
+      } else {
+        if (p1.deaths > p2.deaths) {
+          return 1
+        } else if (p1.deaths < p2.deaths) {
+          return -1
+        } else {
+          return 0
+        }
+      }
+    }
+  }
 
   if (!game) {
     return <div>Loading...</div>
@@ -41,25 +66,33 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps}) {
         </Link>
       </header>
       <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
-        <div className="w-full flex items-center justify-center bg-blue-300 p-4 rounded mb-4">
-          <div className="flex items-center space-x-4">
-            <Image 
-              src={game.stats.team1.logo_image_file ? URL.createObjectURL(game.stats.team1.logo_image_file) : "/images/nologo.svg"} 
-              alt={game.stats.team1.short_name} 
-              width={60} 
-              height={60} 
-              className="inline-block mr-2" 
+        <div className="w-full flex items-center justify-between bg-blue-400 p-4 rounded mb-4">
+          <div key="team1Header" className="flex items-center">
+            <span className={`text-4xl font-bold text-center mr-7 px-2 py-2 ${getWinOrLossColor(game.stats.team1, game.stats)}`}>
+              {game.stats.team1_score}
+            </span>
+            <Image
+              src={game.stats.team1.logo_image_file ? URL.createObjectURL(game.stats.team1.logo_image_file) : "/images/nologo.svg"}
+              alt={game.stats.team1.short_name}
+              width={72}
+              height={72}
+              className="inline-block mr-2"
             />
-            <span className="text-3xl font-bold text-center text-white">{game.stats.team1.short_name}</span>
-            <span className="text-3xl font-bold text-center text-white">X</span>
-            <span className="text-3xl font-bold text-center text-white">{game.stats.team2.short_name}</span>
-            <Image 
-              src={game.stats.team2.logo_image_file ? URL.createObjectURL(game.stats.team2.logo_image_file) : "/images/nologo.svg"} 
-              alt={game.stats.team2.short_name} 
-              width={60} 
-              height={60} 
-              className="inline-block ml-2" 
+            <span className="text-4xl font-bold text-center text-white">{game.stats.team1.short_name}</span>
+          </div>
+          <span className="text-4xl font-bold text-center text-white">X</span>
+          <div key="team2Header" className="flex items-center">
+            <span className="text-4xl font-bold text-center text-white">{game.stats.team2.short_name}</span>
+            <Image
+              src={game.stats.team2.logo_image_file ? URL.createObjectURL(game.stats.team2.logo_image_file) : "/images/nologo.svg"}
+              alt={game.stats.team2.short_name}
+              width={72}
+              height={72}
+              className="inline-block ml-2"
             />
+            <span className={`text-4xl font-bold text-center ml-7 px-2 py-2 ${getWinOrLossColor(game.stats.team2, game.stats)}`}>
+              {game.stats.team2_score}
+            </span>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -73,7 +106,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps}) {
             <strong>Map:</strong> {game.map}
           </div>
           <div className="text-lg">
-            <strong>Tournament ID:</strong> {game.tournament_id}
+            <strong>Tournament:</strong> {tournament?.name}
           </div>
         </div>
         <div className="text-lg mb-4">
@@ -87,27 +120,52 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps}) {
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Stats</h3>
           <hr className="mb-2" />
-          <ul className="list-disc pl-5">
-            <li>Team 1: {game.stats.team1.short_name}</li>
-            <li>Team 2: {game.stats.team2.short_name}</li>
-            <li>Team 1 Score: {game.stats.team1_score}</li>
-            <li>Team 2 Score: {game.stats.team2_score}</li>
-            <li>Winner: {game.stats.winner.short_name}</li>
-            <li>Players Stats Team 1:
-              <ul className="list-disc pl-5">
-                {game.stats.players_stats_team1.map((playerStats, index) => (
-                  <li key={index}>{playerStats.player.nickname} - Kills: {playerStats.kills}, Deaths: {playerStats.deaths}, Assists: {playerStats.assists}</li>
+          <div className="overflow-x-auto mt-4">
+            <h2 className="text-xl font-bold mb-4">{game.stats.team1.short_name}</h2>
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Player</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Kills</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Deaths</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Assists</th>
+                </tr>
+              </thead>
+              <tbody>
+                {game.stats.players_stats_team1.sort(orderPlayersByStats).map((playerStats, index) => (
+                  <tr key={index}>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.player.nickname}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.kills}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.deaths}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.assists}</td>
+                  </tr>
                 ))}
-              </ul>
-            </li>
-            <li>Players Stats Team 2:
-              <ul className="list-disc pl-5">
-                {game.stats.players_stats_team2.map((playerStats, index) => (
-                  <li key={index}>{playerStats.player.nickname} - Kills: {playerStats.kills}, Deaths: {playerStats.deaths}, Assists: {playerStats.assists}</li>
+              </tbody>
+            </table>
+          </div>
+          <div className="overflow-x-auto mt-4">
+            <h2 className="text-xl font-bold mb-4">{game.stats.team2.short_name}</h2>
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Player</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Kills</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Deaths</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Assists</th>
+                </tr>
+              </thead>
+              <tbody>
+                {game.stats.players_stats_team2.sort(orderPlayersByStats).map((playerStats, index) => (
+                  <tr key={index}>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.player.nickname}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.kills}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.deaths}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{playerStats.assists}</td>
+                  </tr>
                 ))}
-              </ul>
-            </li>
-          </ul>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
