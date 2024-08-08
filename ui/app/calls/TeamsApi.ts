@@ -7,7 +7,7 @@ interface Team {
     description?: string
     country: string
     id?: number
-    players: PlayerWithFlag[]
+    players?: PlayerWithFlag[]
 }
 
 const TeamsApi = {

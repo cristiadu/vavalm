@@ -28,7 +28,7 @@ export default function ListTeams() {
 
   const fetchCountriesAndTeams = async () => {
     try {
-      const countries = await CountryApi.fetchCountries((countryData: Country[]) => {
+      const countries = await CountryApi.fetchCountries(() => {
         // handle country data
       }) || []
 
@@ -38,12 +38,12 @@ export default function ListTeams() {
       })
       setCountriesToFlagMap(countriesToFlagMap)
 
-      const teamsData = await TeamsApi.fetchTeams((teamData: Team[]) => {
+      const teamsData = await TeamsApi.fetchTeams(() => {
         // handle team data
       })
       const teamsWithPlayersFlags = await Promise.all(
         teamsData.map(async (team) => {
-          const players = await PlayersApi.fetchPlayersByTeam(Number(team.id), (playerData: Player[]) => {
+          const players = await PlayersApi.fetchPlayersByTeam(Number(team.id), () => {
             // handle player data
           })
           const playersWithFlags = players.map((player) => ({
@@ -66,7 +66,7 @@ export default function ListTeams() {
     setTeamActionModalOpened(true)
   }
 
-  const closeNewTeamModal = () => {
+  const closeTeamActionModal = () => {
     setIsEditActionOpened(false)
     setTeamActionModalOpened(false)
     setTeamToEdit(null)
@@ -100,7 +100,7 @@ export default function ListTeams() {
   // List all teams in a table/grid
   return (
     <>
-      <TeamActionModal isOpen={teamActionModalOpened} onClose={closeNewTeamModal} isEdit={isEditActionOpened} object={teamToEdit} />
+      <TeamActionModal isOpen={teamActionModalOpened} onClose={closeTeamActionModal} isEdit={isEditActionOpened} object={teamToEdit} />
       <div className="flex min-h-screen flex-col items-center p-24">
         <header className="w-full flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Teams</h1>

@@ -88,6 +88,46 @@ router.post('/', async (req, res) => {
   }
 })
 
+// Update a tournament
+router.put('/:id', async (req, res) => {
+  const { id } = req.params
+  const { type, name, description, country, teams, start_date } = req.body
+
+  // Validate input data
+  if (!type || !name || !teams || !country || !start_date) {
+    return res.status(400).json({ error: "Please provide type, name, teams, country and start date." })
+  }
+
+  try {
+    const tournament = await Tournament.findByPk(id)
+    if (!tournament) {
+      return res.status(404).json({ error: 'Tournament not found' })
+    }
+
+    console.log('Updating tournament with data:', { type, name, description, country, teams, start_date })
+    await tournament.update({
+      type,
+      name,
+      description,
+      country,
+      start_date,
+    })
+
+    // Associate existing teams with the new tournament
+    await tournament.setTeams(teams.map((team: any) => team.id))
+
+    const tournamentUpdated = await Tournament.findByPk(tournament.id, { include: [
+      { model: Game, as: 'schedule' },
+      { model: Standings, as: 'standings' },
+      { model: Team, as: 'teams', attributes: ['id', 'short_name'] }] }) as Tournament
+    res.json(tournamentUpdated)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+
 // Delete a tournament
 router.delete('/:id', async (req, res) => {
   const { id } = req.params

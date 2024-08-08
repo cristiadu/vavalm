@@ -7,21 +7,11 @@ import CountryApi, { Country } from '../calls/CountryApi'
 import TeamsApi, { Team } from '../calls/TeamsApi'
 import Modal from '../base/Modal'
 import { ItemActionModalProps } from '../common/CommonModels'
-import 'react-quill/dist/quill.snow.css'
 import ErrorAlert from '../base/ErrorAlert'
+import 'react-quill/dist/quill.snow.css'
+import { quill_config } from '../base/Configs'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
-
-const quill_modules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-    ['bold', 'italic', 'underline', 'strike'], // toggled buttons
-    ['blockquote', 'code-block', 'link'],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
-    [{ 'color': [] }, { 'background': [] }], // dropdown with defaults from theme
-    [{ 'align': [] }],
-  ],
-}
 
 const initialState : Team = {
   short_name: '',
@@ -228,7 +218,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
               onChange={(value) => setTeamState({ ...teamState, description: value })}
               className="h-96"
               placeholder="Description"
-              modules={quill_modules}
+              modules={quill_config}
             />
           </div>
         </div>

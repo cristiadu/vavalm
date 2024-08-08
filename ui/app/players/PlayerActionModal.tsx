@@ -199,7 +199,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
           />
         </div>
         <div>
-          <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="country">
+          <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="role">
                 Role
           </label>
           <div className="relative" ref={dropdownRoleRef}>

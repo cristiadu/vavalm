@@ -23,6 +23,7 @@ class Tournament extends Model {
   declare ended: boolean
 
   declare addTeams: (teamIds: number[]) => Promise<void>
+  declare setTeams: (teamIds: number[]) => Promise<void>
 
   static associations: {
     schedule: Association<Tournament, Game>

@@ -1,7 +1,7 @@
 import { Player } from "./PlayersApi"
 import { Team } from "./TeamsApi"
 
-enum TournamentType {
+export enum TournamentType {
   SINGLE_GROUP = 'SINGLE_GROUP',
 }
 
@@ -212,4 +212,4 @@ const TournamentsApi = {
 }
 
 export default TournamentsApi
-export type { Tournament, Game, Standing, TournamentType, GameMap, GameLog, GameStats, PlayerGameStats }
+export type { Tournament, Game, Standing, GameMap, GameLog, GameStats, PlayerGameStats }
