@@ -3,6 +3,25 @@ import Team from './Team'
 import { PlayerRole } from './enums'
 import { sequelize } from './index'
 
+export interface PlayerAttributes {
+  clutch: number,
+  awareness: number,
+  aim: number,
+  positioning: number,
+  game_reading: number,
+  resilience: number,
+  confidence: number,
+  strategy: number,
+  adaptability: number,
+  communication: number,
+  unpredictability: number,
+  game_sense: number,
+  decision_making: number,
+  rage_fuel: number,
+  teamwork: number,
+  utility_usage: number
+}
+
 class Player extends Model {
   declare id: number
   declare nickname: string
@@ -12,24 +31,7 @@ class Player extends Model {
   declare team_id: number
   declare team: Team
   declare role: PlayerRole
-  declare player_attributes: {
-    clutch: number,
-    awareness: number,
-    aim: number,
-    positioning: number,
-    game_reading: number,
-    resilience: number,
-    confidence: number,
-    strategy: number,
-    adaptability: number,
-    communication: number,
-    unpredictability: number,
-    game_sense: number,
-    decision_making: number,
-    rage_fuel: number,
-    teamwork: number,
-    utility_usage: number
-  }
+  declare player_attributes: PlayerAttributes
 
   static associations: {
     team: Association<Player, Team>

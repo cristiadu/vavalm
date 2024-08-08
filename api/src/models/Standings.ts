@@ -1,6 +1,7 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import Team from './Team'
 import { sequelize } from './index'
+import Tournament from './Tournament'
 
 class Standings extends Model {
   declare team: Team
@@ -10,6 +11,8 @@ class Standings extends Model {
   declare maps_lost: number
   declare rounds_won: number
   declare rounds_lost: number
+  declare tournament_id: number
+  declare team_id: number
 
   static associations: {
     team: Association<Standings, Team>
@@ -38,6 +41,14 @@ Standings.init({
     allowNull: false,
   },
   rounds_lost: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  tournament_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  team_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },

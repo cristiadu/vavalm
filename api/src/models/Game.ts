@@ -8,6 +8,7 @@ class Game extends Model {
   declare date: Date
   declare map: GameMap
   declare logs: GameLog[]
+  declare tournament_id: number
   declare stats: GameStats
 
   public static associations: {
@@ -23,6 +24,10 @@ Game.init({
   },
   map: {
     type: DataTypes.ENUM(...Object.values(GameMap)),
+    allowNull: false,
+  },
+  tournament_id: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
 }, { sequelize, modelName: 'Game' })

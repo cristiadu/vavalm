@@ -1,14 +1,17 @@
 import { Model, DataTypes, Association } from 'sequelize'
 import { sequelize } from './index'
 import Player from './Player'
+import Tournament from './Tournament'
 
 class Team extends Model {
+  declare id?: number
   declare logo_image_file: any
   declare short_name: string
   declare full_name: string
   declare description: string
   declare country: string
   declare readonly players?: Player[]
+  declare readonly tournaments?: Tournament[]
 
   static associations: {
     players: Association<Team, Player>
