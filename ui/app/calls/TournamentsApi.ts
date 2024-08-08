@@ -20,6 +20,7 @@ enum GameMap {
 }
 
 interface Game {
+  id: number
   date: Date
   map: GameMap
   logs: GameLog[]
@@ -42,6 +43,7 @@ interface GameLog {
 }
 
 interface GameStats {
+  game: Game
   team1: Team
   team2: Team
   players_stats_team1: PlayerGameStats[]
@@ -129,8 +131,14 @@ const TournamentsApi = {
       return standing
     })
 
-    closure({...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob} as Tournament)
-    return {...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob} as Tournament
+    const gameSchedulesTeamsWithBlob = data.schedule.map((game: Game) => {
+      const team1WithBlob = teamsWithBlob.find((team: any) => team.id === game.stats.team1_id)
+      const team2WithBlob = teamsWithBlob.find((team: any) => team.id === game.stats.team2_id)
+      return { ...game, stats: { ...game.stats, team1: team1WithBlob, team2: team2WithBlob } }
+    })
+
+    closure({...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob, schedule: gameSchedulesTeamsWithBlob} as Tournament)
+    return {...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob, schedule: gameSchedulesTeamsWithBlob} as Tournament
   },
   newTournament: async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
     try {

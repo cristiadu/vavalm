@@ -5,6 +5,7 @@ import GameStats from './GameStats'
 import { sequelize } from './index'
 
 class Game extends Model {
+  declare id: number
   declare date: Date
   declare map: GameMap
   declare logs: GameLog[]

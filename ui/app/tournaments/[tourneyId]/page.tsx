@@ -142,6 +142,62 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
             </table>
           </div>
         </div>
+        <div className="mt-4">
+          <h3 className="text-xl font-bold mb-2">Games Schedule</h3>
+          <hr className="mb-2" />
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white table-fixed">
+              <thead>
+                <tr>
+                  <th className="py-2 border-b">Date</th>
+                  <th className="py-2 border-b">Map</th>
+                  <th className="py-2 border-b">Team 1</th>
+                  <th className="py-2 border-b">Team 2</th>
+                  <th className="py-2 border-b">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tournament.schedule && tournament.schedule.map((game) => (
+                  <tr key={game.id}>
+                    <td className="py-2 border-b bg-gray-100 text-center">{new Date(game.date).toLocaleDateString()}</td>
+                    <td className="py-2 border-b bg-gray-100 text-center">{game.map}</td>
+                    <td className="py-2 border-b bg-gray-100 items-center">
+                      <div className="flex items-center space-x-2">
+                        <Image 
+                          src={game.stats?.team1?.logo_image_file ? URL.createObjectURL(game.stats.team1.logo_image_file) : "/images/nologo.svg"} 
+                          alt={game.stats?.team1?.short_name} 
+                          width={30} 
+                          height={30} 
+                          className="inline-block mr-2" 
+                        />
+                        <span>{game.stats?.team1?.short_name}</span>
+                      </div>
+                    </td>
+                    <td className="py-2 border-b bg-gray-100 items-center">
+                      <div className="flex items-center space-x-2">
+                        <Image 
+                          src={game.stats?.team2?.logo_image_file ? URL.createObjectURL(game.stats.team2.logo_image_file) : "/images/nologo.svg"} 
+                          alt={game.stats?.team2?.short_name} 
+                          width={30} 
+                          height={30} 
+                          className="inline-block mr-2" 
+                        />
+                        <span>{game.stats?.team2?.short_name}</span>
+                      </div>
+                    </td>
+                    <td className="py-2 border-b bg-gray-100 text-center">
+                      <strong>
+                        <span className={game.stats?.winner_id == game.stats.team1.id ? 'text-green-700': 'text-red-700'}>{game.stats?.team1_score}</span>
+                        - 
+                        <span className={game.stats?.winner_id == game.stats.team2.id ? 'text-green-700': 'text-red-700'}>{game.stats?.team2_score}</span>
+                      </strong>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   )

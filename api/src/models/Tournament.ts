@@ -74,7 +74,7 @@ Tournament.hasMany(Standings, { as: 'standings', foreignKey: 'tournament_id', so
 Standings.belongsTo(Tournament, { foreignKey: 'tournament_id', as: 'tournament' })
 
 Game.hasMany(GameLog, { as: 'logs', foreignKey: 'game_id', sourceKey: 'id' })
-GameLog.belongsTo(Game, { foreignKey: 'game_id', as: 'game' })
+GameLog.belongsTo(Game, { foreignKey: 'game_id', as: 'game', targetKey: 'id' })
 
 Game.hasOne(GameStats, { as: 'stats', foreignKey: 'game_id', sourceKey: 'id' })
 GameStats.belongsTo(Game, { foreignKey: 'game_id', as: 'game' })

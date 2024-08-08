@@ -3,6 +3,7 @@ import Tournament from '../models/Tournament'
 import Game from '../models/Game'
 import Team from '../models/Team'
 import Standings from '../models/Standings'
+import GameStats from '../models/GameStats'
 
 const router = Router()
 
@@ -25,7 +26,7 @@ router.get('/:id', async (req, res) => {
 
   try {
     const tournament = await Tournament.findByPk(id, { include: [
-      { model: Game, as: 'schedule' },
+      { model: Game, as: 'schedule', include: [{model: GameStats, as: 'stats', include: [{model: Team, as: 'team1'}, {model: Team, as: 'team2'}]}] },
       { model: Standings, as: 'standings', include: [{model: Team, as: 'team'}] },
       { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }] } )
     if (!tournament) {

@@ -2,10 +2,12 @@ import { Association, DataTypes, Model } from 'sequelize'
 import Team from './Team'
 import PlayerGameStats from './PlayerGameStats'
 import { sequelize } from './index'
+import Game from './Game'
 
 class GameStats extends Model {
   declare team1: Team
   declare team2: Team
+  declare game: Game
   declare players_stats_team1: PlayerGameStats[]
   declare players_stats_team2: PlayerGameStats[]
   declare team1_score: number
@@ -17,6 +19,7 @@ class GameStats extends Model {
   declare winner_id: number
 
   static associations: {
+    game: Association<GameStats, Game>
     team1: Association<GameStats, Team>
     team2: Association<GameStats, Team>
     players_stats_team1: Association<GameStats, PlayerGameStats>

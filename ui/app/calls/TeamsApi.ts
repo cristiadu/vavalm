@@ -1,3 +1,5 @@
+import { PlayerWithFlag } from "./PlayersApi"
+
 interface Team {
     short_name: string
     logo_image_file?: Blob | null
@@ -5,6 +7,7 @@ interface Team {
     description?: string
     country: string
     id?: number
+    players: PlayerWithFlag[]
 }
 
 const TeamsApi = {

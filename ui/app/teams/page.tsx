@@ -4,34 +4,61 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import CountryApi from '../calls/CountryApi'
+import CountryApi, { Country } from '../calls/CountryApi'
 import Link from 'next/link'
 import TeamsApi, { Team } from '../calls/TeamsApi'
 import TeamActionModal from './TeamActionModal'
 import { handleBackClick } from '../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../base/StringUtils'
+import PlayersApi, { getRoleBgColor, Player } from '../calls/PlayersApi'
 
 
 export default function ListTeams() {
   const router = useRouter()
   const [teams, setTeams] = useState<Team[]>([])
   const [teamActionModalOpened, setTeamActionModalOpened] = useState<boolean>(false)
-  const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
   const [teamToEdit, setTeamToEdit] = useState<Team | null>(null)
+  const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    CountryApi.fetchCountries((countries) => {
+    fetchCountriesAndTeams()
+  }, [])
+
+  const fetchCountriesAndTeams = async () => {
+    try {
+      const countries = await CountryApi.fetchCountries((countryData: Country[]) => {
+        // handle country data
+      }) || []
+
       const countriesToFlagMap: Record<string, string> = {}
       countries.forEach((country) => {
         countriesToFlagMap[country.name] = country.flag
       })
       setCountriesToFlagMap(countriesToFlagMap)
-    })
 
-    TeamsApi.fetchTeams(setTeams)
-  }, [])
+      const teamsData = await TeamsApi.fetchTeams((teamData: Team[]) => {
+        // handle team data
+      })
+      const teamsWithPlayersFlags = await Promise.all(
+        teamsData.map(async (team) => {
+          const players = await PlayersApi.fetchPlayersByTeam(Number(team.id), (playerData: Player[]) => {
+            // handle player data
+          })
+          const playersWithFlags = players.map((player) => ({
+            ...player,
+            countryFlag: countriesToFlagMap[player.country] || null,
+          }))
+          return { ...team, players: playersWithFlags }
+        })
+      )
+
+      setTeams(teamsWithPlayersFlags)
+    } catch (error) {
+      console.error('Error fetching countries or teams:', error)
+    }
+  }
 
   const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
@@ -43,7 +70,7 @@ export default function ListTeams() {
     setIsEditActionOpened(false)
     setTeamActionModalOpened(false)
     setTeamToEdit(null)
-    TeamsApi.fetchTeams(setTeams)
+    fetchCountriesAndTeams()
   }
 
   const handleView = (team: Team) => {
@@ -65,7 +92,7 @@ export default function ListTeams() {
     if(!confirmed) return
 
     TeamsApi.deleteTeam(team, () => {
-      TeamsApi.fetchTeams(setTeams)
+      fetchCountriesAndTeams()
     })
     
   }
@@ -105,6 +132,9 @@ export default function ListTeams() {
                 Country
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Players
+              </th>
+              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Description
               </th>
               <th className="py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase w-auto">
@@ -132,6 +162,18 @@ export default function ListTeams() {
                     <Image src={countriesToFlagMap[team.country]} alt={team.country} width={30} height={30} className="mr-2" />
                     {team.country}
                   </span>)}
+                </td>
+                <td className="py-4 text-sm font-medium text-gray-900 grid grid-cols-2">
+                  {team.players && team.players.map(player => (
+                    <div key={player.id} className="flex items-center space-x-2 mb-2">
+                      <span className={getRoleBgColor(player.role)}>
+                        {player.role}
+                      </span>
+                      {player.countryFlag && <Image src={player.countryFlag} alt={player.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
+                      <span className="text-lg">{player.nickname}</span>
+                      <span className="text-sm text-gray-600 mt-1">({player.full_name})</span>
+                    </div>
+                  ))}
                 </td>
                 <td className="px-3 py-4 whitespace-normal text-sm font-medium text-gray-500">
                   <div className="ql-container ql-snow" style={{ border: "0" }}><div className="ql-editor" dangerouslySetInnerHTML={{ __html: asSafeHTML(team.description || "") }} /></div>
