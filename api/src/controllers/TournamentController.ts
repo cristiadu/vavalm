@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       order: [['id', 'ASC']], include: [
         { model: Game, as: 'schedule' },
         { model: Standings, as: 'standings' },
-        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] }],
+        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] }],
     })
     res.json(tournaments)
   } catch (err) {
@@ -45,7 +45,7 @@ router.get('/:id', async (req, res) => {
           ],
         },
         { model: Standings, as: 'standings', include: [{ model: Team, as: 'team' }] },
-        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file'] },
+        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] },
       ],
     })
 

@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import CountryApi from '../../api/CountryApi'
 import TournamentsApi from '../../api/TournamentsApi'
-import { Standing, Tournament } from '../../api/models/Tournament'
+import { orderStandingsByStats, Tournament } from '../../api/models/Tournament'
 import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
@@ -34,28 +34,6 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
 
   if (!tournament) {
     return <div>Loading...</div>
-  }
-
-  const standingsCalculation = (a: Standing, b: Standing): number => {
-    if (a.wins > b.wins) {
-      return -1
-    } else if (a.wins < b.wins) {
-      return 1
-    } else {
-      if (a.maps_won > b.maps_won) {
-        return -1
-      } else if (a.maps_won < b.maps_won) {
-        return 1
-      } else {
-        if (a.rounds_won > b.rounds_won) {
-          return -1
-        } else if (a.rounds_won < b.rounds_won) {
-          return 1
-        } else {
-          return 0
-        }
-      }
-    }
   }
 
   const showGameLogs = (gameId: number): void => {
@@ -123,7 +101,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 </tr>
               </thead>
               <tbody>
-                {tournament.standings && tournament.standings.sort(standingsCalculation).map((standing, index) => (
+                {tournament.standings && tournament.standings.sort(orderStandingsByStats).map((standing, index) => (
                   <tr key={standing.id}>
                     <td className="py-2 px-2 border-b text-center bg-gray-100">{index + 1}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">

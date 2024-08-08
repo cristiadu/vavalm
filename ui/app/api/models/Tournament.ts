@@ -1,6 +1,50 @@
 import { Player } from "./Player"
 import { Team } from "./Team"
 
+export const orderPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
+  if (p1.kills > p2.kills) {
+    return -1
+  } else if (p1.kills < p2.kills) {
+    return 1
+  } else {
+    if (p1.assists > p2.assists) {
+      return -1
+    } else if (p1.assists < p2.assists) {
+      return 1
+    } else {
+      if (p1.deaths > p2.deaths) {
+        return 1
+      } else if (p1.deaths < p2.deaths) {
+        return -1
+      } else {
+        return 0
+      }
+    }
+  }
+}
+
+export const orderStandingsByStats = (a: Standing, b: Standing): number => {
+  if (a.wins > b.wins) {
+    return -1
+  } else if (a.wins < b.wins) {
+    return 1
+  } else {
+    if (a.maps_won > b.maps_won) {
+      return -1
+    } else if (a.maps_won < b.maps_won) {
+      return 1
+    } else {
+      if (a.rounds_won > b.rounds_won) {
+        return -1
+      } else if (a.rounds_won < b.rounds_won) {
+        return 1
+      } else {
+        return 0
+      }
+    }
+  }
+}
+
 export enum TournamentType {
   SINGLE_GROUP = 'SINGLE_GROUP',
 }
