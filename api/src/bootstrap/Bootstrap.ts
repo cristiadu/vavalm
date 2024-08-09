@@ -32,37 +32,42 @@ const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' ?? false
 const setupTestData = async () => {
   const teams = await Team.findAll()
   if (teams.length === 0 || forceBootstrap) {
-    await Team.create({full_name: 'Team 1', description: 'Description for Team 1', short_name: 'T1', country: 'Canada'})
-    await Team.create({full_name: 'Team 2', description: 'Description for Team 2', short_name: 'T2', country: 'Brazil'})
-    await Team.create({full_name: 'Team 3', description: 'Description for Team 3', short_name: 'T3', country: 'China'})
+    await Team.create({full_name: 'Sentinels', description: 'Top NA Team', short_name: 'SEN', country: 'United States'})
+    await Team.create({full_name: 'Fnatic', description: 'Top EU Team', short_name: 'FNC', country: 'United Kingdom'})
+    await Team.create({full_name: 'Vision Strikers', description: 'Top KR Team', short_name: 'VS', country: 'South Korea'})
   } else {
     console.log('Initial teams data already exists')
   }
 
   const players = await Player.findAll()
   if (players.length === 0 || forceBootstrap) {
-    await Player.create({full_name: 'Player 1', nickname: 'P1', age: 22, country: 'Eswatini', team_id: 1, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 2', nickname: 'P2', age: 23, country: 'France', team_id: 1, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 3', nickname: 'P3', age: 24, country: 'Germany', team_id: 1, role: PlayerRole.Initiator, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 4', nickname: 'P4', age: 25, country: 'Honduras', team_id: 1, role: PlayerRole.Sentinel, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 5', nickname: 'P5', age: 26, country: 'India', team_id: 1, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Tyson Ngo', nickname: 'TenZ', age: 20, country: 'Canada', team_id: 1, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Hunter Mims', nickname: 'SicK', age: 22, country: 'United States', team_id: 1, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Shahzeeb Khan', nickname: 'ShahZaM', age: 27, country: 'United States', team_id: 1, role: PlayerRole.Initiator, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Jared Gitlin', nickname: 'zombs', age: 23, country: 'United States', team_id: 1, role: PlayerRole.Sentinel, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Michael Grzesiek', nickname: 'shroud', age: 28, country: 'Canada', team_id: 1, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
     
-    await Player.create({full_name: 'Player 6', nickname: 'P6', age: 27, country: 'Japan', team_id: 2, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 7', nickname: 'P7', age: 28, country: 'South Korea', team_id: 2, role: PlayerRole.Initiator, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 8', nickname: 'P8', age: 29, country: 'Laos', team_id: 2, role: PlayerRole.Sentinel, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 9', nickname: 'P9', age: 30, country: 'Mexico', team_id: 2, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 10', nickname: 'P10', age: 31, country: 'Nigeria', team_id: 2, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
-    await Player.create({full_name: 'Player 11', nickname: 'P11', age: 32, country: 'Oman', team_id: 2, role: PlayerRole.Initiator, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Nikita Sirmitev', nickname: 'Derke', age: 19, country: 'Finland', team_id: 2, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'James Cobb', nickname: 'Boaster', age: 26, country: 'United Kingdom', team_id: 2, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Domagoj Fancev', nickname: 'Doma', age: 21, country: 'Croatia', team_id: 2, role: PlayerRole.Initiator, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Martin Lund', nickname: 'Magnum', age: 20, country: 'Denmark', team_id: 2, role: PlayerRole.Sentinel, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Jake Howlett', nickname: 'Mini', age: 24, country: 'United Kingdom', team_id: 2, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
+    
+    await Player.create({full_name: 'Kim Gi-seok', nickname: 'stax', age: 24, country: 'South Korea', team_id: 3, role: PlayerRole.Initiator, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Yu Min-soo', nickname: 'Rb', age: 22, country: 'South Korea', team_id: 3, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Kim Jung-woo', nickname: 'Meteor', age: 21, country: 'South Korea', team_id: 3, role: PlayerRole.Duelist, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Lee Jae-won', nickname: 'k1Ng', age: 20, country: 'South Korea', team_id: 3, role: PlayerRole.Controller, player_attributes: defaultPlayerAttributes})
+    await Player.create({full_name: 'Kim Seung-won', nickname: 'Zest', age: 23, country: 'South Korea', team_id: 3, role: PlayerRole.Sentinel, player_attributes: defaultPlayerAttributes})
   } else {
     console.log('Initial players data already exists')
   }
 
   const tournaments = await Tournament.findAll()
   if (tournaments.length === 0 || forceBootstrap) {
-    await Tournament.create({name: 'Tournament 1', description: 'Description for Tournament 1', start_date: new Date(), started: false, ended: false, country: 'Canada', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
-    await Tournament.create({name: 'Tournament 2', description: 'Description for Tournament 2', start_date: new Date(), started: false, ended: false, country: 'Brazil', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
-    await Tournament.create({name: 'Tournament 3', description: 'Description for Tournament 3', start_date: new Date(), started: false, ended: false, country: 'China', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
-    await Tournament.create({name: 'Tournament 4', description: 'Description for Tournament 4', start_date: new Date(), started: false, ended: false, country: 'Denmark', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
+    await Tournament.create({name: 'Valorant Champions Tour', description: 'Global Valorant Tournament', start_date: new Date(), started: false, ended: false, country: 'Brazil', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
+    await Tournament.create({name: 'Masters Reykjavik', description: 'Valorant Masters Tournament', start_date: new Date(), started: false, ended: false, country: 'Iceland', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
+    await Tournament.create({name: 'Challengers NA', description: 'North America Challengers', start_date: new Date(), started: false, ended: false, country: 'United States', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
+    await Tournament.create({name: 'Challengers EU', description: 'Europe Challengers', start_date: new Date(), started: false, ended: false, country: 'Poland', type: TournamentType.SINGLE_GROUP, schedule: [], standings: [] })
   } else {
     console.log('Initial tournament data already exists')
   }

@@ -54,8 +54,8 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
           Back
         </Link>
       </header>
-      <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
-        <div className="w-full flex items-center justify-between bg-blue-400 p-4 rounded mb-4">
+      <div className="max-w-6 bg-white p-8 rounded shadow">
+        <div className="flex items-center justify-between bg-blue-400 p-4 rounded mb-4">
           <div key="team1Header" className="flex items-center">
             <span className={`text-4xl font-bold text-center mr-7 px-2 py-2 ${getWinOrLossColor(game.stats.team1, game.stats)}`}>
               {game.stats.team1_score}
@@ -70,7 +70,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             />
             <span className="text-4xl font-bold text-center text-white">{game.stats.team1.short_name}</span>
           </div>
-          <span className="text-4xl font-bold text-center text-white">X</span>
+          <span className="text-4xl font-bold text-center text-white mx-4">X</span>
           <div key="team2Header" className="flex items-center">
             <span className="text-4xl font-bold text-center text-white">{game.stats.team2.short_name}</span>
             <Image
