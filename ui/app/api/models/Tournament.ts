@@ -45,6 +45,26 @@ export const orderStandingsByStats = (a: Standing, b: Standing): number => {
   }
 }
 
+export const randomValorantWeapon = () =>  {
+  const weapons = Object.values(Weapons)
+  return weapons[Math.floor(Math.random() * weapons.length)]
+}
+
+export enum Weapons {
+  VANDAL = 'Vandal',
+  PHANTOM = 'Phantom',
+  OPERATOR = 'Operator',
+  SHERIFF = 'Sheriff',
+  GHOST = 'Ghost',
+  MARSHAL = 'Marshal',
+  ARES = 'Ares',
+  ODIN = 'Odin',
+  BUCKY = 'Bucky',
+  JUDGE = 'Judge',
+  FRENZY = 'Frenzy',
+  SHORTY = 'Shorty',
+}
+
 export enum TournamentType {
   SINGLE_GROUP = 'SINGLE_GROUP',
 }
@@ -73,7 +93,7 @@ export interface Game {
 }
 
 export interface GameLog {
-  date: Date
+  round: number
   duel_buff: number
   trade_buff: number
   trade: boolean

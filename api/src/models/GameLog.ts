@@ -3,7 +3,7 @@ import Player from './Player'
 import { sequelize } from './index'
 
 export class GameLog extends Model {
-  declare date: Date
+  declare round: number
   declare duel_buff: number
   declare trade_buff: number
   declare trade: boolean
@@ -23,16 +23,16 @@ export class GameLog extends Model {
 }
 
 GameLog.init({
-  date: {
-    type: DataTypes.DATE,
+  round: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   duel_buff: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.FLOAT,
     allowNull: false,
   },
   trade_buff: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.FLOAT,
     allowNull: false,
   },
   trade: {

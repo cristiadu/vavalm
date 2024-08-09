@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Game, orderPlayersByStats, Tournament } from "../../../../api/models/Tournament"
+import { Game, orderPlayersByStats, randomValorantWeapon, Tournament } from "../../../../api/models/Tournament"
 import TournamentsApi from "../../../../api/TournamentsApi"
 import { handleBackClick } from '../../../../base/LinkUtils'
 import Image from 'next/image'
@@ -97,7 +97,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             <strong>Map:</strong> {game.map}
           </div>
           <div className="text-lg">
-            <strong>Tournament:</strong> 
+            <strong>Tournament:</strong>
             {tournamentCountry && (<Image src={tournamentCountry.flag} alt={tournamentCountry.name} width={30} height={30} className="inline-block mx-2" />)}
             <span>{tournament?.name}</span>
           </div>
@@ -183,13 +183,41 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
         </div>
         {game.logs && (
           <div className="text-lg mb-4">
-            <strong>Logs:</strong>
-            <ul className="list-disc pl-5">
-              {game.logs.map((log, index) => (
-                <li key={index}>{log.toString()}</li>
-              ))}
-            </ul>
-          </div>)}
+            <h3 className="text-xl font-bold my-2">Logs</h3>
+            <hr className="mb-2" />
+            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+              <thead className="bg-gray-800 text-white">
+                <tr>
+                  <th className="py-2 px-4 border-b border-gray-200">Round</th>
+                  <th className="py-2 px-4 border-b border-gray-200">Action</th>
+                  <th className="py-2 px-4 border-b border-gray-200">Duel Buff</th>
+                  <th className="py-2 px-4 border-b border-gray-200">Trade Buff</th>
+                </tr>
+              </thead>
+              <tbody>
+                {game.logs.sort((a, b) => a.round - b.round).map((log, index) => (
+                  <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
+                    <td className="py-2 px-4">{log.round}</td>
+                    <td className="py-2 px-4">
+                      {log.player_killed.id == log.team1_player.id ? (
+                        <>
+                          <span className="font-semibold text-red-500">{log.team2_player.nickname}</span> <em>{log.trade ? 'traded' : 'killed'}</em> <span className="font-semibold text-blue-500">{log.team1_player.nickname}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-semibold text-blue-500">{log.team1_player.nickname}</span> <em>{log.trade ? 'traded' : 'killed'}</em> <span className="font-semibold text-red-500">{log.team2_player.nickname}</span>
+                        </>
+                      )}
+                       &nbsp;with a {randomValorantWeapon()}
+                    </td>
+                    <td className="py-2 px-6">{log.duel_buff*100}%</td>
+                    <td className="py-2 px-6">{log.trade_buff*100}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import Game from "../models/Game"
 import { env } from "process"
 import GameStats from "../models/GameStats"
 import PlayerGameStats from "../models/PlayerGameStats"
+import GameLog from "../models/GameLog"
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -103,13 +104,22 @@ const setupTestData = async () => {
         { player_id: 8, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
         { player_id: 9, game_stats_id: 1, kills: 5, deaths: 3, assists: 10 },
         { player_id: 10, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
-      ]}},
+      ]}, logs: [
+        { round: 1, duel_buff: 0.5, trade_buff: 0.5, trade: false, team1_player_id: 1, team2_player_id: 6, player_killed_id: 6 },
+        { round: 1, duel_buff: 0.1, trade_buff: 1.5, trade: true, team1_player_id: 3, team2_player_id: 7, player_killed_id: 3 },
+        { round: 1, duel_buff: 0.1, trade_buff: 1.5, trade: false, team1_player_id: 2, team2_player_id: 7, player_killed_id: 7 },
+        { round: 2, duel_buff: 0.5, trade_buff: 0.5, trade: true, team1_player_id: 2, team2_player_id: 7, player_killed_id: 7 },
+        { round: 3, duel_buff: 0.5, trade_buff: 0.5, trade: false, team1_player_id: 3, team2_player_id: 8, player_killed_id: 8 },
+        { round: 4, duel_buff: 1.5, trade_buff: 0.5, trade: true, team1_player_id: 4, team2_player_id: 9, player_killed_id: 9 },
+        { round: 5, duel_buff: 0.5, trade_buff: 0.5, trade: true, team1_player_id: 5, team2_player_id: 10, player_killed_id: 10 },
+      ]},
     ]
   
     for (const gameData of gamesData) {
       console.log('Creating game with data:', gameData)
       await Game.create(gameData, { 
         include: [
+          { model: GameLog, as: 'logs', include: [{ model: Player, as: 'team1_player' }, { model: Player, as: 'team2_player' }, { model: Player, as: 'player_killed' }] },
           { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }]},
         ],
       })

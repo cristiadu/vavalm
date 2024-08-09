@@ -6,6 +6,7 @@ import Standings from '../models/Standings'
 import GameStats from '../models/GameStats'
 import PlayerGameStats from '../models/PlayerGameStats'
 import Player from '../models/Player'
+import GameLog from '../models/GameLog'
 
 const router = Router()
 
@@ -40,6 +41,13 @@ router.get('/:id', async (req, res) => {
                 { model: Team, as: 'winner' },
                 { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
                 { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
+              ],
+            },
+            {
+              model: GameLog, as: 'logs', include: [
+                { model: Player, as: 'team1_player' },
+                { model: Player, as: 'team2_player' },
+                { model: Player, as: 'player_killed' },
               ],
             },
           ],
