@@ -1,4 +1,4 @@
 export interface Country {
-    name: string
-    flag: string
+  name: string
+  flag: string
 }

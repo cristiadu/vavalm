@@ -12,6 +12,7 @@ import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
 import 'react-quill/dist/quill.snow.css'
 import { quill_config } from '../base/Configs'
+import DropdownSelect from '../base/DropdownSelect'
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
 
@@ -29,8 +30,6 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
   const [teamState, setTeamState] = useState<Team>(initialState)
   const [imageSrc, setImageSrc] = useState('images/nologo.svg')
   const [countries, setCountries] = useState<Country[]>([])
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownCountryRef = useRef<HTMLDivElement>(null)
   const selectedCountry = countries.find(country => country.name === teamState.country) || null
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
@@ -46,19 +45,6 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
       setTeamState(initialState)
     }
   }, [isEdit, team])
-
-  useEffect(() => {
-    const handleClickOutsideDropdown = (event: MouseEvent) => {
-      if (dropdownCountryRef.current && !dropdownCountryRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false)
-      }
-    }
-  
-    document.addEventListener('mousedown', handleClickOutsideDropdown)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideDropdown)
-    }
-  })
 
   useEffect(() => {
     if (isOpen) {
@@ -88,13 +74,11 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     onClose()
     setInitialValues(true)
     setImageSrc('/images/nologo.svg')
-    setDropdownOpen(false)
     setValidationError(null)
   }
 
   const handleCountrySelect = (country: Country) => {
     setTeamState({ ...teamState, country: country.name })
-    setDropdownOpen(false)
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -185,28 +169,17 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
               <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="country">
                 Country
               </label>
-              <div className="relative" ref={dropdownCountryRef}>
-                <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                  {selectedCountry ? (
-                    <div className="flex items-center">
-                      <Image src={selectedCountry.flag} alt={selectedCountry.name} width={30} height={30} className="mr-2" />
-                      {selectedCountry.name}
-                    </div>
-                  ) : (
-                    'Select a country'
-                  )}
-                </div>
-                {dropdownOpen && (
-                  <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                    {countries.sort((a, b) => a.name.localeCompare(b.name)).map((country, index) => (
-                      <div key={index} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleCountrySelect(country)}>
-                        <Image src={country.flag} alt={country.name} width={30} height={30} className="mr-2" />
-                        {country.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <DropdownSelect
+                dropdownName={'country'}
+                items={countries}
+                selectedItems={selectedCountry ? [selectedCountry] : []}
+                onSelect={handleCountrySelect}
+                displayKey="name"
+                imageKey="flag"
+                shouldFormatImageSrc={false}
+                placeholder="Select a country"
+                isMultiSelect={false}
+              />
             </div>
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Image from 'next/image'
 import Modal from '../base/Modal'
 import CountryApi from '../api/CountryApi'
 import { Country } from '../api/models/Country'
@@ -7,11 +6,12 @@ import TeamsApi from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
-import { Tournament, TournamentType, Game, Standing } from '../api/models/Tournament'
+import { Tournament, TournamentType, Game, Standing, EnumWithFieldName } from '../api/models/common'
 import TournamentsApi from '../api/TournamentsApi'
 import { quill_config } from '../base/Configs'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
+import DropdownSelect from '../base/DropdownSelect'
 
 const initialTournamentState = {
   name: '',
@@ -31,13 +31,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
   const [tournamentState, setTournamentState] = useState(initialTournamentState)
   const [teams, setTeams] = useState<Team[]>([])
   const [countries, setCountries] = useState<Country[]>([])
-  const [dropdownOpenCountry, setDropdownOpenCountry] = useState(false)
-  const [dropdownOpenType, setDropdownOpenType] = useState(false)
-  const [dropdownOpenTeams, setDropdownOpenTeams] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
-  const dropdownCountryRef = useRef<HTMLDivElement>(null)
-  const dropdownTypeRef = useRef<HTMLDivElement>(null)
-  const dropdownTeamsRef = useRef<HTMLDivElement>(null)
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
     if (isEdit && tournament && !cleanup) {
@@ -59,27 +53,6 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
   }, [isEdit, tournament, countries])
 
   useEffect(() => {
-    const handleClickOutsideDropdowns = (event: MouseEvent) => {
-      if (dropdownCountryRef.current && !dropdownCountryRef.current.contains(event.target as Node)) {
-        setDropdownOpenCountry(false)
-      }
-
-      if (dropdownTypeRef.current && !dropdownTypeRef.current.contains(event.target as Node)) {
-        setDropdownOpenType(false)
-      }
-
-      if (dropdownTeamsRef.current && !dropdownTeamsRef.current.contains(event.target as Node)) {
-        setDropdownOpenTeams(false)
-      }
-    }
-  
-    document.addEventListener('mousedown', handleClickOutsideDropdowns)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideDropdowns)
-    }
-  })
-
-  useEffect(() => {
     if (isOpen) {
       CountryApi.fetchCountries(setCountries)
       TeamsApi.fetchTeams(setTeams)
@@ -94,12 +67,10 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
 
   const handleCountrySelect = (country: Country) => {
     setTournamentState(prevState => ({ ...prevState, country }))
-    setDropdownOpenCountry(false)
   }
 
-  const handleTypeSelect = (type: TournamentType) => {
-    setTournamentState(prevState => ({ ...prevState, type }))
-    setDropdownOpenType(false)
+  const handleTypeSelect = (tournament_type: EnumWithFieldName<TournamentType>) => {
+    setTournamentState(prevState => ({ ...prevState, type: tournament_type.value }))
   }
 
   const handleTeamSelect = (team: Team) => {
@@ -115,8 +86,6 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
   const closeModal = () => {
     onClose()
     setInitialValues(true)
-    setDropdownOpenCountry(false)
-    setDropdownOpenType(false)
     setValidationError(null)
   }
 
@@ -195,89 +164,43 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Country</label>
-          <div className="relative" ref={dropdownCountryRef}>
-            <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
-              onClick={() => setDropdownOpenCountry(!dropdownOpenCountry)}>
-              {selectedCountry ? (
-                <div className="flex items-center">
-                  <Image src={selectedCountry.flag} alt={selectedCountry.name} width={30} height={30} className="mr-2" />
-                  {selectedCountry.name}
-                </div>
-              ) : (
-                'Select a country'
-              )}
-            </div>
-            {dropdownOpenCountry && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                {countries.sort((a, b) => a.name.localeCompare(b.name)).map((country, index) => (
-                  <div key={index} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleCountrySelect(country)}>
-                    <Image src={country.flag} alt={country.name} width={30} height={30} className="mr-2" />
-                    {country.name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <DropdownSelect
+            dropdownName={'country'}
+            items={countries}
+            selectedItems={selectedCountry ? [selectedCountry] : []}
+            onSelect={handleCountrySelect}
+            displayKey="name"
+            imageKey="flag"
+            shouldFormatImageSrc={false}
+            placeholder="Select a country"
+            isMultiSelect={false}
+          />
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Type</label>
-          <div className="relative" ref={dropdownTypeRef}>
-            <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
-              onClick={() => setDropdownOpenType(!dropdownOpenType)}>
-              {tournamentState.type ? (
-                <div className="flex items-center">
-                  {tournamentState.type}
-                </div>
-              ) : (
-                'Select a type'
-              )}
-            </div>
-            {dropdownOpenType && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                {Object.values(TournamentType).map((type, index) => (
-                  <div key={index} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleTypeSelect(type)}>
-                    {type}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <DropdownSelect 
+            dropdownName={'type'}
+            items={Object.values(TournamentType).map(value => ({ value }))}
+            selectedItems={tournamentState.type ? [{value: tournamentState.type}] : []}
+            onSelect={handleTypeSelect}
+            displayKey="value"
+            placeholder="Select a type"
+            isMultiSelect={false} 
+          />
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Teams</label>
-          <div className="relative" ref={dropdownTeamsRef}>
-            <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
-              onClick={() => setDropdownOpenTeams(!dropdownOpenTeams)}>
-              {tournamentState.teams.length > 0 ? (
-                <div className="flex items-center">
-                  {selectedTeams.map(selectedTeam => (
-                    <div key={'team-'+selectedTeam.id}>
-                      <Image src={selectedTeam.logo_image_file ? URL.createObjectURL(selectedTeam.logo_image_file) : '/images/nologo.svg'} alt={selectedTeam.short_name || 'No Team'} width={30} height={30} className="mr-2" />
-                      {selectedTeam.short_name}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                'Select teams'
-              )}
-            </div>
-            {dropdownOpenTeams && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                {teams.sort((a, b) => a.short_name.localeCompare(b.short_name)).map((team, index) => (
-                  <div key={team.id} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleTeamSelect(team)}>
-                    <input
-                      type="checkbox"
-                      checked={tournamentState.teams.some(selectedTeam => selectedTeam.id === team.id)}
-                      readOnly
-                      className="mr-2"
-                    />
-                    <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : '/images/nologo.svg'} alt={team.short_name || 'No Team'} width={30} height={30} className="mr-2" />
-                    {team.short_name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <DropdownSelect
+            dropdownName={'teams'}
+            shouldFormatImageSrc={true}
+            items={teams}
+            selectedItems={selectedTeams}
+            onSelect={handleTeamSelect}
+            displayKey="short_name"
+            imageKey="logo_image_file"
+            placeholder="Select teams"
+            isMultiSelect={true} 
+          />
         </div>
         <div className="flex justify-end">
           <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700">

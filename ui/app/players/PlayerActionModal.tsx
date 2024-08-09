@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import PlayersApi from '../api/PlayersApi'
 import { getRoleBgColor, Player, PlayerAttributes, PlayerRole } from '../api/models/Player'
-import Image from 'next/image'
 import Modal from '../base/Modal'
 import CountryApi from '../api/CountryApi'
 import {Country} from '../api/models/Country'
@@ -9,6 +8,8 @@ import TeamsApi from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
+import DropdownSelect from '../base/DropdownSelect'
+import { EnumWithFieldName } from '../api/models/common'
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -44,14 +45,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
   const [playerState, setPlayerState] = useState(initialPlayerState)
   const [teams, setTeams] = useState<Team[]>([])
   const [countries, setCountries] = useState<Country[]>([])
-  const [dropdownOpenTeam, setDropdownOpenTeam] = useState(false)
-  const [dropdownOpenCountry, setDropdownOpenCountry] = useState(false)
-  const [dropdownOpenRole, setDropdownOpenRole] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
-  const dropdownCountryRef = useRef<HTMLDivElement>(null)
-  const dropdownTeamRef = useRef<HTMLDivElement>(null)
-  const dropdownRoleRef = useRef<HTMLDivElement>(null)
-
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
     if (isEdit && player && !cleanup) {
@@ -70,27 +64,6 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
   }, [isEdit, player, countries])
 
   useEffect(() => {
-    const handleClickOutsideDropdowns = (event: MouseEvent) => {
-      if (dropdownCountryRef.current && !dropdownCountryRef.current.contains(event.target as Node)) {
-        setDropdownOpenCountry(false)
-      }
-
-      if (dropdownTeamRef.current && !dropdownTeamRef.current.contains(event.target as Node)) {
-        setDropdownOpenTeam(false)
-      }
-
-      if (dropdownRoleRef.current && !dropdownRoleRef.current.contains(event.target as Node)) {
-        setDropdownOpenRole(false)
-      }
-    }
-  
-    document.addEventListener('mousedown', handleClickOutsideDropdowns)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideDropdowns)
-    }
-  })
-
-  useEffect(() => {
     if (isOpen) {
       CountryApi.fetchCountries(setCountries)
       TeamsApi.fetchTeams(setTeams)
@@ -105,25 +78,19 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
 
   const handleTeamSelect = (team: Team) => {
     setPlayerState(prevState => ({ ...prevState, teamId: team.id ?? null }))
-    setDropdownOpenTeam(false)
   }
 
   const handleCountrySelect = (country: Country) => {
     setPlayerState(prevState => ({ ...prevState, selectedCountry: country }))
-    setDropdownOpenCountry(false)
   }
 
-  const handleRoleSelect = (playerRole: PlayerRole) => {
-    setPlayerState(prevState => ({ ...prevState, role: playerRole }))
-    setDropdownOpenRole(false)
+  const handleRoleSelect = (role: EnumWithFieldName<PlayerRole>) => {
+    setPlayerState(prevState => ({ ...prevState, role: role.value }))
   }
 
   const closeModal = () => {
     onClose()
     setInitialValues(true)
-    setDropdownOpenTeam(false)
-    setDropdownOpenCountry(false)
-    setDropdownOpenRole(false)
     setValidationError(null)
   }
 
@@ -205,89 +172,49 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
           <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="role">
                 Role
           </label>
-          <div className="relative" ref={dropdownRoleRef}>
-            <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
-              onClick={() => setDropdownOpenRole(!dropdownOpenRole)}>
-              {playerState.role ? (
-                <div className="flex items-center">
-                  <span className={getRoleBgColor(playerState.role)}>{playerState.role}</span>
-                </div>
-              ) : (
-                'Select a role'
-              )}
-            </div>
-            {dropdownOpenRole && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                {Object.values(PlayerRole).map((role, index) => (
-                  <div key={index} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleRoleSelect(role)}>
-                    <span className={getRoleBgColor(role)}>{role}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {playerState.role && (
+            <DropdownSelect 
+              dropdownName={'role'}
+              items={Object.values(PlayerRole).map(value => ({ value }))}
+              selectedItems={playerState.role ? [{value: playerState.role}] : []}
+              onSelect={handleRoleSelect}
+              displayKey="value"
+              placeholder="Select a type"
+              styleCssOnValue={(value) => getRoleBgColor(value as PlayerRole)}
+              isMultiSelect={false} 
+            />
+          )}
         </div>
-
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="country">
                 Country
             </label>
-            <div className="relative" ref={dropdownCountryRef}>
-              <div className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
-                onClick={() => setDropdownOpenCountry(!dropdownOpenCountry)}>
-                {playerState.selectedCountry ? (
-                  <div className="flex items-center">
-                    <Image src={playerState.selectedCountry.flag} alt={playerState.selectedCountry.name} width={30} height={30} className="mr-2" />
-                    {playerState.selectedCountry.name}
-                  </div>
-                ) : (
-                  'Select a country'
-                )}
-              </div>
-              {dropdownOpenCountry && (
-                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                  {countries.sort((a, b) => a.name.localeCompare(b.name)).map((country, index) => (
-                    <div key={index} className="flex items-center p-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleCountrySelect(country)}>
-                      <Image src={country.flag} alt={country.name} width={30} height={30} className="mr-2" />
-                      {country.name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <DropdownSelect
+              dropdownName={'country'}
+              items={countries}
+              selectedItems={playerState.selectedCountry ? [playerState.selectedCountry] : []}
+              onSelect={handleCountrySelect}
+              displayKey="name"
+              imageKey="flag"
+              shouldFormatImageSrc={false}
+              placeholder="Select a country"
+              isMultiSelect={false}
+            />
           </div>
           <div>
             <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Team</label>
-            <div className="relative" ref={dropdownTeamRef}>
-              <div
-                className="w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500 cursor-pointer"
-                onClick={() => setDropdownOpenTeam(!dropdownOpenTeam)}
-              >
-                {selectedTeam ? (
-                  <div className="flex items-center">
-                    <Image src={selectedTeam.logo_image_file ? URL.createObjectURL(selectedTeam.logo_image_file) : '/images/nologo.svg'} alt={selectedTeam.short_name || 'No Team'} width={30} height={30} className="mr-2" />
-                    {selectedTeam.short_name}
-                  </div>
-                ) : (
-                  'Select a team'
-                )}
-              </div>
-              {dropdownOpenTeam && (
-                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-                  {teams.map((team) => (
-                    <div
-                      key={team.id}
-                      className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleTeamSelect(team)}
-                    >
-                      <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : '/images/nologo.svg'} alt={team.short_name} width={30} height={30} className="mr-2" />
-                      {team.short_name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <DropdownSelect
+              dropdownName={'teams'}
+              shouldFormatImageSrc={true}
+              items={teams}
+              selectedItems={selectedTeam ? [selectedTeam] : []}
+              onSelect={handleTeamSelect}
+              displayKey="short_name"
+              imageKey="logo_image_file"
+              placeholder="Select teams"
+              isMultiSelect={false} 
+            />
           </div>
         </div>
         <div className="mb-4">
