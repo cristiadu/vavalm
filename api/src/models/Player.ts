@@ -3,6 +3,18 @@ import Team from './Team'
 import { PlayerRole } from './enums'
 import { sequelize } from './index'
 
+export interface PlayerDuel {
+  player1: Player
+  player2: Player
+  isTrade: boolean
+}
+
+export interface PlayerDuelResults {
+  winner: Player
+  loser: Player
+  startedTradeDuel: boolean
+}
+
 export interface PlayerAttributes {
   clutch: number,
   awareness: number,

@@ -105,13 +105,13 @@ const setupTestData = async () => {
         { player_id: 9, game_stats_id: 1, kills: 5, deaths: 3, assists: 10 },
         { player_id: 10, game_stats_id: 1, kills: 3, deaths: 5, assists: 10 },
       ]}, logs: [
-        { round: 1, duel_buff: 0.5, trade_buff: 0.5, trade: false, team1_player_id: 1, team2_player_id: 6, player_killed_id: 6 },
-        { round: 1, duel_buff: 0.1, trade_buff: 1.5, trade: true, team1_player_id: 3, team2_player_id: 7, player_killed_id: 3 },
-        { round: 1, duel_buff: 0.1, trade_buff: 1.5, trade: false, team1_player_id: 2, team2_player_id: 7, player_killed_id: 7 },
-        { round: 2, duel_buff: 0.5, trade_buff: 0.5, trade: true, team1_player_id: 2, team2_player_id: 7, player_killed_id: 7 },
-        { round: 3, duel_buff: 0.5, trade_buff: 0.5, trade: false, team1_player_id: 3, team2_player_id: 8, player_killed_id: 8 },
-        { round: 4, duel_buff: 1.5, trade_buff: 0.5, trade: true, team1_player_id: 4, team2_player_id: 9, player_killed_id: 9 },
-        { round: 5, duel_buff: 0.5, trade_buff: 0.5, trade: true, team1_player_id: 5, team2_player_id: 10, player_killed_id: 10 },
+        { round: 1, duel_buff: 0.5, trade_buff: 0.5, trade: false, team1_player_id: 1, team2_player_id: 6, player_killed_id: 6 , last_duel_of_round: false},
+        { round: 1, duel_buff: 0.1, trade_buff: 1.5, trade: true, team1_player_id: 3, team2_player_id: 7, player_killed_id: 3, last_duel_of_round: false },
+        { round: 1, duel_buff: 0.1, trade_buff: 1.5, trade: false, team1_player_id: 2, team2_player_id: 7, player_killed_id: 7, last_duel_of_round: true },
+        { round: 2, duel_buff: 0.5, trade_buff: 0.5, trade: true, team1_player_id: 2, team2_player_id: 7, player_killed_id: 7, last_duel_of_round: false },
+        { round: 3, duel_buff: 0.5, trade_buff: 0.5, trade: false, team1_player_id: 3, team2_player_id: 8, player_killed_id: 8, last_duel_of_round: false },
+        { round: 4, duel_buff: 1.5, trade_buff: 0.5, trade: true, team1_player_id: 4, team2_player_id: 9, player_killed_id: 9, last_duel_of_round: false },
+        { round: 5, duel_buff: 0.5, trade_buff: 0.5, trade: true, team1_player_id: 5, team2_player_id: 10, player_killed_id: 10, last_duel_of_round: false },
       ]},
     ]
   
