@@ -1,6 +1,6 @@
 import { PlayerRole } from "../models/enums"
 import Player, { PlayerAttributes, PlayerDuel, PlayerDuelResults } from "../models/Player"
-import GameLog, { Round } from "../models/GameLog"
+import GameLog, { RoundState } from "../models/GameLog"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
 import PlayerGameStats from "../models/PlayerGameStats"
@@ -8,44 +8,6 @@ import PlayerGameStats from "../models/PlayerGameStats"
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
 const RoundService = {
-  getCounterAttributeName: (attributeName: string): string => {
-    switch (attributeName) {
-    case 'clutch':
-      return 'awareness'
-    case 'awareness':
-      return 'game_reading'
-    case 'game_reading':
-      return 'aim'
-    case 'aim':
-      return 'positioning'
-    case 'positioning':
-      return 'clutch'
-    case 'resilience':
-      return 'confidence'
-    case 'confidence':
-      return 'game_sense'
-    case 'game_sense':
-      return 'decision_making'
-    case 'decision_making':
-      return 'resilience'
-    case 'strategy':
-      return 'adaptability'
-    case 'adaptability':
-      return 'strategy'
-    case 'communication':
-      return 'unpredictability'
-    case 'unpredictability':
-      return 'utility_usage'
-    case 'utility_usage':
-      return 'teamwork'
-    case 'teamwork':
-      return 'communication'
-    case 'rage_fuel':
-      return 'rage_fuel'
-    default:
-      return 'unknown'
-    }
-  },
   playGame: async (game_id: number): Promise<void> => {
     // Get the game
     const game = await Game.findByPk(game_id)
@@ -133,9 +95,11 @@ const RoundService = {
     }
     gameStats.save()
   },
-  playRound: async (game_id: number, round_number: number): Promise<Round> => {
+  playRound: async (game_id: number, round_number: number): Promise<RoundState> => {
     // Start the game
-    let currentRound: Round = await RoundService.startRound(game_id, round_number)
+    let currentRound: RoundState = await RoundService.startRound(game_id, round_number)
+
+    // Play the round
     while (!currentRound.finished) {
       currentRound = RoundService.pickAndPlayDuel(game_id, currentRound)
     }
@@ -143,17 +107,22 @@ const RoundService = {
     // Return the last RoundInfo
     return currentRound
   },
-  startRound: async (game_id: number, round_number: number): Promise<Round> => {
+  startRound: async (game_id: number, round_number: number): Promise<RoundState> => {
     const gameStats = await GameStats.findOne({where: {game_id: game_id}})
     return {
       round: round_number,
       isTradeHappening: false,
       team1_alive_players: gameStats?.team1?.players || [],
       team2_alive_players: gameStats?.team2?.players || [],
+      team_won: null,
       finished: false,
     }
   },
-  pickAndPlayDuel: (game_id: number, currentRound: Round): Round => {
+  pickAndPlayDuel: (game_id: number, currentRound: RoundState): RoundState => {
+    if(currentRound.team1_alive_players.length === 0 || currentRound.team2_alive_players.length === 0) {
+      throw new Error('No players alive in one of the teams')
+    }
+
     // Randomly pick a player from each team
     // Use duelSelectBuff and tradeSelectBuff to increase the chances of a player being picked
     // So we duplicate the player in the array to increase the chances of being picked
@@ -177,10 +146,19 @@ const RoundService = {
     const duelResults = RoundService.pickDuelWinner({player1: team1Player, player2: team2Player, isTrade: currentRound.isTradeHappening})
     const lastDuelOfRound = currentRound.team1_alive_players.length <= 1 || currentRound.team2_alive_players.length <= 1
 
+    const playedRound = {
+      round: currentRound.round,
+      isTradeHappening: duelResults.startedTradeDuel,
+      team1_alive_players: currentRound.team1_alive_players.filter(player => player.id !== duelResults.loser.id),
+      team2_alive_players: currentRound.team2_alive_players.filter(player => player.id !== duelResults.loser.id),
+      team_won: lastDuelOfRound ? (currentRound.team1_alive_players.length > 0 ? currentRound.team1_alive_players[0].team : currentRound.team2_alive_players[0].team) : null,
+      finished: lastDuelOfRound,
+    } as RoundState
+
     // Needs to save a GameLog with the duel results
     GameLog.create({
-      round: currentRound.round,
-      last_duel_of_round: lastDuelOfRound,
+      round: playedRound,
+      last_duel_of_round: playedRound.finished,
       duel_buff: RoundService.getDuelWinBuffByPlayerRole(duelResults.winner), 
       trade_buff: RoundService.getTradeWinBuffByPlayerRole(duelResults.winner), 
       trade: currentRound.isTradeHappening, 
@@ -191,13 +169,7 @@ const RoundService = {
       player_killed_id: duelResults,
     })
 
-    return {
-      round: currentRound.round,
-      isTradeHappening: duelResults.startedTradeDuel,
-      team1_alive_players: currentRound.team1_alive_players.filter(player => player.id !== duelResults.loser.id),
-      team2_alive_players: currentRound.team2_alive_players.filter(player => player.id !== duelResults.loser.id),
-      finished: lastDuelOfRound,
-    }
+    return playedRound
   },
   pickDuelWinner: (duel: PlayerDuel): PlayerDuelResults => {
     // Randomly pick the winner based on the chances
@@ -331,6 +303,44 @@ const RoundService = {
       return 0.01
     default:
       return 0
+    }
+  },
+  getCounterAttributeName: (attributeName: string): string => {
+    switch (attributeName) {
+    case 'clutch':
+      return 'awareness'
+    case 'awareness':
+      return 'game_reading'
+    case 'game_reading':
+      return 'aim'
+    case 'aim':
+      return 'positioning'
+    case 'positioning':
+      return 'clutch'
+    case 'resilience':
+      return 'confidence'
+    case 'confidence':
+      return 'game_sense'
+    case 'game_sense':
+      return 'decision_making'
+    case 'decision_making':
+      return 'resilience'
+    case 'strategy':
+      return 'adaptability'
+    case 'adaptability':
+      return 'strategy'
+    case 'communication':
+      return 'unpredictability'
+    case 'unpredictability':
+      return 'utility_usage'
+    case 'utility_usage':
+      return 'teamwork'
+    case 'teamwork':
+      return 'communication'
+    case 'rage_fuel':
+      return 'rage_fuel'
+    default:
+      return 'unknown'
     }
   },
 }

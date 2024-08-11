@@ -1,19 +1,20 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import Player from './Player'
 import { sequelize } from './index'
+import Team from './Team'
 
 // Manage a Round state as it goes.
-export interface Round {
+export interface RoundState {
   round: number
   isTradeHappening: boolean
   team1_alive_players: Player[]
   team2_alive_players: Player[]
+  team_won: Team | null
   finished: boolean
 }
 
 export class GameLog extends Model {
-  declare round: number
-  declare last_duel_of_round: boolean
+  declare round_state: RoundState
   declare duel_buff: number
   declare trade_buff: number
   declare trade: boolean
@@ -33,14 +34,9 @@ export class GameLog extends Model {
 }
 
 GameLog.init({
-  round: {
-    type: DataTypes.INTEGER,
+  round_state: {
+    type: DataTypes.JSON,
     allowNull: false,
-  },
-  last_duel_of_round: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
   },
   duel_buff: {
     type: DataTypes.FLOAT,
