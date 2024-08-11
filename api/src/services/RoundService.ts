@@ -4,6 +4,7 @@ import GameLog, { RoundState } from "../models/GameLog"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
 import PlayerGameStats from "../models/PlayerGameStats"
+import Team from "../models/Team"
 
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
@@ -97,12 +98,12 @@ const RoundService = {
   },
   playRoundStep: async (game_id: number, round_number: number): Promise<RoundState> => {
     const currentGameLog = await GameLog.findOne({
-      where: {game_id: game_id, round: round_number}, 
+      where: {game_id: game_id}, 
       order: [['id', 'DESC']], 
-      include: [{model: Player, as: 'team1_player'}, {model: Player, as: 'team2_player'}, {model: Player, as: 'player_killed'}]
+      include: [{model: Player, as: 'team1_player', include: [{model: Team, as: 'team'}]}, {model: Player, as: 'team2_player', include: [{model: Team, as: 'team'}]}, {model: Player, as: 'player_killed',  include: [{model: Team, as: 'team'}]}],
     })
     let currentRound = currentGameLog?.round_state
-    if(!currentRound) {
+    if(!currentRound || currentRound.round !== round_number) {
       currentRound = await RoundService.startRound(game_id, round_number)
     }
     return RoundService.pickAndPlayDuel(game_id, currentRound)
@@ -120,7 +121,7 @@ const RoundService = {
     return currentRound
   },
   startRound: async (game_id: number, round_number: number): Promise<RoundState> => {
-    const gameStats = await GameStats.findOne({where: {game_id: game_id}})
+    const gameStats = await GameStats.findOne({where: {game_id: game_id}, include: [{model: Team, as: 'team1', include: [{model: Player, as: 'players'}]}, {model: Team, as: 'team2', include: [{model: Player, as: 'players'}]}]})
     return {
       round: round_number,
       isTradeHappening: false,
@@ -169,7 +170,7 @@ const RoundService = {
 
     // Needs to save a GameLog with the duel results
     GameLog.create({
-      round: playedRound,
+      round_state: playedRound,
       last_duel_of_round: playedRound.finished,
       duel_buff: RoundService.getDuelWinBuffByPlayerRole(duelResults.winner), 
       trade_buff: RoundService.getTradeWinBuffByPlayerRole(duelResults.winner), 
@@ -178,7 +179,7 @@ const RoundService = {
       game_id: game_id, 
       team1_player_id: team1Player.id, 
       team2_player_id: team2Player.id, 
-      player_killed_id: duelResults,
+      player_killed_id: duelResults.loser.id,
     })
 
     return playedRound
@@ -192,6 +193,7 @@ const RoundService = {
     const duelChances = RoundService.getDuelChancesWithBuffs(duel)
     const randomNumber = Math.random() * (duelChances.chancesPlayer1 + duelChances.chancesPlayer2)
     const winner = randomNumber < duelChances.chancesPlayer1 ? duel.player1 : duel.player2
+    console.log(`Player ${winner.nickname} won the duel against ${winner === duel.player1 ? duel.player2.nickname : duel.player1.nickname}!`)
     return {
       winner: winner,
       loser: winner === duel.player1 ? duel.player2 : duel.player1,

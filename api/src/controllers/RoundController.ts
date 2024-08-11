@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import RoundService from '../services/RoundService'
 
-const router = Router()
+const router = Router({mergeParams: true})
 
 // Trigger the round to start
 router.post('/:round/play', async (req, res) => {

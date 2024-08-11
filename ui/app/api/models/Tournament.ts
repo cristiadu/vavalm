@@ -92,8 +92,17 @@ export interface Game {
   stats: GameStats
 }
 
-export interface GameLog {
+export interface RoundState {
   round: number
+  isTradeHappening: boolean
+  team1_alive_players: Player[]
+  team2_alive_players: Player[]
+  team_won: Team | null
+  finished: boolean
+}
+
+export interface GameLog {
+  round_state: RoundState
   duel_buff: number
   trade_buff: number
   trade: boolean

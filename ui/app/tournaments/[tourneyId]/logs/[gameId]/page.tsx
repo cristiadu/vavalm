@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Game, orderPlayersByStats, randomValorantWeapon, Tournament } from "../../../../api/models/Tournament"
@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { getWinOrLossColor } from "../../../../api/models/Team"
 import CountryApi from "../../../../api/CountryApi"
 import { Country } from "../../../../api/models/Country"
+import GameApi from "../../../../api/GameApi"
 
 interface ViewGameLogsProps {
   tourneyId: string
@@ -20,23 +21,47 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const [game, setGame] = useState<Game | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
   const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
   const router = useRouter()
 
-  useEffect(() => {
-    const fetchGameData = async () => {
-      await TournamentsApi.fetchTournament(Number(params.tourneyId), (data: Tournament) => {
-        const game = data.schedule?.find((game) => game.id === Number(params.gameId)) || null
-        setGame(game)
-        setTournament(data)
-      })
-    }
+  const handlePlayRound = () => {
+    GameApi.playFullRound(params.gameId, lastRoundPlayed + 1, (roundState) => {
+      console.log('Full Round Execution, Round State:', roundState)
+      fetchGameData()
+    })
+  }
 
+  const handlePlayDuel = () => {
+    const round = lastRoundPlayed == 0 ? 1 : lastRoundPlayed
+    GameApi.playSingleDuel(params.gameId, round, (roundState) => {
+      console.log('Single Duel Execution, Round State:', roundState)
+      fetchGameData()
+    })
+  }
+
+  const handlePlayFullGame = () => {
+    GameApi.playFullGame(params.gameId, (message) => {
+      console.log('Full Game Execution, Message:', message)
+      fetchGameData()
+    })
+  }
+
+  const fetchGameData = useCallback(async () => {
+    await TournamentsApi.fetchTournament(Number(params.tourneyId), (data: Tournament) => {
+      const game = data.schedule?.find((game) => game.id === Number(params.gameId)) || null
+      setGame(game)
+      setTournament(data)
+      setLastRoundPlayed(game?.logs && game.logs.length > 0 ? game.logs[game.logs.length - 1].round_state.round : 0)
+    })
+  }, [params.gameId, params.tourneyId])
+
+  useEffect(() => {
     CountryApi.fetchCountries((countryData) => {
       setCountries(countryData)
     })
 
     fetchGameData()
-  }, [params.gameId, params.tourneyId])
+  }, [params.gameId, params.tourneyId, fetchGameData])
 
   if (!game) {
     return <div>Loading...</div>
@@ -101,6 +126,11 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             {tournamentCountry && (<Image src={tournamentCountry.flag} alt={tournamentCountry.name} width={30} height={30} className="inline-block mx-2" />)}
             <span>{tournament?.name}</span>
           </div>
+        </div>
+        <div className="flex justify-center mt-8">
+          <button onClick={handlePlayRound} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mx-2">Play Round</button>
+          <button onClick={handlePlayDuel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 mx-2">Play Duel</button>
+          <button onClick={handlePlayFullGame} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mx-2">Play Full Game</button>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Stats</h3>
@@ -195,9 +225,9 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
                 </tr>
               </thead>
               <tbody>
-                {game.logs.sort((a, b) => a.round - b.round).map((log, index) => (
+                {game.logs.sort((a, b) => a.round_state.round - b.round_state.round).map((log, index) => (
                   <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-2 px-4">{log.round}</td>
+                    <td className="py-2 px-4">{log.round_state.round}</td>
                     <td className="py-2 px-4">
                       {log.player_killed.id == log.team1_player.id ? (
                         <>
