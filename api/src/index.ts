@@ -5,6 +5,7 @@ import TeamsController from './controllers/TeamsController'
 import PlayersController from './controllers/PlayersController'
 import TournamentController from './controllers/TournamentController'
 import setupTestData from './bootstrap/Bootstrap'
+import GameController from './controllers/GameController'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -16,6 +17,7 @@ app.use(cors())
 app.use('/teams', TeamsController)
 app.use('/players', PlayersController)
 app.use('/tournaments', TournamentController)
+app.use('/games', GameController)
 
 setupTestData().then(() => {
   console.log('Test data has been created successfully.')

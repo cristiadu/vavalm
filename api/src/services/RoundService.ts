@@ -96,14 +96,18 @@ const RoundService = {
     gameStats.save()
   },
   playRoundStep: async (game_id: number, round_number: number): Promise<RoundState> => {
-    const currentGameLog = await GameLog.findOne({where: {game_id: game_id, round: round_number}, order: [['id', 'DESC']]})
+    const currentGameLog = await GameLog.findOne({
+      where: {game_id: game_id, round: round_number}, 
+      order: [['id', 'DESC']], 
+      include: [{model: Player, as: 'team1_player'}, {model: Player, as: 'team2_player'}, {model: Player, as: 'player_killed'}]
+    })
     let currentRound = currentGameLog?.round_state
     if(!currentRound) {
       currentRound = await RoundService.startRound(game_id, round_number)
     }
     return RoundService.pickAndPlayDuel(game_id, currentRound)
   },
-  playFullRound: async (game_id: number, round_number: number): Promise<RoundState> => {
+  playFullRound: async (game_id: number, round_number: number = 1): Promise<RoundState> => {
     // Start the game
     let currentRound: RoundState = await RoundService.playRoundStep(game_id, round_number)
     
