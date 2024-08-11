@@ -27,7 +27,7 @@ const RoundService = {
     let team2_rounds = 0
     let currentRound = null
     while (team1_rounds < 13 && team2_rounds < 13) {
-      currentRound = await RoundService.playRound(game_id, round)
+      currentRound = await RoundService.playFullRound(game_id, round)
       round += 1
       if (currentRound.team1_alive_players.length === 0) {
         team2_rounds += 1
@@ -95,10 +95,18 @@ const RoundService = {
     }
     gameStats.save()
   },
-  playRound: async (game_id: number, round_number: number): Promise<RoundState> => {
+  playRoundStep: async (game_id: number, round_number: number): Promise<RoundState> => {
+    const currentGameLog = await GameLog.findOne({where: {game_id: game_id, round: round_number}, order: [['id', 'DESC']]})
+    let currentRound = currentGameLog?.round_state
+    if(!currentRound) {
+      currentRound = await RoundService.startRound(game_id, round_number)
+    }
+    return RoundService.pickAndPlayDuel(game_id, currentRound)
+  },
+  playFullRound: async (game_id: number, round_number: number): Promise<RoundState> => {
     // Start the game
-    let currentRound: RoundState = await RoundService.startRound(game_id, round_number)
-
+    let currentRound: RoundState = await RoundService.playRoundStep(game_id, round_number)
+    
     // Play the round
     while (!currentRound.finished) {
       currentRound = RoundService.pickAndPlayDuel(game_id, currentRound)
