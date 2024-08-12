@@ -51,7 +51,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
       const game = data.schedule?.find((game) => game.id === Number(params.gameId)) || null
       setGame(game)
       setTournament(data)
-      setLastRoundPlayed(game?.logs && game.logs.length > 0 ? game.logs[game.logs.length - 1].round_state.round : 0)
+      setLastRoundPlayed(game?.logs && (game.logs.sort((a, b) => a.round_state.round - b.round_state.round).pop()?.round_state.round || 0) || 0)
     })
   }, [params.gameId, params.tourneyId])
 

@@ -5,6 +5,7 @@ import { sequelize } from './index'
 import Game from './Game'
 
 class GameStats extends Model {
+  declare id?: number
   declare team1: Team
   declare team2: Team
   declare game: Game
@@ -51,7 +52,7 @@ GameStats.init({
   },
   winner_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
 }, { sequelize, modelName: 'GameStats' })
 

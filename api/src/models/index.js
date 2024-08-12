@@ -9,9 +9,9 @@ const db = {}
 
 let sequelize
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], { logging: console.log, ...config })
+  sequelize = new Sequelize(process.env[config.use_env_variable], { logging: null, ...config })
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, { logging: console.log, ...config })
+  sequelize = new Sequelize(config.database, config.username, config.password, { logging: null, ...config })
 }
 
 // Validate database connection

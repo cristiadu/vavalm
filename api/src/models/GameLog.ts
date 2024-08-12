@@ -25,6 +25,8 @@ export class GameLog extends Model {
   declare team1_player_id: number
   declare team2_player_id: number
   declare player_killed_id: number
+  declare included_on_player_stats: boolean
+  declare included_on_team_stats: boolean
 
   static associations: {
     team1_player: Association<GameLog, Player>
@@ -65,6 +67,16 @@ GameLog.init({
   player_killed_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  included_on_player_stats: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  included_on_team_stats: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
   },
 }, { sequelize, modelName: 'GameLog' })
 
