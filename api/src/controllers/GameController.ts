@@ -8,7 +8,7 @@ const router = Router()
 router.post('/:id/play', async (req, res) => {
   try {
     const { id } = req.params
-    RoundService.playGame(Number(id))
+    RoundService.playFullGame(Number(id))
     console.log('Starting game with id:', id)
     res.status(201).json({ message: 'Game started' })
   } catch (err) {
