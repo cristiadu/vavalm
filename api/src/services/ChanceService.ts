@@ -74,6 +74,7 @@ const ChanceService = {
 
     const player1Attribute = player1.player_attributes[attributeName as keyof PlayerAttributes]
     const player2Attribute = player2.player_attributes[counterAttributeName as keyof PlayerAttributes]
+
     return Math.max(0, player1Attribute - player2Attribute)
   },
 

@@ -24,7 +24,7 @@ const GameService = {
     }
 
     // Get the game stats
-    const gameStats = await GameStats.findOne({ where: { game_id: game_id } })
+    const gameStats = await GameService.getGameFullStatsWithPlayersAndTeams(game_id)
     if (!gameStats) {
       throw new Error('Game stats not found')
     }
@@ -53,8 +53,8 @@ const GameService = {
    * @returns {Promise<void>} A promise that resolves when the game stats have been updated.
    */
   updateGameStats: async (gameStats: GameStats, team1_rounds: number, team2_rounds: number): Promise<void> => {
-    gameStats.team1_score += team1_rounds
-    gameStats.team2_score += team2_rounds
+    gameStats.team1_score = team1_rounds
+    gameStats.team2_score = team2_rounds
     if (team1_rounds === 13 || team2_rounds === 13) {
       gameStats.winner_id = team1_rounds == 13 ? gameStats.team1_id : gameStats.team2_id
     }
@@ -69,16 +69,19 @@ const GameService = {
    * @param {number} gameStatsId - The ID of the game stats.
    * @returns {Promise<Map<number, PlayerGameStats>>} A map of player IDs to their game stats.
    */
-  getPlayerIdToStatsMap: async (players: Player[], gameStatsId: number): Promise<Map<number, PlayerGameStats>> => {
+  getPlayerIdToStatsMap: async (players: Player[], gameStatsId: number, team1Or2: number): Promise<Map<number, PlayerGameStats>> => {
     const playerIdToStats: Map<number, PlayerGameStats> = new Map()
     for (const player of players) {
-      const playerGameStats: PlayerGameStats = await PlayerGameStats.findOne({ where: { player_id: player.id, game_stats_id: gameStatsId } }) || new PlayerGameStats({
-        player_id: player.id,
-        game_stats_id: gameStatsId,
-        kills: 0,
-        deaths: 0,
-        assists: 0,
+      const playerGameStats: PlayerGameStats = await PlayerGameStats.findOne({
+        where: { player_id: player.id, [team1Or2 === 1 ? 'game_stats_player1_id' : 'game_stats_player2_id']: gameStatsId },
       })
+        || new PlayerGameStats({
+          player_id: player.id,
+          [team1Or2 === 1 ? 'game_stats_player1_id' : 'game_stats_player2_id']: gameStatsId,
+          kills: 0,
+          deaths: 0,
+          assists: 0,
+        })
       await playerGameStats.save()
       playerIdToStats.set(player.id, playerGameStats)
     }
@@ -100,11 +103,19 @@ const GameService = {
   updatePlayerStats: async (gameStats: GameStats): Promise<void> => {
     try {
       // get all the game logs
-      const gameLogs = await GameLog.findAll({ where: { game_id: gameStats.game_id } })
+      const gameLogs = await GameLog.findAll({
+        where: { game_id: gameStats.game_id }, include: [
+          { model: Player, as: 'team1_player' },
+          { model: Player, as: 'team2_player' },
+          { model: Player, as: 'player_killed' },
+        ],
+      })
+
+      console.log('Updating player stats for game:', gameStats.game_id)
 
       // Create the PlayerGameStats object for all players involved in this game, but dont save it yet.
-      const playerIdToStatsTeam1 = await GameService.getPlayerIdToStatsMap(gameStats.team1.players as Player[], gameStats.id as number)
-      const playerIdToStatsTeam2 = await GameService.getPlayerIdToStatsMap(gameStats.team2.players as Player[], gameStats.id as number)
+      const playerIdToStatsTeam1 = await GameService.getPlayerIdToStatsMap(gameStats.team1.players as Player[], gameStats.id as number, 1)
+      const playerIdToStatsTeam2 = await GameService.getPlayerIdToStatsMap(gameStats.team2.players as Player[], gameStats.id as number, 2)
 
       // Update the player stats
       for (const log of gameLogs) {
@@ -115,11 +126,11 @@ const GameService = {
           if (playerStatsTeam1 && playerStatsTeam2) {
             playerStatsTeam1.kills += log.team1_player_id !== log.player_killed_id ? 1 : 0
             playerStatsTeam1.deaths += log.team1_player_id === log.player_killed_id ? 1 : 0
-            playerStatsTeam1.assists += log.trade && log.team1_player_id !== log.player_killed_id ? 1 : 0
+            playerStatsTeam1.assists += log.trade && log.team1_player_id === log.player_killed_id ? 1 : 0
 
             playerStatsTeam2.kills += log.team2_player_id !== log.player_killed_id ? 1 : 0
             playerStatsTeam2.deaths += log.team2_player_id === log.player_killed_id ? 1 : 0
-            playerStatsTeam2.assists += log.trade && log.team2_player_id !== log.player_killed_id ? 1 : 0
+            playerStatsTeam2.assists += log.trade && log.team2_player_id === log.player_killed_id ? 1 : 0
 
             log.included_on_player_stats = true
             await log.save()

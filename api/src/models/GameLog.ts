@@ -14,6 +14,7 @@ export interface RoundState {
 }
 
 export class GameLog extends Model {
+  declare id?: number
   declare round_state: RoundState
   declare duel_buff: number
   declare trade_buff: number

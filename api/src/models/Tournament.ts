@@ -89,7 +89,6 @@ GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team2', foreignKey: 'gam
 PlayerGameStats.belongsTo(GameStats, { as: 'game_stats_player1', foreignKey: 'game_stats_player1_id', targetKey: 'id' })
 PlayerGameStats.belongsTo(GameStats, { as: 'game_stats_player2', foreignKey: 'game_stats_player2_id', targetKey: 'id' })
 
-
 PlayerGameStats.belongsTo(Player, { as: 'player', foreignKey: 'player_id', targetKey: 'id' })
 
 Standings.belongsTo(Team, { as: 'team', foreignKey: 'team_id', targetKey: 'id' })

@@ -2,22 +2,31 @@ import { Player } from "./Player"
 import { Team } from "./Team"
 
 export const orderPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
-  if (p1.kills > p2.kills) {
+  const kda1 = (p1.kills + p1.assists) / p1.deaths
+  const kda2 = (p2.kills + p2.assists) / p2.deaths
+
+  if (kda1 > kda2) {
     return -1
-  } else if (p1.kills < p2.kills) {
+  } else if (kda1 < kda2) {
     return 1
   } else {
-    if (p1.assists > p2.assists) {
+    if (p1.kills > p2.kills) {
       return -1
-    } else if (p1.assists < p2.assists) {
+    } else if (p1.kills < p2.kills) {
       return 1
     } else {
-      if (p1.deaths > p2.deaths) {
-        return 1
-      } else if (p1.deaths < p2.deaths) {
+      if (p1.assists > p2.assists) {
         return -1
+      } else if (p1.assists < p2.assists) {
+        return 1
       } else {
-        return 0
+        if (p1.deaths > p2.deaths) {
+          return 1
+        } else if (p1.deaths < p2.deaths) {
+          return -1
+        } else {
+          return 0
+        }
       }
     }
   }
@@ -102,6 +111,7 @@ export interface RoundState {
 }
 
 export interface GameLog {
+  id: number
   round_state: RoundState
   duel_buff: number
   trade_buff: number

@@ -1,3 +1,4 @@
+import { randomInt } from "crypto"
 import GameLog, { RoundState } from "../models/GameLog"
 import Player, { PlayerDuel, PlayerDuelResults } from "../models/Player"
 import ChanceService from "./ChanceService"
@@ -16,7 +17,7 @@ const DuelService = {
    * @throws {Error} - Throws an error if no players are alive in one of the teams or if no players are available for selection.
    */
   pickAndPlayDuel: async (game_id: number, currentRound: RoundState): Promise<RoundState> => {
-    if(currentRound.team1_alive_players.length === 0 || currentRound.team2_alive_players.length === 0) {
+    if (currentRound.team1_alive_players.length === 0 || currentRound.team2_alive_players.length === 0) {
       throw new Error('No players alive in one of the teams')
     }
 
@@ -24,15 +25,15 @@ const DuelService = {
     // Use duelSelectBuff and tradeSelectBuff to increase the chances of a player being picked
     // So we duplicate the player in the array to increase the chances of being picked
     const team1PlayerAliveChances = currentRound.team1_alive_players.map(player => {
-      const selectBuff = (currentRound.isTradeHappening 
-        ? ChanceService.getTradeSelectBuffByPlayerRole(player) 
+      const selectBuff = (currentRound.isTradeHappening
+        ? ChanceService.getTradeSelectBuffByPlayerRole(player)
         : ChanceService.getDuelSelectBuffByPlayerRole(player))
       return Array(Math.floor(selectBuff * 100)).fill(player)
     }).flat()
 
     const team2PlayerAliveChances = currentRound.team2_alive_players.map(player => {
-      const selectBuff = (currentRound.isTradeHappening 
-        ? ChanceService.getTradeSelectBuffByPlayerRole(player) 
+      const selectBuff = (currentRound.isTradeHappening
+        ? ChanceService.getTradeSelectBuffByPlayerRole(player)
         : ChanceService.getDuelSelectBuffByPlayerRole(player))
       return Array(Math.floor(selectBuff * 100)).fill(player)
     }).flat()
@@ -42,15 +43,15 @@ const DuelService = {
     }
 
     // Randomly pick a player from each team based on the calculated chances
-    const team1PlayerIndex = Math.floor(Math.random() * team1PlayerAliveChances.length)
-    const team2PlayerIndex = Math.floor(Math.random() * team2PlayerAliveChances.length)
+    const team1PlayerIndex = randomInt(0, team1PlayerAliveChances.length)
+    const team2PlayerIndex = randomInt(0, team2PlayerAliveChances.length)
     const team1Player = team1PlayerAliveChances[team1PlayerIndex]
     const team2Player = team2PlayerAliveChances[team2PlayerIndex]
 
     // Pick the player that won
     const duelResults = await DuelService.pickDuelWinner({
-      player1: team1Player, 
-      player2: team2Player, 
+      player1: team1Player,
+      player2: team2Player,
       isTrade: currentRound.isTradeHappening,
     })
 
@@ -80,15 +81,14 @@ const DuelService = {
     await GameLog.create({
       round_state: playedRound,
       last_duel_of_round: playedRound.finished,
-      duel_buff: ChanceService.getDuelWinBuffByPlayerRole(duelResults.winner), 
-      trade_buff: ChanceService.getTradeWinBuffByPlayerRole(duelResults.winner), 
-      trade: currentRound.isTradeHappening, 
-      player_killed: duelResults.loser, 
-      game_id: game_id, 
-      team1_player_id: team1Player.id, 
-      team2_player_id: team2Player.id, 
+      duel_buff: ChanceService.getDuelWinBuffByPlayerRole(duelResults.winner),
+      trade_buff: ChanceService.getTradeWinBuffByPlayerRole(duelResults.winner),
+      trade: currentRound.isTradeHappening,
+      game_id: game_id,
+      team1_player_id: team1Player.id,
+      team2_player_id: team2Player.id,
       player_killed_id: duelResults.loser.id,
-    })
+    }).then(log => console.log('GameLog created:', log.game_id, log.team1_player_id, log.team2_player_id, log.player_killed_id, log.round_state.round, log.trade)).catch(error => console.error('Error creating GameLog:', error))
 
     return playedRound
   },
@@ -103,17 +103,14 @@ const DuelService = {
     // Retrieve the duel chances for both players, including any buffs
     const duelChances = DuelService.getDuelChancesWithBuffs(duel)
 
-    if (!duelChances || 
-      !Number.isFinite(duelChances.chancesPlayer1) || 
+    if (!duelChances ||
+      !Number.isFinite(duelChances.chancesPlayer1) ||
       !Number.isFinite(duelChances.chancesPlayer2)) {
       throw new Error('Invalid duel chances: chancesPlayer1 and chancesPlayer2 must be valid finite numbers')
     }
 
     // Generate a random number between 0 and the sum of both players' chances
-    const randomNumber = Math.random() * (duelChances.chancesPlayer1 + duelChances.chancesPlayer2)
-    console.log(`Chance of winning for ${duel.player1.nickname}: ${duelChances.chancesPlayer1}`)
-    console.log(`Chance of winning for ${duel.player2.nickname}: ${duelChances.chancesPlayer2}`)
-    console.log(`Random number: ${randomNumber}`)
+    const randomNumber = randomInt(0, Math.ceil(duelChances.chancesPlayer1 + duelChances.chancesPlayer2))
 
     // Determine the winner based on the random number
     const winner = randomNumber < duelChances.chancesPlayer1 ? duel.player1 : duel.player2
@@ -137,7 +134,7 @@ const DuelService = {
     const tradeChance = Math.min(BASE_TRADE_CHANCE_PERCENTAGE + ChanceService.getTradeSelectBuffByPlayerRole(duelWinner), 1)
 
     // Determine if a trade should happen based on the calculated chance
-    return Math.random() < tradeChance
+    return randomInt(0, 100) < tradeChance * 100
   },
 
   /**
@@ -152,12 +149,12 @@ const DuelService = {
    * @param {boolean} duel.isTrade - Indicates whether the duel is a trade.
    * @returns {{chancesPlayer1: number, chancesPlayer2: number}} - An object containing the chances of winning for each player.
    */
-  getDuelChancesWithBuffs: (duel: PlayerDuel): {chancesPlayer1: number, chancesPlayer2: number} => {
-    const player1DuelBuff = !duel.isTrade ? ChanceService.getDuelWinBuffByPlayerRole(duel.player1): 0
-    const player1TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player1): 0
-    const player2DuelBuff = !duel.isTrade ? ChanceService.getDuelWinBuffByPlayerRole(duel.player2): 0
-    const player2TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player2): 0
-    
+  getDuelChancesWithBuffs: (duel: PlayerDuel): { chancesPlayer1: number, chancesPlayer2: number } => {
+    const player1DuelBuff = !duel.isTrade ? ChanceService.getDuelWinBuffByPlayerRole(duel.player1) : 0
+    const player1TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player1) : 0
+    const player2DuelBuff = !duel.isTrade ? ChanceService.getDuelWinBuffByPlayerRole(duel.player2) : 0
+    const player2TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player2) : 0
+
     const duelChances = ChanceService.getSumOfAttributesChances(duel.player1, duel.player2)
     duelChances.chancesPlayer1 = Math.max(1, duelChances.chancesPlayer1 * (1 + player1DuelBuff + player1TradeBuff))
     duelChances.chancesPlayer2 = Math.max(1, duelChances.chancesPlayer2 * (1 + player2DuelBuff + player2TradeBuff))
