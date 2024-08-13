@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import RoundService from '../services/RoundService'
 import RoundController from './RoundController'
+import GameService from '../services/GameService'
 
 const router = Router()
 
@@ -8,7 +9,7 @@ const router = Router()
 router.post('/:id/play', async (req, res) => {
   try {
     const { id } = req.params
-    RoundService.playFullGame(Number(id))
+    GameService.playFullGame(Number(id))
     console.log('Starting game with id:', id)
     res.status(201).json({ message: 'Game started' })
   } catch (err) {
