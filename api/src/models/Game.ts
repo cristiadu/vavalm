@@ -3,6 +3,7 @@ import { GameMap } from './enums'
 import GameLog from './GameLog'
 import GameStats from './GameStats'
 import { sequelize } from './index'
+import Tournament from './Tournament'
 
 class Game extends Model {
   declare id: number
@@ -10,6 +11,7 @@ class Game extends Model {
   declare map: GameMap
   declare logs: GameLog[]
   declare tournament_id: number
+  declare tournament: Tournament
   declare stats: GameStats
 
   public static associations: {

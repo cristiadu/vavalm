@@ -6,6 +6,48 @@ import DuelService from "./DuelService"
 
 const RoundService = {
   /**
+   * Retrieves the last round played in a game.
+   * 
+   * @param {number} game_id - The ID of the game.
+   * @returns {Promise<GameLog[]>} - A promise that resolves to an array of game logs for the last round played.
+   */
+  getLastRound: async (game_id: number): Promise<GameLog[]> => {
+    // Get the last game log to determine the last round played
+    const lastGameLog = await GameLog.findOne({
+      where: { game_id },
+      order: [['id', 'DESC']],
+    })
+
+    if (!lastGameLog) {
+      console.info(`No game logs found for game_id: ${game_id}`)
+      return []
+    }
+
+    return await RoundService.getRound(game_id, lastGameLog.round_state.round)
+  },
+  
+  /**
+   * Retrieves a specific round from a game.
+   * 
+   * @param {number} game_id - The ID of the game.
+   * @param {number} round_number - The number of the round to retrieve.
+   * @returns {Promise<GameLog[]>} - A promise that resolves to an array of game logs for the specified round.
+   */
+  getRound: async (game_id: number, round_number: number): Promise<GameLog[]> => {
+    return await GameLog.findAll({
+      where: {
+        game_id: game_id,
+        'round_state.round': round_number,
+      },
+      order: [['id', 'ASC']],
+      include: [
+        { model: Player, as: 'team1_player', include: [{ model: Team, as: 'team' }] },
+        { model: Player, as: 'team2_player', include: [{ model: Team, as: 'team' }] },
+        { model: Player, as: 'player_killed', include: [{ model: Team, as: 'team' }] },
+      ],
+    })
+  },
+  /**
    * Plays rounds until one team wins 13 rounds.
    * 
    * @param {number} game_id - The ID of the game.

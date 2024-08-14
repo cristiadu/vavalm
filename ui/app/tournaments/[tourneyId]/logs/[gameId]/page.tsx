@@ -12,6 +12,8 @@ import CountryApi from "../../../../api/CountryApi"
 import { Country } from "../../../../api/models/Country"
 import GameApi from "../../../../api/GameApi"
 import { getRoleBgColor } from "../../../../api/models/Player"
+import RoundApi from "../../../../api/RoundApi"
+import DuelApi from "../../../../api/DuelApi"
 
 interface ViewGameLogsProps {
   tourneyId: string
@@ -19,9 +21,11 @@ interface ViewGameLogsProps {
 }
 
 export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) {
+  const gameId = Number(params.gameId)
   const [game, setGame] = useState<Game | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
   const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [lastRoundLogs, setLastRoundLogs] = useState<GameLog[]>([])
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
   const router = useRouter()
 
@@ -33,7 +37,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   }
 
   const handlePlayRound = () => {
-    GameApi.playFullRound(params.gameId, lastRoundPlayed + 1, (roundState) => {
+    RoundApi.playFullRound(gameId, lastRoundPlayed + 1, (roundState) => {
       console.log('Full Round Execution, Round State:', roundState)
       fetchGameData()
     })
@@ -41,29 +45,33 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
 
   const handlePlayDuel = () => {
     const round = lastRoundPlayed == 0 ? 1 : lastRoundPlayed
-    GameApi.playSingleDuel(params.gameId, round, (roundState) => {
+    DuelApi.playSingleDuel(gameId, round, (roundState) => {
       console.log('Single Duel Execution, Round State:', roundState)
       fetchGameData()
     })
   }
 
   const handlePlayFullGame = () => {
-    GameApi.playFullGame(params.gameId, (message) => {
+    GameApi.playFullGame(gameId, (message) => {
       console.log('Full Game Execution, Message:', message)
       fetchGameData()
     })
   }
 
   const fetchGameData = useCallback(async () => {
-    await TournamentsApi.fetchTournament(Number(params.tourneyId), (data: Tournament) => {
-      const game = data.schedule?.find((game) => game.id === Number(params.gameId)) || null
-      setGame(game)
-      setTournament(data)
-      const sortedLogs = game?.logs?.sort(orderLogsByRoundAndId)
-      const lastLog = sortedLogs ? sortedLogs[0] : null
-      setLastRoundPlayed(lastLog?.round_state.round || 0)
+    await GameApi.getGame(gameId, (data: Game) => {
+      setGame(data)
+      setTournament(data.tournament || null)
     })
-  }, [params.gameId, params.tourneyId])
+
+    await RoundApi.getLastRound(gameId, (data: GameLog[]) => {
+      setLastRoundLogs(data)
+    })
+
+    await DuelApi.getLastDuel(gameId, (data: GameLog) => {
+      setLastRoundPlayed(data.round_state.round || 0)
+    })
+  }, [gameId])
 
   useEffect(() => {
     CountryApi.fetchCountries((countryData) => {
@@ -71,7 +79,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
     })
 
     fetchGameData()
-  }, [params.gameId, params.tourneyId, fetchGameData])
+  }, [gameId, fetchGameData])
 
   if (!game) {
     return <div>Loading...</div>
@@ -229,7 +237,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             </table>
           </div>
         </div>
-        {game.logs && (
+        {lastRoundLogs && (
           <div className="text-lg mb-4">
             <h3 className="text-xl font-bold my-2">Logs</h3>
             <hr className="mb-2" />
@@ -243,7 +251,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
                 </tr>
               </thead>
               <tbody>
-                {game.logs.sort(orderLogsByRoundAndId).map((log, index) => (
+                {lastRoundLogs.sort(orderLogsByRoundAndId).map((log, index) => (
                   <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-2 px-4">{log.round_state.round}</td>
                     <td className="py-2 px-4">

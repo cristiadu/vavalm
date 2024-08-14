@@ -1,7 +1,7 @@
-import { RoundState } from "./models/Tournament"
+import { Game } from "./models/Tournament"
 
 const GameApi = {
-  playFullGame: async (game_id: string, closure: (response: { message: string }) => void) => {
+  playFullGame: async (game_id: number, closure: (response: { message: string }) => void) => {
     try {
       const response = await fetch(`http://localhost:8000/games/${game_id}/play`, {
         method: 'POST',
@@ -23,10 +23,10 @@ const GameApi = {
       console.error('Error:', error)
     }
   },
-  playFullRound: async (game_id: string, round: number, closure: (roundState: RoundState) => void) => {
+  getGame: async (game_id: number, closure: (response: Game) => void) => {
     try {
-      const response = await fetch(`http://localhost:8000/games/${game_id}/rounds/${round}/play`, {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8000/games/${game_id}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -38,31 +38,18 @@ const GameApi = {
       }
 
       const data = await response.json()
-      closure(data as RoundState)
-      console.log('Success:', data)
-      return data as RoundState
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  },
-  playSingleDuel: async (game_id: string, round: number, closure: (roundState: RoundState) => void) => {
-    try {
-      const response = await fetch(`http://localhost:8000/games/${game_id}/rounds/${round}/duel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        console.log("Network response was not ok: ", response)
-        return
+      // Convert Buffer to Blob for team logos
+      if (data.stats.team1.logo_image_file) {
+        data.stats.team1.logo_image_file = new Blob([new Uint8Array(data.stats.team1.logo_image_file.data)], { type: 'image/png' })
       }
 
-      const data = await response.json()
-      closure(data as RoundState)
+      if (data.stats.team2.logo_image_file) {
+        data.stats.team2.logo_image_file = new Blob([new Uint8Array(data.stats.team2.logo_image_file.data)], { type: 'image/png' })
+      }
+
+      closure(data as Game)
       console.log('Success:', data)
-      return data as RoundState
+      return data as Game
     } catch (error) {
       console.error('Error:', error)
     }

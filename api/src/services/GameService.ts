@@ -6,8 +6,37 @@ import Player from "../models/Player"
 import PlayerGameStats from "../models/PlayerGameStats"
 import Team from "../models/Team"
 import RoundService from "./RoundService"
+import { get } from "http"
+import Tournament from "../models/Tournament"
 
 const GameService = {
+  getGame: async (game_id: number): Promise<Game> => {
+    const game = await Game.findByPk(game_id, {
+      include: [
+        { 
+          model: GameStats, 
+          as: 'stats', 
+          include: [
+            { model: Team, as: 'team1' },
+            { model: Team, as: 'team2' },
+            { model: Team, as: 'winner' },
+            { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
+            { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
+          ],
+        },
+        {
+          model: Tournament,
+          as: 'tournament',
+          foreignKey: 'tournament_id',
+        },
+      ],
+    })
+    if (!game) {
+      throw new Error('Game not found')
+    }
+
+    return game
+  },
   /**
    * Fully plays an unplayed game based on its ID. 
    * It will count the number of rounds to determine which team won the game.
@@ -99,7 +128,7 @@ const GameService = {
       // If a team has won 13 rounds, they might be the winner
       // However, there's a possibility of overtime, so we need to check that if one team has 13 rounds, the other team has to have at most 11 rounds for the first team to be declared the winner
       // If both teams have 12 rounds, overtime is played to determine the winner, winner is the first team to win 2 rounds in a row (that being 14-12 or 15-13, or 16-14, etc)
-      if(gameStats.team1_score >= 13 || gameStats.team2_score >= 13) {
+      if (gameStats.team1_score >= 13 || gameStats.team2_score >= 13) {
         if (gameStats.team1_score >= (gameStats.team2_score + 2)) {
           gameStats.winner_id = gameStats.team1_id
         } else if (gameStats.team2_score >= (gameStats.team1_score + 2)) {

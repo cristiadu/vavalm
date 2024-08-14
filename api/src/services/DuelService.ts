@@ -7,6 +7,26 @@ const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
 const DuelService = {
   /**
+   * Retrieves the last duel played in a game.
+   *  
+   * @param {number} game_id - The ID of the game.
+   * @returns {Promise<GameLog>} - A promise that resolves to the game log for the last duel played.
+   * @throws {Error} - Throws an error if no game logs are found for the specified game.
+   */
+  getLastDuel: async (game_id: number): Promise<GameLog> => {
+    const lastDuelLog = await GameLog.findOne({
+      where: { game_id },
+      order: [['id', 'DESC']],
+    })
+
+    if (!lastDuelLog) {
+      console.info(`No game logs found for game_id: ${game_id}`)
+    }
+
+    return lastDuelLog as GameLog
+  },
+
+  /**
    * Randomly picks a player from each team and plays a duel between them.
    * Uses duelSelectBuff and tradeSelectBuff to increase the chances of a player being picked.
    * Duplicates the player in the array to increase the chances of being picked.

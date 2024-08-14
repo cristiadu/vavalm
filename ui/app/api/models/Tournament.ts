@@ -98,6 +98,7 @@ export interface Game {
   map: GameMap
   logs: GameLog[]
   tournament_id: number
+  tournament?: Tournament
   stats: GameStats
 }
 

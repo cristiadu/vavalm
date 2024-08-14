@@ -14,7 +14,6 @@ router.get('/', async (req, res) => {
   try {
     const tournaments = await Tournament.findAll({
       order: [['id', 'ASC']], include: [
-        { model: Game, as: 'schedule' },
         { model: Standings, as: 'standings' },
         { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] }],
     })
@@ -39,21 +38,12 @@ router.get('/:id', async (req, res) => {
                 { model: Team, as: 'team1' },
                 { model: Team, as: 'team2' },
                 { model: Team, as: 'winner' },
-                { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
-                { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
-              ],
-            },
-            {
-              model: GameLog, as: 'logs', include: [
-                { model: Player, as: 'team1_player' },
-                { model: Player, as: 'team2_player' },
-                { model: Player, as: 'player_killed' },
               ],
             },
           ],
         },
         { model: Standings, as: 'standings', include: [{ model: Team, as: 'team' }] },
-        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] },
+        { model: Team, as: 'teams' },
       ],
     })
 

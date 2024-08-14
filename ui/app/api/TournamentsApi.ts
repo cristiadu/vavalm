@@ -19,7 +19,7 @@ const TournamentsApi = {
     closure(tournamentwithBlob as Tournament[])
     return tournamentwithBlob as Team[]
   },
-  fetchTournament: async (tournamentId: number, closure: (tournamentData: Tournament) => void) => {
+  getTournament: async (tournamentId: number, closure: (tournamentData: Tournament) => void) => {
     const response = await fetch(`http://localhost:8000/tournaments/${tournamentId}`)
     const data = await response.json()
     // Convert Buffer to Blob for team logos

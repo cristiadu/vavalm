@@ -19,7 +19,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
 
   useEffect(() => {
     const fetchTournamentData = async () => {
-      const tournamentData = await TournamentsApi.fetchTournament(Number(params.tourneyId), (data) => {
+      const tournamentData = await TournamentsApi.getTournament(Number(params.tourneyId), (data) => {
         setTournament(data)
       })
 
