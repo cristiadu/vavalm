@@ -18,11 +18,6 @@ if (config.use_env_variable) {
 sequelize.authenticate()
   .then(() => {
     console.log('Connection has been established successfully.')
-    // Ensure all tables are created
-    // Set FORCE_SYNC environment variable to 'true' to drop and recreate tables
-    const forceSync = process.env.FORCE_SYNC === 'true'
-    return sequelize.sync({ force: forceSync })
-
   })
   .then(() => {
     console.log('All tables have been created successfully.')

@@ -138,9 +138,9 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
           </div>
         </div>
         <div className="flex justify-center mt-8">
-          <button onClick={handlePlayRound} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mx-2">Play Round</button>
-          <button onClick={handlePlayDuel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 mx-2">Play Duel</button>
-          <button onClick={handlePlayFullGame} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mx-2">Play Full Game</button>
+          <button onClick={handlePlayRound} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mx-2 disabled:bg-blue-300 disabled:cursor-not-allowed" disabled={game?.stats.winner_id !== null}>Play Round</button>
+          <button onClick={handlePlayDuel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 mx-2 disabled:bg-green-300 disabled:cursor-not-allowed" disabled={game?.stats.winner_id !== null}>Play Duel</button>
+          <button onClick={handlePlayFullGame} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mx-2 disabled:bg-red-300 disabled:cursor-not-allowed" disabled={game?.stats.winner_id !== null}>Play Full Game</button>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Stats</h3>
@@ -153,7 +153,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
                   <th className="py-2 pl-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Country</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Player</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Role</th>
-                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">KDA</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Rating</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Kills</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Deaths</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Assists</th>
@@ -178,7 +178,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
                     </td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.player.nickname}</td>
                     <td className="py-2 px-4 border-b border-gray-200"><span className={getRoleBgColor(playerStats.player.role)}>{playerStats.player.role}</span></td>
-                    <td className="py-2 px-4 border-b border-gray-200">{((playerStats.kills + playerStats.assists) / playerStats.deaths).toFixed(2)}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{((playerStats.kills + playerStats.assists*0.5) / playerStats.deaths).toFixed(2)}</td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.kills}</td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.deaths}</td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.assists}</td>
@@ -195,7 +195,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
                   <th className="py-2 pl-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Country</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Player</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Role</th>
-                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">KDA</th>
+                  <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Rating</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Kills</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Deaths</th>
                   <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Assists</th>
@@ -219,7 +219,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
                     </td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.player.nickname}</td>
                     <td className="py-2 px-4 border-b border-gray-200"><span className={getRoleBgColor(playerStats.player.role)}>{playerStats.player.role}</span></td>
-                    <td className="py-2 px-4 border-b border-gray-200">{((playerStats.kills + playerStats.assists) / playerStats.deaths).toFixed(2)}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{((playerStats.kills + playerStats.assists*0.5) / playerStats.deaths).toFixed(2)}</td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.kills}</td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.deaths}</td>
                     <td className="py-2 px-4 border-b border-gray-200">{playerStats.assists}</td>

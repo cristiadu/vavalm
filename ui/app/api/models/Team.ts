@@ -12,10 +12,10 @@ export interface Team {
 }
 
 export const getWinOrLossColor = (team: Team, stats: GameStats): string => {
-  if (stats.winner_id === team.id) {
-    return 'bg-green-400 text-white'
-  } else if (stats.winner_id === null) {
+  if (stats.winner_id === null) {
     return 'bg-gray-500 text-white'
+  } else if (stats.winner_id === team.id) {
+    return 'bg-green-400 text-white'
   } else {
     return 'bg-red-500 text-white'
   }

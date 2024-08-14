@@ -2,8 +2,8 @@ import { Player } from "./Player"
 import { Team } from "./Team"
 
 export const orderPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
-  const kda1 = (p1.kills + p1.assists) / p1.deaths
-  const kda2 = (p2.kills + p2.assists) / p2.deaths
+  const kda1 = (p1.kills + p1.assists*0.5) / p1.deaths
+  const kda2 = (p2.kills + p2.assists*0.5) / p2.deaths
 
   if (kda1 > kda2) {
     return -1

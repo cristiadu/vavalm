@@ -1,0 +1,80 @@
+[
+  {
+    "full_name": "Sentinels Esports",
+    "description": "<strong>Top NA Team</strong>",
+    "short_name": "Sentinels",
+    "country": "United States"
+  },
+  { 
+    "full_name": "Fnatic", 
+    "description": "<strong>Top EU Team</strong>", 
+    "short_name": "Fnatic", 
+    "country": "United Kingdom" 
+  },
+  { 
+    "full_name": "DRX", 
+    "description": "<strong>Top Korean Team</strong>", 
+    "short_name": "DRX", 
+    "country": "South Korea" 
+  },
+  {
+    "full_name": "Gen.G",
+    "description": "<strong>Top Korean Team</strong>",
+    "short_name": "Gen.G",
+    "country": "South Korea"
+  },
+  {
+    "full_name": "LOUD",
+    "description": "<strong>Top Brazilian Team</strong>",
+    "short_name": "LOUD",
+    "country": "Brazil"
+  },
+  {
+    "full_name": "KRU Esports",
+    "description": "<strong>Top Latino Team</strong>",
+    "short_name": "KRU",
+    "country": "Argentina"
+  },
+  {
+    "full_name": "G2 Esports",
+    "description": "<strong>Top EU Team</strong>",
+    "short_name": "G2",
+    "country": "Germany"
+  },
+  {
+    "full_name": "T1",
+    "description": "<strong>Top Korean Team</strong>",
+    "short_name": "T1",
+    "country": "South Korea"
+  },
+  {
+    "full_name": "Cloud9",
+    "description": "<strong>Top NA Team</strong>",
+    "short_name": "Cloud9",
+    "country": "United States"
+  },
+  {
+    "full_name": "Team Liquid",
+    "description": "<strong>Top NA Team</strong>",
+    "short_name": "Liquid",
+    "country": "United States"
+  },
+  {
+    "full_name": "Team SoloMid",
+    "description": "<strong>Top NA Team</strong>",
+    "short_name": "TSM",
+    "country": "United States"
+  },
+  {
+    "full_name": "100 Thieves",
+    "description": "<strong>Top NA Team</strong>",
+    "short_name": "100T",
+    "country": "United States"
+  },
+  {
+    "full_name": "Evil Geniuses",
+    "description": "<strong>Top NA Team</strong>",
+    "short_name": "Evil Geniuses",
+    "country": "United States"
+  }
+]

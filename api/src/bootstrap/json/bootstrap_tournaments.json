@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Valorant Champions Tour",
+    "description": "Global Valorant Tournament",
+    "start_date": "2023-10-01T00:00:00Z",
+    "started": false,
+    "ended": false,
+    "country": "Brazil",
+    "type": "SINGLE_GROUP",
+    "schedule": [],
+    "standings": [],
+    "team_ids": [1, 2, 3]
+  },
+  {
+    "name": "Masters Reykjavik",
+    "description": "Valorant Masters Tournament",
+    "start_date": "2023-10-01T00:00:00Z",
+    "started": false,
+    "ended": false,
+    "country": "Iceland",
+    "type": "SINGLE_GROUP",
+    "schedule": [],
+    "standings": [],
+    "team_ids": [3, 4, 5]
+  },
+  {
+    "name": "Challengers NA",
+    "description": "North America Challengers",
+    "start_date": "2023-10-01T00:00:00Z",
+    "started": false,
+    "ended": false,
+    "country": "United States",
+    "type": "SINGLE_GROUP",
+    "schedule": [],
+    "standings": [],
+    "team_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  },
+  {
+    "name": "Challengers EU",
+    "description": "Europe Challengers",
+    "start_date": "2023-10-01T00:00:00Z",
+    "started": false,
+    "ended": false,
+    "country": "Poland",
+    "type": "SINGLE_GROUP",
+    "schedule": [],
+    "standings": [],
+    "team_ids": [7, 8, 9, 10]
+  }
+]

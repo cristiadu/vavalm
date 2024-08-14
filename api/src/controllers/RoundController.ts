@@ -10,13 +10,8 @@ router.post('/:round/play', async (req, res) => {
   try {
     const { id, round } = req.params as { id: string, round: string }
     const roundFinishedState = await RoundService.playFullRound(Number(id), Number(round))
-    const gameStats = await GameService.getGameFullStatsWithPlayersAndTeams(Number(id))
-    if (gameStats) {
-      await GameService.updatePlayerStats(gameStats)
-      console.log('Game stats updated for game_id:', id)
-    } else {
-      console.error('GameStats not found for game_id:', id)
-    }
+    await GameService.updateAllStats(Number(id))
+    console.log('Game stats updated for game_id:', id)
     res.status(201).json(roundFinishedState)
   } catch (err) {
     console.error('Error executing query:', err)
@@ -33,13 +28,8 @@ router.post('/:round/duel', async (req, res) => {
   try {
     const { id, round } = req.params as { id: string, round: string }
     const roundState = await RoundService.playRoundStep(Number(id), Number(round))
-    const gameStats = await GameService.getGameFullStatsWithPlayersAndTeams(Number(id))
-    if (gameStats) {
-      await GameService.updatePlayerStats(gameStats)
-      console.log('Game stats updated for game_id:', id)
-    } else {
-      console.error('GameStats not found for game_id:', id)
-    }
+    await GameService.updateAllStats(Number(id))
+    console.log('Game stats updated for game_id:', id)
     res.status(201).json(roundState)
   } catch (err) {
     console.error('Error executing query:', err)

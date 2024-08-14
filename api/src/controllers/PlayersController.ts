@@ -61,6 +61,18 @@ router.post('/', async (req, res) => {
   }
 })
 
+// Add new players from JSON file
+router.post('/bulk', async (req, res) => {
+  const players = req.body
+  try {
+    const newPlayers = await Player.bulkCreate(players)
+    res.status(201).json(newPlayers)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 // Update an existing player
 router.put('/:id', async (req, res) => {
   const { id } = req.params

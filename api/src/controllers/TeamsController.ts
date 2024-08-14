@@ -63,6 +63,23 @@ router.post('/', upload.single('logo_image_file'), async (req, res) => {
   }
 })
 
+// Add new teams from JSON file
+router.post('/bulk', async (req, res) => {
+  const teams = req.body
+
+  try {
+    const newTeams = await Team.bulkCreate(teams)
+    res.status(201).json(newTeams)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    if (err instanceof Error) {
+      console.error('Error message:', err.message)
+      console.error('Error stack:', err.stack)
+    }
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 // Update a team
 router.put('/:id', upload.single('logo_image_file'), async (req, res) => {
   const { id } = req.params
