@@ -1,4 +1,3 @@
-import { Op } from "sequelize"
 import Game from "../models/Game"
 import GameLog from "../models/GameLog"
 import GameStats from "../models/GameStats"
@@ -6,7 +5,6 @@ import Player from "../models/Player"
 import PlayerGameStats from "../models/PlayerGameStats"
 import Team from "../models/Team"
 import RoundService from "./RoundService"
-import { get } from "http"
 import Tournament from "../models/Tournament"
 
 const GameService = {
