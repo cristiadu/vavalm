@@ -7,6 +7,8 @@ import GameStats from '../models/GameStats'
 import PlayerGameStats from '../models/PlayerGameStats'
 import Player from '../models/Player'
 import GameLog from '../models/GameLog'
+import TournamentService from '../services/TournamentService'
+import GameService from '../services/GameService'
 
 const router = Router()
 
@@ -88,7 +90,11 @@ router.post('/', async (req, res) => {
 
     // Associate existing teams with the new tournament
     if (teams && teams.length > 0) {
-      await tournament.addTeams(teams.map((team: any) => team.id))
+      const teamIds = teams.map((team: any) => team.id)
+      await tournament.addTeams(teamIds)
+
+      // Create standings object for teams if they don't exist
+      await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
     }
 
     const tournamentCreated = await Tournament.findByPk(tournament.id, {
@@ -119,10 +125,19 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
-    const tournament = await Tournament.findByPk(id)
+    const tournament = await Tournament.findByPk(id, {include: [
+      { model: Team, as: 'teams' },
+    ]})
+
     if (!tournament) {
       return res.status(404).json({ error: 'Tournament not found' })
     }
+
+    const teamIds = teams.map((team: any) => team.id)
+    const removedTeamIds = tournament.teams
+      .filter((team: Team) => !teamIds.includes(team.id))
+      .map((team: Team) => team.id) as number[]
+
 
     console.log('Updating tournament with data:', { type, name, description, country, teams, start_date })
     await tournament.update({
@@ -134,14 +149,17 @@ router.put('/:id', async (req, res) => {
     })
 
     // Associate existing teams with the new tournament
-    await tournament.setTeams(teams.map((team: any) => team.id))
+    await tournament.setTeams(teamIds)
 
-    const tournamentUpdated = await Tournament.findByPk(tournament.id, {
-      include: [
-        { model: Game, as: 'schedule' },
-        { model: Standings, as: 'standings' },
-        { model: Team, as: 'teams', attributes: ['id', 'short_name'] }],
-    }) as Tournament
+    // Create standings object for teams if they don't exist
+    await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
+
+    // Remove standings for teams that were removed from the tournament
+    await TournamentService.removeStandingsForRemovedTeams(removedTeamIds, tournament.id as number)
+
+    // Remove games for teams that were removed from the tournament
+    await GameService.deleteTeamsGamesFromTournament(removedTeamIds, tournament.id as number)
+    const tournamentUpdated = await Tournament.findByPk(tournament.id) as Tournament
     res.json(tournamentUpdated)
   } catch (err) {
     console.error('Error executing query:', err)
