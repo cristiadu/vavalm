@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Modal from '../base/Modal'
 import CountryApi from '../api/CountryApi'
@@ -7,7 +9,7 @@ import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
 import { Tournament, TournamentType, Game, Standing } from '../api/models/Tournament'
-import { EnumWithFieldName } from '../api/models/common'
+import { EnumWithFieldName } from '../api/models/types'
 import TournamentsApi from '../api/TournamentsApi'
 import { quill_config } from '../base/Configs'
 import ReactQuill from 'react-quill'
@@ -56,7 +58,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
   useEffect(() => {
     if (isOpen) {
       CountryApi.fetchCountries(setCountries)
-      TeamsApi.fetchTeams(setTeams)
+      TeamsApi.fetchAllTeams(setTeams)
     }
   }, [isOpen])
 

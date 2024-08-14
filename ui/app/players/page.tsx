@@ -13,8 +13,11 @@ import TeamsApi from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { handleBackClick } from '../base/LinkUtils'
 import { asWord } from '../base/StringUtils'
+import Pagination from '../base/Pagination'
+import { ItemsWithPagination } from '../api/models/types'
 
 export default function ListPlayers() {
+  const LIMIT_VALUE_PLAYER_LIST = 5
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
   const [playerToEdit, setPlayerToEdit] = useState<Player | null>(null)
@@ -22,6 +25,7 @@ export default function ListPlayers() {
   const [actionPlayerModalOpened, setActionPlayerModalOpened] = useState<boolean>(false)
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
+  const [totalItems, setTotalItems] = useState(0)
 
   useEffect(() => {
     CountryApi.fetchCountries((countries) => {
@@ -32,13 +36,13 @@ export default function ListPlayers() {
       setCountriesToFlagMap(countriesToFlagMap)
     })
 
-    PlayersApi.fetchPlayers(refreshListData) 
+    PlayersApi.fetchPlayers(refreshListData, LIMIT_VALUE_PLAYER_LIST) 
   }, [])
 
-  const refreshListData = async (playerData: Player[]) => {
+  const refreshListData = async (data: ItemsWithPagination<Player>) => {
     const playerToTeam: Record<number, Team> = {}
 
-    const teamFetchPromises = playerData.map((player) =>
+    const teamFetchPromises = data.items.map((player) =>
       TeamsApi.fetchTeam(player.team_id, team => {
         if (player.id) {
           playerToTeam[player.id] = team
@@ -49,7 +53,8 @@ export default function ListPlayers() {
     await Promise.all(teamFetchPromises)
 
     setPlayerToTeam(playerToTeam)
-    setPlayers(playerData)
+    setTotalItems(data.total)
+    setPlayers(data.items)
   }
 
   const openNewPlayerModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
@@ -61,7 +66,7 @@ export default function ListPlayers() {
     setIsEditActionOpened(false)
     setPlayerToEdit(null)
     setActionPlayerModalOpened(false)
-    PlayersApi.fetchPlayers(refreshListData)
+    PlayersApi.fetchPlayers(refreshListData, LIMIT_VALUE_PLAYER_LIST)
   }
 
   const handleView = (player: Player) => {
@@ -85,6 +90,10 @@ export default function ListPlayers() {
       PlayersApi.fetchPlayers(refreshListData)
     })
     
+  }
+
+  const handlePageChange = (offset: number, limit: number) => {
+    PlayersApi.fetchPlayers(refreshListData, limit, offset)
   }
 
   // List all players in a table/grid
@@ -191,6 +200,7 @@ export default function ListPlayers() {
             ))}
           </tbody>
         </table>
+        <Pagination totalItems={totalItems} onPageChange={handlePageChange} limitValue={LIMIT_VALUE_PLAYER_LIST} />
       </div>
     </>
   )

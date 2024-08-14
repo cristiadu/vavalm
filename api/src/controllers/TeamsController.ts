@@ -2,15 +2,30 @@ import { Router } from 'express'
 import Multer from 'multer'
 import Team from '../models/Team'
 import Player from '../models/Player'
+import { ItemsWithPagination } from '../base/types'
 
 const router = Router()
 const upload = Multer({ storage: Multer.memoryStorage() })
 
 // Fetch all teams
 router.get('/', async (req, res) => {
+  const limit_value = Number(req.query.limit)
+  const offset_value = Number(req.query.offset)
+
   try {
-    const teams = await Team.findAll({ order: [['id', 'ASC']] })
-    res.json(teams)
+    const countAllTeams = await Team.count()
+    const teams = await Team.findAll({ 
+      order: [['id', 'ASC']], 
+      limit: limit_value ? limit_value: undefined, 
+      offset: offset_value? offset_value: undefined,
+    })
+
+    const teamsWithPagination: ItemsWithPagination<Team> = {
+      total: countAllTeams,
+      items: teams,
+    }
+    
+    res.json(teamsWithPagination)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
     res.status(500).json({ error: 'Internal Server Error' })

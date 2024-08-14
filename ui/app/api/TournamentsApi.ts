@@ -1,12 +1,13 @@
-import { Team } from "./models/Team"
+import { ItemsWithPagination } from "./models/types"
 import { Game, Tournament } from "./models/Tournament"
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 
 const TournamentsApi = {
-  fetchTournaments: async (closure: (tournamentData: Tournament[]) => void) => {
-    const response = await fetch('http://localhost:8000/tournaments')
+  fetchTournaments: async (closure: (tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+    const response = await fetch(`http://localhost:8000/tournaments?limit=${limit}&offset=${offset}`)
     const data = await response.json()
     // Convert Buffer to Blob for team logos
-    const tournamentwithBlob = data.map((tournament: any) => {
+    const tournamentwithBlob = data.items.map((tournament: Tournament) => {
       const teamsWithBlob = tournament.teams.map((team: any) => {
         if (team.logo_image_file) {
           const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
@@ -16,8 +17,8 @@ const TournamentsApi = {
       })
       return { ...tournament, teams: teamsWithBlob }
     })
-    closure(tournamentwithBlob as Tournament[])
-    return tournamentwithBlob as Team[]
+    closure({ total: data.total, items: tournamentwithBlob } as ItemsWithPagination<Tournament>)
+    return { total: data.total, items: tournamentwithBlob } as ItemsWithPagination<Tournament>
   },
   getTournament: async (tournamentId: number, closure: (tournamentData: Tournament) => void) => {
     const response = await fetch(`http://localhost:8000/tournaments/${tournamentId}`)

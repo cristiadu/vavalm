@@ -53,7 +53,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber, refresh }: GameLo
         <button
           onClick={handlePreviousRound}
           disabled={currentRound === 1}
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-500 disabled:bg-gray-100"
         >
           Previous
         </button>
@@ -61,7 +61,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber, refresh }: GameLo
         <button
           onClick={handleNextRound}
           disabled={currentRound === maxRound}
-          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-500 disabled:bg-gray-100"
         >
           Next
         </button>

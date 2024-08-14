@@ -1,19 +1,36 @@
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 import { Team } from "./models/Team"
+import { ItemsWithPagination } from "./models/types"
 
 const TeamsApi = {
-  fetchTeams: async (closure: (teamData: Team[]) => void) => {
-    const response = await fetch('http://localhost:8000/teams')
+  fetchAllTeams: async (closure: (teamData: Team[]) => void) => {
+    // Fetch all team pages
+    const response = await fetch(`http://localhost:8000/teams`)
     const data = await response.json()
     // Convert Buffer to Blob
-    const teamsWithBlob = data.map((team: any) => {
+    const teamsWithBlob = data.items.map((team: any) => {
       if (team.logo_image_file) {
         const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
         return { ...team, logo_image_file: blob }
       }
       return team
     })
-    closure(teamsWithBlob)
+    closure(teamsWithBlob as Team[])
     return teamsWithBlob as Team[]
+  },
+  fetchTeams: async (closure: (teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+    const response = await fetch(`http://localhost:8000/teams?limit=${limit}&offset=${offset}`)
+    const data = await response.json()
+    // Convert Buffer to Blob
+    const teamsWithBlob = data.items.map((team: any) => {
+      if (team.logo_image_file) {
+        const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
+        return { ...team, logo_image_file: blob }
+      }
+      return team
+    })
+    closure({ total: data.total, items: teamsWithBlob } as ItemsWithPagination<Team>)
+    return { total: data.total, items: teamsWithBlob } as ItemsWithPagination<Team>
   },
   fetchTeam: async (teamId: number, closure: (teamData: Team) => void) => {
     const response = await fetch(`http://localhost:8000/teams/${teamId}`)

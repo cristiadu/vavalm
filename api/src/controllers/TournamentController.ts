@@ -9,17 +9,30 @@ import Player from '../models/Player'
 import GameLog from '../models/GameLog'
 import TournamentService from '../services/TournamentService'
 import GameService from '../services/GameService'
+import { ItemsWithPagination } from '../base/types'
 
 const router = Router()
 
 router.get('/', async (req, res) => {
   try {
+    const limit_value = Number(req.query.limit)
+    const offset_value = Number(req.query.offset)
+
+    const countAllTournaments = await Tournament.count()
     const tournaments = await Tournament.findAll({
-      order: [['id', 'ASC']], include: [
-        { model: Standings, as: 'standings' },
-        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] }],
+      order: [['id', 'ASC']],
+      limit: limit_value > 0 ? limit_value: undefined,
+      offset: offset_value > 0 ? offset_value: undefined,
+      include: [
+        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] },
+      ],
     })
-    res.json(tournaments)
+
+    const tournamentsWithPagination: ItemsWithPagination<Tournament> = {
+      total: countAllTournaments,
+      items: tournaments,
+    }
+    res.json(tournamentsWithPagination)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
     res.status(500).json({ error: 'Internal Server Error' })
@@ -29,14 +42,34 @@ router.get('/', async (req, res) => {
 // Fetch tournament
 router.get('/:id', async (req, res) => {
   const { id } = req.params
+  const limit_value = Number(req.query.limit)
+  const offset_value = Number(req.query.offset)
 
   try {
+    // Step 1: Fetch the primary keys of the Game model
+    const gameIds = await Game.findAll({
+      attributes: ['id'],
+      where: { tournament_id: id },
+      limit: limit_value > 0 ? limit_value: undefined,
+      offset: offset_value > 0 ? offset_value: undefined,
+      raw: true,
+    })
+
+    // Step 2: Extract the IDs from the result
+    const gameIdsArray = gameIds.map(game => game.id)
+
+    // Step 3: Fetch the Tournament with the included Game models using the fetched IDs
     const tournament = await Tournament.findByPk(id, {
       include: [
         {
-          model: Game, as: 'schedule', include: [
+          model: Game,
+          as: 'schedule',
+          where: { id: gameIdsArray },
+          include: [
             {
-              model: GameStats, as: 'stats', include: [
+              model: GameStats,
+              as: 'stats',
+              include: [
                 { model: Team, as: 'team1' },
                 { model: Team, as: 'team2' },
                 { model: Team, as: 'winner' },
@@ -44,7 +77,11 @@ router.get('/:id', async (req, res) => {
             },
           ],
         },
-        { model: Standings, as: 'standings', include: [{ model: Team, as: 'team' }] },
+        {
+          model: Standings,
+          as: 'standings',
+          include: [{ model: Team, as: 'team' }],
+        },
         { model: Team, as: 'teams' },
       ],
     })

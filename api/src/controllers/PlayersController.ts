@@ -1,20 +1,35 @@
 import { Router } from 'express'
 import Player from '../models/Player'
+import { ItemsWithPagination } from '../base/types'
 
 const router = Router()
 
 // Fetch all players
 router.get('/', async (req, res) => {
+  const limit_value = Number(req.query.limit)
+  const offset_value = Number(req.query.offset)
+
   try {
-    const teams = await Player.findAll({ order: [['id', 'ASC']] })
-    res.json(teams)
+    const countAllPlayers = await Player.count()
+    const players = await Player.findAll({
+      order: [['id', 'ASC']],
+      limit: limit_value ? limit_value : undefined,
+      offset: offset_value ? offset_value : undefined,
+    })
+
+    const playersWithPagination: ItemsWithPagination<Player> = {
+      total: countAllPlayers,
+      items: players,
+    }
+    
+    res.json(playersWithPagination)
   } catch (err) {
     console.error('Error executing query', (err as Error).stack)
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })
 
-// Fetch players
+// Fetch player
 router.get('/:id', async (req, res) => {
   const { id } = req.params
 

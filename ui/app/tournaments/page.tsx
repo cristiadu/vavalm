@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import TournamentsApi from '../api/TournamentsApi'
@@ -10,20 +10,20 @@ import CountryApi from '../api/CountryApi'
 import { Team } from '../api/models/Team'
 import TournamentActionModal from './TournamentActionModal'
 import { asSafeHTML } from '../base/StringUtils'
+import { ItemsWithPagination } from '../api/models/types'
+import Pagination from '../base/Pagination'
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
 
 export default function ListTournaments() {
   const router = useRouter()
-  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [tournaments, setTournaments] = useState<ItemsWithPagination<Tournament> | null>(null)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [tournamentActionModalOpened, setTournamentActionModalOpened] = useState<boolean>(false)
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
   const [tournamentToEdit, setTournamentToEdit] = useState<Tournament | null>(null)
+  const [totalItems, setTotalItems] = useState(0)
 
-  useEffect(() => {
-    fetchCountriesAndTournaments()
-  }, [])
-
-  const fetchCountriesAndTournaments = () => {
+  const fetchCountriesAndTournaments = useCallback((offset: number, limit: number) => {
     CountryApi.fetchCountries((countries) => {
       const countriesToFlagMap: Record<string, string> = {}
       countries.forEach((country) => {
@@ -32,8 +32,15 @@ export default function ListTournaments() {
       setCountriesToFlagMap(countriesToFlagMap)
     })
     
-    TournamentsApi.fetchTournaments(setTournaments)
-  }
+    TournamentsApi.fetchTournaments((data) => {
+      setTournaments(data)
+      setTotalItems(data.total)
+    }, limit, offset)
+  }, [])
+
+  useEffect(() => {
+    fetchCountriesAndTournaments(PAGE_OFFSET_INITIAL_VALUE, LIMIT_PER_PAGE_INITIAL_VALUE)
+  }, [fetchCountriesAndTournaments])
 
   const openNewTournamentModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault()
@@ -46,7 +53,7 @@ export default function ListTournaments() {
     setIsEditActionOpened(false)
     setTournamentActionModalOpened(false)
     setTournamentToEdit(null)
-    fetchCountriesAndTournaments()
+    fetchCountriesAndTournaments(PAGE_OFFSET_INITIAL_VALUE, LIMIT_PER_PAGE_INITIAL_VALUE)
   }
 
   const handleView = (tournament: Tournament) => {
@@ -70,6 +77,10 @@ export default function ListTournaments() {
     })
   }
 
+  const handlePageChange = (offset: number, limit: number) => {
+    fetchCountriesAndTournaments(offset, limit)
+  }
+  
   return (
     <>
       <TournamentActionModal isOpen={tournamentActionModalOpened} onClose={closeTournamentActionModal} isEdit={isEditActionOpened} object={tournamentToEdit} />
@@ -115,7 +126,7 @@ export default function ListTournaments() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {tournaments.map((tournament) => (
+            {tournaments && tournaments.items.map((tournament) => (
               <tr key={tournament.id}>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tournament.id}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tournament.name}</td>
@@ -151,6 +162,7 @@ export default function ListTournaments() {
             ))}
           </tbody>
         </table>
+        <Pagination totalItems={totalItems} onPageChange={handlePageChange} />
       </div>
     </>
   )

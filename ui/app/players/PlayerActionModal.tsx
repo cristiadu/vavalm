@@ -9,7 +9,7 @@ import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
 import DropdownSelect from '../base/DropdownSelect'
-import { EnumWithFieldName } from '../api/models/common'
+import { EnumWithFieldName } from '../api/models/types'
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -66,7 +66,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
   useEffect(() => {
     if (isOpen) {
       CountryApi.fetchCountries(setCountries)
-      TeamsApi.fetchTeams(setTeams)
+      TeamsApi.fetchAllTeams(setTeams)
     }
   }, [isOpen])
 

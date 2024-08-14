@@ -14,20 +14,25 @@ import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../base/StringUtils'
 import PlayersApi from '../api/PlayersApi'
 import { getRoleBgColor } from '../api/models/Player'
+import Pagination from '../base/Pagination'
+import { PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
 
 export default function ListTeams() {
+  const LIMIT_VALUE_TEAM_LIST = 5
+
   const router = useRouter()
   const [teams, setTeams] = useState<Team[]>([])
   const [teamActionModalOpened, setTeamActionModalOpened] = useState<boolean>(false)
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
   const [teamToEdit, setTeamToEdit] = useState<Team | null>(null)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
+  const [totalItems, setTotalItems] = useState(0)
 
   useEffect(() => {
     fetchCountriesAndTeams()
   }, [])
 
-  const fetchCountriesAndTeams = async () => {
+  const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
     try {
       const countries = await CountryApi.fetchCountries(() => {
         // handle country data
@@ -41,9 +46,12 @@ export default function ListTeams() {
 
       const teamsData = await TeamsApi.fetchTeams(() => {
         // handle team data
-      })
+      }, limit, offset)
+
+      setTotalItems(teamsData.total)
+
       const teamsWithPlayersFlags = await Promise.all(
-        teamsData.map(async (team) => {
+        teamsData.items.map(async (team) => {
           const players = await PlayersApi.fetchPlayersByTeam(Number(team.id), () => {
             // handle player data
           })
@@ -96,6 +104,10 @@ export default function ListTeams() {
       fetchCountriesAndTeams()
     })
     
+  }
+
+  const handlePageChange = (offset: number, limit: number) => {
+    fetchCountriesAndTeams(limit, offset)
   }
 
   // List all teams in a table/grid
@@ -188,6 +200,7 @@ export default function ListTeams() {
             ))}
           </tbody>
         </table>
+        <Pagination totalItems={totalItems} onPageChange={handlePageChange} limitValue={LIMIT_VALUE_TEAM_LIST} />
       </div>
     </>
   )
