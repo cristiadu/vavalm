@@ -95,6 +95,7 @@ router.post('/', async (req, res) => {
 
       // Create standings object for teams if they don't exist
       await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
+      await GameService.createTeamGamesForTournamentIfNeeded(teamIds, tournament.id as number)
     }
 
     const tournamentCreated = await Tournament.findByPk(tournament.id, {
@@ -153,6 +154,9 @@ router.put('/:id', async (req, res) => {
 
     // Create standings object for teams if they don't exist
     await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
+
+    // Create games for the tournament if they don't exist
+    await GameService.createTeamGamesForTournamentIfNeeded(teamIds, tournament.id as number)
 
     // Remove standings for teams that were removed from the tournament
     await TournamentService.removeStandingsForRemovedTeams(removedTeamIds, tournament.id as number)

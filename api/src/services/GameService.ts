@@ -8,6 +8,8 @@ import RoundService from "./RoundService"
 import Tournament from "../models/Tournament"
 import { Op, Sequelize } from "sequelize"
 import GameStatsService from "./GameStatsService"
+import { GameMap } from "../models/enums"
+import { getRandomDateThisYear } from "../base/DateUtils"
 
 const GameService = {
   getGame: async (game_id: number): Promise<Game> => {
@@ -36,6 +38,46 @@ const GameService = {
     }
 
     return game
+  },
+
+  createTeamGamesForTournamentIfNeeded: async (teamIds: number[], tournamentId: number): Promise<void> => {
+    // Create games for the tournament, all teams play against each other
+    // Create only needed games, however, if a game already exists, it will not be created again
+    teamIds.forEach((team1Id: number, index: number) => {
+      teamIds.slice(index + 1).forEach(async (team2Id: number) => {
+        // Check if the game already exists
+        const existingGame = await Game.findOne({
+          where: {
+            tournament_id: tournamentId,
+            team1_id: team1Id,
+            team2_id: team2Id,
+          },
+        })
+
+        if (existingGame) {
+          return
+        }
+
+        const maps = Object.values(GameMap)
+        const randomMap = maps[Math.floor(Math.random() * maps.length)]
+
+        const game = await Game.create({
+          date: getRandomDateThisYear(),
+          map: randomMap,
+          tournament_id: tournamentId,
+          stats: {
+            team1_id: team1Id,
+            team2_id: team2Id,
+            team1_score: 0,
+            team2_score: 0,
+          },
+        }, {
+          include: [
+            { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }] },
+          ],
+        })
+      })
+    })
   },
 
   /**

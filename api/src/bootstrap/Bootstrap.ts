@@ -7,6 +7,7 @@ import Game from "../models/Game"
 import { env } from "process"
 import GameStats from "../models/GameStats"
 import PlayerGameStats from "../models/PlayerGameStats"
+import { getRandomDateThisYear } from "../base/DateUtils"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' ?? false
 
@@ -81,14 +82,6 @@ const setupTestData = async () => {
               { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }] },
             ],
           })
-
-          function getRandomDateThisYear(): Date {
-            const year = new Date().getFullYear()
-            const startOfYear = new Date(year, 0, 1).getTime()
-            const endOfYear = new Date(year, 11, 31).getTime()
-            const randomTime = Math.random() * (endOfYear - startOfYear) + startOfYear
-            return new Date(randomTime)
-          }
         })
       })
     }
