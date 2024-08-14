@@ -46,12 +46,33 @@ const GameService = {
     teamIds.forEach((team1Id: number, index: number) => {
       teamIds.slice(index + 1).forEach(async (team2Id: number) => {
         // Check if the game already exists
+        // Check if the game already exists
         const existingGame = await Game.findOne({
           where: {
             tournament_id: tournamentId,
-            team1_id: team1Id,
-            team2_id: team2Id,
           },
+          include: [ 
+            { 
+              model: GameStats, 
+              as: 'stats', 
+              where: {
+                [Op.or]: [
+                  {
+                    [Op.and]: [
+                      { team1_id: team1Id },
+                      { team1_id: team2Id },
+                    ],
+                  },
+                  {
+                    [Op.and]: [
+                      { team1_id: team2Id },
+                      { team1_id: team1Id },
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
         })
 
         if (existingGame) {
@@ -88,13 +109,30 @@ const GameService = {
    * @returns {Promise<void>} A promise that resolves when the games have been deleted.
    */
   deleteTeamsGamesFromTournament: async (teamIds: number[], tournamentId: number): Promise<void> => {
-    await Game.destroy({
+    // Find all games for the specified teams in the tournament
+    const games = await Game.findAll({
       where: {
         tournament_id: tournamentId,
-        $or: [
-          { team1_id: { [Op.in]: teamIds } },
-          { team2_id: { [Op.in]: teamIds } },
-        ],
+      },
+      include: [{
+        model: GameStats,
+        as: 'stats',
+        where: {
+          [Op.or]: [
+            { team1_id: { [Op.in]: teamIds } },
+            { team2_id: { [Op.in]: teamIds } },
+          ],
+        },
+      }],
+    })
+
+    // Extract the IDs of the games to delete
+    const gameIds = games.map(game => game.id)
+
+    // Delete the games by their IDs
+    await Game.destroy({
+      where: {
+        id: { [Op.in]: gameIds },
       },
     })
   },
