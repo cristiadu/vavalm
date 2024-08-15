@@ -11,10 +11,19 @@ const setupTestData = async () => {
   const teams = await Team.findAll()
   if (teams.length === 0 || forceBootstrap) {
     // Read JSON file with teams data and create them
-    const teamsData: Team[] = require('./json/bootstrap_teams.json')
+    const teamsData: any[] = require('./json/bootstrap_teams.json')
     for (const teamData of teamsData) {
       console.debug('Creating team with data:', teamData)
-      await Team.create({ ...teamData })
+  
+      // Fetch the image from the URL and convert it to an ArrayBuffer
+      const response = await fetch(teamData.imageLogo)
+      const arrayBuffer = await response.arrayBuffer()
+  
+      // Convert the ArrayBuffer to a Buffer
+      const logoImageBuffer = Buffer.from(arrayBuffer)
+  
+      // Create the team with the logo image file
+      await Team.create({ ...teamData, logo_image_file: logoImageBuffer })
     }
   } else {
     console.warn('Initial teams data already exists')

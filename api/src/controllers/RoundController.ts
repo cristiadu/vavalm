@@ -12,10 +12,7 @@ router.post('/:round/play', async (req, res) => {
     const { id, round } = req.params as { id: string, round: string }
     const roundFinishedState = await RoundService.playFullRound(Number(id), Number(round))
     await GameStatsService.updateAllStats(Number(id))
-    if (roundFinishedState.finished) {
-      console.info('Round finished, updating standings...')
-      await TournamentService.updateStandings(Number(id))
-    }
+    await TournamentService.updateStandings(Number(id))
     console.debug('Game stats updated for game_id:', id)
     res.status(201).json(roundFinishedState)
   } catch (err) {
@@ -34,10 +31,7 @@ router.post('/:round/duel', async (req, res) => {
     const { id, round } = req.params as { id: string, round: string }
     const roundState = await RoundService.playRoundStep(Number(id), Number(round))
     await GameStatsService.updateAllStats(Number(id))
-    if (roundState.finished) {
-      console.info('Round finished, updating standings...')
-      await TournamentService.updateStandings(Number(id))
-    }
+    await TournamentService.updateStandings(Number(id))
     console.debug('Game stats updated for game_id:', id)
     res.status(201).json(roundState)
   } catch (err) {

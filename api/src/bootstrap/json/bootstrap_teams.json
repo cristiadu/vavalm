@@ -1,80 +1,106 @@
 [
   {
+    "id": 1,
     "full_name": "Sentinels Esports",
     "description": "<strong>Top NA Team</strong>",
     "short_name": "Sentinels",
-    "country": "United States"
+    "country": "United States",
+    "imageLogo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzi5O4G48EVu4WG2ote3S9KJUlkkHKM96Rpg&s"
   },
   { 
+    "id": 2,
     "full_name": "Fnatic", 
     "description": "<strong>Top EU Team</strong>", 
     "short_name": "Fnatic", 
-    "country": "United Kingdom" 
+    "country": "United Kingdom",
+    "imageLogo": "https://storage-asset.msi.com/global/picture/team/e05185384654285b25d9f639db4bcee8.jpg"
   },
   { 
+    "id": 3,
     "full_name": "DRX", 
     "description": "<strong>Top Korean Team</strong>", 
     "short_name": "DRX", 
-    "country": "South Korea" 
+    "country": "South Korea",
+    "imageLogo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZIGctkEsVKcp7Ctr6aynuSGsW-5kamG87cQ&s"
   },
   {
+    "id": 4,
     "full_name": "Gen.G",
     "description": "<strong>Top Korean Team</strong>",
     "short_name": "Gen.G",
-    "country": "South Korea"
+    "country": "South Korea",
+    "imageLogo": "https://mlpnk72yciwc.i.optimole.com/cqhiHLc.IIZS~2ef73/w:auto/h:auto/q:75/https://bleedingcool.com/wp-content/uploads/2019/04/gen.g-esports-logo.jpg"
   },
   {
+    "id": 5,
     "full_name": "LOUD",
     "description": "<strong>Top Brazilian Team</strong>",
     "short_name": "LOUD",
-    "country": "Brazil"
+    "country": "Brazil",
+    "imageLogo": "https://mir-s3-cdn-cf.behance.net/projects/404/0a369489934095.Y3JvcCwyMjM5LDE3NTEsNzk4LDIwNQ.png"
   },
   {
+    "id": 6,
     "full_name": "KRU Esports",
     "description": "<strong>Top Latino Team</strong>",
     "short_name": "KRU",
-    "country": "Argentina"
+    "country": "Argentina",
+    "imageLogo": "https://yt3.googleusercontent.com/ytc/AIdro_nIvHwk42X3JjqMO5cnMjwkswxooWIX5GAyxAagWadRLQ=s900-c-k-c0x00ffffff-no-rj"
   },
   {
+    "id": 7,
     "full_name": "G2 Esports",
     "description": "<strong>Top EU Team</strong>",
     "short_name": "G2",
-    "country": "Germany"
+    "country": "Germany",
+    "imageLogo": "https://www.opleague.pro/styles/media/team/508/Logo_background.png"
   },
   {
+    "id": 8,
     "full_name": "T1",
     "description": "<strong>Top Korean Team</strong>",
     "short_name": "T1",
-    "country": "South Korea"
+    "country": "South Korea",
+    "imageLogo": "https://static.wikia.nocookie.net/cod_esports_gamepedia_en/images/a/a2/T1logo_square.png/revision/latest?cb=20201024062108"
   },
   {
+    "id": 9,
     "full_name": "Cloud9",
     "description": "<strong>Top NA Team</strong>",
     "short_name": "Cloud9",
-    "country": "United States"
+    "country": "United States",
+    "imageLogo": "https://1000logos.net/wp-content/uploads/2017/08/Cloud-9-Emblem.jpg"
   },
   {
+    "id": 10,
     "full_name": "Team Liquid",
     "description": "<strong>Top NA Team</strong>",
     "short_name": "Liquid",
-    "country": "United States"
+    "country": "United States",
+    "imageLogo": "https://whatthelogo.com/storage/logos/team-liquid-133828.png"
   },
   {
+    "id": 11,
     "full_name": "Team SoloMid",
     "description": "<strong>Top NA Team</strong>",
     "short_name": "TSM",
-    "country": "United States"
+    "country": "United States",
+    "imageLogo": "https://logonoid.com/images/tsm-logo.png"
   },
   {
+    "id": 12,
     "full_name": "100 Thieves",
     "description": "<strong>Top NA Team</strong>",
     "short_name": "100T",
-    "country": "United States"
+    "country": "United States",
+    "imageLogo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSt4zIiwLG2K3zdWpIYCluphbv4UX5HI2gsJA&s"
   },
   {
+    "id": 13,
     "full_name": "Evil Geniuses",
     "description": "<strong>Top NA Team</strong>",
     "short_name": "Evil Geniuses",
-    "country": "United States"
+    "country": "United States",
+    "imageLogo": "https://liquipedia.net/commons/images/thumb/a/a9/Evil_Geniuses_2018_lightmode.png/430px-Evil_Geniuses_2018_lightmode.png"
   }
 ]
