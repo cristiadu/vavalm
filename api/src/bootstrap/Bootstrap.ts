@@ -8,6 +8,8 @@ import { env } from "process"
 import GameStats from "../models/GameStats"
 import PlayerGameStats from "../models/PlayerGameStats"
 import { getRandomDateThisYear } from "../base/DateUtils"
+import TournamentService from "../services/TournamentService"
+import GameService from "../services/GameService"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' ?? false
 
@@ -55,35 +57,8 @@ const setupTestData = async () => {
       })
 
       await tournament.addTeams(teamIds)
-
-      // Create standings for each team in the tournament
-      for (const teamId of teamIds) {
-        await Standings.create({ team_id: teamId, tournament_id: tournament.id, wins: 0, losses: 0, maps_won: 0, maps_lost: 0, rounds_won: 0, rounds_lost: 0 })
-      }
-
-      // Create games for the tournament, all teams play against each other
-      teamIds.forEach((team1Id: number, index: number) => {
-        teamIds.slice(index + 1).forEach(async (team2Id: number) => {
-          const maps = Object.values(GameMap)
-          const randomMap = maps[Math.floor(Math.random() * maps.length)]
-
-          const game = await Game.create({
-            date: getRandomDateThisYear(),
-            map: randomMap,
-            tournament_id: tournament.id,
-            stats: {
-              team1_id: team1Id,
-              team2_id: team2Id,
-              team1_score: 0,
-              team2_score: 0,
-            },
-          }, {
-            include: [
-              { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }] },
-            ],
-          })
-        })
-      })
+      await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
+      await GameService.createTeamGamesForTournamentIfNeeded(teamIds, tournament.id as number)
     }
   } else {
     console.warn('Initial tournament data already exists')

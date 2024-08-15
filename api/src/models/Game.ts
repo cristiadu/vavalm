@@ -13,6 +13,7 @@ class Game extends Model {
   declare tournament_id: number
   declare tournament: Tournament
   declare stats: GameStats
+  declare included_on_standings: boolean
 
   public static associations: {
     logs: Association<Game, GameLog>
@@ -32,6 +33,11 @@ Game.init({
   tournament_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  included_on_standings: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
   },
 }, { sequelize, modelName: 'Game' })
 

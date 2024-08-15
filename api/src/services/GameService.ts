@@ -9,6 +9,7 @@ import { Op } from "sequelize"
 import GameStatsService from "./GameStatsService"
 import { GameMap } from "../models/enums"
 import { getRandomDateThisYear } from "../base/DateUtils"
+import TournamentService from "./TournamentService"
 
 const GameService = {
   getGame: async (game_id: number): Promise<Game> => {
@@ -162,6 +163,9 @@ const GameService = {
 
     // Update player and game stats
     await GameStatsService.updateAllStats(game_id)
+
+    // Update tournament standings if the game is finished
+    await TournamentService.updateStandings(game.tournament_id)
   },
 
 
