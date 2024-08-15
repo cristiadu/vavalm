@@ -18,8 +18,8 @@ router.get('/', async (req, res) => {
     const countAllTournaments = await Tournament.count()
     const tournaments = await Tournament.findAll({
       order: [['id', 'ASC']],
-      limit: limit_value > 0 ? limit_value: undefined,
-      offset: offset_value > 0 ? offset_value: undefined,
+      limit: limit_value > 0 ? limit_value : undefined,
+      offset: offset_value > 0 ? offset_value : undefined,
       include: [
         { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] },
       ],
@@ -47,8 +47,8 @@ router.get('/:id', async (req, res) => {
     const gameIds = await Game.findAll({
       attributes: ['id'],
       where: { tournament_id: id },
-      limit: limit_value > 0 ? limit_value: undefined,
-      offset: offset_value > 0 ? offset_value: undefined,
+      limit: limit_value > 0 ? limit_value : undefined,
+      offset: offset_value > 0 ? offset_value : undefined,
       raw: true,
     })
 
@@ -160,9 +160,11 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
-    const tournament = await Tournament.findByPk(id, {include: [
-      { model: Team, as: 'teams' },
-    ]})
+    const tournament = await Tournament.findByPk(id, {
+      include: [
+        { model: Team, as: 'teams' },
+      ],
+    })
 
     if (!tournament) {
       return res.status(404).json({ error: 'Tournament not found' })

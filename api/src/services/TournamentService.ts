@@ -2,8 +2,6 @@ import { Op } from "sequelize"
 import Standings from "../models/Standings"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
-import GameLog from "../models/GameLog"
-import Player from "../models/Player"
 
 const TournamentService = {
   /**
@@ -37,13 +35,13 @@ const TournamentService = {
    */
   updateStandings: async (tournamentId: number) => {
     // Get all finished games for the tournament    
-    const games = await Game.findAll({ 
-      where: { 
+    const games = await Game.findAll({
+      where: {
         tournament_id: tournamentId,
         included_on_standings: false,
-      }, 
+      },
       include: [
-        { model: GameStats, as: 'stats', where: {winner_id: { [Op.not]: null }}},
+        { model: GameStats, as: 'stats', where: { winner_id: { [Op.not]: null } } },
       ],
     })
 
