@@ -89,7 +89,7 @@ export default function ListTeams() {
 
   const handleEdit = (team: Team) => {
     // Use same modal as NewPlayerModal but with prefilled data'
-    console.log('Editing team:', team)
+    console.debug('Editing team:', team)
     setIsEditActionOpened(true)
     setTeamToEdit(team)
     setTeamActionModalOpened(true)

@@ -117,14 +117,14 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
 
     if (isEdit) {
       await TournamentsApi.editTournament(requestTournament, (editedTournament) => {
-        console.log('Tournament edited:', editedTournament)
+        console.debug('Tournament edited:', editedTournament)
         closeModal()
       })
       return
     }
 
     await TournamentsApi.newTournament(requestTournament, (newTournament) => {
-      console.log('Tournament created:', newTournament)
+      console.debug('Tournament created:', newTournament)
       closeModal()
     })
   }

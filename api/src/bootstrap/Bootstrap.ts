@@ -17,11 +17,11 @@ const setupTestData = async () => {
     // Read JSON file with teams data and create them
     const teamsData: Team[] = require('./json/bootstrap_teams.json')
     for (const teamData of teamsData) {
-      console.log('Creating team with data:', teamData)
+      console.debug('Creating team with data:', teamData)
       await Team.create({ ...teamData })
     }
   } else {
-    console.log('Initial teams data already exists')
+    console.warn('Initial teams data already exists')
   }
 
   const players = await Player.findAll()
@@ -29,13 +29,13 @@ const setupTestData = async () => {
     // Read JSON file with players data and create them
     const playersData: Player[] = require('./json/bootstrap_players.json')
     for (const playerData of playersData) {
-      console.log('Creating player with data:', playerData)
+      console.debug('Creating player with data:', playerData)
       await Player.create({
         ...playerData,
       })
     }
   } else {
-    console.log('Initial players data already exists')
+    console.warn('Initial players data already exists')
   }
 
   const tournaments = await Tournament.findAll()
@@ -86,7 +86,7 @@ const setupTestData = async () => {
       })
     }
   } else {
-    console.log('Initial tournament data already exists')
+    console.warn('Initial tournament data already exists')
   }
 }
 

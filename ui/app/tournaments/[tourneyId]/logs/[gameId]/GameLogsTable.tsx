@@ -15,7 +15,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber, refresh }: GameLo
   const [logs, setLogs] = useState<GameLog[]>([])
 
   const fetchLogs = useCallback(async () => {
-    const fetchedLogs = await RoundApi.getRound(gameId, currentRound, (roundLogs) => console.log('Round logs:', roundLogs))
+    const fetchedLogs = await RoundApi.getRound(gameId, currentRound, (roundLogs) => console.debug('Round logs:', roundLogs))
     setLogs(fetchedLogs || [])
   }, [gameId, currentRound])
   

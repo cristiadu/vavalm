@@ -32,7 +32,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
 
   const handlePlayRound = () => {
     RoundApi.playFullRound(gameId, lastRoundPlayed + 1, (roundState) => {
-      console.log('Full Round Execution, Round State:', roundState)
+      console.debug('Full Round Execution, Round State:', roundState)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
     })
@@ -41,7 +41,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const handlePlayDuel = () => {
     const round = lastRoundPlayed == 0 ? 1 : lastRoundPlayed
     DuelApi.playSingleDuel(gameId, round, (roundState) => {
-      console.log('Single Duel Execution, Round State:', roundState)
+      console.debug('Single Duel Execution, Round State:', roundState)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
     })
@@ -49,7 +49,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
 
   const handlePlayFullGame = () => {
     GameApi.playFullGame(gameId, (message) => {
-      console.log('Full Game Execution, Message:', message)
+      console.debug('Full Game Execution, Message:', message)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
     })
@@ -62,7 +62,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
     })
 
     await DuelApi.getLastDuel(gameId, (data: GameLog) => {
-      setLastRoundPlayed(data.round_state.round || 0)
+      setLastRoundPlayed(data?.round_state?.round || 0)
     })
   }, [gameId])
 

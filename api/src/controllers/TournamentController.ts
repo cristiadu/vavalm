@@ -106,7 +106,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    console.log('Creating team with data:', { type, name, description, country, teams, start_date })
+    console.debug('Creating team with data:', { type, name, description, country, teams, start_date })
     let tournament = await Tournament.create({
       type,
       name,
@@ -177,7 +177,7 @@ router.put('/:id', async (req, res) => {
       .map((team: Team) => team.id) as number[]
 
 
-    console.log('Updating tournament with data:', { type, name, description, country, teams, start_date })
+    console.debug('Updating tournament with data:', { type, name, description, country, teams, start_date })
     await tournament.update({
       type,
       name,

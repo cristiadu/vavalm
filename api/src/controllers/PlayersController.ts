@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    console.log('Creating player with data:', { nickname, full_name, age, country, team_id, player_attributes })
+    console.debug('Creating player with data:', { nickname, full_name, age, country, team_id, player_attributes })
     const player = await Player.create({
       nickname,
       full_name,

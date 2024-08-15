@@ -11,13 +11,13 @@ const GameApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", response)
+        console.error("Network response was not ok: ", response)
         return
       }
 
       const data = await response.json()
       closure(data as { message: string })
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as { message: string }
     } catch (error) {
       console.error('Error:', error)
@@ -33,7 +33,7 @@ const GameApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", response)
+        console.error("Network response was not ok: ", response)
         return
       }
 
@@ -48,7 +48,7 @@ const GameApi = {
       }
 
       closure(data as Game)
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as Game
     } catch (error) {
       console.error('Error:', error)

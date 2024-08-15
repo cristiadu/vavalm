@@ -23,11 +23,11 @@ app.use('/games', GameController)
 const forceSync = process.env.FORCE_SYNC === 'true'
 sequelize.sync({ force: forceSync }).then(() => {
   setupTestData().then(() => {
-    console.log('Test data has been created successfully.')
+    console.info('Test data has been created successfully.')
   }).catch(err => {
     console.error('Unable to create test data:', err)
   })})
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
+  console.info(`Server is running on port ${port}`)
 })

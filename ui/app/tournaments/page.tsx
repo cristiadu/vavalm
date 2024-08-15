@@ -13,6 +13,7 @@ import { asSafeHTML } from '../base/StringUtils'
 import { ItemsWithPagination } from '../api/models/types'
 import Pagination from '../base/Pagination'
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
+import { handleBackClick } from '../base/LinkUtils'
 
 export default function ListTournaments() {
   const router = useRouter()
@@ -61,7 +62,7 @@ export default function ListTournaments() {
   }
 
   const handleEdit = (tournament: Tournament) => {
-    console.log('Editing tournament:', tournament)
+    console.debug('Editing tournament:', tournament)
     setIsEditActionOpened(true)
     setTournamentToEdit(tournament)
     setTournamentActionModalOpened(true)
@@ -72,7 +73,7 @@ export default function ListTournaments() {
     if (!confirmed) return
 
     TournamentsApi.deleteTournament(tournament, (tournamentData) => {
-      console.log('Tournament deleted:', tournamentData)
+      console.debug('Tournament deleted:', tournamentData)
       TournamentsApi.fetchTournaments(setTournaments)
     })
   }
@@ -88,7 +89,7 @@ export default function ListTournaments() {
         <header className="w-full flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Tournaments</h1>
           <div className="space-x-4">
-            <Link href="#" onClick={() => router.back()} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
             Back
             </Link>
             <Link href="#" onClick={openNewTournamentModal} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">

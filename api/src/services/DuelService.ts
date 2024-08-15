@@ -20,7 +20,7 @@ const DuelService = {
     })
 
     if (!lastDuelLog) {
-      console.info(`No game logs found for game_id: ${game_id}`)
+      console.warn(`No game logs found for game_id: ${game_id}`)
     }
 
     return lastDuelLog as GameLog
@@ -108,7 +108,7 @@ const DuelService = {
       team1_player_id: team1Player.id,
       team2_player_id: team2Player.id,
       player_killed_id: duelResults.loser.id,
-    }).then(log => console.log('GameLog created:', log.game_id, log.team1_player_id, log.team2_player_id, log.player_killed_id, log.round_state.round, log.trade)).catch(error => console.error('Error creating GameLog:', error))
+    }).then(log => console.debug('GameLog created:', log.game_id, log.team1_player_id, log.team2_player_id, log.player_killed_id, log.round_state.round, log.trade)).catch(error => console.error('Error creating GameLog:', error))
 
     return playedRound
   },
@@ -134,7 +134,7 @@ const DuelService = {
 
     // Determine the winner based on the random number
     const winner = randomNumber < duelChances.chancesPlayer1 ? duel.player1 : duel.player2
-    console.log(`Player ${winner.nickname} won the duel against ${winner === duel.player1 ? duel.player2.nickname : duel.player1.nickname}!`)
+    console.debug(`Player ${winner.nickname} won the duel against ${winner === duel.player1 ? duel.player2.nickname : duel.player1.nickname}!`)
     return {
       winner: winner,
       loser: winner === duel.player1 ? duel.player2 : duel.player1,

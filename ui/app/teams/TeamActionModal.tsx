@@ -100,14 +100,14 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
 
     if (isEdit) {
       await TeamsApi.editTeam(requestTeam, (editedTeam: Team) => {
-        console.log('Team edited', editedTeam)
+        console.debug('Team edited', editedTeam)
         closeModal()
       })
       return
     }
 
     await TeamsApi.newTeam(requestTeam, (newTeam: Team) => {
-      console.log('Team created', newTeam)
+      console.debug('Team created', newTeam)
       closeModal()
     })
   }

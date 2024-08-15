@@ -60,13 +60,13 @@ const TournamentsApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", tournament)
+        console.error("Network response was not ok: ", tournament)
         return
       }
 
       const data = await response.json()
       closure(data as Tournament)
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as Tournament
     } catch (error) {
       console.error('Error creating tournament:', error)
@@ -83,13 +83,13 @@ const TournamentsApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", tournament)
+        console.error("Network response was not ok: ", tournament)
         return
       }
 
       const data = await response.json()
       closure(data as Tournament)
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as Tournament
     } catch (error) {
       console.error('Error updating tournament:', error)
@@ -106,13 +106,13 @@ const TournamentsApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", tournament)
+        console.error("Network response was not ok: ", tournament)
         return
       }
 
       const data = await response.json()
       closure(data)
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as Tournament
     } catch (error) {
       console.error('Error deleting tournament:', error)

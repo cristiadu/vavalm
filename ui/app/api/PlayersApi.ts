@@ -32,13 +32,13 @@ const PlayersApi = {
       })
   
       if (!response.ok) {
-        console.log("Network response was not ok: ", player)
+        console.error("Network response was not ok: ", player)
         return
       }
   
       const result = await response.json()
       closure(result)
-      console.log('Success:', result)
+      console.debug('Success:', result)
       return result as Player
     } catch (error) {
       console.error('Error:', error)
@@ -55,13 +55,13 @@ const PlayersApi = {
       })
   
       if (!response.ok) {
-        console.log("Network response was not ok: ", player)
+        console.error("Network response was not ok: ", player)
         return
       }
   
       const result = await response.json()
       closure(result)
-      console.log('Success:', result)
+      console.debug('Success:', result)
       return result as Player
     } catch (error) {
       console.error('Error:', error)
@@ -78,13 +78,13 @@ const PlayersApi = {
       })
   
       if (!response.ok) {
-        console.log("Network response was not ok: ", player)
+        console.error("Network response was not ok: ", player)
         return
       }
   
       const result = await response.json()
       closure(result)
-      console.log('Success:', result)
+      console.debug('Success:', result)
       return result
     } catch (error) {
       console.error('Error:', error)

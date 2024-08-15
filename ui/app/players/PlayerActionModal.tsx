@@ -116,14 +116,14 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
 
     if (isEdit) {
       await PlayersApi.editPlayer(requestPlayer, (editedPlayer) => {
-        console.log('Player edited:', editedPlayer)
+        console.debug('Player edited:', editedPlayer)
         closeModal()
       })
       return
     }
 
     await PlayersApi.newPlayer(requestPlayer, (newPlayer) => {
-      console.log('Player created:', newPlayer)
+      console.debug('Player created:', newPlayer)
       closeModal()
     })
   }

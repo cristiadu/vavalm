@@ -63,13 +63,13 @@ const TeamsApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", formData)
+        console.error("Network response was not ok: ", formData)
         return
       }
 
       const result = await response.json()
       closure(result)
-      console.log('Success:', result)
+      console.debug('Success:', result)
       return result as Team
     } catch (error) {
       console.error('Error:', error)
@@ -93,13 +93,13 @@ const TeamsApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", formData)
+        console.error("Network response was not ok: ", formData)
         return
       }
 
       const result = await response.json()
       closure(result)
-      console.log('Success:', result)
+      console.debug('Success:', result)
       return result as Team
     } catch (error) {
       console.error('Error:', error)
@@ -116,13 +116,13 @@ const TeamsApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", team)
+        console.error("Network response was not ok: ", team)
         return
       }
 
       const result = await response.json()
       closure(result)
-      console.log('Success:', result)
+      console.debug('Success:', result)
       return result
     } catch (error) {
       console.error('Error:', error)

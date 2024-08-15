@@ -44,7 +44,7 @@ const GameStatsService = {
         included_on_team_stats: false,
         'round_state.finished': true,
       },
-      order: [['round_state.round_number', 'ASC']],
+      order: [['round_state.round', 'ASC']],
     })
 
     let team1_rounds = 0
@@ -144,7 +144,7 @@ const GameStatsService = {
         ],
       })
 
-      console.log('Updating player stats for game:', gameStats.game_id)
+      console.debug('Updating player stats for game:', gameStats.game_id)
 
       // Create the PlayerGameStats object for all players involved in this game, but dont save it yet.
       const playerIdToStatsTeam1 = await GameStatsService.getPlayerIdToStatsMap(gameStats.team1.players as Player[], gameStats.id as number, 1)
@@ -167,7 +167,7 @@ const GameStatsService = {
           log.included_on_player_stats = true
           await log.save()
         } else {
-          console.log(`Log ${log} already included on player stats`)
+          console.error('Internal Error while updating player stats for game:', gameStats.game_id)
         }
       }
 

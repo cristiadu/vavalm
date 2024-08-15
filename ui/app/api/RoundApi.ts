@@ -13,13 +13,13 @@ const RoundApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", response)
+        console.error("Network response was not ok: ", response)
         return
       }
 
       const data = await response.json()
       closure(data as RoundState)
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as RoundState
     } catch (error) {
       console.error('Error:', error)
@@ -35,13 +35,13 @@ const RoundApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", response)
+        console.error("Network response was not ok: ", response)
         return
       }
 
       const data = await response.json()
       closure(data as GameLog[])
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as GameLog[]
     } catch (error) {
       console.error('Error:', error)
@@ -57,13 +57,13 @@ const RoundApi = {
       })
 
       if (!response.ok) {
-        console.log("Network response was not ok: ", response)
+        console.error("Network response was not ok: ", response)
         return
       }
 
       const data = await response.json()
       closure(data as GameLog[])
-      console.log('Success:', data)
+      console.debug('Success:', data)
       return data as GameLog[]
     } catch (error) {
       console.error('Error:', error)

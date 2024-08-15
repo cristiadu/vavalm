@@ -19,7 +19,7 @@ const RoundService = {
     })
 
     if (!lastGameLog) {
-      console.info(`No game logs found for game_id: ${game_id}`)
+      console.warn(`No game logs found for game_id: ${game_id}`)
       return []
     }
 
@@ -104,7 +104,7 @@ const RoundService = {
         throw new Error(`Failed to continue the round for game_id: ${game_id}, round_number: ${round_number}`)
       }
 
-      console.log('round number=', currentRound.round, "isFinished=", currentRound.finished, "team1_alive_players=", currentRound.team1_alive_players.length, "team2_alive_players=", currentRound.team2_alive_players.length)
+      console.debug('round number=', currentRound.round, "isFinished=", currentRound.finished, "team1_alive_players=", currentRound.team1_alive_players.length, "team2_alive_players=", currentRound.team2_alive_players.length)
 
     }
 
@@ -144,10 +144,10 @@ const RoundService = {
       let currentRound = currentGameLog?.round_state
 
       if (currentRound == null && round_number === 1) {
-        console.log('Starting round: ', round_number)
+        console.info('Starting round: ', round_number)
         currentRound = await RoundService.createRoundState(game_id, round_number)
       } else if (currentRound == null || currentRound.finished) {
-        console.log('Starting round: ', round_number + 1)
+        console.info('Starting round: ', round_number + 1)
         currentRound = await RoundService.createRoundState(game_id, round_number + 1)
       }
 
