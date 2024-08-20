@@ -2,8 +2,22 @@ import { Op } from "sequelize"
 import Standings from "../models/Standings"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
+import Tournament from "../models/Tournament"
 
 const TournamentService = {
+  getTournamentByGameId: async (gameId: number) => {
+    const tournament = await Tournament.findOne({
+      include: [
+        {
+          model: Game,
+          as: 'schedule',
+          where: { id: gameId },
+        },
+      ],
+    })
+
+    return tournament
+  },
   /**
    * Create standings for teams that have been added to the tournament.
    * 
