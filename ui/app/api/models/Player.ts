@@ -7,6 +7,19 @@ export enum PlayerRole {
   IGL = 'IGL',
 }
 
+export const getAttributeBgColor = (attributeValue: number): string => {
+  switch (attributeValue) {
+  case 1:
+    return "bg-red-600"
+  case 2:
+    return "bg-yellow-600"
+  case 3:
+    return "bg-green-600"
+  default:
+    return "bg-gray-200"
+  }
+}
+
 export const getRoleBgColor = (role: PlayerRole): string => {
   const tailwindStyle = "p-1 rounded text-white ml-2 "
   switch (role) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import PlayersApi from '../../api/PlayersApi'
-import { getRoleBgColor, Player } from '../../api/models/Player'
+import { getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
 import CountryApi from '../../api/CountryApi'
 import TeamsApi from '../../api/TeamsApi'
 import { Team } from '../../api/models/Team'
@@ -89,20 +89,16 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
           <hr className="mb-2" />
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">
             {Object.entries(player.player_attributes).map(([key, value]) => {
-              let bgColor = "bg-gray-200" // Default background color
-              if (value === 3) bgColor = "bg-green-600"
-              else if (value === 2) bgColor = "bg-yellow-600"
-              else if (value === 1) bgColor = "bg-gray-500"
-
               return (
                 <div key={key} className="flex items-center space-x-1">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded text-xs text-white ${bgColor}`}>{value}</span>
+                  <span className={`w-6 h-6 flex items-center justify-center rounded text-xs text-white ${getAttributeBgColor(value)}`}>{value}</span>
                   <span className="text-xs text-gray-900 truncate">{asWord(key)}</span>
                 </div>
               )
             })}
           </div>
         </div>
+
       </div>
     </div>
   )
