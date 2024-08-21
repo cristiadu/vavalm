@@ -8,6 +8,7 @@ import GameLog from './GameLog'
 import PlayerGameStats from './PlayerGameStats'
 import Player from './Player'
 import { sequelize } from './index'
+import Match from './Match'
 
 class Tournament extends Model {
   declare id?: number
@@ -15,7 +16,7 @@ class Tournament extends Model {
   declare name: string
   declare description: string
   declare country: string
-  declare schedule: Game[]
+  declare schedule: Match[]
   declare teams: Team[]
   declare standings: Standings[]
   declare start_date: Date
@@ -26,7 +27,7 @@ class Tournament extends Model {
   declare setTeams: (teamIds: number[]) => Promise<void>
 
   static associations: {
-    schedule: Association<Tournament, Game>
+    schedule: Association<Tournament, Match>
     teams: Association<Tournament, Team>
     standings: Association<Tournament, Standings>
   }
@@ -68,8 +69,11 @@ Tournament.init({
 Tournament.belongsToMany(Team, { as: 'teams', through: 'TournamentTeams', foreignKey: 'tournament_id', sourceKey: 'id' })
 Team.belongsToMany(Tournament, { through: 'TournamentTeams', foreignKey: 'team_id', sourceKey: 'id', as: 'tournaments' })
 
-Tournament.hasMany(Game, { as: 'schedule', foreignKey: 'tournament_id', sourceKey: 'id' })
-Game.belongsTo(Tournament, { foreignKey: 'tournament_id', as : 'tournament' })
+Tournament.hasMany(Match, { as: 'schedule', foreignKey: 'tournament_id', sourceKey: 'id' })
+Match.belongsTo(Tournament, { foreignKey: 'tournament_id', as: 'tournament' })
+
+Match.hasMany(Game, { as: 'games', foreignKey: 'match_id', sourceKey: 'id' })
+Game.belongsTo(Match, { foreignKey: 'match_id', as : 'match' })
 
 Tournament.hasMany(Standings, { as: 'standings', foreignKey: 'tournament_id', sourceKey: 'id' })
 Standings.belongsTo(Tournament, { foreignKey: 'tournament_id', as: 'tournament' })

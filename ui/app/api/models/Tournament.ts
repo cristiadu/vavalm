@@ -101,14 +101,32 @@ export enum GameMap {
   PEARL = 'Pearl',
 }
 
+export enum MatchType {
+  BO1 = 'BO1',
+  BO3 = 'BO3',
+  BO5 = 'BO5',
+}
+
+export interface Match {
+  id: number
+  team1: Team
+  team2: Team
+  team1_score: number
+  team2_score: number
+  games: Game[]
+  type: MatchType
+  tournament_id: number
+  tournament?: Tournament
+}
+
 export interface Game {
   id: number
   date: Date
   map: GameMap
   logs: GameLog[]
-  tournament_id: number
-  tournament?: Tournament
   stats: GameStats
+  match_id: number
+  match?: Match
 }
 
 export interface RoundState {

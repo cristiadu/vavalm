@@ -3,15 +3,15 @@ import { GameMap } from './enums'
 import GameLog from './GameLog'
 import GameStats from './GameStats'
 import { sequelize } from './index'
-import Tournament from './Tournament'
+import Match from './Match'
 
 class Game extends Model {
   declare id: number
   declare date: Date
   declare map: GameMap
   declare logs: GameLog[]
-  declare tournament_id: number
-  declare tournament: Tournament
+  declare match_id: number
+  declare match: Match
   declare stats: GameStats
   declare included_on_standings: boolean
 
@@ -30,7 +30,7 @@ Game.init({
     type: DataTypes.ENUM(...Object.values(GameMap)),
     allowNull: false,
   },
-  tournament_id: {
+  match_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },

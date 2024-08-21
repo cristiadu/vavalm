@@ -98,7 +98,6 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
             })}
           </div>
         </div>
-
       </div>
     </div>
   )
