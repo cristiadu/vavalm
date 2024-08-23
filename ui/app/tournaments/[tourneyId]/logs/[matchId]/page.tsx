@@ -15,14 +15,16 @@ import { getRoleBgColor } from "../../../../api/models/Player"
 import RoundApi from "../../../../api/RoundApi"
 import DuelApi from "../../../../api/DuelApi"
 import GameLogsTable from "./GameLogsTable"
+import React from "react"
 
 interface ViewGameLogsProps {
   tourneyId: string
-  gameId: string
+  matchId: string
 }
 
 export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) {
-  const gameId = Number(params.gameId)
+  const matchId = Number(params.matchId)
+  const gameId = 1
   const [game, setGame] = useState<Game | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
   const [tournament, setTournament] = useState<Tournament | null>(null)
@@ -58,7 +60,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const fetchGameData = useCallback(async () => {
     await GameApi.getGame(gameId, (data: Game) => {
       setGame(data)
-      setTournament(data.tournament || null)
+      setTournament(data.match?.tournament || null)
     })
 
     await DuelApi.getLastDuel(gameId, (data: GameLog) => {

@@ -5,13 +5,22 @@ import PlayerGameStats from "../models/PlayerGameStats"
 import Team from "../models/Team"
 import RoundService from "./RoundService"
 import Tournament from "../models/Tournament"
-import { Op } from "sequelize"
 import GameStatsService from "./GameStatsService"
 import { GameMap } from "../models/enums"
 import { getRandomDateThisYear } from "../base/DateUtils"
 import TournamentService from "./TournamentService"
+import Match from "../models/Match"
+import MatchService from "./MatchService"
 
 const GameService = {
+  /**
+   * Retrieves a game based on its ID.
+   * 
+   * @param {number} game_id - The ID of the game to retrieve.
+   * @returns {Promise<Game>} A promise that resolves to the retrieved game.
+   * @throws {Error} If the game is not found.
+   * 
+   */
   getGame: async (game_id: number): Promise<Game> => {
     const game = await Game.findByPk(game_id, {
       include: [
@@ -40,101 +49,54 @@ const GameService = {
     return game
   },
 
-  createTeamGamesForTournamentIfNeeded: async (teamIds: number[], tournamentId: number): Promise<void> => {
-    // Create games for the tournament, all teams play against each other
-    // Create only needed games, however, if a game already exists, it will not be created again
-    teamIds.forEach((team1Id: number, index: number) => {
-      teamIds.slice(index + 1).forEach(async (team2Id: number) => {
-        // Check if the game already exists
-        // Check if the game already exists
-        const existingGame = await Game.findOne({
-          where: {
-            tournament_id: tournamentId,
-          },
-          include: [ 
-            { 
-              model: GameStats, 
-              as: 'stats', 
-              where: {
-                [Op.or]: [
-                  {
-                    [Op.and]: [
-                      { team1_id: team1Id },
-                      { team1_id: team2Id },
-                    ],
-                  },
-                  {
-                    [Op.and]: [
-                      { team1_id: team2Id },
-                      { team1_id: team1Id },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-        })
+  /**
+   * Creates a game for a match.
+   * 
+   * @param {Match} match - The match to create a game for.
+   * @returns {Promise<Game>} A promise that resolves to the created game.
+   */
+  createGameForMatch: async (match: Match): Promise<Game> => {
+    const maps = Object.values(GameMap)
+    const randomMap = maps[Math.floor(Math.random() * maps.length)]
 
-        if (existingGame) {
-          return
-        }
-
-        const maps = Object.values(GameMap)
-        const randomMap = maps[Math.floor(Math.random() * maps.length)]
-
-        const game = await Game.create({
-          date: getRandomDateThisYear(),
-          map: randomMap,
-          tournament_id: tournamentId,
-          stats: {
-            team1_id: team1Id,
-            team2_id: team2Id,
-            team1_score: 0,
-            team2_score: 0,
-          },
-        }, {
-          include: [
-            { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }] },
-          ],
-        })
-      })
+    return await Game.create({
+      date: getRandomDateThisYear(),
+      map: randomMap,
+      match_id: match.id,
+      stats: {
+        team1_id: match.team1_id,
+        team2_id: match.team2_id,
+        team1_score: 0,
+        team2_score: 0,
+        included_on_standings: false,
+      },
+    }, {
+      include: [
+        { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }] },
+      ],
     })
   },
 
   /**
-   * Deletes all games for a given tournament for the specified teams.
+   * Creates the necessary games for a match based on its type.
    * 
-   * @param {number} tournamentId - The ID of the tournament to delete games for.
-   * @param {number[]} teamIds - The IDs of the teams to delete games for.
-   * @returns {Promise<void>} A promise that resolves when the games have been deleted.
+   * @param {Match} match - The match to create games for.
+   * @returns {Promise<Game[]>} A promise that resolves to an array of the created games.
    */
-  deleteTeamsGamesFromTournament: async (teamIds: number[], tournamentId: number): Promise<void> => {
-    // Find all games for the specified teams in the tournament
-    const games = await Game.findAll({
+  createGamesForMatch: async (match: Match): Promise<Game[]> => {
+    const gamesNumber = MatchService.numberOfGamesForMatchType(match.match_type)
+    const existingGames = await Game.count({
       where: {
-        tournament_id: tournamentId,
+        match_id: match.id,
       },
-      include: [{
-        model: GameStats,
-        as: 'stats',
-        where: {
-          [Op.or]: [
-            { team1_id: { [Op.in]: teamIds } },
-            { team2_id: { [Op.in]: teamIds } },
-          ],
-        },
-      }],
-    })
+    }) ?? 0 
+    const games = []
 
-    // Extract the IDs of the games to delete
-    const gameIds = games.map(game => game.id)
+    for(let i = existingGames; i < gamesNumber; i++) {
+      games.push(await GameService.createGameForMatch(match))
+    }
 
-    // Delete the games by their IDs
-    await Game.destroy({
-      where: {
-        id: { [Op.in]: gameIds },
-      },
-    })
+    return games
   },
 
   /**
@@ -148,7 +110,9 @@ const GameService = {
    */
   playFullGame: async (game_id: number): Promise<void> => {
     // Get the game
-    const game = await Game.findByPk(game_id)
+    const game = await Game.findByPk(game_id, {
+      include: [{ model: Match, as: 'match' }],
+    })
     if (!game) {
       throw new Error('Game not found')
     }
@@ -165,7 +129,7 @@ const GameService = {
     await GameStatsService.updateAllStats(game_id)
 
     // Update tournament standings if the game is finished
-    await TournamentService.updateStandings(game.tournament_id)
+    await TournamentService.updateStandings(game.match.tournament_id)
   },
 
 

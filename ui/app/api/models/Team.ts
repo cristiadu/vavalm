@@ -1,5 +1,5 @@
 import { PlayerWithFlag } from "./Player"
-import { GameStats } from "./Tournament"
+import { GameStats, Match } from "./Tournament"
 
 export interface Team {
   short_name: string
@@ -11,7 +11,7 @@ export interface Team {
   players?: PlayerWithFlag[]
 }
 
-export const getWinOrLossColor = (team: Team, stats: GameStats): string => {
+export const getWinOrLossColor = (team: Team, stats: GameStats | Match): string => {
   if (stats.winner_id === null) {
     return 'bg-gray-500 text-white'
   } else if (stats.winner_id === team.id) {

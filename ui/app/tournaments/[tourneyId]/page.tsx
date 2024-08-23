@@ -127,53 +127,53 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
           </div>
         </div>
         <div className="mt-4">
-          <h3 className="text-xl font-bold mb-2">Games Schedule</h3>
+          <h3 className="text-xl font-bold mb-2">Matches Schedule</h3>
           <hr className="mb-2" />
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white table-fixed">
               <thead>
                 <tr>
                   <th className="py-2 border-b">Date</th>
-                  <th className="py-2 border-b">Map</th>
+                  <th className="py-2 border-b">Type</th>
                   <th className="py-2 border-b">Team 1</th>
                   <th className="py-2 border-b">Team 2</th>
                   <th className="py-2 border-b">Score</th>
                 </tr>
               </thead>
               <tbody>
-                {tournament.schedule && tournament.schedule.map((game) => (
-                  <tr key={game.id} onClick={() => showGameLogs(game.id)}>
-                    <td className="py-2 border-b bg-gray-100 text-center">{new Date(game.date).toLocaleDateString()}</td>
-                    <td className="py-2 border-b bg-gray-100 text-center">{game.map}</td>
+                {tournament.schedule && tournament.schedule.map((match) => (
+                  <tr key={match.id} onClick={() => showGameLogs(match.id)}>
+                    <td className="py-2 border-b bg-gray-100 text-center">{new Date(match.date).toLocaleDateString()}</td>
+                    <td className="py-2 border-b bg-gray-100 text-center">{match.type}</td>
                     <td className="py-2 border-b bg-gray-100 items-center">
                       <div className="flex items-center space-x-2">
                         <Image 
-                          src={game.stats?.team1?.logo_image_file ? URL.createObjectURL(game.stats.team1.logo_image_file) : "/images/nologo.svg"} 
-                          alt={game.stats?.team1?.short_name} 
+                          src={match?.team1?.logo_image_file ? URL.createObjectURL(match.team1.logo_image_file) : "/images/nologo.svg"} 
+                          alt={match?.team1?.short_name} 
                           width={30} 
                           height={30} 
                           className="inline-block mr-2" 
                         />
-                        <span>{game.stats?.team1?.short_name}</span>
+                        <span>{match?.team1?.short_name}</span>
                       </div>
                     </td>
                     <td className="py-2 border-b bg-gray-100 items-center">
                       <div className="flex items-center space-x-2">
                         <Image 
-                          src={game.stats?.team2?.logo_image_file ? URL.createObjectURL(game.stats.team2.logo_image_file) : "/images/nologo.svg"} 
-                          alt={game.stats?.team2?.short_name} 
+                          src={match?.team2?.logo_image_file ? URL.createObjectURL(match.team2.logo_image_file) : "/images/nologo.svg"} 
+                          alt={match?.team2?.short_name} 
                           width={30} 
                           height={30} 
                           className="inline-block mr-2" 
                         />
-                        <span>{game.stats?.team2?.short_name}</span>
+                        <span>{match?.team2?.short_name}</span>
                       </div>
                     </td>
                     <td className="py-2 border-b bg-gray-100 text-center">
                       <strong>
-                        <span className={getWinOrLossColor(game.stats?.team1, game.stats)}>{game.stats?.team1_score}</span>
+                        <span className={getWinOrLossColor(match?.team1, match)}>{match?.team1_score}</span>
                         - 
-                        <span className={getWinOrLossColor(game.stats?.team2, game.stats)}>{game.stats?.team2_score}</span>
+                        <span className={getWinOrLossColor(match?.team2, match)}>{match?.team2_score}</span>
                       </strong>
                     </td>
                   </tr>

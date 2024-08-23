@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Modal from '../base/Modal'
 import CountryApi from '../api/CountryApi'
 import { Country } from '../api/models/Country'
@@ -8,7 +8,7 @@ import TeamsApi from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
-import { Tournament, TournamentType, Game, Standing } from '../api/models/Tournament'
+import { Tournament, TournamentType, Standing, Match } from '../api/models/Tournament'
 import { EnumWithFieldName } from '../api/models/types'
 import TournamentsApi from '../api/TournamentsApi'
 import { quill_config } from '../base/Configs'
@@ -25,7 +25,7 @@ const initialTournamentState = {
   country: null as Country | null,
   type: null as TournamentType | null,
   teams: [] as Team[],
-  schedule: [] as Game[],
+  schedule: [] as Match[],
   standings: [] as Standing[],
 }
 

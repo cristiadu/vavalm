@@ -1,12 +1,12 @@
 import { Router } from 'express'
 import Tournament from '../models/Tournament'
-import Game from '../models/Game'
 import Team from '../models/Team'
 import Standings from '../models/Standings'
-import GameStats from '../models/GameStats'
 import TournamentService from '../services/TournamentService'
-import GameService from '../services/GameService'
 import { ItemsWithPagination } from '../base/types'
+import MatchService from '../services/MatchService'
+import { MatchType } from '../models/enums'
+import Match from '../models/Match'
 
 const router = Router()
 
@@ -43,8 +43,8 @@ router.get('/:id', async (req, res) => {
   const offset_value = Number(req.query.offset)
 
   try {
-    // Step 1: Fetch the primary keys of the Game model
-    const gameIds = await Game.findAll({
+    // Step 1: Fetch the primary keys of the Match model
+    const matchesIds = await Match.findAll({
       attributes: ['id'],
       where: { tournament_id: id },
       limit: limit_value > 0 ? limit_value : undefined,
@@ -53,25 +53,18 @@ router.get('/:id', async (req, res) => {
     })
 
     // Step 2: Extract the IDs from the result
-    const gameIdsArray = gameIds.map(game => game.id)
+    const matchIdsArray = matchesIds.map(game => game.id)
 
     // Step 3: Fetch the Tournament with the included Game models using the fetched IDs
     const tournament = await Tournament.findByPk(id, {
       include: [
         {
-          model: Game,
+          model: Match,
           as: 'schedule',
-          where: { id: gameIdsArray },
+          where: { id: matchIdsArray },
           include: [
-            {
-              model: GameStats,
-              as: 'stats',
-              include: [
-                { model: Team, as: 'team1' },
-                { model: Team, as: 'team2' },
-                { model: Team, as: 'winner' },
-              ],
-            },
+            { model: Team, as: 'team1' },
+            { model: Team, as: 'team2' },
           ],
         },
         {
@@ -116,7 +109,7 @@ router.post('/', async (req, res) => {
       standings: [],
     }, {
       include: [
-        { model: Game, as: 'schedule' },
+        { model: Match, as: 'schedule' },
         { model: Standings, as: 'standings' },
         { model: Team, as: 'teams' },
       ],
@@ -129,12 +122,12 @@ router.post('/', async (req, res) => {
 
       // Create standings object for teams if they don't exist
       await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
-      await GameService.createTeamGamesForTournamentIfNeeded(teamIds, tournament.id as number)
+      await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament.id as number, MatchType.BO3)
     }
 
     const tournamentCreated = await Tournament.findByPk(tournament.id, {
       include: [
-        { model: Game, as: 'schedule' },
+        { model: Match, as: 'schedule' },
         { model: Standings, as: 'standings' },
         { model: Team, as: 'teams', attributes: ['id', 'short_name'] }],
     }) as Tournament
@@ -192,13 +185,13 @@ router.put('/:id', async (req, res) => {
     await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
 
     // Create games for the tournament if they don't exist
-    await GameService.createTeamGamesForTournamentIfNeeded(teamIds, tournament.id as number)
+    await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament.id as number, MatchType.BO3)
 
     // Remove standings for teams that were removed from the tournament
     await TournamentService.removeStandingsForRemovedTeams(removedTeamIds, tournament.id as number)
 
     // Remove games for teams that were removed from the tournament
-    await GameService.deleteTeamsGamesFromTournament(removedTeamIds, tournament.id as number)
+    await MatchService.deleteTeamsMatchesFromTournament(removedTeamIds, tournament.id as number)
     const tournamentUpdated = await Tournament.findByPk(tournament.id) as Tournament
     res.json(tournamentUpdated)
   } catch (err) {

@@ -3,7 +3,8 @@ import Team from "../models/Team"
 import Tournament from "../models/Tournament"
 import { env } from "process"
 import TournamentService from "../services/TournamentService"
-import GameService from "../services/GameService"
+import MatchService from "../services/MatchService"
+import { MatchType } from "../models/enums"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' ?? false
 
@@ -61,7 +62,7 @@ const setupTestData = async () => {
 
       await tournament.addTeams(teamIds)
       await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
-      await GameService.createTeamGamesForTournamentIfNeeded(teamIds, tournament.id as number)
+      await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament.id as number, MatchType.BO3)
     }
   } else {
     console.warn('Initial tournament data already exists')

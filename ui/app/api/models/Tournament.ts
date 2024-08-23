@@ -109,8 +109,13 @@ export enum MatchType {
 
 export interface Match {
   id: number
+  date: Date
+  team1_id: number
   team1: Team
+  team2_id: number
   team2: Team
+  winner_id: number
+  winner: Team
   team1_score: number
   team2_score: number
   games: Game[]
@@ -200,6 +205,6 @@ export interface Tournament {
   country: string
   type: TournamentType
   teams: Team[]
-  schedule: Game[]
+  schedule: Match[]
   standings: Standing[]
 }

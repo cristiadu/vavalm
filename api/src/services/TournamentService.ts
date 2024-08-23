@@ -3,15 +3,16 @@ import Standings from "../models/Standings"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
 import Tournament from "../models/Tournament"
+import Match from "../models/Match"
 
 const TournamentService = {
-  getTournamentByGameId: async (gameId: number) => {
+  getTournamentByMatchId: async (matchId: number) => {
     const tournament = await Tournament.findOne({
       include: [
         {
-          model: Game,
+          model: Match,
           as: 'schedule',
-          where: { id: gameId },
+          where: { id: matchId },
         },
       ],
     })

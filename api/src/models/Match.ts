@@ -3,11 +3,20 @@ import { MatchType } from './enums'
 import { sequelize } from './index'
 import Tournament from './Tournament'
 import Game from './Game'
+import Team from './Team'
 
 class Match extends Model {
   declare id: number
   declare date: Date
   declare match_type: MatchType
+  declare team1_id: number
+  declare team1: Team
+  declare team2_id: number
+  declare team2: Team
+  declare winner_id: number
+  declare winner: Team
+  declare team1_score: number
+  declare team2_score: number
   declare games: Game[]
   declare tournament_id: number
   declare tournament: Tournament
@@ -28,8 +37,28 @@ Match.init({
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  team1_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  team2_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  winner_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
   match_type: {
     type: DataTypes.ENUM(...Object.values(MatchType)),
+    allowNull: false,
+  },
+  team1_score: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  team2_score: {
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
   included_on_standings: {
