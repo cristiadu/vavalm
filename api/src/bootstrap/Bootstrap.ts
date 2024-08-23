@@ -62,7 +62,7 @@ const setupTestData = async () => {
 
       await tournament.addTeams(teamIds)
       await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
-      await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament.id as number, MatchType.BO3)
+      await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament, MatchType.BO3)
     }
   } else {
     console.warn('Initial tournament data already exists')

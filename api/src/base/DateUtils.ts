@@ -6,7 +6,7 @@
  * @param end end date
  * @returns random date between interval
  */
-export const getRandomDateBetweeInterval = (start: Date, end: Date): Date => {
+export const getRandomDateBetweenInterval = (start: Date, end: Date): Date => {
   const startTime = start.getTime()
   const endTime = end.getTime()
   const randomTime = Math.random() * (endTime - startTime) + startTime

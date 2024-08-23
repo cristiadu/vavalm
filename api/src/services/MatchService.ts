@@ -2,9 +2,25 @@ import { Op } from "sequelize"
 import Match from "../models/Match"
 import { MatchType } from '../models/enums'
 import GameService from "./GameService"
+import Tournament from "../models/Tournament"
+import { getRandomDateBetweenInterval } from "../base/DateUtils"
 
 
 const MatchService = {
+  /**
+   * Returns a match by its game id.
+   * 
+   * @param gameId The ID of the game.
+   * @returns The match with the given game id.
+   */
+  getMatchByGameId: async (gameId: number): Promise<Match | null> => {
+    return await Match.findOne({
+      where: {
+        game_id: gameId,
+      },
+    })
+  },
+
   /**
    * Creates team matches for a tournament if needed.
    * 
@@ -13,7 +29,7 @@ const MatchService = {
    * @param matchType type of the matches to create
    * @returns {Promise<void>} A promise that resolves when the matches have been created.
    */
-  createTeamMatchesForTournamentIfNeeded: async (teamIds: number[], tournamentId: number, matchType: MatchType): Promise<void> => {
+  createTeamMatchesForTournamentIfNeeded: async (teamIds: number[], tournament: Tournament, matchType: MatchType): Promise<void> => {
     // Create matches for the tournament, all teams play against each other
     // Create only needed matches, however, if a match already exists, it will not be created again
     // Create games inside matches based on the matchType (bo3, bo5, etc).
@@ -22,7 +38,7 @@ const MatchService = {
         // Check if the match already exists
         const existingMatch = await Match.findOne({
           where: {
-            tournament_id: tournamentId,
+            tournament_id: tournament.id,
             [Op.or]: [
               {
                 [Op.and]: [
@@ -44,7 +60,8 @@ const MatchService = {
         }
         // Create the match
         const match = await Match.create({
-          tournament_id: tournamentId,
+          date: getRandomDateBetweenInterval(tournament.start_date, tournament.end_date),
+          tournament_id: tournament.id,
           team1_id: team1Id,
           team1_score: 0,
           team2_score: 0,

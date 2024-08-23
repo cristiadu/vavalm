@@ -20,6 +20,7 @@ class Tournament extends Model {
   declare teams: Team[]
   declare standings: Standings[]
   declare start_date: Date
+  declare end_date: Date
   declare started: boolean
   declare ended: boolean
 
@@ -50,6 +51,10 @@ Tournament.init({
     allowNull: false,
   },
   start_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  end_date: {
     type: DataTypes.DATE,
     allowNull: false,
   },

@@ -7,7 +7,7 @@ import RoundService from "./RoundService"
 import Tournament from "../models/Tournament"
 import GameStatsService from "./GameStatsService"
 import { GameMap } from "../models/enums"
-import { getRandomDateThisYear } from "../base/DateUtils"
+import { getRandomTimeOnDay } from "../base/DateUtils"
 import TournamentService from "./TournamentService"
 import Match from "../models/Match"
 import MatchService from "./MatchService"
@@ -36,9 +36,9 @@ const GameService = {
           ],
         },
         {
-          model: Tournament,
-          as: 'tournament',
-          foreignKey: 'tournament_id',
+          model: Match,
+          as: 'match',
+          foreignKey: 'match_id',
         },
       ],
     })
@@ -60,7 +60,7 @@ const GameService = {
     const randomMap = maps[Math.floor(Math.random() * maps.length)]
 
     return await Game.create({
-      date: getRandomDateThisYear(),
+      date: getRandomTimeOnDay(match.date),
       map: randomMap,
       match_id: match.id,
       stats: {

@@ -3,6 +3,7 @@ import RoundService from '../services/RoundService'
 import DuelService from '../services/DuelService'
 import GameStatsService from '../services/GameStatsService'
 import TournamentService from '../services/TournamentService'
+import MatchService from '../services/MatchService'
 
 const router = Router({ mergeParams: true })
 
@@ -13,9 +14,14 @@ router.post('/:round/play', async (req, res) => {
     const gameId = Number(id)
     const roundFinishedState = await RoundService.playFullRound(gameId, Number(round))
     await GameStatsService.updateAllStats(gameId)
+    
+    const match = await MatchService.getMatchByGameId(gameId)
+    if (!match || !match.id) {
+      throw new Error('Match not found')
+    }
 
     // get the tournament from the game
-    const tourney = await TournamentService.getTournamentByGameId(gameId)
+    const tourney = await TournamentService.getTournamentByMatchId(match.id)
     if (!tourney || !tourney.id) {
       throw new Error('Tournament not found')
     }
@@ -41,8 +47,13 @@ router.post('/:round/duel', async (req, res) => {
     const roundState = await RoundService.playRoundStep(gameId, Number(round))
     await GameStatsService.updateAllStats(gameId)
 
+    const match = await MatchService.getMatchByGameId(gameId)
+    if (!match || !match.id) {
+      throw new Error('Match not found')
+    }
+
     // get the tournament from the game
-    const tourney = await TournamentService.getTournamentByGameId(gameId)
+    const tourney = await TournamentService.getTournamentByMatchId(match.id)
     if (!tourney || !tourney.id) {
       throw new Error('Tournament not found')
     }
