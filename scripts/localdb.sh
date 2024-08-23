@@ -12,14 +12,7 @@ stop_postgresql() {
             exit 1
         fi
     elif [ "$platform" = "Linux" ]; then
-        if
-            grep -qEi "(Microsoft|WSL)" /proc/version & >/dev/null
-        then
-            # WSL specific command
-            sudo service postgresql stop
-        else
-            sudo service postgresql stop
-        fi
+        sudo service postgresql stop
     elif echo "$platform" | grep -q "MINGW"; then
         net stop postgresql
     else
