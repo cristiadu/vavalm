@@ -1,6 +1,6 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import { MatchType } from './enums'
-import { sequelize } from './index'
+import db from './db'
 import Tournament from './Tournament'
 import Game from './Game'
 import Team from './Team'
@@ -66,6 +66,6 @@ Match.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize, modelName: 'Match' })
+}, { sequelize: db.sequelize, modelName: 'Match' })
 
 export default Match

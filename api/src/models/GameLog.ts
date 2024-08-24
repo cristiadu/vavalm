@@ -1,6 +1,6 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import Player from './Player'
-import { sequelize } from './index'
+import db from './db'
 import Team from './Team'
 
 // Manage a Round state as it goes.
@@ -79,6 +79,6 @@ GameLog.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize, modelName: 'GameLog' })
+}, { sequelize: db.sequelize, modelName: 'GameLog' })
 
 export default GameLog

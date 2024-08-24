@@ -6,7 +6,7 @@ import PlayersController from './controllers/PlayersController'
 import TournamentController from './controllers/TournamentController'
 import setupTestData from './bootstrap/Bootstrap'
 import GameController from './controllers/GameController'
-import { sequelize } from './models'
+import db from './models/db'
 import MatchController from './controllers/MatchController'
 
 const app = express()
@@ -23,7 +23,7 @@ app.use('/games', GameController)
 app.use('/matches', MatchController)
 
 const forceSync = process.env.FORCE_SYNC === 'true'
-sequelize.sync({ force: forceSync }).then(() => {
+db.sequelize.sync({ force: forceSync }).then(() => {
   setupTestData().then(() => {
     console.info('Test data has been created successfully.')
   }).catch(err => {

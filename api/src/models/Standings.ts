@@ -1,7 +1,6 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import Team from './Team'
-import { sequelize } from './index'
-import Tournament from './Tournament'
+import db from './db'
 
 class Standings extends Model {
   declare team: Team
@@ -53,7 +52,7 @@ Standings.init({
     allowNull: false,
   },
 }, { 
-  sequelize, 
+  sequelize: db.sequelize, 
   modelName: 'Standings', 
 })
 

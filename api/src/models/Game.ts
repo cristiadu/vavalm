@@ -2,7 +2,7 @@ import { Association, DataTypes, Model } from 'sequelize'
 import { GameMap } from './enums'
 import GameLog from './GameLog'
 import GameStats from './GameStats'
-import { sequelize } from './index'
+import db from './db'
 import Match from './Match'
 
 class Game extends Model {
@@ -39,6 +39,6 @@ Game.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize, modelName: 'Game' })
+}, { sequelize: db.sequelize, modelName: 'Game' })
 
 export default Game

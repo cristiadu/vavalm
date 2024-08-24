@@ -1,7 +1,7 @@
 import { Model, DataTypes, Association } from 'sequelize'
 import Team from './Team'
 import { PlayerRole } from './enums'
-import { sequelize } from './index'
+import db from './db'
 
 export interface PlayerDuel {
   player1: Player
@@ -81,7 +81,7 @@ Player.init({
     allowNull: false,
   },
 }, {
-  sequelize,
+  sequelize: db.sequelize,
   modelName: 'Player',
 })
 

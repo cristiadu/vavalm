@@ -1,5 +1,5 @@
 import { Model, DataTypes, Association } from 'sequelize'
-import { sequelize } from './index'
+import db from './db'
 import Player from './Player'
 import Tournament from './Tournament'
 
@@ -38,7 +38,7 @@ Team.init({
     type: DataTypes.STRING,
   },
 }, {
-  sequelize,
+  sequelize: db.sequelize,
   modelName: 'Team',
 })
 

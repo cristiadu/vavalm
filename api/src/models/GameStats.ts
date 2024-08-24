@@ -1,7 +1,7 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import Team from './Team'
 import PlayerGameStats from './PlayerGameStats'
-import { sequelize } from './index'
+import db from './db'
 import Game from './Game'
 
 class GameStats extends Model {
@@ -54,6 +54,6 @@ GameStats.init({
     type: DataTypes.INTEGER,
     allowNull: true,
   },
-}, { sequelize, modelName: 'GameStats' })
+}, { sequelize: db.sequelize, modelName: 'GameStats' })
 
 export default GameStats

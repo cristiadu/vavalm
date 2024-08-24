@@ -7,7 +7,7 @@ import GameStats from './GameStats'
 import GameLog from './GameLog'
 import PlayerGameStats from './PlayerGameStats'
 import Player from './Player'
-import { sequelize } from './index'
+import db from './db'
 import Match from './Match'
 
 class Tournament extends Model {
@@ -67,7 +67,7 @@ Tournament.init({
     allowNull: false,
   },
 }, { 
-  sequelize, 
+  sequelize: db.sequelize, 
   modelName: 'Tournament', 
 })
 
