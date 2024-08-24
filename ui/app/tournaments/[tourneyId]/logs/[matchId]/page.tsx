@@ -188,9 +188,9 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
           </div>
         </div>
         <div className="flex justify-center mt-8">
-          <button onClick={handlePlayRound} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mx-2 disabled:bg-blue-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null}>Play Round</button>
-          <button onClick={handlePlayDuel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 mx-2 disabled:bg-green-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null}>Play Duel</button>
-          <button onClick={handlePlayFullGame} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mx-2 disabled:bg-red-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null}>Play Full Game</button>
+          <button onClick={handlePlayRound} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mx-2 disabled:bg-blue-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null || match.winner_id !== null}>Play Round</button>
+          <button onClick={handlePlayDuel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 mx-2 disabled:bg-green-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null || match.winner_id !== null}>Play Duel</button>
+          <button onClick={handlePlayFullGame} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 mx-2 disabled:bg-red-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null || match.winner_id !== null}>Play Full Game</button>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Stats</h3>

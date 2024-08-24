@@ -4,6 +4,7 @@ import Game from "../models/Game"
 import GameStats from "../models/GameStats"
 import Tournament from "../models/Tournament"
 import Match from "../models/Match"
+import MatchService from "./MatchService"
 
 const TournamentService = {
   getTournamentByMatchId: async (matchId: number) => {
@@ -59,7 +60,6 @@ const TournamentService = {
       where: {
         tournament_id: tournamentId,
         included_on_standings: false,
-        winner_id: { [Op.not]: null },
       },
       include: [
         {
@@ -82,7 +82,6 @@ const TournamentService = {
       const games = match.games
       const team1Id = match.team1_id
       const team2Id = match.team2_id
-      const winnerId = match.winner_id
 
       const team1Standings = await Standings.findOne({
         where: { tournament_id: tournamentId, team_id: team1Id },
@@ -97,30 +96,43 @@ const TournamentService = {
           team1Standings.rounds_lost += game.stats.team2_score
           team2Standings.rounds_won += game.stats.team2_score
           team2Standings.rounds_lost += game.stats.team1_score
+
+          if (game.stats.winner_id === team1Id) {
+            match.team1_score += 1
+            team1Standings.maps_won = match.team1_score
+            team2Standings.maps_lost = match.team1_score
+          } else if (game.stats.winner_id === team2Id) {
+            match.team2_score += 1
+            team2Standings.maps_won = match.team2_score
+            team1Standings.maps_lost = match.team2_score
+          } else {
+            console.info("No winner found for game:", game.id)
+          }
+
           game.included_on_standings = true
           await game.save()
         }
 
-        if (winnerId === team1Id) {
-          team1Standings.wins += 1
-          team2Standings.losses += 1
-        } else if (winnerId === team2Id) {
-          team2Standings.wins += 1
-          team1Standings.losses += 1
-        } else {
-          throw new Error(
-            "Winner ID not found in the match as one of the teams"
-          )
+        // Check if the match has a winner
+        const matchWinner = await MatchService.getWinnerForMatchType(match)
+        console.log("matchWinner", matchWinner)
+        if(matchWinner != null) {
+          if (matchWinner === team1Id) {
+            team1Standings.wins += 1
+            team2Standings.losses += 1
+          } else if (matchWinner === team2Id) {
+            team2Standings.wins += 1
+            team1Standings.losses += 1
+          } else {
+            console.info("No proper winner found for match:", match.id)
+          }
+
+          match.winner_id = matchWinner
+          match.included_on_standings = true
         }
 
-        team1Standings.maps_won += match.team1_score
-        team1Standings.maps_lost += match.team2_score
-        team2Standings.maps_won += match.team2_score
-        team2Standings.maps_lost += match.team1_score
         await team1Standings.save()
         await team2Standings.save()
-
-        match.included_on_standings = true
         await match.save()
       }
     }

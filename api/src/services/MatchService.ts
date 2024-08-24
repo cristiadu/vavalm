@@ -105,26 +105,68 @@ const MatchService = {
   },
 
   /**
+   * Returns the winner of a match based on its type.
+   *
+   * @param match The match to get the winner for.
+   * @returns The ID of the winning team or null if there is no winner yet.
+   *
+   */
+  getWinnerForMatchType: (match: Match): number | null => {
+    const gamesToWin = MatchService.numberOfGamesToWinForMatchType(match.type)
+
+    if (match.team1_score >= gamesToWin) {
+      return match.team1_id
+    } else if (match.team2_score >= gamesToWin) {
+      return match.team2_id
+    } else {
+      return null
+    }
+  },
+
+
+  /**
+   * Returns the number of games to be defined a winner when having a given match type.
+   *
+   * @param matchType The type of the match.
+   * @returns The number of games in order to win.
+   * @throws {Error} If the match type is invalid.
+   *
+   */
+  numberOfGamesToWinForMatchType: (matchType: MatchType): number => {
+    switch (matchType) {
+    case MatchType.BO1:
+    case MatchType.FRIENDLY:
+    case MatchType.SHOWMATCH:
+      return 1
+    case MatchType.BO3:
+      return 2
+    case MatchType.BO5:
+      return 3
+    default:
+      throw new Error("Invalid match type")
+    }
+  },
+
+  /**
    * Returns the number of games for a given match type.
    *
    * @param matchType The type of the match.
    * @returns The number of games for the match type.
    * @throws {Error} If the match type is invalid.
-   * @returns {number} The number of games for the match type.
    *
    */
   numberOfGamesForMatchType: (matchType: MatchType): number => {
     switch (matchType) {
-      case MatchType.BO1:
-      case MatchType.FRIENDLY:
-      case MatchType.SHOWMATCH:
-        return 1
-      case MatchType.BO3:
-        return 3
-      case MatchType.BO5:
-        return 5
-      default:
-        throw new Error("Invalid match type")
+    case MatchType.BO1:
+    case MatchType.FRIENDLY:
+    case MatchType.SHOWMATCH:
+      return 1
+    case MatchType.BO3:
+      return 3
+    case MatchType.BO5:
+      return 5
+    default:
+      throw new Error("Invalid match type")
     }
   },
 
