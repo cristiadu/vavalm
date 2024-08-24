@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import TournamentsApi from '../api/TournamentsApi'
+import { fetchTournaments, deleteTournament } from '../api/TournamentsApi'
 import { Tournament } from '../api/models/Tournament'
-import CountryApi from '../api/CountryApi'
+import { fetchCountries } from '../api/CountryApi'
 import { Team } from '../api/models/Team'
 import TournamentActionModal from './TournamentActionModal'
 import { asSafeHTML } from '../base/StringUtils'
@@ -25,7 +25,7 @@ export default function ListTournaments() {
   const [totalItems, setTotalItems] = useState(0)
 
   const fetchCountriesAndTournaments = useCallback((offset: number, limit: number) => {
-    CountryApi.fetchCountries((countries) => {
+    fetchCountries((countries) => {
       const countriesToFlagMap: Record<string, string> = {}
       countries.forEach((country) => {
         countriesToFlagMap[country.name] = country.flag
@@ -33,7 +33,7 @@ export default function ListTournaments() {
       setCountriesToFlagMap(countriesToFlagMap)
     })
     
-    TournamentsApi.fetchTournaments((data) => {
+    fetchTournaments((data) => {
       setTournaments(data)
       setTotalItems(data.total)
     }, limit, offset)
@@ -72,9 +72,9 @@ export default function ListTournaments() {
     const confirmed = confirm(`Are you sure you want to delete tournament '${tournament.name}'?`)
     if (!confirmed) return
 
-    TournamentsApi.deleteTournament(tournament, (tournamentData) => {
+    deleteTournament(tournament, (tournamentData) => {
       console.debug('Tournament deleted:', tournamentData)
-      TournamentsApi.fetchTournaments(setTournaments)
+      fetchTournaments(setTournaments)
     })
   }
 

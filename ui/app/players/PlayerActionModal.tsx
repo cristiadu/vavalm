@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import PlayersApi from '../api/PlayersApi'
+import { editPlayer, newPlayer } from '../api/PlayersApi'
 import { getRoleBgColor, Player, PlayerAttributes, PlayerRole } from '../api/models/Player'
 import Modal from '../base/Modal'
-import CountryApi from '../api/CountryApi'
+import { fetchCountries } from '../api/CountryApi'
 import {Country} from '../api/models/Country'
-import TeamsApi from '../api/TeamsApi'
+import { fetchAllTeams } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
@@ -65,8 +65,8 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
 
   useEffect(() => {
     if (isOpen) {
-      CountryApi.fetchCountries(setCountries)
-      TeamsApi.fetchAllTeams(setTeams)
+      fetchCountries(setCountries)
+      fetchAllTeams(setTeams)
     }
   }, [isOpen])
 
@@ -115,14 +115,14 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
     }
 
     if (isEdit) {
-      await PlayersApi.editPlayer(requestPlayer, (editedPlayer) => {
+      await editPlayer(requestPlayer, (editedPlayer) => {
         console.debug('Player edited:', editedPlayer)
         closeModal()
       })
       return
     }
 
-    await PlayersApi.newPlayer(requestPlayer, (newPlayer) => {
+    await newPlayer(requestPlayer, (newPlayer) => {
       console.debug('Player created:', newPlayer)
       closeModal()
     })

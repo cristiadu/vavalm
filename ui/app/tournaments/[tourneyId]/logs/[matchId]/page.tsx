@@ -7,12 +7,12 @@ import { ASSISTS_HALF_MULTIPLIER, Game, GameLog, Match, orderPlayersByStats, Tou
 import { handleBackClick } from '../../../../base/LinkUtils'
 import Image from 'next/image'
 import { getWinOrLossColor } from "../../../../api/models/Team"
-import CountryApi from "../../../../api/CountryApi"
+import { fetchCountries } from "../../../../api/CountryApi"
 import { Country } from "../../../../api/models/Country"
-import GameApi from "../../../../api/GameApi"
+import { playFullGame, getMatch, getGame } from "../../../../api/GameApi"
 import { getRoleBgColor } from "../../../../api/models/Player"
-import RoundApi from "../../../../api/RoundApi"
-import DuelApi from "../../../../api/DuelApi"
+import { playFullRound } from "../../../../api/RoundApi"
+import { getLastDuel, playSingleDuel } from "../../../../api/DuelApi"
 import GameLogsTable from "./GameLogsTable"
 import React from "react"
 
@@ -33,7 +33,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const router = useRouter()
 
   const handlePlayRound = () => {
-    RoundApi.playFullRound(selectedGameId, lastRoundPlayed + 1, (roundState) => {
+    playFullRound(selectedGameId, lastRoundPlayed + 1, (roundState) => {
       console.debug('Full Round Execution, Round State:', roundState)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
@@ -42,7 +42,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
 
   const handlePlayDuel = () => {
     const round = lastRoundPlayed == 0 ? 1 : lastRoundPlayed
-    DuelApi.playSingleDuel(selectedGameId, round, (roundState) => {
+    playSingleDuel(selectedGameId, round, (roundState) => {
       console.debug('Single Duel Execution, Round State:', roundState)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
@@ -50,7 +50,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   }
 
   const handlePlayFullGame = () => {
-    GameApi.playFullGame(selectedGameId, (message) => {
+    playFullGame(selectedGameId, (message) => {
       console.debug('Full Game Execution, Message:', message)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
@@ -58,23 +58,23 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   }
 
   const fetchGameData = useCallback(async () => {
-    await GameApi.getMatch(matchId, (data: Match) => {
+    await getMatch(matchId, (data: Match) => {
       setMatch(data)
       setTournament(data.tournament || null)
       setSelectedGameId(data.games.find(g => g.id === selectedGameId)?.id || data.games[0].id)
     })
 
-    await GameApi.getGame(selectedGameId, (data: Game) => {
+    await getGame(selectedGameId, (data: Game) => {
       setCurrentGame(data)
     })
 
-    await DuelApi.getLastDuel(selectedGameId, (data: GameLog) => {
+    await getLastDuel(selectedGameId, (data: GameLog) => {
       setLastRoundPlayed(data?.round_state?.round || 0)
     })
   }, [selectedGameId, matchId])
 
   useEffect(() => {
-    CountryApi.fetchCountries((countryData) => {
+    fetchCountries((countryData) => {
       setCountries(countryData)
     })
 

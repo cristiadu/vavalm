@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import CountryApi from '../../api/CountryApi'
-import TournamentsApi from '../../api/TournamentsApi'
+import { fetchCountries } from '../../api/CountryApi'
+import { getTournament } from '../../api/TournamentsApi'
 import { orderStandingsByStats, Tournament } from '../../api/models/Tournament'
 import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
@@ -19,11 +19,11 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
 
   useEffect(() => {
     const fetchTournamentData = async () => {
-      const tournamentData = await TournamentsApi.getTournament(Number(params.tourneyId), (data) => {
+      const tournamentData = await getTournament(Number(params.tourneyId), (data) => {
         setTournament(data)
       })
 
-      const countries = await CountryApi.fetchCountries(() => {})
+      const countries = await fetchCountries(() => {})
       if (tournamentData.country) {
         setCountryFlag(countries?.find(c => c.name === tournamentData.country)?.flag || null)
       }

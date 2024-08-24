@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import CountryApi from '../api/CountryApi'
+import { fetchCountries } from '../api/CountryApi'
 import { Country } from '../api/models/Country'
-import TeamsApi from '../api/TeamsApi'
+import { editTeam, newTeam } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import Modal from '../base/Modal'
 import { ItemActionModalProps } from '../common/CommonModels'
@@ -48,7 +48,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
 
   useEffect(() => {
     if (isOpen) {
-      CountryApi.fetchCountries(setCountries)
+      fetchCountries(setCountries)
     }
   }, [isOpen])
 
@@ -99,14 +99,14 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     }
 
     if (isEdit) {
-      await TeamsApi.editTeam(requestTeam, (editedTeam: Team) => {
+      await editTeam(requestTeam, (editedTeam: Team) => {
         console.debug('Team edited', editedTeam)
         closeModal()
       })
       return
     }
 
-    await TeamsApi.newTeam(requestTeam, (newTeam: Team) => {
+    await newTeam(requestTeam, (newTeam: Team) => {
       console.debug('Team created', newTeam)
       closeModal()
     })

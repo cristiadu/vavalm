@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Modal from '../base/Modal'
-import CountryApi from '../api/CountryApi'
+import { fetchCountries } from '../api/CountryApi'
 import { Country } from '../api/models/Country'
-import TeamsApi from '../api/TeamsApi'
+import { fetchAllTeams } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
 import ErrorAlert from '../base/ErrorAlert'
 import { Tournament, TournamentType, Standing, Match } from '../api/models/Tournament'
 import { EnumWithFieldName } from '../api/models/types'
-import TournamentsApi from '../api/TournamentsApi'
+import { editTournament, newTournament } from '../api/TournamentsApi'
 import { quill_config } from '../base/Configs'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
@@ -59,8 +59,8 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
 
   useEffect(() => {
     if (isOpen) {
-      CountryApi.fetchCountries(setCountries)
-      TeamsApi.fetchAllTeams(setTeams)
+      fetchCountries(setCountries)
+      fetchAllTeams(setTeams)
     }
   }, [isOpen])
 
@@ -119,14 +119,14 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     }
 
     if (isEdit) {
-      await TournamentsApi.editTournament(requestTournament, (editedTournament) => {
+      await editTournament(requestTournament, (editedTournament) => {
         console.debug('Tournament edited:', editedTournament)
         closeModal()
       })
       return
     }
 
-    await TournamentsApi.newTournament(requestTournament, (newTournament) => {
+    await newTournament(requestTournament, (newTournament) => {
       console.debug('Tournament created:', newTournament)
       closeModal()
     })

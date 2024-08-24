@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import CountryApi from '../api/CountryApi'
+import { fetchCountries } from '../api/CountryApi'
 import Link from 'next/link'
-import PlayersApi from '../api/PlayersApi'
+import { fetchPlayers, deletePlayer } from '../api/PlayersApi'
 import { getAttributeBgColor, getRoleBgColor, Player } from '../api/models/Player'
 import 'react-quill/dist/quill.snow.css'
 import PlayerActionModal from './PlayerActionModal'
-import TeamsApi from '../api/TeamsApi'
+import { fetchTeam } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { handleBackClick } from '../base/LinkUtils'
 import { asWord } from '../base/StringUtils'
@@ -28,7 +28,7 @@ export default function ListPlayers() {
   const [totalItems, setTotalItems] = useState(0)
 
   useEffect(() => {
-    CountryApi.fetchCountries((countries) => {
+    fetchCountries((countries) => {
       const countriesToFlagMap: Record<string, string> = {}
       countries.forEach((country) => {
         countriesToFlagMap[country.name] = country.flag
@@ -36,14 +36,14 @@ export default function ListPlayers() {
       setCountriesToFlagMap(countriesToFlagMap)
     })
 
-    PlayersApi.fetchPlayers(refreshListData, LIMIT_VALUE_PLAYER_LIST) 
+    fetchPlayers(refreshListData, LIMIT_VALUE_PLAYER_LIST) 
   }, [])
 
   const refreshListData = async (data: ItemsWithPagination<Player>) => {
     const playerToTeam: Record<number, Team> = {}
 
     const teamFetchPromises = data.items.map((player) =>
-      TeamsApi.fetchTeam(player.team_id, team => {
+      fetchTeam(player.team_id, team => {
         if (player.id) {
           playerToTeam[player.id] = team
         }
@@ -66,7 +66,7 @@ export default function ListPlayers() {
     setIsEditActionOpened(false)
     setPlayerToEdit(null)
     setActionPlayerModalOpened(false)
-    PlayersApi.fetchPlayers(refreshListData, LIMIT_VALUE_PLAYER_LIST)
+    fetchPlayers(refreshListData, LIMIT_VALUE_PLAYER_LIST)
   }
 
   const handleView = (player: Player) => {
@@ -86,14 +86,14 @@ export default function ListPlayers() {
     const confirmed = confirm(`Are you sure you want to delete player '${player.nickname}'?`)
     if(!confirmed) return
 
-    PlayersApi.deletePlayer(player, () => {
-      PlayersApi.fetchPlayers(refreshListData)
+    deletePlayer(player, () => {
+      fetchPlayers(refreshListData)
     })
     
   }
 
   const handlePageChange = (offset: number, limit: number) => {
-    PlayersApi.fetchPlayers(refreshListData, limit, offset)
+    fetchPlayers(refreshListData, limit, offset)
   }
 
   // List all players in a table/grid

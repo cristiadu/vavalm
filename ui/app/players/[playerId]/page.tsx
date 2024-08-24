@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import PlayersApi from '../../api/PlayersApi'
+import { fetchPlayer } from '../../api/PlayersApi'
 import { getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
-import CountryApi from '../../api/CountryApi'
-import TeamsApi from '../../api/TeamsApi'
+import { fetchCountries } from '../../api/CountryApi'
+import { fetchTeam } from '../../api/TeamsApi'
 import { Team } from '../../api/models/Team'
 import Link from 'next/link'
 import { handleBackClick } from '../../base/LinkUtils'
@@ -20,19 +20,19 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
 
   useEffect(() => {
     const fetchPlayerData = async () => {
-      const playerData = await PlayersApi.fetchPlayer(Number(params.playerId), (data) => {
+      const playerData = await fetchPlayer(Number(params.playerId), (data) => {
         setPlayer(data)
       })
    
 
       if (playerData.team_id) {
-        await TeamsApi.fetchTeam(playerData.team_id, (data) => {
+        await fetchTeam(playerData.team_id, (data) => {
           setTeam(data)
         })
       }
 
       if (playerData.country) {
-        await CountryApi.fetchCountries((data) => {
+        await fetchCountries((data) => {
           setCountryFlag(data.find(c => c.name === playerData.country)?.flag || null)
         })
       }

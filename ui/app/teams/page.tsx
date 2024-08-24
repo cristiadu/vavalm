@@ -4,15 +4,15 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import CountryApi from '../api/CountryApi'
+import { fetchCountries } from '../api/CountryApi'
 import Link from 'next/link'
-import TeamsApi from '../api/TeamsApi'
+import { fetchTeams, deleteTeam } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import TeamActionModal from './TeamActionModal'
 import { handleBackClick } from '../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../base/StringUtils'
-import PlayersApi from '../api/PlayersApi'
+import { fetchPlayersByTeam } from '../api/PlayersApi'
 import { getRoleBgColor } from '../api/models/Player'
 import Pagination from '../base/Pagination'
 import { PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
@@ -34,7 +34,7 @@ export default function ListTeams() {
 
   const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
     try {
-      const countries = await CountryApi.fetchCountries(() => {
+      const countries = await fetchCountries(() => {
         // handle country data
       }) || []
 
@@ -44,7 +44,7 @@ export default function ListTeams() {
       })
       setCountriesToFlagMap(countriesToFlagMap)
 
-      const teamsData = await TeamsApi.fetchTeams(() => {
+      const teamsData = await fetchTeams(() => {
         // handle team data
       }, limit, offset)
 
@@ -52,7 +52,7 @@ export default function ListTeams() {
 
       const teamsWithPlayersFlags = await Promise.all(
         teamsData.items.map(async (team) => {
-          const players = await PlayersApi.fetchPlayersByTeam(Number(team.id), () => {
+          const players = await fetchPlayersByTeam(Number(team.id), () => {
             // handle player data
           })
           const playersWithFlags = players.map((player) => ({
@@ -100,7 +100,7 @@ export default function ListTeams() {
     const confirmed = confirm(`Are you sure you want to delete team '${team.short_name}'?`)
     if(!confirmed) return
 
-    TeamsApi.deleteTeam(team, () => {
+    deleteTeam(team, () => {
       fetchCountriesAndTeams()
     })
     
