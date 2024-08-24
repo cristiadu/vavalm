@@ -88,11 +88,11 @@ router.get('/:id', async (req, res) => {
 
 // Add a new tournament
 router.post('/', async (req, res) => {
-  const { type, name, description, country, teams, start_date } = req.body
+  const { type, name, description, country, teams, start_date, end_date } = req.body
 
   // Validate input data
-  if (!type || !name || !teams || !country || !start_date) {
-    return res.status(400).json({ error: "Please provide type, name, teams, country and start date." })
+  if (!type || !name || !teams || !country || !start_date || !end_date) {
+    return res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
   }
 
   try {
@@ -103,6 +103,7 @@ router.post('/', async (req, res) => {
       description,
       country,
       start_date,
+      end_date, 
       started: false,
       ended: false,
       schedule: [],
@@ -145,11 +146,11 @@ router.post('/', async (req, res) => {
 // Update a tournament
 router.put('/:id', async (req, res) => {
   const { id } = req.params
-  const { type, name, description, country, teams, start_date } = req.body
+  const { type, name, description, country, teams, start_date, end_date } = req.body
 
   // Validate input data
-  if (!type || !name || !teams || !country || !start_date) {
-    return res.status(400).json({ error: "Please provide type, name, teams, country and start date." })
+  if (!type || !name || !teams || !country || !start_date || !end_date) {
+    return res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
   }
 
   try {
@@ -169,13 +170,14 @@ router.put('/:id', async (req, res) => {
       .map((team: Team) => team.id) as number[]
 
 
-    console.debug('Updating tournament with data:', { type, name, description, country, teams, start_date })
+    console.debug('Updating tournament with data:', { type, name, description, country, teams, start_date, end_date })
     await tournament.update({
       type,
       name,
       description,
       country,
       start_date,
+      end_date,
     })
 
     // Associate existing teams with the new tournament

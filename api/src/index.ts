@@ -7,6 +7,7 @@ import TournamentController from './controllers/TournamentController'
 import setupTestData from './bootstrap/Bootstrap'
 import GameController from './controllers/GameController'
 import { sequelize } from './models'
+import MatchController from './controllers/MatchController'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -19,6 +20,7 @@ app.use('/teams', TeamsController)
 app.use('/players', PlayersController)
 app.use('/tournaments', TournamentController)
 app.use('/games', GameController)
+app.use('/matches', MatchController)
 
 const forceSync = process.env.FORCE_SYNC === 'true'
 sequelize.sync({ force: forceSync }).then(() => {

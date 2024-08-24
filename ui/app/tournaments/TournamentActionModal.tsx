@@ -20,6 +20,7 @@ const initialTournamentState = {
   name: '',
   description: '',
   start_date: '',
+  end_date: '',
   started: false,
   ended: false,
   country: null as Country | null,
@@ -42,6 +43,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
         name: tournament.name,
         description: tournament.description,
         start_date: tournament.start_date,
+        end_date: tournament.end_date,
         started: tournament.started,
         ended: tournament.ended,
         country: countries.find(country => country.name === tournament.country) || null,
@@ -96,8 +98,8 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     e.preventDefault()
     setValidationError(null)
 
-    if (!tournamentState.country || !tournamentState.type || tournamentState.teams.length === 0 || !tournamentState.name || !tournamentState.start_date) {
-      setValidationError("Please select values for name, country, type, start date, and add at least one team to tournament.")
+    if (!tournamentState.country || !tournamentState.type || tournamentState.teams.length === 0 || !tournamentState.name || !tournamentState.start_date || !tournamentState.end_date) {
+      setValidationError("Please select values for name, country, type, start date, end_date, and add at least one team to tournament.")
       return
     }
 
@@ -106,6 +108,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
       name: tournamentState.name,
       description: tournamentState.description,
       start_date: tournamentState.start_date,
+      end_date: tournamentState.end_date,
       started: tournamentState.started,
       ended: tournamentState.ended,
       country: tournamentState.country?.name || '',
@@ -161,6 +164,16 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
             type="date"
             value={tournamentState.start_date ? new Date(tournamentState.start_date).toISOString().split('T')[0] : ''}
             onChange={(e) => setTournamentState({ ...tournamentState, start_date: e.target.value })}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">End Date</label>
+          <input
+            type="date"
+            value={tournamentState.end_date ? new Date(tournamentState.end_date).toISOString().split('T')[0] : ''}
+            onChange={(e) => setTournamentState({ ...tournamentState, end_date: e.target.value })}
             className="w-full px-3 py-2 border rounded"
             required
           />

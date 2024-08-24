@@ -200,6 +200,7 @@ export interface Tournament {
   name: string
   description: string
   start_date: string
+  end_date: string
   started: boolean
   ended: boolean
   country: string

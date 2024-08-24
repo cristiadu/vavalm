@@ -1,5 +1,5 @@
 import { ItemsWithPagination } from "./models/types"
-import { Game, Tournament } from "./models/Tournament"
+import { Game, Match, Tournament } from "./models/Tournament"
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 
 const TournamentsApi = {
@@ -40,14 +40,14 @@ const TournamentsApi = {
       return standing
     })
 
-    const gameSchedulesTeamsWithBlob = data.schedule?.map((game: Game) => {
-      const team1WithBlob = teamsWithBlob.find((team: any) => team.id === game.stats.team1_id)
-      const team2WithBlob = teamsWithBlob.find((team: any) => team.id === game.stats.team2_id)
-      return { ...game, stats: { ...game.stats, team1: team1WithBlob, team2: team2WithBlob } }
+    const matchSchedulesTeamsWithBlob = data.schedule?.map((match: Match) => {
+      const team1WithBlob = teamsWithBlob.find((team: any) => team.id === match.team1_id)
+      const team2WithBlob = teamsWithBlob.find((team: any) => team.id === match.team2_id)
+      return { ...match, team1: team1WithBlob, team2: team2WithBlob }
     })
 
-    closure({...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob, schedule: gameSchedulesTeamsWithBlob} as Tournament)
-    return {...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob, schedule: gameSchedulesTeamsWithBlob} as Tournament
+    closure({...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob, schedule: matchSchedulesTeamsWithBlob} as Tournament)
+    return {...data, teams: teamsWithBlob, standings: standingsTeamsWithBlob, schedule: matchSchedulesTeamsWithBlob} as Tournament
   },
   newTournament: async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
     try {
