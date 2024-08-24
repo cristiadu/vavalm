@@ -83,7 +83,7 @@ const GameService = {
    * @returns {Promise<Game[]>} A promise that resolves to an array of the created games.
    */
   createGamesForMatch: async (match: Match): Promise<Game[]> => {
-    const gamesNumber = MatchService.numberOfGamesForMatchType(match.match_type)
+    const gamesNumber = MatchService.numberOfGamesForMatchType(match.type)
     const existingGames = await Game.count({
       where: {
         match_id: match.id,

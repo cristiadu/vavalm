@@ -5,8 +5,8 @@ import Standings from '../models/Standings'
 import TournamentService from '../services/TournamentService'
 import { ItemsWithPagination } from '../base/types'
 import MatchService from '../services/MatchService'
-import { MatchType } from '../models/enums'
 import Match from '../models/Match'
+import { MatchType } from '../models/enums'
 
 const router = Router()
 

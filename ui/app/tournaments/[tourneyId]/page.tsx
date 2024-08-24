@@ -143,7 +143,16 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
               <tbody>
                 {tournament.schedule && tournament.schedule.map((match) => (
                   <tr key={match.id} onClick={() => showGameLogs(match.id)}>
-                    <td className="py-2 border-b bg-gray-100 text-center">{new Date(match.date).toLocaleDateString()}</td>
+                    <td className="py-2 border-b bg-gray-100 text-center">
+                      {new Intl.DateTimeFormat('en-US', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                      }).format(new Date(match.date))}
+                    </td>
                     <td className="py-2 border-b bg-gray-100 text-center">{match.type}</td>
                     <td className="py-2 border-b bg-gray-100 items-center">
                       <div className="flex items-center space-x-2">

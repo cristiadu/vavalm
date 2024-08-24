@@ -8,7 +8,7 @@ import Team from './Team'
 class Match extends Model {
   declare id: number
   declare date: Date
-  declare match_type: MatchType
+  declare type: MatchType
   declare team1_id: number
   declare team1: Team
   declare team2_id: number
@@ -49,7 +49,7 @@ Match.init({
     type: DataTypes.INTEGER,
     allowNull: true,
   },
-  match_type: {
+  type: {
     type: DataTypes.ENUM(...Object.values(MatchType)),
     allowNull: false,
   },

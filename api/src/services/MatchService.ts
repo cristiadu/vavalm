@@ -45,11 +45,7 @@ const MatchService = {
    * @returns The match with the given game id.
    */
   getMatchByGameId: async (gameId: number): Promise<Match | null> => {
-    return await Match.findOne({
-      where: {
-        game_id: gameId,
-      },
-    })
+    return await Match.findOne({ include: [{ model: Game, as: "games", where: { id: gameId } }] })
   },
 
   /**
@@ -98,7 +94,7 @@ const MatchService = {
           team1_score: 0,
           team2_score: 0,
           team2_id: team2Id,
-          match_type: matchType,
+          type: matchType,
           included_on_standings: false,
         })
 
@@ -119,16 +115,16 @@ const MatchService = {
    */
   numberOfGamesForMatchType: (matchType: MatchType): number => {
     switch (matchType) {
-    case MatchType.BO1:
-    case MatchType.FRIENDLY:
-    case MatchType.SHOWMATCH:
-      return 1
-    case MatchType.BO3:
-      return 3
-    case MatchType.BO5:
-      return 5
-    default:
-      throw new Error("Invalid match type")
+      case MatchType.BO1:
+      case MatchType.FRIENDLY:
+      case MatchType.SHOWMATCH:
+        return 1
+      case MatchType.BO3:
+        return 3
+      case MatchType.BO5:
+        return 5
+      default:
+        throw new Error("Invalid match type")
     }
   },
 
