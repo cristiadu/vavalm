@@ -99,23 +99,23 @@ const TournamentService = {
 
           if (game.stats.winner_id === team1Id) {
             match.team1_score += 1
-            team1Standings.maps_won = match.team1_score
-            team2Standings.maps_lost = match.team1_score
+            team1Standings.maps_won += 1
+            team2Standings.maps_lost += 1
+            game.included_on_standings = true
           } else if (game.stats.winner_id === team2Id) {
             match.team2_score += 1
-            team2Standings.maps_won = match.team2_score
-            team1Standings.maps_lost = match.team2_score
+            team2Standings.maps_won += 1
+            team1Standings.maps_lost += 1
+            game.included_on_standings = true
           } else {
             console.info("No winner found for game:", game.id)
           }
 
-          game.included_on_standings = true
           await game.save()
         }
 
         // Check if the match has a winner
         const matchWinner = await MatchService.getWinnerForMatchType(match)
-        console.log("matchWinner", matchWinner)
         if(matchWinner != null) {
           if (matchWinner === team1Id) {
             team1Standings.wins += 1
