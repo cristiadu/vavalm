@@ -9,8 +9,13 @@ export interface AllPlayerStats {
   player: Player
   kda: number
   winrate: number
-  totalGames: number
-  totalWins: number
+  mapWinrate: number
+  totalMatchesPlayed: number
+  totalMatchesWon: number
+  totalMatchesLost: number
+  totalMapsPlayed: number
+  totalMapsWon: number
+  totalMapsLost: number
   totalKills: number
   totalDeaths: number
   totalAssists: number
