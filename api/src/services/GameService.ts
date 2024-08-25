@@ -54,13 +54,10 @@ const GameService = {
    * @param {Match} match - The match to create a game for.
    * @returns {Promise<Game>} A promise that resolves to the created game.
    */
-  createGameForMatch: async (match: Match): Promise<Game> => {
-    const maps = Object.values(GameMap)
-    const randomMap = maps[Math.floor(Math.random() * maps.length)]
-
+  createGameForMatch: async (match: Match, map: GameMap): Promise<Game> => {
     return await Game.create({
       date: getRandomTimeOnDay(match.date),
-      map: randomMap,
+      map: map,
       match_id: match.id,
       stats: {
         team1_id: match.team1_id,
@@ -90,11 +87,15 @@ const GameService = {
       },
     }) ?? 0 
     const games = []
-
-    for(let i = existingGames; i < gamesNumber; i++) {
-      games.push(await GameService.createGameForMatch(match))
+  
+    let maps = Object.values(GameMap)
+    for (let i = existingGames; i < gamesNumber; i++) {
+      const randomIndex = Math.floor(Math.random() * maps.length)
+      const randomMap = maps[randomIndex]
+      games.push(await GameService.createGameForMatch(match, randomMap))
+      maps.splice(randomIndex, 1) // Remove the selected map from the list of options
     }
-
+  
     return games
   },
 

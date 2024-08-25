@@ -48,7 +48,7 @@ const RoundService = {
     })
   },
   /**
-   * Plays rounds until one team wins 13 rounds.
+   * Plays rounds until one team wins 13 rounds or 2 rounds more than the enemy if both get to 12-12 without a winner.
    * 
    * @param {number} game_id - The ID of the game.
    * @returns {Promise<{team1_rounds: number, team2_rounds: number}>} The number of rounds won by each team.
@@ -59,7 +59,7 @@ const RoundService = {
     let team2_rounds = 0
     let currentRound = null
 
-    while (team1_rounds < 13 && team2_rounds < 13) {
+    while ((team1_rounds < 13 && team2_rounds < 13) || (Math.abs(team1_rounds - team2_rounds) < 2)) {
       currentRound = await RoundService.playFullRound(game_id, round)
 
       // Ensure currentRound is valid
