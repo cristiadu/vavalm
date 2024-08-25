@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import Player from '../models/Player'
 import { ItemsWithPagination } from '../base/types'
+import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '../services/PlayerService'
 
 const router = Router()
 
@@ -29,6 +30,17 @@ router.get('/', async (req, res) => {
   }
 })
 
+// Fetch all players stats
+router.get('/stats', async (req, res) => {
+  try{
+    const allPlayersStats = await getAllStatsForAllPlayers(Number(req.query.limit), Number(req.query.offset))
+    res.json(allPlayersStats)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 // Fetch player
 router.get('/:id', async (req, res) => {
   const { id } = req.params
@@ -39,6 +51,19 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Player not found' })
     }
     res.json(player)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Fetch player stats
+router.get('/:id/stats', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const playerStats = await getAllStatsForPlayer(Number(id))
+    res.json(playerStats)
   } catch (err) {
     console.error('Error executing query:', err)
     res.status(500).json({ error: 'Internal Server Error' })

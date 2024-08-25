@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { fetchPlayer } from '../../api/PlayersApi'
-import { getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
+import { fetchPlayer, fetchPlayerStats } from '../../api/PlayersApi'
+import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchTeam } from '../../api/TeamsApi'
 import { Team } from '../../api/models/Team'
@@ -14,6 +14,7 @@ import { asWord } from '../../base/StringUtils'
 
 export default function ViewPlayer({ params }: { params: { playerId: string } }) {
   const [player, setPlayer] = useState<Player | null>(null)
+  const [playerStats, setPlayerStats] = useState<AllPlayerStats | null>(null)
   const [team, setTeam] = useState<Team | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
   const router = useRouter()
@@ -23,7 +24,10 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
       const playerData = await fetchPlayer(Number(params.playerId), (data) => {
         setPlayer(data)
       })
-   
+
+      await fetchPlayerStats(Number(params.playerId), (data) => {
+        setPlayerStats(data)
+      })
 
       if (playerData.team_id) {
         await fetchTeam(playerData.team_id, (data) => {
@@ -98,6 +102,21 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
             })}
           </div>
         </div>
+        {playerStats && (
+          <div className="mt-4">
+            <h3 className="text-xl font-bold mb-2">Player Stats</h3>
+            <hr className="mb-2" />
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="text-lg"><strong>KDA:</strong> {playerStats.kda}</div>
+              <div className="text-lg"><strong>Winrate:</strong> {playerStats.winrate}%</div>
+              <div className="text-lg"><strong>Total Games:</strong> {playerStats.totalGames}</div>
+              <div className="text-lg"><strong>Total Wins:</strong> {playerStats.totalWins}</div>
+              <div className="text-lg"><strong>Total Kills:</strong> {playerStats.totalKills}</div>
+              <div className="text-lg"><strong>Total Deaths:</strong> {playerStats.totalDeaths}</div>
+              <div className="text-lg"><strong>Total Assists:</strong> {playerStats.totalAssists}</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,6 +1,13 @@
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
-import { Player } from "./models/Player"
+import { AllPlayerStats, Player } from "./models/Player"
 import { ItemsWithPagination } from "./models/types"
+
+export const fetchPlayersStats = async (closure: (playerData: ItemsWithPagination<AllPlayerStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+  const response = await fetch(`http://localhost:8000/players/stats?limit=${limit}&offset=${offset}`)
+  const data = await response.json()
+  closure(data as ItemsWithPagination<AllPlayerStats>)
+  return data as ItemsWithPagination<AllPlayerStats>
+}
 
 export const fetchPlayersByTeam = async (teamId: number, closure: (playerData: Player[]) => void) => {
   const response = await fetch(`http://localhost:8000/teams/${teamId}/players`)
@@ -21,6 +28,13 @@ export const fetchPlayer = async (playerId: number, closure: (playerData: Player
   const data = await response.json()
   closure(data)
   return data as Player
+}
+
+export const fetchPlayerStats = async (playerId: number, closure: (playerData: AllPlayerStats) => void) => {
+  const response = await fetch(`http://localhost:8000/players/${playerId}/stats`)
+  const data = await response.json()
+  closure(data as AllPlayerStats)
+  return data as AllPlayerStats
 }
 
 export const newPlayer = async (player: Player, closure: (playerData: Player) => void) => {

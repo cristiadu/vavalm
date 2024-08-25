@@ -73,3 +73,14 @@ export interface Player {
 export interface PlayerWithFlag extends Player {
   countryFlag?: string | null;
 }
+
+export interface AllPlayerStats {
+  player: Player
+  kda: number
+  winrate: number
+  totalGames: number
+  totalWins: number
+  totalKills: number
+  totalDeaths: number
+  totalAssists: number
+}
