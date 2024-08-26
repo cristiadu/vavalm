@@ -107,19 +107,40 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
 }
 
 export const getAllStatsForAllPlayers = async (limit: number, offset: number): Promise<ItemsWithPagination<AllPlayerStats>> => {
-  const playerCount = await Player.count()
-  const players = await Player.findAll(
-    {
-      limit,
-      offset,
-      order: [['id', 'DESC']],
-    }
-  )
+  const players = await Player.findAll()
+  const playerStats = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
 
-  const playerStats = await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))
+  // Apply limit and offset
+  const paginatedPlayerStats = playerStats.slice(offset, offset + limit)
 
   return {
-    items: playerStats,
-    total: playerCount,
+    items: paginatedPlayerStats,
+    total: players.length,
   }
+}
+
+export const sortPlayersByStats = (a: AllPlayerStats, b: AllPlayerStats): number => {
+  // Sort by following criteria:
+  const criteria: [keyof AllPlayerStats, boolean][] = [
+    ['kda', false],
+    ['totalKills', false],
+    ['winrate', false],
+    ['mapWinrate', false],
+    ['totalAssists', false],
+    ['totalMatchesWon', false],
+    ['totalMapsWon', false],
+    ['totalDeaths', true],
+    ['totalMatchesLost', true],
+    ['totalMapsLost', true],
+    ['totalMatchesPlayed', false],
+    ['totalMapsPlayed', false],
+  ]
+
+  for (const [key, reverse] of criteria) {
+    if (a[key] !== b[key]) {
+      return reverse ? Number(a[key]) - Number(b[key]) : Number(b[key]) - Number(a[key])
+    }
+  }
+
+  return 0
 }

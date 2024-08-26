@@ -40,32 +40,6 @@ export const getRoleBgColor = (role: PlayerRole): string => {
   }
 }
 
-export const sortPlayersByStats = (a: AllPlayerStats, b: AllPlayerStats): number => {
-  // Sort by following criteria:
-  const criteria: [keyof AllPlayerStats, boolean][] = [
-    ['kda', false],
-    ['totalKills', false],
-    ['winrate', false],
-    ['mapWinrate', false],
-    ['totalAssists', false],
-    ['totalMatchesWon', false],
-    ['totalMapsWon', false],
-    ['totalDeaths', true],
-    ['totalMatchesLost', true],
-    ['totalMapsLost', true],
-    ['totalMatchesPlayed', false],
-    ['totalMapsPlayed', false],
-  ]
-
-  for (const [key, reverse] of criteria) {
-    if (a[key] !== b[key]) {
-      return reverse ? Number(a[key]) - Number(b[key]) : Number(b[key]) - Number(a[key])
-    }
-  }
-
-  return 0
-}
-
 export interface PlayerAttributes {
   clutch: number,
   awareness: number,

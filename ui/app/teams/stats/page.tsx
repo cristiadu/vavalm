@@ -10,7 +10,7 @@ import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
 import Link from 'next/link'
 import { handleBackClick } from '../../base/LinkUtils'
-import { sortTeamsByStats, TeamStats } from '../../api/models/Team'
+import { TeamStats } from '../../api/models/Team'
 
 const thresholds = {
   winrate: { high: 60, medium: 40 },
@@ -93,7 +93,7 @@ const TeamsStatsPage = () => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {teamsStats.sort(sortTeamsByStats).map(stats => (
+          {teamsStats.map(stats => (
             <tr key={stats.team.id}>
               <td className="py-2 px-4 border-b border-gray-200">
                 {stats.team.country && (

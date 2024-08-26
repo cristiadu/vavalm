@@ -6,20 +6,14 @@ import Game from "../models/Game"
 import GameStats from "../models/GameStats"
 
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
-  const teamsCount = await Team.count()
-  const teams = await Team.findAll(
-    {
-      limit,
-      offset,
-      order: [['id', 'DESC']],
-    }
-  )
+  const teams = await Team.findAll()
 
-  const teamsStats = await Promise.all(teams.map(team => getAllStatsForTeam(team.id as number)))
+  const teamsStats = (await Promise.all(teams.map(team => getAllStatsForTeam(team.id as number)))).sort(sortTeamsByStats)
+  const paginatedTeamsStats = teamsStats.slice(offset, offset + limit)
 
   return {
-    items: teamsStats,
-    total: teamsCount,
+    items: paginatedTeamsStats,
+    total: teams.length,
   }
 }
 
@@ -89,4 +83,26 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
     totalMapsWon: totalMapsWon,
     totalMapsLost: totalMapsLost,
   }
+}
+
+export const sortTeamsByStats = (a: TeamStats, b: TeamStats): number => {
+  // Sort by following criteria:
+  const criteria: [keyof TeamStats, boolean][] = [
+    ['winrate', false],
+    ['mapWinrate', false],
+    ['totalMatchesWon', false],
+    ['totalMapsWon', false],
+    ['totalMatchesLost', true],
+    ['totalMapsLost', true],
+    ['totalMatchesPlayed', false],
+    ['totalMapsPlayed', false],
+  ]
+
+  for (const [key, reverse] of criteria) {
+    if (a[key] !== b[key]) {
+      return reverse ? Number(a[key]) - Number(b[key]) : Number(b[key]) - Number(a[key])
+    }
+  }
+
+  return 0
 }

@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { fetchCountries } from '../../api/CountryApi'
 import { getTournament } from '../../api/TournamentsApi'
-import { orderStandingsByStats, Tournament } from '../../api/models/Tournament'
+import { Match, orderStandingsByStats, Tournament } from '../../api/models/Tournament'
 import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
@@ -38,6 +38,10 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
 
   const showGameLogs = (matchId: number): void => {
     router.push(`/tournaments/${tournament.id}/logs/${matchId}`)
+  }
+
+  const sortByDate = (a: Match, b: Match): number => {
+    return new Date(a.date).getTime() - new Date(b.date).getTime()
   }
 
   return (
@@ -141,7 +145,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 </tr>
               </thead>
               <tbody>
-                {tournament.schedule && tournament.schedule.map((match) => (
+                {tournament.schedule && tournament.schedule.sort(sortByDate).map((match) => (
                   <tr key={match.id} onClick={() => showGameLogs(match.id)}>
                     <td className="py-2 border-b bg-gray-100 text-center">
                       {new Intl.DateTimeFormat('en-US', {
