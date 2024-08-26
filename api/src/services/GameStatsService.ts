@@ -169,7 +169,6 @@ const GameStatsService = {
             const tradedPlayerStatsTeam2 = playerIdToStatsTeam2.get(winnerId) || playerIdToStatsTeam2.get(loserId)
 
             if (tradedPlayerStatsTeam1 && tradedPlayerStatsTeam2) {
-              console.log("hi")
               tradedPlayerStatsTeam1.assists += log.trade && log.team1_player.team_id !== log.player_killed.team_id ? 1 : 0
               tradedPlayerStatsTeam2.assists += log.trade && log.team2_player.team_id !== log.player_killed.team_id ? 1 : 0
             }

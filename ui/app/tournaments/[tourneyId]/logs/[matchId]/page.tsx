@@ -130,7 +130,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
           </div>
         </div>
         <div className="flex justify-center mb-4">
-          {match.games.map((game) => (
+          {match.games.sort((g1,g2) => g1.id - g2.id).map((game) => (
             <button
               key={game.id}
               onClick={() => setSelectedGameId(game.id)}
