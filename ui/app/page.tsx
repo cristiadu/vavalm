@@ -14,6 +14,12 @@ export default function Index() {
         <Link href="/tournaments" className="text-blue-500 text-xl hover:underline">
           Tournament List
         </Link>
+        <Link href="/players/stats" className="text-blue-500 text-xl hover:underline">
+          Players Stats
+        </Link>
+        <Link href="/teams/stats" className="text-blue-500 text-xl hover:underline">
+          Teams Stats
+        </Link>
       </nav>
     </main>
   )

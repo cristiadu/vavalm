@@ -73,7 +73,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   // Compare with the team_id of the player at the time of the match
   const distinctMatches = playerStats
     .map(stats => stats.game_stats_player1?.game.match || stats.game_stats_player2?.game.match)
-    .filter((match, index, self) => self.indexOf(match) === index)
+    .filter((match, index, self) => match && index === self.findIndex(t => t?.id === match.id))
   const totalMatchesWon = distinctMatches.reduce((acc, match) => {
     if (match && playerStats.some(stats => stats.player.team_id === match.winner_id)) {
       return acc + 1
