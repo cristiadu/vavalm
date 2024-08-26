@@ -45,7 +45,14 @@ const TeamsStatsPage = () => {
   const refreshListData = async (data: ItemsWithPagination<TeamStats>) => {
     if (data.total > 0) {
       setTotalItems(data.total)
-      setTeamsStats(data.items)
+      const items = data.items.map((item:any) => {
+        if (Array.isArray(item.team.logo_image_file.data)) {
+          const blob = new Blob([new Uint8Array(item.team.logo_image_file.data)], { type: 'image/png' })
+          item.team.logo_image_file = blob
+        }
+        return item
+      })
+      setTeamsStats(items)
       console.log(data.items[0].team.logo_image_file)
     }
   }
