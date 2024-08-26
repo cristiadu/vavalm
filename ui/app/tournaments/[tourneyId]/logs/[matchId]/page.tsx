@@ -148,7 +148,6 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             </button>
           ))}
         </div>
-        <AlertMessage message={gameBeingPlayedMessage} type={AlertType.INFO} />
         <div className="flex items-center justify-between bg-blue-200 mx-4 p-2 rounded mb-4">
           <div key="team1HeaderGame" className="flex items-center">
             <span className={`text-4xl font-bold text-center mr-7 px-2 py-2 ${getWinOrLossColor(currentGame.stats.team1, currentGame.stats)}`}>
@@ -180,6 +179,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             </span>
           </div>
         </div>
+        <AlertMessage message={gameBeingPlayedMessage} type={AlertType.INFO} />
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-lg">
             <strong>Game ID:</strong> {currentGame.id}

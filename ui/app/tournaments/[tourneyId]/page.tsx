@@ -146,8 +146,8 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
               </thead>
               <tbody>
                 {tournament.schedule && tournament.schedule.sort(sortByDate).map((match) => (
-                  <tr key={match.id} onClick={() => showGameLogs(match.id)}>
-                    <td className="py-2 border-b bg-gray-100 text-center">
+                  <tr key={match.id} onClick={() => showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
+                    <td className="py-2 border-b text-center">
                       {new Intl.DateTimeFormat('en-US', {
                         day: 'numeric',
                         month: 'long',
@@ -157,8 +157,8 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                         hour12: true,
                       }).format(new Date(match.date))}
                     </td>
-                    <td className="py-2 border-b bg-gray-100 text-center">{match.type}</td>
-                    <td className="py-2 border-b bg-gray-100 items-center">
+                    <td className="py-2 border-b text-center">{match.type}</td>
+                    <td className="py-2 border-b items-center">
                       <div className="flex items-center space-x-2">
                         <Image 
                           src={match?.team1?.logo_image_file ? URL.createObjectURL(match.team1.logo_image_file) : "/images/nologo.svg"} 
@@ -170,7 +170,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                         <span>{match?.team1?.short_name}</span>
                       </div>
                     </td>
-                    <td className="py-2 border-b bg-gray-100 items-center">
+                    <td className="py-2 border-b items-center">
                       <div className="flex items-center space-x-2">
                         <Image 
                           src={match?.team2?.logo_image_file ? URL.createObjectURL(match.team2.logo_image_file) : "/images/nologo.svg"} 
@@ -182,7 +182,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                         <span>{match?.team2?.short_name}</span>
                       </div>
                     </td>
-                    <td className="py-2 border-b bg-gray-100 text-center">
+                    <td className="py-2 border-b text-center">
                       <strong>
                         <span className={getWinOrLossColor(match?.team1, match)}>{match?.team1_score}</span>
                         - 
