@@ -6,23 +6,40 @@ import Image from 'next/image'
 import { fetchPlayersByTeam } from '../../api/PlayersApi'
 import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
-import { fetchTeam } from '../../api/TeamsApi'
-import { Team } from '../../api/models/Team'
+import { fetchTeam, fetchTeamStats } from '../../api/TeamsApi'
+import { Team, TeamStats } from '../../api/models/Team'
 import Link from 'next/link'
 import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
+import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 
 export default function ViewTeam({ params }: { params: { teamId: string } }) {
   const [team, setTeam] = useState<Team | null>(null)
   const [players, setPlayers] = useState<PlayerWithFlag[]>([])
+  const [teamStats, setTeamStats] = useState<TeamStats | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
   const router = useRouter()
+
+  const thresholds = {
+    winrate: { high: 60, medium: 40 },
+    totalMatchesPlayed: { noColor: true },
+    totalMatchesWon: { high: 60, medium: 40, percentageCalculation: true },
+    totalMatchesLost: { high: 60, medium: 40, higherIsWorse: true, percentageCalculation: true },
+    mapWinrate: { high: 60, medium: 40 },
+    totalMapsPlayed: { noColor: true },
+    totalMapsWon: { high: 60, medium: 40, percentageCalculation: true },
+    totalMapsLost: { high: 60, medium: 40, higherIsWorse: true, percentageCalculation: true },
+  }
 
   useEffect(() => {
     const fetchTeamData = async () => {
       const teamData = await fetchTeam(Number(params.teamId), (data) => {
         setTeam(data)
+      })
+
+      await fetchTeamStats(Number(params.teamId), (data) => {
+        setTeamStats(data)
       })
 
       const countries = await fetchCountries(() => {})
@@ -90,6 +107,56 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
             ))}
           </div>
         </div>
+        {teamStats && (
+          <div className="mt-4">
+            <h3 className="text-xl font-bold mb-2">Team Stats</h3>
+            <hr className="mb-2" />
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white text-center">
+                <thead>
+                  <tr>
+                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700">Stat</th>
+                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Winrate</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.winrate, thresholds.winrate)}`}>{teamStats.winrate}%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Map Winrate</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.mapWinrate, thresholds.mapWinrate)}`}>{teamStats.mapWinrate}%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Matches Won</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.totalMatchesWon, thresholds.totalMatchesWon, teamStats.totalMatchesPlayed)}`}>{teamStats.totalMatchesWon}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Matches Lost</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.totalMatchesLost, thresholds.totalMatchesLost, teamStats.totalMatchesPlayed)}`}>{teamStats.totalMatchesLost}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Matches Played</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.totalMatchesPlayed, thresholds.totalMatchesPlayed)}`}>{teamStats.totalMatchesPlayed}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Maps Won</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.totalMapsWon, thresholds.totalMapsWon, teamStats.totalMapsPlayed)}`}>{teamStats.totalMapsWon}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Maps Lost</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.totalMapsLost, thresholds.totalMapsLost, teamStats.totalMapsPlayed)}`}>{teamStats.totalMapsLost}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Maps Played</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.totalMapsPlayed, thresholds.totalMapsPlayed)}`}>{teamStats.totalMapsPlayed}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
