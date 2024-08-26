@@ -1,4 +1,5 @@
 import Player from "../models/Player"
+import Team from "../models/Team"
 
 export interface ItemsWithPagination<T> {
   items: T[]
@@ -19,4 +20,16 @@ export interface AllPlayerStats {
   totalKills: number
   totalDeaths: number
   totalAssists: number
+}
+
+export interface TeamStats {
+  team: Team
+  winrate: number
+  totalMatchesPlayed: number
+  totalMatchesWon: number
+  totalMatchesLost: number
+  mapWinrate: number
+  totalMapsPlayed: number
+  totalMapsWon: number
+  totalMapsLost: number
 }

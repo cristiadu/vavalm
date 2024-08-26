@@ -3,6 +3,7 @@ import Multer from 'multer'
 import Team from '../models/Team'
 import Player from '../models/Player'
 import { ItemsWithPagination } from '../base/types'
+import { getAllStatsForAllTeams, getAllStatsForTeam } from '../services/TeamService'
 
 const router = Router()
 const upload = Multer({ storage: Multer.memoryStorage() })
@@ -32,6 +33,33 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/stats', async (req, res) => {
+  try {
+    const allTeamsStats = await getAllStatsForAllTeams(Number(req.query.limit), Number(req.query.offset))
+    res.json(allTeamsStats)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Add new teams from JSON file
+router.post('/bulk', async (req, res) => {
+  const teams = req.body
+
+  try {
+    const newTeams = await Team.bulkCreate(teams)
+    res.status(201).json(newTeams)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    if (err instanceof Error) {
+      console.error('Error message:', err.message)
+      console.error('Error stack:', err.stack)
+    }
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 // Fetch team
 router.get('/:id', async (req, res) => {
   const { id } = req.params
@@ -42,6 +70,18 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Team not found' })
     }
     res.json(team)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Fetch team stats
+router.get('/:id/stats', async (req, res) => {
+  const { id } = req.params
+  try {
+    const teamStats = await getAllStatsForTeam(Number(id))
+    res.json(teamStats)
   } catch (err) {
     console.error('Error executing query:', err)
     res.status(500).json({ error: 'Internal Server Error' })
@@ -68,23 +108,6 @@ router.post('/', upload.single('logo_image_file'), async (req, res) => {
       country,
     })
     res.status(201).json(team)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
-    }
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Add new teams from JSON file
-router.post('/bulk', async (req, res) => {
-  const teams = req.body
-
-  try {
-    const newTeams = await Team.bulkCreate(teams)
-    res.status(201).json(newTeams)
   } catch (err) {
     console.error('Error executing query:', err)
     if (err instanceof Error) {

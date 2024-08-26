@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 
 // Fetch all players stats
 router.get('/stats', async (req, res) => {
-  try{
+  try {
     const allPlayersStats = await getAllStatsForAllPlayers(Number(req.query.limit), Number(req.query.offset))
     res.json(allPlayersStats)
   } catch (err) {

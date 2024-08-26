@@ -1,4 +1,3 @@
-import { col } from "sequelize"
 import { AllPlayerStats, ItemsWithPagination } from "../base/types"
 import GameStats from "../models/GameStats"
 import Player from "../models/Player"

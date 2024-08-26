@@ -1,6 +1,6 @@
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 import { ItemsWithPagination } from "./models/types"
-import { Team } from "./models/Team"
+import { Team, TeamStats } from "./models/Team"
 
 export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
   // Fetch all team pages
@@ -33,6 +33,20 @@ export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) 
   return { total: data.total, items: teamsWithBlob } as ItemsWithPagination<Team>
 }
 
+export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<TeamStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+  const response = await fetch(`http://localhost:8000/teams/stats?limit=${limit}&offset=${offset}`)
+  const data = await response.json()
+  const teamsWithBlob = data.items.map((team: any) => {
+    if (team.logo_image_file) {
+      const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
+      return { ...team, logo_image_file: blob }
+    }
+    return team
+  })
+  closure({ total: data.total, items: teamsWithBlob } as ItemsWithPagination<TeamStats>)
+  return { total: data.total, items: teamsWithBlob } as ItemsWithPagination<TeamStats>
+}
+
 export const fetchTeam = async (teamId: number, closure: (teamData: Team) => void) => {
   const response = await fetch(`http://localhost:8000/teams/${teamId}`)
   const data = await response.json()
@@ -41,6 +55,20 @@ export const fetchTeam = async (teamId: number, closure: (teamData: Team) => voi
     const blob = new Blob([new Uint8Array(data.logo_image_file.data)], { type: 'image/png' })
     closure({ ...data, logo_image_file: blob })
     return { ...data, logo_image_file: blob } as Team
+  } else {
+    closure(data)
+    return data
+  }
+}
+
+export const fetchTeamStats = async (teamId: number, closure: (teamData: TeamStats) => void) => {
+  const response = await fetch(`http://localhost:8000/teams/${teamId}/stats`)
+  const data = await response.json()
+  // Convert Buffer to Blob
+  if (data.team.logo_image_file) {
+    const blob = new Blob([new Uint8Array(data.team.logo_image_file.data)], { type: 'image/png' })
+    closure({ ...data, team: { ...data.team, logo_image_file: blob } })
+    return { ...data, team: { ...data.team, logo_image_file: blob } } as TeamStats
   } else {
     closure(data)
     return data
