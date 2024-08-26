@@ -87,7 +87,7 @@ const ChanceService = {
   getTradeWinBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.Duelist:
-      return 0.10
+      return 0.40
     case PlayerRole.Controller:
       return 0.15
     case PlayerRole.Flex:
@@ -95,9 +95,9 @@ const ChanceService = {
     case PlayerRole.Initiator:
       return 0.20
     case PlayerRole.IGL:
-      return 0.25
+      return 0.10
     case PlayerRole.Sentinel:
-      return 0.35
+      return 0.20
     default:
       return 0
     }
@@ -112,17 +112,17 @@ const ChanceService = {
   getDuelWinBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.Duelist:
-      return 0.25
+      return 0.30
     case PlayerRole.Controller:
       return 0.05
     case PlayerRole.Flex:
       return 0.15
     case PlayerRole.Initiator:
-      return 0.35
+      return 0.25
     case PlayerRole.IGL:
-      return 0.07
+      return 0.00
     case PlayerRole.Sentinel:
-      return 0.01
+      return 0.05
     default:
       return 0
     }
@@ -138,7 +138,7 @@ const ChanceService = {
   getTradeSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.Duelist:
-      return 0.10
+      return 0.40
     case PlayerRole.Controller:
       return 0.15
     case PlayerRole.Flex:
@@ -146,9 +146,9 @@ const ChanceService = {
     case PlayerRole.Initiator:
       return 0.20
     case PlayerRole.IGL:
-      return 0.25
+      return 0.15
     case PlayerRole.Sentinel:
-      return 0.35
+      return 0.20
     default:
       return 0
     }
@@ -163,17 +163,17 @@ const ChanceService = {
   getDuelSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.Duelist:
-      return 0.25
+      return 0.40
     case PlayerRole.Controller:
       return 0.05
     case PlayerRole.Flex:
       return 0.15
     case PlayerRole.Initiator:
-      return 0.35
+      return 0.40
     case PlayerRole.IGL:
-      return 0.07
+      return 0.05
     case PlayerRole.Sentinel:
-      return 0.01
+      return 0.05
     default:
       return 0
     }
