@@ -7,6 +7,7 @@ export const orderLogsByRoundAndId = (a: GameLog, b: GameLog): number => {
   if (a.round_state.round === b.round_state.round) {
     return b.id - a.id
   }
+  
   return b.round_state.round - a.round_state.round
 }
 

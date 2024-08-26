@@ -1,12 +1,13 @@
 import { Association, DataTypes, Model } from 'sequelize'
-import Player from './Player'
+import Player, { PlayerDuelResults } from './Player'
 import db from './db'
 import Team from './Team'
 
 // Manage a Round state as it goes.
 export interface RoundState {
   round: number
-  isTradeHappening: boolean
+  duel: PlayerDuelResults | null
+  previous_duel: PlayerDuelResults | null
   team1_alive_players: Player[]
   team2_alive_players: Player[]
   team_won: Team | null

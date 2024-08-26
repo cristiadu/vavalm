@@ -1,4 +1,4 @@
-import Player, {  } from "../models/Player"
+import Player, { PlayerDuelResults } from "../models/Player"
 import GameLog, { RoundState } from "../models/GameLog"
 import GameStats from "../models/GameStats"
 import Team from "../models/Team"
@@ -187,7 +187,12 @@ const RoundService = {
 
     return {
       round: round_number,
-      isTradeHappening: false,
+      duel: {
+        winner: null,
+        loser: null,
+        startedTradeDuel: false,
+      } as PlayerDuelResults,
+      previous_duel: null,
       team1_alive_players: gameStats.team1.players || [],
       team2_alive_players: gameStats.team2.players || [],
       team_won: null,

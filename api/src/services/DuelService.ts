@@ -27,6 +27,57 @@ const DuelService = {
   },
 
   /**
+   * Randomly picks a player from each team to play a duel.
+   * Uses duelSelectBuff and tradeSelectBuff to increase the chances of a player being picked.
+   * Duplicates the player in the array to increase the chances of being picked.
+   * 
+   * @param {RoundState} currentRound - The current state of the round.
+   * @returns {{team1Player: Player, team2Player: Player}} - The players selected to play the duel.
+   * @throws {Error} - Throws an error if no players are alive in one of the teams or if no players are available for selection.
+   **/
+  chooseDuelPlayers: async (currentRound: RoundState) => {
+    // If it's a trade duel, we select the winner from the currently finished duel as a player for the next duel
+    // Need to account that player can be on team1_alive_players or team2_alive_players
+    let team1Player = null
+    let team2Player = null
+    const currentDuel = currentRound.duel
+    if(currentDuel && currentDuel.startedTradeDuel) {
+      const duelWinner = currentDuel.winner
+      team1Player = currentRound.team1_alive_players.find(player => player.id === duelWinner?.id)
+      team2Player = currentRound.team2_alive_players.find(player => player.id === duelWinner?.id)
+    }
+
+    let team1PlayerAliveChances = []
+    if (!team1Player) {
+      team1PlayerAliveChances = currentRound.team1_alive_players.map(player => {
+        const selectBuff = (currentDuel?.startedTradeDuel
+          ? ChanceService.getTradeSelectBuffByPlayerRole(player)
+          : ChanceService.getDuelSelectBuffByPlayerRole(player))
+        return Array(Math.floor(selectBuff * 100)).fill(player)
+      }).flat()
+
+      const team1PlayerIndex = randomInt(0, team1PlayerAliveChances.length)
+      team1Player = team1PlayerAliveChances[team1PlayerIndex]
+    }
+
+    let team2PlayerAliveChances = []
+    if(!team2Player) {
+      team2PlayerAliveChances = currentRound.team2_alive_players.map(player => {
+        const selectBuff = (currentDuel?.startedTradeDuel
+          ? ChanceService.getTradeSelectBuffByPlayerRole(player)
+          : ChanceService.getDuelSelectBuffByPlayerRole(player))
+        return Array(Math.floor(selectBuff * 100)).fill(player)
+      }).flat()
+
+      const team2PlayerIndex = randomInt(0, team2PlayerAliveChances.length)
+      team2Player = team2PlayerAliveChances[team2PlayerIndex]
+    }
+
+    // Randomly pick a player from each team based on the calculated chances
+    return { team1Player, team2Player }
+  },
+
+  /**
    * Randomly picks a player from each team and plays a duel between them.
    * Uses duelSelectBuff and tradeSelectBuff to increase the chances of a player being picked.
    * Duplicates the player in the array to increase the chances of being picked.
@@ -41,38 +92,13 @@ const DuelService = {
       throw new Error('No players alive in one of the teams')
     }
 
-    // Randomly pick a player from each team
-    // Use duelSelectBuff and tradeSelectBuff to increase the chances of a player being picked
-    // So we duplicate the player in the array to increase the chances of being picked
-    const team1PlayerAliveChances = currentRound.team1_alive_players.map(player => {
-      const selectBuff = (currentRound.isTradeHappening
-        ? ChanceService.getTradeSelectBuffByPlayerRole(player)
-        : ChanceService.getDuelSelectBuffByPlayerRole(player))
-      return Array(Math.floor(selectBuff * 100)).fill(player)
-    }).flat()
-
-    const team2PlayerAliveChances = currentRound.team2_alive_players.map(player => {
-      const selectBuff = (currentRound.isTradeHappening
-        ? ChanceService.getTradeSelectBuffByPlayerRole(player)
-        : ChanceService.getDuelSelectBuffByPlayerRole(player))
-      return Array(Math.floor(selectBuff * 100)).fill(player)
-    }).flat()
-
-    if (team1PlayerAliveChances.length === 0 || team2PlayerAliveChances.length === 0) {
-      throw new Error('No players available for selection')
-    }
-
-    // Randomly pick a player from each team based on the calculated chances
-    const team1PlayerIndex = randomInt(0, team1PlayerAliveChances.length)
-    const team2PlayerIndex = randomInt(0, team2PlayerAliveChances.length)
-    const team1Player = team1PlayerAliveChances[team1PlayerIndex]
-    const team2Player = team2PlayerAliveChances[team2PlayerIndex]
+    const { team1Player, team2Player } = await DuelService.chooseDuelPlayers(currentRound)
 
     // Pick the player that won
     const duelResults = await DuelService.pickDuelWinner({
       player1: team1Player,
       player2: team2Player,
-      isTrade: currentRound.isTradeHappening,
+      isTrade: currentRound.duel?.startedTradeDuel || false,
     })
 
     // Ensure duelResults is valid
@@ -81,8 +107,8 @@ const DuelService = {
     }
 
     // Update the alive players after the duel
-    const updatedTeam1AlivePlayers = currentRound.team1_alive_players.filter(player => player.id !== duelResults.loser.id)
-    const updatedTeam2AlivePlayers = currentRound.team2_alive_players.filter(player => player.id !== duelResults.loser.id)
+    const updatedTeam1AlivePlayers = currentRound.team1_alive_players.filter(player => player.id !== duelResults.loser?.id)
+    const updatedTeam2AlivePlayers = currentRound.team2_alive_players.filter(player => player.id !== duelResults.loser?.id)
 
     // Check if the round is finished after the duel
     const lastDuelOfRound = updatedTeam1AlivePlayers.length === 0 || updatedTeam2AlivePlayers.length === 0
@@ -90,7 +116,8 @@ const DuelService = {
     // Create the updated round state
     const playedRound = {
       round: currentRound.round,
-      isTradeHappening: duelResults.startedTradeDuel,
+      duel: duelResults,
+      previous_duel: currentRound.duel,
       team1_alive_players: updatedTeam1AlivePlayers,
       team2_alive_players: updatedTeam2AlivePlayers,
       team_won: lastDuelOfRound ? (updatedTeam1AlivePlayers.length > 0 ? updatedTeam1AlivePlayers[0].team : updatedTeam2AlivePlayers[0].team) : null,
@@ -103,12 +130,14 @@ const DuelService = {
       last_duel_of_round: playedRound.finished,
       duel_buff: ChanceService.getDuelWinBuffByPlayerRole(duelResults.winner),
       trade_buff: ChanceService.getTradeWinBuffByPlayerRole(duelResults.winner),
-      trade: currentRound.isTradeHappening,
+      trade: currentRound.duel?.startedTradeDuel && currentRound.duel.loser?.team_id === playedRound.duel?.winner?.team_id || false,
       game_id: game_id,
       team1_player_id: team1Player.id,
       team2_player_id: team2Player.id,
       player_killed_id: duelResults.loser.id,
-    }).then(log => console.debug('GameLog created:', log.game_id, log.team1_player_id, log.team2_player_id, log.player_killed_id, log.round_state.round, log.trade)).catch(error => console.error('Error creating GameLog:', error))
+    })
+      .then(log => console.debug('GameLog created:', log.game_id, log.team1_player_id, log.team2_player_id, log.player_killed_id, log.round_state.round, log.trade))
+      .catch(error => console.error('Error creating GameLog:', error))
 
     return playedRound
   },

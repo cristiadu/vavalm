@@ -10,8 +10,8 @@ export interface PlayerDuel {
 }
 
 export interface PlayerDuelResults {
-  winner: Player
-  loser: Player
+  winner: Player | null
+  loser: Player | null
   startedTradeDuel: boolean
 }
 

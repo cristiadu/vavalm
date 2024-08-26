@@ -155,20 +155,31 @@ const GameStatsService = {
         // Create the PlayerGameStats for all players involved in this game
         const playerStatsTeam1 = playerIdToStatsTeam1.get(log.team1_player_id)
         const playerStatsTeam2 = playerIdToStatsTeam2.get(log.team2_player_id)
+
         if (playerStatsTeam1 && playerStatsTeam2) {
           playerStatsTeam1.kills += log.team1_player_id !== log.player_killed_id ? 1 : 0
           playerStatsTeam1.deaths += log.team1_player_id === log.player_killed_id ? 1 : 0
-          playerStatsTeam1.assists += log.trade && log.team1_player_id === log.player_killed_id ? 1 : 0
-
           playerStatsTeam2.kills += log.team2_player_id !== log.player_killed_id ? 1 : 0
           playerStatsTeam2.deaths += log.team2_player_id === log.player_killed_id ? 1 : 0
-          playerStatsTeam2.assists += log.trade && log.team2_player_id === log.player_killed_id ? 1 : 0
+
+          if(log.trade && log.round_state.previous_duel) {
+            const winnerId = log.round_state.previous_duel.winner?.id ?? 0
+            const loserId = log.round_state.previous_duel.loser?.id ?? 0
+            const tradedPlayerStatsTeam1 = playerIdToStatsTeam1.get(winnerId) || playerIdToStatsTeam1.get(loserId)
+            const tradedPlayerStatsTeam2 = playerIdToStatsTeam2.get(winnerId) || playerIdToStatsTeam2.get(loserId)
+
+            if (tradedPlayerStatsTeam1 && tradedPlayerStatsTeam2) {
+              console.log("hi")
+              tradedPlayerStatsTeam1.assists += log.trade && log.team1_player.team_id !== log.player_killed.team_id ? 1 : 0
+              tradedPlayerStatsTeam2.assists += log.trade && log.team2_player.team_id !== log.player_killed.team_id ? 1 : 0
+            }
+          }
 
           log.included_on_player_stats = true
           await log.save()
         } else {
           console.error('Internal Error while updating player stats for game:', gameStats.game_id)
-        }
+        } // A -> B   A -> C
       }
 
       // Save the player stats
