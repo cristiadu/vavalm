@@ -7,7 +7,7 @@ import { Country } from '../api/models/Country'
 import { fetchAllTeams } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import { ItemActionModalProps } from '../common/CommonModels'
-import ErrorAlert from '../base/ErrorAlert'
+import AlertMessage, { AlertType } from '../base/AlertMessage'
 import { Tournament, TournamentType, Standing, Match } from '../api/models/Tournament'
 import { EnumWithFieldName } from '../api/models/types'
 import { editTournament, newTournament } from '../api/TournamentsApi'
@@ -137,7 +137,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} title={isEdit ? "Edit Tournament" : "New Tournament"}>
-      <ErrorAlert validationError={validationError} />
+      <AlertMessage message={validationError} type={AlertType.ERROR} />
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-gray-700">Name</label>

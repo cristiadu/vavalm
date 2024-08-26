@@ -15,6 +15,7 @@ import { playFullRound } from "../../../../api/RoundApi"
 import { getLastDuel, playSingleDuel } from "../../../../api/DuelApi"
 import GameLogsTable from "./GameLogsTable"
 import React from "react"
+import AlertMessage, { AlertType } from "../../../../base/AlertMessage"
 
 interface ViewGameLogsProps {
   tourneyId: string
@@ -30,30 +31,37 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
   const [selectedGameId, setSelectedGameId] = useState<number>(0)
   const [refreshNumber, setRefreshNumber] = useState<number>(0)
+  const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
   const router = useRouter()
 
   const handlePlayRound = () => {
+    setGameBeingPlayedMessage('Round is being played...')
     playFullRound(selectedGameId, lastRoundPlayed + 1, (roundState) => {
       console.debug('Full Round Execution, Round State:', roundState)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
+      setGameBeingPlayedMessage(null)
     })
   }
 
   const handlePlayDuel = () => {
+    setGameBeingPlayedMessage('Duel is being played...')
     const round = lastRoundPlayed == 0 ? 1 : lastRoundPlayed
     playSingleDuel(selectedGameId, round, (roundState) => {
       console.debug('Single Duel Execution, Round State:', roundState)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
+      setGameBeingPlayedMessage(null)
     })
   }
 
   const handlePlayFullGame = () => {
+    setGameBeingPlayedMessage('Map is being played...')
     playFullGame(selectedGameId, (message) => {
       console.debug('Full Game Execution, Message:', message)
       fetchGameData()
       setRefreshNumber(refreshNumber + 1)
+      setGameBeingPlayedMessage(null)
     })
   }
 
@@ -140,6 +148,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             </button>
           ))}
         </div>
+        <AlertMessage message={gameBeingPlayedMessage} type={AlertType.INFO} />
         <div className="flex items-center justify-between bg-blue-200 mx-4 p-2 rounded mb-4">
           <div key="team1HeaderGame" className="flex items-center">
             <span className={`text-4xl font-bold text-center mr-7 px-2 py-2 ${getWinOrLossColor(currentGame.stats.team1, currentGame.stats)}`}>

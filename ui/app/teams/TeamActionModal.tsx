@@ -9,7 +9,7 @@ import { editTeam, newTeam } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import Modal from '../base/Modal'
 import { ItemActionModalProps } from '../common/CommonModels'
-import ErrorAlert from '../base/ErrorAlert'
+import AlertMessage, { AlertType } from '../base/AlertMessage'
 import 'react-quill/dist/quill.snow.css'
 import { quill_config } from '../base/Configs'
 import DropdownSelect from '../base/DropdownSelect'
@@ -114,7 +114,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} title={isEdit ? "Edit Team" : "New Team"}>
-      <ErrorAlert validationError={validationError} />
+      <AlertMessage message={validationError} type={AlertType.ERROR} />
       <form className="w-full max-w-2xl mx-auto" onSubmit={handleSubmit}>
         <div className="flex flex-wrap -mx-2 mb-4 items-center">
           <div className="w-full md:w-1/2 px-4 mb-6 md:mb-0">
