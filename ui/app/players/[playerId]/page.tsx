@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { fetchPlayer, fetchPlayerStats } from '../../api/PlayersApi'
 import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
@@ -17,7 +16,6 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
   const [playerStats, setPlayerStats] = useState<AllPlayerStats | null>(null)
   const [team, setTeam] = useState<Team | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
-  const router = useRouter()
 
   const thresholds = {
     kda: { high: 1.8, medium: 0.9 },

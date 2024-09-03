@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { useRouter } from 'next/navigation'
 import { ASSISTS_HALF_MULTIPLIER, Game, GameLog, Match, orderPlayersByStats, Tournament } from "../../../../api/models/Tournament"
 import Image from 'next/image'
 import { getWinOrLossColor } from "../../../../api/models/Team"
@@ -33,7 +32,6 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const [selectedGameId, setSelectedGameId] = useState<number>(0)
   const [refreshNumber, setRefreshNumber] = useState<number>(0)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
-  const router = useRouter()
 
   const handlePlayRound = () => {
     setGameBeingPlayedMessage('Round is being played...')

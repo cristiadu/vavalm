@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { fetchPlayersByTeam } from '../../api/PlayersApi'
 import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
@@ -18,7 +17,6 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
   const [players, setPlayers] = useState<PlayerWithFlag[]>([])
   const [teamStats, setTeamStats] = useState<TeamStats | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
-  const router = useRouter()
 
   const thresholds = {
     winrate: { high: 60, medium: 40 },
