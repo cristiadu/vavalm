@@ -8,6 +8,7 @@ import setupTestData from './bootstrap/Bootstrap'
 import GameController from './controllers/GameController'
 import db from './models/db'
 import MatchController from './controllers/MatchController'
+import SchedulerService  from './services/SchedulerService'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -32,4 +33,5 @@ db.sequelize.sync({ force: forceSync }).then(() => {
 
 app.listen(port, () => {
   console.info(`Server is running on port ${port}`)
+  SchedulerService.startScheduler()
 })

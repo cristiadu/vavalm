@@ -10,8 +10,28 @@ import { getRandomTimeOnDay } from "../base/DateUtils"
 import TournamentService from "./TournamentService"
 import Match from "../models/Match"
 import MatchService from "./MatchService"
+import { Op } from "sequelize"
 
 const GameService = {
+
+  /**
+   * Retrieves all games that should be played based on a before date.
+   * 
+   * @param {Date} before - A date that represents the maximum date for the games to be played.
+   * @returns {Promise<Game[]>} A promise that resolves to an array of games that should be played.
+   */
+  getGamesToBePlayed: async (before: Date): Promise<Game[]> => {
+    return await Game.findAll({
+      where: {
+        date: {
+          [Op.lte]: before,
+        },
+        started: false,
+      },
+    })
+  },
+
+
   /**
    * Retrieves a game based on its ID.
    * 
@@ -92,7 +112,8 @@ const GameService = {
     for (let i = existingGames; i < gamesNumber; i++) {
       const randomIndex = Math.floor(Math.random() * maps.length)
       const randomMap = maps[randomIndex]
-      games.push(await GameService.createGameForMatch(match, randomMap))
+      const game = await GameService.createGameForMatch(match, randomMap)
+      games.push(game)
       maps.splice(randomIndex, 1) // Remove the selected map from the list of options
     }
   
