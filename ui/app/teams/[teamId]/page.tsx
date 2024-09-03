@@ -8,11 +8,10 @@ import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchTeam, fetchTeamStats } from '../../api/TeamsApi'
 import { Team, TeamStats } from '../../api/models/Team'
-import Link from 'next/link'
-import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
+import SectionHeader from '../../base/SectionHeader'
 
 export default function ViewTeam({ params }: { params: { teamId: string } }) {
   const [team, setTeam] = useState<Team | null>(null)
@@ -67,12 +66,7 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
-      <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Team Details</h1>
-        <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-          Back
-        </Link>
-      </header>
+      <SectionHeader title="Team Details" />
       <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
         <div className="bg-blue-300 p-4 rounded mb-4 flex items-center justify-center">
           {logoSrc && <Image src={logoSrc} alt={`${team.short_name} logo`} width={50} height={50} className="inline-block mr-4" />}

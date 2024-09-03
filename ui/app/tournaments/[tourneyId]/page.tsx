@@ -3,14 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import Link from 'next/link'
 import { fetchCountries } from '../../api/CountryApi'
 import { getTournament } from '../../api/TournamentsApi'
 import { Match, orderStandingsByStats, Tournament } from '../../api/models/Tournament'
-import { handleBackClick } from '../../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
 import { getWinOrLossColor } from '../../api/models/Team'
+import SectionHeader from '../../base/SectionHeader'
 
 export default function ViewTournament({ params }: { params: { tourneyId: string } }) {
   const [tournament, setTournament] = useState<Tournament | null>(null)
@@ -46,12 +45,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
-      <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Tournament Details</h1>
-        <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-          Back
-        </Link>
-      </header>
+      <SectionHeader title="Tournament Details" />
       <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
         <div className="bg-blue-300 p-4 rounded mb-4 flex items-center justify-center">
           <h2 className="text-3xl font-bold text-center text-white">{tournament.name}</h2>

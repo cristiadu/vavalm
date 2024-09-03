@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getRound } from '../../../../api/RoundApi'
-import { GameLog, orderLogsByRoundAndId, randomValorantWeapon } from '../../../../api/models/Tournament'
+import { getRound } from '../../../../../api/RoundApi'
+import { GameLog, orderLogsByRoundAndId, randomValorantWeapon } from '../../../../../api/models/Tournament'
 
 type GameLogsTableProps = {
   gameId: number

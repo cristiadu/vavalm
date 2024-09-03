@@ -5,17 +5,16 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { fetchCountries } from '../api/CountryApi'
-import Link from 'next/link'
 import { fetchTeams, deleteTeam } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
 import TeamActionModal from './TeamActionModal'
-import { handleBackClick } from '../base/LinkUtils'
 import 'react-quill/dist/quill.snow.css'
 import { asSafeHTML } from '../base/StringUtils'
 import { fetchPlayersByTeam } from '../api/PlayersApi'
 import { getRoleBgColor } from '../api/models/Player'
 import Pagination from '../base/Pagination'
 import { PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
+import SectionHeader from '../base/SectionHeader'
 
 export default function ListTeams() {
   const LIMIT_VALUE_TEAM_LIST = 5
@@ -115,17 +114,7 @@ export default function ListTeams() {
     <>
       <TeamActionModal isOpen={teamActionModalOpened} onClose={closeTeamActionModal} isEdit={isEditActionOpened} object={teamToEdit} />
       <div className="flex min-h-screen flex-col items-center p-24">
-        <header className="w-full flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Teams</h1>
-          <div className="space-x-4">
-            <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-              Back
-            </Link>
-            <Link href="#" onClick={openNewTeamModal} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
-              New Team
-            </Link>
-          </div>
-        </header>
+        <SectionHeader title="Teams" action={openNewTeamModal} actionText="New Team" />
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>

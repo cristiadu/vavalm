@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { fetchTournaments, deleteTournament } from '../api/TournamentsApi'
 import { Tournament } from '../api/models/Tournament'
 import { fetchCountries } from '../api/CountryApi'
@@ -13,7 +12,7 @@ import { asSafeHTML } from '../base/StringUtils'
 import { ItemsWithPagination } from '../api/models/types'
 import Pagination from '../base/Pagination'
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
-import { handleBackClick } from '../base/LinkUtils'
+import SectionHeader from '../base/SectionHeader'
 
 export default function ListTournaments() {
   const router = useRouter()
@@ -86,17 +85,7 @@ export default function ListTournaments() {
     <>
       <TournamentActionModal isOpen={tournamentActionModalOpened} onClose={closeTournamentActionModal} isEdit={isEditActionOpened} object={tournamentToEdit} />
       <div className="flex min-h-screen flex-col items-center p-24">
-        <header className="w-full flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Tournaments</h1>
-          <div className="space-x-4">
-            <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-            Back
-            </Link>
-            <Link href="#" onClick={openNewTournamentModal} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
-            New Tournament
-            </Link>
-          </div>
-        </header>
+        <SectionHeader title="Tournaments" action={openNewTournamentModal} actionText="New Tournament" />
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>

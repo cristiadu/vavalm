@@ -8,10 +8,9 @@ import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '../
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchTeam } from '../../api/TeamsApi'
 import { Team } from '../../api/models/Team'
-import Link from 'next/link'
-import { handleBackClick } from '../../base/LinkUtils'
 import { asWord } from '../../base/StringUtils'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
+import SectionHeader from '../../base/SectionHeader'
 
 export default function ViewPlayer({ params }: { params: { playerId: string } }) {
   const [player, setPlayer] = useState<Player | null>(null)
@@ -67,12 +66,7 @@ export default function ViewPlayer({ params }: { params: { playerId: string } })
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
-      <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Player Details</h1>
-        <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-      Back
-        </Link>
-      </header>
+      <SectionHeader title="Player Details" />
       <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
         <div className="bg-blue-300 p-4 rounded mb-4">
           <h2 className="text-3xl font-bold text-center text-white">{player.nickname}</h2>

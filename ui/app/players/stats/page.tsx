@@ -11,8 +11,7 @@ import { ItemsWithPagination } from '../../api/models/types'
 import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
-import Link from 'next/link'
-import { handleBackClick } from '../../base/LinkUtils'
+import SectionHeader from '../../base/SectionHeader'
 
 const thresholds = {
   kda: { high: 1.8, medium: 0.9 },
@@ -81,14 +80,7 @@ const PlayersStatsPage = () => {
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
-      <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Players Stats</h1>
-        <div className="space-x-4">
-          <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-            Back
-          </Link>
-        </div>
-      </header>
+      <SectionHeader title="Players Stats" />
       <table className="min-w-full divide-y divide-gray-200 text-center">
         <thead>
           <tr>

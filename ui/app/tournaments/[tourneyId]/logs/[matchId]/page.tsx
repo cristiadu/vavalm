@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ASSISTS_HALF_MULTIPLIER, Game, GameLog, Match, orderPlayersByStats, Tournament } from "../../../../api/models/Tournament"
-import { handleBackClick } from '../../../../base/LinkUtils'
 import Image from 'next/image'
 import { getWinOrLossColor } from "../../../../api/models/Team"
 import { fetchCountries } from "../../../../api/CountryApi"
@@ -13,9 +11,12 @@ import { playFullGame, getMatch, getGame } from "../../../../api/GameApi"
 import { getRoleBgColor } from "../../../../api/models/Player"
 import { playFullRound } from "../../../../api/RoundApi"
 import { getLastDuel, playSingleDuel } from "../../../../api/DuelApi"
-import GameLogsTable from "./GameLogsTable"
+import GameLogsTable from "./games/GameLogsTable"
 import React from "react"
 import AlertMessage, { AlertType } from "../../../../base/AlertMessage"
+import GamePicker from "./games/GamePicker"
+import GameDetails from "./games/GameDetails"
+import SectionHeader from "../../../../base/SectionHeader"
 
 interface ViewGameLogsProps {
   tourneyId: string
@@ -99,12 +100,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
-      <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Game Logs</h1>
-        <Link href="#" onClick={(e) => handleBackClick(e, router)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
-          Back
-        </Link>
-      </header>
+      <SectionHeader title="Game Logs" />
       <div className="max-w-6 bg-white p-8 rounded shadow">
         <div className="flex items-center justify-between bg-blue-400 p-4 rounded mb-4">
           <div key="team1Header" className="flex items-center">
@@ -137,17 +133,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
             </span>
           </div>
         </div>
-        <div className="flex justify-center mb-4">
-          {match.games.sort((g1,g2) => g1.id - g2.id).map((game) => (
-            <button
-              key={game.id}
-              onClick={() => setSelectedGameId(game.id)}
-              className={`px-4 py-2 mx-2 rounded ${selectedGameId === game.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              {game.map}
-            </button>
-          ))}
-        </div>
+        <GamePicker games={match.games} selectedGameId={selectedGameId} onClick={(id: number) => setSelectedGameId(id)} />
         <div className="flex items-center justify-between bg-blue-200 mx-4 p-2 rounded mb-4">
           <div key="team1HeaderGame" className="flex items-center">
             <span className={`text-4xl font-bold text-center mr-7 px-2 py-2 ${getWinOrLossColor(currentGame.stats.team1, currentGame.stats)}`}>
@@ -180,22 +166,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
           </div>
         </div>
         <AlertMessage message={gameBeingPlayedMessage} type={AlertType.INFO} />
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-lg">
-            <strong>Game ID:</strong> {currentGame.id}
-          </div>
-          <div className="text-lg">
-            <strong>Date:</strong> {new Date(currentGame.date).toLocaleDateString()}
-          </div>
-          <div className="text-lg">
-            <strong>Map:</strong> {currentGame.map}
-          </div>
-          <div className="text-lg">
-            <strong>Tournament:</strong>
-            {tournamentCountry && (<Image src={tournamentCountry.flag} alt={tournamentCountry.name} width={30} height={30} className="inline-block mx-2" />)}
-            <span>{tournament?.name}</span>
-          </div>
-        </div>
+        {tournament && tournamentCountry && <GameDetails game={currentGame} tournament={tournament} tournamentCountry={tournamentCountry} />}
         <div className="flex justify-center mt-8">
           <button onClick={handlePlayRound} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mx-2 disabled:bg-blue-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null || match.winner_id !== null}>Play Round</button>
           <button onClick={handlePlayDuel} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 mx-2 disabled:bg-green-300 disabled:cursor-not-allowed" disabled={currentGame?.stats.winner_id !== null || match.winner_id !== null}>Play Duel</button>
