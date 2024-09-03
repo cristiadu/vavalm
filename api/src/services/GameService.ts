@@ -28,6 +28,7 @@ const GameService = {
         },
         started: false,
       },
+      order: [['date', 'ASC']],
     })
   },
 

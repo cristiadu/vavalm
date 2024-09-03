@@ -27,7 +27,7 @@ const startScheduler = async(): Promise<void> => {
     executing = true
     for (const [gameId, dateTime] of await fetchGamesThatShouldBePlayed(now)) {
       if (dateTime <= now) {
-        startGameExecution(gameId, dateTime)
+        await startGameExecution(gameId, dateTime)
       }
     }
     executing = false
@@ -35,10 +35,14 @@ const startScheduler = async(): Promise<void> => {
 }
 
 const startGameExecution = async (gameId: number, scheduledDate: Date): Promise<void> => {
-  console.log(`Playing game ${gameId}, scheduled at ${scheduledDate.toISOString()}`)
-  GameService.playFullGame(gameId).then(() => {
-    console.log(`Game ${gameId} has been played`)
-  })
+  try {
+    console.log(`Playing game ${gameId}, scheduled at ${scheduledDate.toISOString()}`)
+    await GameService.playFullGame(gameId).then(() => {
+      console.log(`Game ${gameId} has been played`)
+    })
+  } catch (error) {
+    console.error(`Error playing game ${gameId}`, error)
+  }
 }
 
 export default {
