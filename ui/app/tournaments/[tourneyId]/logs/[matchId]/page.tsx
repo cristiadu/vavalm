@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from "react"
 import { ASSISTS_HALF_MULTIPLIER, Game, GameLog, Match, sortPlayersByStats, Tournament } from "../../../../api/models/Tournament"
 import Image from 'next/image'
 import { getWinOrLossColor } from "../../../../api/models/Team"
@@ -10,7 +10,6 @@ import { playFullGame, getMatch, getGame } from "../../../../api/GameApi"
 import { getRoleBgColor } from "../../../../api/models/Player"
 import { playFullRound } from "../../../../api/RoundApi"
 import { getLastDuel, playSingleDuel } from "../../../../api/DuelApi"
-import GameLogsTable from "./games/GameLogsTable"
 import React from "react"
 import AlertMessage, { AlertType } from "../../../../base/AlertMessage"
 import GamePicker from "./games/GamePicker"
@@ -32,6 +31,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
   const [selectedGameId, setSelectedGameId] = useState<number>(0)
   const [refreshNumber, setRefreshNumber] = useState<number>(0)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
+  const GameLogsTable = lazy(() => import('./games/GameLogsTable'))
 
   const fetchGameData = useCallback(async () => {
     if (selectedGameId === 0) return
@@ -69,7 +69,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
     playFullRound(selectedGameId, lastRoundPlayed + 1, (roundState) => {
       console.debug('Full Round Execution, Round State:', roundState)
       fetchGameData()
-      setRefreshNumber(refreshNumber + 1)
+      setRefreshNumber((prev) => prev + 1)
       setGameBeingPlayedMessage(null)
     })
   }
@@ -80,7 +80,7 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
     playSingleDuel(selectedGameId, round, (roundState) => {
       console.debug('Single Duel Execution, Round State:', roundState)
       fetchGameData()
-      setRefreshNumber(refreshNumber + 1)
+      setRefreshNumber((prev) => prev + 1)
       setGameBeingPlayedMessage(null)
     })
   }
@@ -90,14 +90,14 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
     playFullGame(selectedGameId, (message) => {
       console.debug('Full Game Execution, Message:', message)
       fetchGameData()
-      setRefreshNumber(refreshNumber + 1)
+      setRefreshNumber((prev) => prev + 1)
       setGameBeingPlayedMessage(null)
     })
   }
 
   const handleGameSelection = (gameId: number) => {
     setSelectedGameId(gameId)
-    setRefreshNumber(refreshNumber + 1)
+    setRefreshNumber((prev) => prev + 1)
     setGameBeingPlayedMessage(null)
   }
 
@@ -272,7 +272,16 @@ export default function ViewGameLogs({ params }: { params: ViewGameLogsProps }) 
               </table>
             </div>
           </div>
-          {lastRoundPlayed != 0 && (<GameLogsTable gameId={selectedGameId} initialRound={lastRoundPlayed} maxRoundNumber={lastRoundPlayed} refresh={refreshNumber}/> )}
+          <Suspense fallback={<div>Loading...</div>}>
+            {lastRoundPlayed != 0 && (
+              <GameLogsTable
+                gameId={selectedGameId}
+                initialRound={lastRoundPlayed}
+                maxRoundNumber={lastRoundPlayed}
+                refresh={refreshNumber}
+              />
+            )}
+          </Suspense>
         </div>
       </div>
     </div>
