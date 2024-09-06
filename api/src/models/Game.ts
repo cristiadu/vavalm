@@ -15,6 +15,7 @@ class Game extends Model {
   declare stats: GameStats
   declare included_on_standings: boolean
   declare started : boolean
+  declare finished : boolean
 
   public static associations: {
     logs: Association<Game, GameLog>
@@ -41,6 +42,11 @@ Game.init({
     defaultValue: false,
   },
   started: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  finished: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,

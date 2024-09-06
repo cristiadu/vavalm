@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { fetchCountries } from '../../api/CountryApi'
 import { getTournament } from '../../api/TournamentsApi'
-import { Match, orderStandingsByStats, Tournament } from '../../api/models/Tournament'
+import { sortStandingsByStats, Tournament } from '../../api/models/Tournament'
 import 'react-quill/dist/quill.snow.css'
-import { asSafeHTML } from '../../base/StringUtils'
+import { asFormattedDate, asSafeHTML } from '../../base/StringUtils'
 import { getWinOrLossColor } from '../../api/models/Team'
 import SectionHeader from '../../base/SectionHeader'
+import { sortByDate } from '../../base/UIUtils'
 
 export default function ViewTournament({ params }: { params: { tourneyId: string } }) {
   const [tournament, setTournament] = useState<Tournament | null>(null)
@@ -37,10 +38,6 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
 
   const showGameLogs = (matchId: number): void => {
     router.push(`/tournaments/${tournament.id}/logs/${matchId}`)
-  }
-
-  const sortByDate = (a: Match, b: Match): number => {
-    return new Date(a.date).getTime() - new Date(b.date).getTime()
   }
 
   return (
@@ -99,7 +96,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 </tr>
               </thead>
               <tbody>
-                {tournament.standings && tournament.standings.sort(orderStandingsByStats).map((standing, index) => (
+                {tournament.standings && tournament.standings.sort(sortStandingsByStats).map((standing, index) => (
                   <tr key={standing.id}>
                     <td className="py-2 px-2 border-b text-center bg-gray-100">{index + 1}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">
@@ -142,14 +139,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 {tournament.schedule && tournament.schedule.sort(sortByDate).map((match) => (
                   <tr key={match.id} onClick={() => showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
                     <td className="py-2 border-b text-center">
-                      {new Intl.DateTimeFormat('en-US', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: true,
-                      }).format(new Date(match.date))}
+                      {asFormattedDate(match.date)}
                     </td>
                     <td className="py-2 border-b text-center">{match.type}</td>
                     <td className="py-2 border-b items-center">

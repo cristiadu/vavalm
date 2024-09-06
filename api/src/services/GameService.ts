@@ -6,33 +6,12 @@ import Team from "../models/Team"
 import RoundService from "./RoundService"
 import GameStatsService from "./GameStatsService"
 import { GameMap } from "../models/enums"
-import { getRandomTimeOnDay } from "../base/DateUtils"
+import { getRandomTimeBetweenHourInterval, getRandomTimeOnDay } from "../base/DateUtils"
 import TournamentService from "./TournamentService"
 import Match from "../models/Match"
 import MatchService from "./MatchService"
-import { Op } from "sequelize"
 
 const GameService = {
-
-  /**
-   * Retrieves all games that should be played based on a before date.
-   * 
-   * @param {Date} before - A date that represents the maximum date for the games to be played.
-   * @returns {Promise<Game[]>} A promise that resolves to an array of games that should be played.
-   */
-  getGamesToBePlayed: async (before: Date): Promise<Game[]> => {
-    return await Game.findAll({
-      where: {
-        date: {
-          [Op.lte]: before,
-        },
-        started: false,
-      },
-      order: [['date', 'ASC']],
-    })
-  },
-
-
   /**
    * Retrieves a game based on its ID.
    * 
@@ -77,7 +56,7 @@ const GameService = {
    */
   createGameForMatch: async (match: Match, map: GameMap): Promise<Game> => {
     return await Game.create({
-      date: getRandomTimeOnDay(match.date),
+      date: getRandomTimeBetweenHourInterval(match.date, 1),
       map: map,
       match_id: match.id,
       stats: {
@@ -130,7 +109,7 @@ const GameService = {
    * @returns {Promise<void>} A promise that resolves when the game has been fully played and stats have been updated.
    * @throws {Error} If the game or game stats are not found.
    */
-  playFullGame: async (game_id: number): Promise<void> => {
+  playFullGame: async (game_id: number): Promise<{team1_rounds: number, team2_rounds: number}> => {
     // Get the game
     const game = await Game.findByPk(game_id, {
       include: [{ model: Match, as: 'match' }],
@@ -152,6 +131,8 @@ const GameService = {
 
     // Update tournament standings if the game is finished
     await TournamentService.updateStandings(game.match.tournament_id)
+
+    return { team1_rounds, team2_rounds }
   },
 
 

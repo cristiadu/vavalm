@@ -21,6 +21,8 @@ class Match extends Model {
   declare tournament_id: number
   declare tournament: Tournament
   declare included_on_standings: boolean
+  declare started : boolean
+  declare finished : boolean
 
   public static associations: {
     games: Association<Match, Game>
@@ -62,6 +64,16 @@ Match.init({
     allowNull: false,
   },
   included_on_standings: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  started: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  finished: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,

@@ -18,3 +18,7 @@ export const getBgColorBasedOnThreshold = (value: number, thresholds: Threshold,
   if (thresholds.medium && value >= thresholds.medium) return 'bg-yellow-200'
   return thresholds.higherIsWorse ? 'bg-green-200' : 'bg-red-200'
 }
+
+export const sortByDate = (a: any, b: any): number => {
+  return new Date(a.date).getTime() - new Date(b.date).getTime()
+}

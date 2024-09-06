@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { Game, Tournament } from '../../../../../api/models/Tournament'
 import { Country } from '../../../../../api/models/Country'
+import { asFormattedDate } from '../../../../../base/StringUtils'
 
 interface GameDetailsProps {
     game: Game
@@ -16,7 +17,7 @@ const GameDetails: React.FC<GameDetailsProps> = ({game, tournament, tournamentCo
         <strong>Game ID:</strong> {game.id}
       </div>
       <div className="text-lg">
-        <strong>Date:</strong> {new Date(game.date).toLocaleDateString()}
+        <strong>Date:</strong> {asFormattedDate(game.date)}
       </div>
       <div className="text-lg">
         <strong>Map:</strong> {game.map}

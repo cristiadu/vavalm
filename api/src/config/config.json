@@ -4,20 +4,38 @@
     "password": "password",
     "database": "mydb",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "pool": {
+      "max": 20,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 30000
+    }
   },
   "test": {
     "username": "user",
     "password": "password",
     "database": "mydb",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "pool": {
+      "max": 20,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 30000
+    }
   },
   "production": {
     "username": "user",
     "password": "password",
     "database": "mydb",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "pool": {
+      "max": 20,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 30000
+    }
   }
 }

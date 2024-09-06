@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getRound } from '../../../../../api/RoundApi'
-import { GameLog, orderLogsByRoundAndId, randomValorantWeapon } from '../../../../../api/models/Tournament'
+import { GameLog, sortLogsByRoundAndId, randomValorantWeapon } from '../../../../../api/models/Tournament'
 
 type GameLogsTableProps = {
   gameId: number
@@ -76,7 +76,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber, refresh }: GameLo
           </tr>
         </thead>
         <tbody>
-          {logs.sort(orderLogsByRoundAndId).map((log, index) => (
+          {logs.sort(sortLogsByRoundAndId).map((log, index) => (
             <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
               <td className="py-2 px-4">{log.round_state.round}</td>
               <td className="py-2 px-4">

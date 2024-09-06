@@ -1,5 +1,6 @@
 const path = require('path')
-const { Configuration, IgnorePlugin } = require('webpack')
+const { IgnorePlugin } = require('webpack')
+const WorkerPlugin = require('worker-plugin')
 
 const config = {
   entry: './src/index.ts', // Adjust the entry point as needed
@@ -36,6 +37,7 @@ const config = {
     new IgnorePlugin({
       resourceRegExp: /migrations/, // Adjust the regex to match your migrations directory or files
     }),
+    new WorkerPlugin(),
   ],
 }
 

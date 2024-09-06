@@ -3,7 +3,7 @@ import { Team } from "./Team"
 
 export const ASSISTS_HALF_MULTIPLIER: number = 0.5
 
-export const orderLogsByRoundAndId = (a: GameLog, b: GameLog): number => {
+export const sortLogsByRoundAndId = (a: GameLog, b: GameLog): number => {
   if (a.round_state.round === b.round_state.round) {
     return b.id - a.id
   }
@@ -11,7 +11,7 @@ export const orderLogsByRoundAndId = (a: GameLog, b: GameLog): number => {
   return b.round_state.round - a.round_state.round
 }
 
-export const orderPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
+export const sortPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
   const kda1 = (p1.kills + p1.assists * ASSISTS_HALF_MULTIPLIER) / p1.deaths
   const kda2 = (p2.kills + p2.assists * ASSISTS_HALF_MULTIPLIER) / p2.deaths
 
@@ -42,7 +42,7 @@ export const orderPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): n
   }
 }
 
-export const orderStandingsByStats = (a: Standing, b: Standing): number => {
+export const sortStandingsByStats = (a: Standing, b: Standing): number => {
   if (a.wins > b.wins) {
     return -1
   } else if (a.wins < b.wins) {

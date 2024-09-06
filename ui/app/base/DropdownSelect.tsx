@@ -51,6 +51,10 @@ const DropdownSelect = <T,>({
     }
   }
 
+  const sortItemsByDisplayKey = (displayKey: keyof T): ((a: T, b: T) => number) => {
+    return (a, b) => (a[displayKey] as string).localeCompare(b[displayKey] as string)
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       <div
@@ -80,7 +84,7 @@ const DropdownSelect = <T,>({
       </div>
       {dropdownOpen && (
         <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-          {items.sort((a, b) => (a[displayKey] as string).localeCompare(b[displayKey] as string)).map((item, index) => (
+          {items.sort(sortItemsByDisplayKey(displayKey)).map((item, index) => (
             <div
               key={`${dropdownName}-${index}`}
               className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"

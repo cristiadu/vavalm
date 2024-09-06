@@ -1,48 +1,25 @@
-import GameService from "./GameService"
+import { Worker } from 'worker_threads'
 
-const ONE_MINUTE_IN_MS = 60000
-let executing = false
+/**
+ * Starts the scheduler to check for matches that should be played.
+ * 
+ * @returns void
+**/
+const startScheduler = (): void => {
+  const worker = new Worker(new URL('../workers/scheduleMatchesToPlayWorker.ts', import.meta.url))
 
-const fetchGamesThatShouldBePlayed = async (before: Date): Promise<Map<number, Date>> => {
-  const games = await GameService.getGamesToBePlayed(before)
-  const scheduledGames = new Map<number, Date>()
-  for (const game of games) {
-    game.started = true
-    scheduledGames.set(game.id, game.date)
-    game.save()
-  }
-  return scheduledGames
-}
+  worker.on('error', (error) => {
+    console.error('Worker error:', error)
+  })
 
-const startScheduler = async(): Promise<void> => {
-  setInterval(async () => {
-    const now = new Date()
-    console.log(`Checking for games to play at ${now.toISOString()}`)
-
-    if (executing) {
-      console.log('Scheduler is already executing')
-      return
+  worker.on('exit', (code) => {
+    if (code !== 0) {
+      console.error(`Worker stopped with exit code ${code}`)
     }
+  })
 
-    executing = true
-    for (const [gameId, dateTime] of await fetchGamesThatShouldBePlayed(now)) {
-      if (dateTime <= now) {
-        await startGameExecution(gameId, dateTime)
-      }
-    }
-    executing = false
-  }, ONE_MINUTE_IN_MS) // Check every minute
-}
-
-const startGameExecution = async (gameId: number, scheduledDate: Date): Promise<void> => {
-  try {
-    console.log(`Playing game ${gameId}, scheduled at ${scheduledDate.toISOString()}`)
-    await GameService.playFullGame(gameId).then(() => {
-      console.log(`Game ${gameId} has been played`)
-    })
-  } catch (error) {
-    console.error(`Error playing game ${gameId}`, error)
-  }
+  // Start the scheduler in the worker thread
+  worker.postMessage('start')
 }
 
 export default {

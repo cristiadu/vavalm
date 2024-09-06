@@ -9,6 +9,75 @@ import Game from "../models/Game"
 
 const MatchService = {
   /**
+   * Plays a full match, playing all games in the match.
+   *
+   * @param matchId The ID of the match to play.
+   * @returns A promise that resolves when the match has been played.
+   * @throws {Error} If the match is not found.
+   */
+  playFullMatch: async (matchId: number): Promise<void> => {
+    const matchWithGamesOrderedByDate = await Match.findByPk(matchId, {
+      include: [
+        {
+          model: Game,
+          as: "games",
+          where: {
+            started: false,
+          },
+        },
+      ],
+      order: [[{ model: Game, as: "games" }, "date", "ASC"]],
+    })
+
+    if (!matchWithGamesOrderedByDate) {
+      throw new Error("Match not found")
+    }
+
+    const minMatchesToWin = MatchService.numberOfGamesToWinForMatchType(matchWithGamesOrderedByDate.type)
+
+    // Play all games in the match
+    let team1GamesWon = 0
+    let team2GamesWon = 0
+    for (const game of matchWithGamesOrderedByDate.games) {
+      game.started = true
+      await game.save()
+      const {team1_rounds, team2_rounds} = await GameService.playFullGame(game.id)
+      game.finished = true
+      await game.save()
+
+      if (team1_rounds > team2_rounds) {
+        team1GamesWon++
+      } else {
+        team2GamesWon++
+      }
+
+      if (team1GamesWon >= minMatchesToWin || team2GamesWon >= minMatchesToWin) {
+        break
+      }
+    }
+  },
+
+  /**
+   * Retrieves all matches that should be played based on a before date.
+   * It limits the number of matches to 10 at at time.
+   * 
+   * @param {Date} before - A date that represents the maximum date for the matches to be played.
+   * @returns {Promise<Match[]>} A promise that resolves to an array of games that should be played.
+   */
+  getMatchesToBePlayed: async (before: Date): Promise<Match[]> => {
+    return await Match.findAll({
+      where: {
+        date: {
+          [Op.lte]: before,
+        },
+        started: false,
+      },
+      order: [['date', 'ASC']],
+      limit: 10,
+    })
+  },
+
+  /**
    * Returns a match by its id.
    *
    * @param id The ID of the match.

@@ -14,6 +14,18 @@ export const getRandomDateBetweenInterval = (start: Date, end: Date): Date => {
 }
 
 /**
+ * Get random time between a date and date + hours
+ * 
+ * @param date date to get random time
+ * @param hours hours interval
+ * @returns date with random time
+ */
+export const getRandomTimeBetweenHourInterval = (date: Date, hours: number): Date => {
+  return getRandomDateBetweenInterval(date, new Date(date.getTime() + hours * 60 * 60 * 1000))
+}
+
+
+/**
  * Get random time of day
  * 
  * @param date date to get random time
