@@ -2,6 +2,7 @@ import { Association, DataTypes, Model } from 'sequelize'
 import Player, { PlayerDuelResults } from './Player'
 import db from './db'
 import Team from './Team'
+import { Weapon } from './enums'
 
 // Manage a Round state as it goes.
 export interface RoundState {
@@ -20,6 +21,7 @@ export class GameLog extends Model {
   declare duel_buff: number
   declare trade_buff: number
   declare trade: boolean
+  declare weapon: Weapon
   declare team1_player: Player
   declare team2_player: Player
   declare player_killed: Player
@@ -68,6 +70,10 @@ GameLog.init({
   },
   player_killed_id: {
     type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  weapon: {
+    type: DataTypes.ENUM(...Object.values(Weapon)),
     allowNull: false,
   },
   included_on_player_stats: {

@@ -2,6 +2,7 @@ import { randomInt } from "crypto"
 import GameLog, { RoundState } from "../models/GameLog"
 import Player, { PlayerDuel, PlayerDuelResults } from "../models/Player"
 import ChanceService from "./ChanceService"
+import { Weapon } from "../models/enums"
 
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
@@ -135,6 +136,7 @@ const DuelService = {
       team1_player_id: team1Player.id,
       team2_player_id: team2Player.id,
       player_killed_id: duelResults.loser.id,
+      weapon: DuelService.randomValorantWeapon(),
     })
       .then(log => console.debug('GameLog created:', log.game_id, log.team1_player_id, log.team2_player_id, log.player_killed_id, log.round_state.round, log.trade))
       .catch(error => console.error('Error creating GameLog:', error))
@@ -211,6 +213,16 @@ const DuelService = {
     return duelChances
   },
 
+  /**
+   * Randomly selects a weapon from the list of available Valorant weapons.
+   * 
+   * @returns {Weapon} - The randomly selected Valorant weapon.
+   * 
+   **/
+  randomValorantWeapon: (): Weapon =>  {
+    const weapons = Object.values(Weapon)
+    return weapons[Math.floor(Math.random() * weapons.length)]
+  },
 }
 
 export default DuelService

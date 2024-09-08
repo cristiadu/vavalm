@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, lazy, Suspense, useMemo } from 'react'
-import { Game, GameLog, Match } from '../../../../../api/models/Tournament'
+import { Game, Match } from '../../../../../api/models/Tournament'
 import { Country } from '../../../../../api/models/Country'
 import { playFullGame, getGame } from '../../../../../api/GameApi'
 import { playFullRound } from '../../../../../api/RoundApi'
@@ -8,8 +8,7 @@ import AlertMessage, { AlertType } from '../../../../../base/AlertMessage'
 import GameHeader from './GameHeader'
 import GameDetails from './GameDetails'
 import GameTeamStats from './GameTeamStats'
-
-const GameLogsTable = lazy(() => import('./GameLogsTable'))
+import GameLogsTable from './GameLogsTable'
 
 interface GameViewProps {
   team1Country: Country | undefined
@@ -28,19 +27,25 @@ const GameView: React.FC<GameViewProps> = ({
 }) => {
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
-  const [refreshNumber, setRefreshNumber] = useState<number>(0)
   const [game, setGame] = useState<Game | null>(null)
 
   const fetchGameData = useCallback(async (gameId: number) => {
     if (gameId === 0) return
 
-    await getGame(gameId, (data: Game) => {
-      setGame(data)
-    })
+    try {
+      const gameData = await getGame(gameId, () => {})
+      const lastDuelData = await getLastDuel(gameId, () => {})
 
-    await getLastDuel(gameId, (data: GameLog) => {
-      setLastRoundPlayed(data?.round_state?.round || 0)
-    })
+      if(!gameData) {
+        console.error('Game data not found')
+        return
+      }
+
+      setGame(gameData)
+      setLastRoundPlayed(lastDuelData?.round_state?.round || 0)
+    } catch (error) {
+      console.error('Error fetching game data:', error)
+    }
   }, [])
 
   useEffect(() => {
@@ -62,7 +67,6 @@ const GameView: React.FC<GameViewProps> = ({
     playSingleDuel(gameId, round, (roundState) => {
       console.debug('Single Duel Execution, Round State:', roundState)
       fetchGameData(gameId)
-      setRefreshNumber((prev) => prev + 1)
       setGameBeingPlayedMessage(null)
     })
   }
@@ -133,7 +137,6 @@ const GameView: React.FC<GameViewProps> = ({
             gameId={gameId}
             initialRound={lastRoundPlayed}
             maxRoundNumber={lastRoundPlayed}
-            refresh={refreshNumber}
           />
         )}
       </Suspense>

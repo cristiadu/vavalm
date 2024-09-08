@@ -3,14 +3,6 @@ import { Team } from "./Team"
 
 export const ASSISTS_HALF_MULTIPLIER: number = 0.5
 
-export const sortLogsByRoundAndId = (a: GameLog, b: GameLog): number => {
-  if (a.round_state.round === b.round_state.round) {
-    return b.id - a.id
-  }
-  
-  return b.round_state.round - a.round_state.round
-}
-
 export const sortPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): number => {
   const kda1 = (p1.kills + p1.assists * ASSISTS_HALF_MULTIPLIER) / p1.deaths
   const kda2 = (p2.kills + p2.assists * ASSISTS_HALF_MULTIPLIER) / p2.deaths
@@ -64,12 +56,7 @@ export const sortStandingsByStats = (a: Standing, b: Standing): number => {
   }
 }
 
-export const randomValorantWeapon = () =>  {
-  const weapons = Object.values(Weapons)
-  return weapons[Math.floor(Math.random() * weapons.length)]
-}
-
-export enum Weapons {
+export enum Weapon {
   VANDAL = 'Vandal',
   PHANTOM = 'Phantom',
   OPERATOR = 'Operator',
@@ -157,6 +144,7 @@ export interface GameLog {
   team1_player_id: number
   team2_player_id: number
   player_killed_id: number
+  weapon: Weapon
 }
 
 export interface GameStats {

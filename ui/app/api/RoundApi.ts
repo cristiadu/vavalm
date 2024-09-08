@@ -47,9 +47,9 @@ export const getLastRound = async (game_id: number, closure: (lastRoundLogs: Gam
   }
 }
 
-export const getRound = async (game_id: number, round: number, closure: (roundLogs: GameLog[]) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+export const getRound = async (game_id: number, round: number, closure: (roundLogs: GameLog[]) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/games/${game_id}/rounds/${round}?limit=${limit}&offset=${offset}`, {
+    const response = await fetch(`http://localhost:8000/games/${game_id}/rounds/${round}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

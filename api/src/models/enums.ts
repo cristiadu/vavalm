@@ -32,3 +32,18 @@ export enum MatchType {
   FRIENDLY = 'FRIENDLY',
   SHOWMATCH = 'SHOWMATCH',
 }
+
+export enum Weapon {
+  VANDAL = 'Vandal',
+  PHANTOM = 'Phantom',
+  OPERATOR = 'Operator',
+  SHERIFF = 'Sheriff',
+  GHOST = 'Ghost',
+  MARSHAL = 'Marshal',
+  ARES = 'Ares',
+  ODIN = 'Odin',
+  BUCKY = 'Bucky',
+  JUDGE = 'Judge',
+  FRENZY = 'Frenzy',
+  SHORTY = 'Shorty',
+}

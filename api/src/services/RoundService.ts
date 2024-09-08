@@ -39,11 +39,10 @@ const RoundService = {
         game_id: game_id,
         'round_state.round': round_number,
       },
-      order: [['id', 'ASC']],
+      order: [['id', 'DESC']],
       include: [
-        { model: Player, as: 'team1_player', include: [{ model: Team, as: 'team' }] },
-        { model: Player, as: 'team2_player', include: [{ model: Team, as: 'team' }] },
-        { model: Player, as: 'player_killed', include: [{ model: Team, as: 'team' }] },
+        { model: Player, as: 'team1_player' },
+        { model: Player, as: 'team2_player' },
       ],
     })
   },
