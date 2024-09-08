@@ -90,18 +90,22 @@ const MatchService = {
         {
           model: Game,
           as: "games",
+          attributes: ["id", "date", "map"],
         },
         {
           model: Tournament,
           as: "tournament",
+          attributes: ["id", "name", "country"],
         },
         {
           model: Team,
           as: "team1",
+          attributes: ["id", "short_name", "logo_image_file"],
         },
         {
           model: Team,
           as: "team2",
+          attributes: ["id", "short_name", "logo_image_file"],
         },
       ],
     })
