@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import Image from 'next/image'
 import { Match } from '../../../../api/models/Tournament'
 import { Country } from '../../../../api/models/Country'
@@ -11,6 +11,18 @@ interface MatchHeaderProps {
 }
 
 const MatchHeader: React.FC<MatchHeaderProps> = ({ match, team1Country, team2Country }) => {
+  const team1LogoUrl = useMemo(() => {
+    return match.team1.logo_image_file
+      ? URL.createObjectURL(match.team1.logo_image_file)
+      : "/images/nologo.svg"
+  }, [match.team1.logo_image_file])
+
+  const team2LogoUrl = useMemo(() => {
+    return match.team2.logo_image_file
+      ? URL.createObjectURL(match.team2.logo_image_file)
+      : "/images/nologo.svg"
+  }, [match.team2.logo_image_file])
+
   return (
     <div className="flex items-center justify-between bg-blue-400 p-4 rounded mb-4">
       <div key="team1Header" className="flex items-center">
@@ -21,7 +33,7 @@ const MatchHeader: React.FC<MatchHeaderProps> = ({ match, team1Country, team2Cou
           <Image src={team1Country.flag} alt={team1Country.name} width={60} height={60} className="inline-block mx-2" />
         )}
         <Image
-          src={match.team1.logo_image_file ? URL.createObjectURL(match.team1.logo_image_file) : "/images/nologo.svg"}
+          src={team1LogoUrl}
           alt={match.team1.short_name}
           width={72}
           height={72}
@@ -33,7 +45,7 @@ const MatchHeader: React.FC<MatchHeaderProps> = ({ match, team1Country, team2Cou
       <div key="team2Header" className="flex items-center">
         <span className="text-4xl font-bold text-center text-white">{match.team2.short_name}</span>
         <Image
-          src={match.team2.logo_image_file ? URL.createObjectURL(match.team2.logo_image_file) : "/images/nologo.svg"}
+          src={team2LogoUrl}
           alt={match.team2.short_name}
           width={72}
           height={72}
