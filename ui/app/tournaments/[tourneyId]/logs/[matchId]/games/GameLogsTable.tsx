@@ -3,9 +3,9 @@ import { getRound } from '../../../../../api/RoundApi'
 import { GameLog } from '../../../../../api/models/Tournament'
 
 type GameLogsTableProps = {
-  gameId: number;
-  initialRound: number;
-  maxRoundNumber: number;
+  gameId: number
+  initialRound: number
+  maxRoundNumber: number
 };
 
 const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTableProps) => {

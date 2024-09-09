@@ -131,15 +131,13 @@ const GameView: React.FC<GameViewProps> = ({
           countries={countries}
         />
       </div>
-      <Suspense fallback={<div>Loading...</div>}>
-        {lastRoundPlayed != 0 && (
-          <GameLogsTable
-            gameId={gameId}
-            initialRound={lastRoundPlayed}
-            maxRoundNumber={lastRoundPlayed}
-          />
-        )}
-      </Suspense>
+      {lastRoundPlayed != 0 && (
+        <GameLogsTable
+          gameId={gameId}
+          initialRound={lastRoundPlayed}
+          maxRoundNumber={lastRoundPlayed}
+        />
+      )}
     </div>
   )
 }
