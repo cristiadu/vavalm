@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { fetchCountries } from '../../api/CountryApi'
 import { getTournament } from '../../api/TournamentsApi'
-import { sortStandingsByStats, Tournament } from '../../api/models/Tournament'
+import { Tournament } from '../../api/models/Tournament'
 import 'react-quill/dist/quill.snow.css'
 import { asFormattedDate, asSafeHTML } from '../../base/StringUtils'
 import { getWinOrLossColor } from '../../api/models/Team'
@@ -40,6 +40,9 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
     router.push(`/tournaments/${tournament.id}/logs/${matchId}`)
   }
 
+  const teamsToLogoSrc: Map<number, string> = new Map(tournament.teams.map(team => [team.id!, URL.createObjectURL(team.logo_image_file!)]))
+  const tournamentWinnerLogoSrc = tournament.winner_id ? teamsToLogoSrc.get(tournament.winner_id) : null
+
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
       <SectionHeader title="Tournament Details" />
@@ -67,7 +70,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
             {tournament.teams && tournament.teams.map(team => (
               <div key={team.id} className="flex items-center space-x-2">
                 <Image 
-                  src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"} 
+                  src={team.id && teamsToLogoSrc.get(team.id) ? teamsToLogoSrc.get(team.id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
                   alt={team.short_name} 
                   width={30} 
                   height={30} 
@@ -76,6 +79,22 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 <span className="text-lg">{team.short_name}</span>
               </div>
             ))}
+          </div>
+        </div>
+        <div className="mt-4">
+          <h3 className="text-xl font-bold mb-2">Winner</h3>
+          <hr className="mb-2" />
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Image 
+                src={tournamentWinnerLogoSrc && tournament.ended ? tournamentWinnerLogoSrc : "/images/nologo.svg"} 
+                alt={tournament.winner?.short_name} 
+                width={30} 
+                height={30} 
+                className="inline-block mr-2" 
+              />
+              <span className="text-lg">{tournament.winner?.short_name}</span>
+            </div>
           </div>
         </div>
         <div className="mt-4">
@@ -96,12 +115,12 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 </tr>
               </thead>
               <tbody>
-                {tournament.standings && tournament.standings.sort(sortStandingsByStats).map((standing, index) => (
+                {tournament.standings && tournament.standings.map((standing, index) => (
                   <tr key={standing.id}>
-                    <td className="py-2 px-2 border-b text-center bg-gray-100">{index + 1}</td>
+                    <td className="py-2 px-2 border-b text-center bg-gray-100">{standing.position}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">
                       <Image 
-                        src={standing.team?.logo_image_file ? URL.createObjectURL(standing.team.logo_image_file) : "/images/nologo.svg"} 
+                        src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
                         alt={standing.team?.short_name} 
                         width={30} 
                         height={30} 
@@ -145,7 +164,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                     <td className="py-2 border-b items-center">
                       <div className="flex items-center space-x-2">
                         <Image 
-                          src={match?.team1?.logo_image_file ? URL.createObjectURL(match.team1.logo_image_file) : "/images/nologo.svg"} 
+                          src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
                           alt={match?.team1?.short_name} 
                           width={30} 
                           height={30} 
@@ -157,7 +176,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                     <td className="py-2 border-b items-center">
                       <div className="flex items-center space-x-2">
                         <Image 
-                          src={match?.team2?.logo_image_file ? URL.createObjectURL(match.team2.logo_image_file) : "/images/nologo.svg"} 
+                          src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
                           alt={match?.team2?.short_name} 
                           width={30} 
                           height={30} 

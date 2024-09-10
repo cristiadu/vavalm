@@ -19,6 +19,8 @@ class Tournament extends Model {
   declare schedule: Match[]
   declare teams: Team[]
   declare standings: Standings[]
+  declare winner_id: number
+  declare winner: Team
   declare start_date: Date
   declare end_date: Date
   declare started: boolean
@@ -65,6 +67,11 @@ Tournament.init({
   ended: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
+  },
+  winner_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: null,
   },
 }, { 
   sequelize: db.sequelize, 

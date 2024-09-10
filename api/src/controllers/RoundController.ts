@@ -20,13 +20,7 @@ router.post('/:round/play', async (req, res) => {
       throw new Error('Match not found')
     }
 
-    // get the tournament from the game
-    const tourney = await TournamentService.getTournamentByMatchId(match.id)
-    if (!tourney || !tourney.id) {
-      throw new Error('Tournament not found')
-    }
-
-    await TournamentService.updateStandings(tourney.id)
+    await TournamentService.updateStandingsAndWinner(match.tournament_id)
     console.debug('Game stats updated for game_id:', id)
     res.status(201).json(roundFinishedState)
   } catch (err) {
@@ -52,13 +46,7 @@ router.post('/:round/duel', async (req, res) => {
       throw new Error('Match not found')
     }
 
-    // get the tournament from the game
-    const tourney = await TournamentService.getTournamentByMatchId(match.id)
-    if (!tourney || !tourney.id) {
-      throw new Error('Tournament not found')
-    }
-
-    await TournamentService.updateStandings(tourney.id)
+    await TournamentService.updateStandingsAndWinner(match.tournament_id)
     console.debug('Game stats updated for game_id:', id)
     res.status(201).json(roundState)
   } catch (err) {

@@ -130,7 +130,7 @@ const GameService = {
     await GameStatsService.updateAllStats(game_id)
 
     // Update tournament standings if the game is finished
-    await TournamentService.updateStandings(game.match.tournament_id)
+    await TournamentService.updateStandingsAndWinner(game.match.tournament_id)
 
     return { team1_rounds, team2_rounds }
   },

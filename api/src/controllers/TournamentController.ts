@@ -74,6 +74,7 @@ router.get('/:id', async (req, res) => {
         },
         { model: Team, as: 'teams' },
       ],
+      order: [[{ model: Standings, as: 'standings' }, 'position', 'ASC']],
     })
 
     if (!tournament) {

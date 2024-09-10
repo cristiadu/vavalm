@@ -12,6 +12,7 @@ class Standings extends Model {
   declare rounds_lost: number
   declare tournament_id: number
   declare team_id: number
+  declare position: number
 
   static associations: {
     team: Association<Standings, Team>
@@ -50,6 +51,11 @@ Standings.init({
   team_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  position: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
   },
 }, { 
   sequelize: db.sequelize, 

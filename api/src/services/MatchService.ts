@@ -9,7 +9,7 @@ import Game from "../models/Game"
 
 const MatchService = {
   /**
-   * Plays a full match, playing all games in the match.
+   * Plays a full match, playing all games in the match in the order they're supposed to be played.
    *
    * @param matchId The ID of the match to play.
    * @returns A promise that resolves when the match has been played.

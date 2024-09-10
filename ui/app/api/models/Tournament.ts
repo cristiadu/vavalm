@@ -34,28 +34,6 @@ export const sortPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): nu
   }
 }
 
-export const sortStandingsByStats = (a: Standing, b: Standing): number => {
-  if (a.wins > b.wins) {
-    return -1
-  } else if (a.wins < b.wins) {
-    return 1
-  } else {
-    if (a.maps_won > b.maps_won) {
-      return -1
-    } else if (a.maps_won < b.maps_won) {
-      return 1
-    } else {
-      if (a.rounds_won > b.rounds_won) {
-        return -1
-      } else if (a.rounds_won < b.rounds_won) {
-        return 1
-      } else {
-        return 0
-      }
-    }
-  }
-}
-
 export enum Weapon {
   VANDAL = 'Vandal',
   PHANTOM = 'Phantom',
@@ -182,6 +160,7 @@ export interface Standing {
   rounds_lost: number
   tournament_id: number
   team_id: number
+  position: number
 }
 
 export interface Tournament {
@@ -197,4 +176,6 @@ export interface Tournament {
   teams: Team[]
   schedule: Match[]
   standings: Standing[]
+  winner_id: number
+  winner: Team
 }

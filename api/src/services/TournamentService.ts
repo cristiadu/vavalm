@@ -7,6 +7,30 @@ import Match from "../models/Match"
 import MatchService from "./MatchService"
 
 const TournamentService = {
+  /**
+   * Get the winner for a tournament.
+   * 
+   * @param tournamentId id of the tournament
+   * @returns the id of the winning team
+  **/
+  getWinnerForTournament: async (tournamentId: number) => { 
+    const standings = await Standings.findOne({
+      where: { 
+        tournament_id: tournamentId,
+        position: 1,
+      },
+    })
+
+    return standings?.team_id
+  },
+  
+  /**
+   * Get the tournament based off a match id.
+   * 
+   * @param matchId id of the match
+   * @returns the tournament
+   * 
+   **/
   getTournamentByMatchId: async (matchId: number) => {
     const tournament = await Tournament.findOne({
       include: [
@@ -54,7 +78,22 @@ const TournamentService = {
    *
    * @param tournamentId id of the tournament
    */
-  updateStandings: async (tournamentId: number) => {
+  updateStandingsAndWinner: async (tournamentId: number) => {
+    // Get tournament
+    const tournament = await Tournament.findByPk(tournamentId)
+    if (!tournament || !tournament.id) {
+      throw new Error("Tournament not found")
+    }
+
+    if (tournament.ended) {
+      return
+    }
+
+    if (!tournament.started) {
+      tournament.started = true
+      tournament.save()
+    }
+
     // Get all finished games for the tournament
     const matches = await Match.findAll({
       where: {
@@ -78,6 +117,7 @@ const TournamentService = {
     })
 
     // Update standings for each based on the matches
+    let numberOfFinalizedMatches = 0
     for (const match of matches) {
       const games = match.games
       const team1Id = match.team1_id
@@ -129,12 +169,55 @@ const TournamentService = {
 
           match.winner_id = matchWinner
           match.included_on_standings = true
+          numberOfFinalizedMatches += 1
         }
 
         await team1Standings.save()
         await team2Standings.save()
         await match.save()
       }
+    }
+
+    // Update standings position for the tournament
+    await TournamentService.updateStandingsPositions(tournamentId)
+
+    // Check if the tournament has a winner
+    const numberOfNonFinalizedMatches = await Match.count({
+      where: { tournament_id: tournament.id, winner_id: { [Op.is]: null } },
+    })
+    if (numberOfNonFinalizedMatches == 0) {
+      const tournament = await Tournament.findByPk(tournamentId)
+
+      if (!tournament || !tournament.id) {
+        throw new Error("Tournament not found")
+      }
+
+      const winner = await TournamentService.getWinnerForTournament(tournament.id)
+      if (winner) {
+        tournament.winner_id = winner
+        tournament.ended = true
+        await tournament.save()
+      }
+    }
+  },
+
+  updateStandingsPositions: async (tournamentId: number) => {
+    const standings = await Standings.findAll({
+      where: { tournament_id: tournamentId },
+      order: [
+        ["wins", "DESC"],
+        ["losses", "ASC"],
+        ["maps_won", "DESC"],
+        ["maps_lost", "ASC"],
+        ["rounds_won", "DESC"],
+        ["rounds_lost", "ASC"],
+      ],
+    })
+    let position = 1
+    for (const standing of standings) {
+      standing.position = position
+      await standing.save()
+      position += 1
     }
   },
 
