@@ -19,6 +19,8 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
 
   const thresholds = {
+    tournamentsParticipated: { noColor: true },
+    tournamentsWon: { high: 1 },
     winrate: { high: 60, medium: 40 },
     totalMatchesPlayed: { noColor: true },
     totalMatchesWon: { high: 60, medium: 40, percentageCalculation: true },
@@ -112,6 +114,14 @@ export default function ViewTeam({ params }: { params: { teamId: string } }) {
                   </tr>
                 </thead>
                 <tbody>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Tournaments Won</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.tournamentsWon, thresholds.tournamentsWon)}`}>{teamStats.tournamentsWon}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-gray-200">Tournaments Played</td>
+                    <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.tournamentsParticipated, thresholds.tournamentsParticipated)}`}>{teamStats.tournamentsParticipated}</td>
+                  </tr>
                   <tr>
                     <td className="py-2 px-4 border-b border-gray-200">Winrate</td>
                     <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(teamStats.winrate, thresholds.winrate)}`}>{teamStats.winrate}%</td>
