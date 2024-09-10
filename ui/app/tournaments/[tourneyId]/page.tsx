@@ -93,7 +93,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 height={30} 
                 className="inline-block mr-2" 
               />
-              <span className="text-lg">{tournament.winner?.short_name}</span>
+              <span className="text-lg">{tournament.winner?.short_name || "No Team Yet"}</span>
             </div>
           </div>
         </div>

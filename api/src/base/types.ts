@@ -24,6 +24,8 @@ export interface AllPlayerStats {
 
 export interface TeamStats {
   team: Team
+  tournamentsWon: number
+  tournamentsParticipated: number
   winrate: number
   totalMatchesPlayed: number
   totalMatchesWon: number

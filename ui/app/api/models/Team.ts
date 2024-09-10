@@ -13,6 +13,8 @@ export interface Team {
 
 export interface TeamStats {
   team: Team
+  tournamentsWon: number
+  tournamentsParticipated: number
   winrate: number
   totalMatchesPlayed: number
   totalMatchesWon: number

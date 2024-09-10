@@ -73,6 +73,7 @@ router.get('/:id', async (req, res) => {
           include: [{ model: Team, as: 'team' }],
         },
         { model: Team, as: 'teams' },
+        { model: Team, as: 'winner' },
       ],
       order: [[{ model: Standings, as: 'standings' }, 'position', 'ASC']],
     })

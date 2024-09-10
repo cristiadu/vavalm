@@ -4,6 +4,7 @@ import Match from "../models/Match"
 import Team from "../models/Team"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
+import Tournament from "../models/Tournament"
 
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
   const teams = await Team.findAll()
@@ -42,6 +43,9 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
           {
             model: Match,
             as: 'match',
+            include: [
+              { model: Tournament, as: 'tournament' },
+            ],
           },
         ],
       },
@@ -51,6 +55,8 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
   if (mapsPlayedForTeam.length === 0) {
     return {
       team: team,
+      tournamentsWon: 0,
+      tournamentsParticipated: 0,
       winrate: 0.0,
       totalMatchesPlayed: 0,
       totalMatchesWon: 0,
@@ -72,8 +78,16 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
   const totalMatchesWon = distinctMatches.filter(match => match.winner_id === teamId).length
   const totalMatchesLost = distinctMatches.filter(match => match.winner_id !== teamId).length
 
+  // tournaments stats
+  const distinctTournaments = distinctMatches
+    .map(match => match.tournament)
+    .filter((tournament, index, self) => tournament && index === self.findIndex(t => t?.id === tournament.id))
+  const tournamentsWon = distinctTournaments.filter(tournament => tournament.winner_id === teamId).length
+
   return {
     team: team,
+    tournamentsWon: tournamentsWon,
+    tournamentsParticipated: distinctTournaments.length,
     winrate: parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2)),
     totalMatchesPlayed: totalMatchesPlayed,
     totalMatchesWon: totalMatchesWon,
@@ -88,6 +102,7 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
 export const sortTeamsByStats = (a: TeamStats, b: TeamStats): number => {
   // Sort by following criteria:
   const criteria: [keyof TeamStats, boolean][] = [
+    ['tournamentsWon', false],
     ['winrate', false],
     ['mapWinrate', false],
     ['totalMatchesWon', false],

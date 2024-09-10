@@ -12,6 +12,8 @@ import { TeamStats } from '../../api/models/Team'
 import SectionHeader from '../../base/SectionHeader'
 
 const thresholds = {
+  tournamentsWon: { high: 1 },
+  tournamentsParticipated: { noColor: true },
   winrate: { high: 60, medium: 40 },
   totalMatchesPlayed: { noColor: true },
   totalMatchesWon: { high: 60, medium: 40, percentageCalculation: true },
@@ -73,6 +75,8 @@ const TeamsStatsPage = () => {
           <tr>
             <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Country</th>
             <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Team</th>
+            <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Tournaments Won</th>
+            <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Tournaments Played</th>
             <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Winrate</th>
             <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Map Winrate</th>
             <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Matches Won</th>
@@ -104,6 +108,8 @@ const TeamsStatsPage = () => {
                   </span>
                 )}                
               </td>
+              <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.tournamentsWon, thresholds.tournamentsWon)}`}>{stats.tournamentsWon}</td>
+              <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.tournamentsParticipated, thresholds.tournamentsParticipated)}`}>{stats.tournamentsParticipated}</td>
               <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.winrate, thresholds.winrate)}`}>{stats.winrate}%</td>
               <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.mapWinrate, thresholds.mapWinrate)}`}>{stats.mapWinrate}%</td>
               <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.totalMatchesWon, thresholds.totalMatchesWon, stats.totalMatchesPlayed)}`}>{stats.totalMatchesWon}</td>

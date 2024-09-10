@@ -33,6 +33,7 @@ class Tournament extends Model {
     schedule: Association<Tournament, Match>
     teams: Association<Tournament, Team>
     standings: Association<Tournament, Standings>
+    winner: Association<Tournament, Team>
   }
 }
 Tournament.init({
@@ -80,6 +81,9 @@ Tournament.init({
 
 Tournament.belongsToMany(Team, { as: 'teams', through: 'TournamentTeams', foreignKey: 'tournament_id', sourceKey: 'id' })
 Team.belongsToMany(Tournament, { through: 'TournamentTeams', foreignKey: 'team_id', sourceKey: 'id', as: 'tournaments' })
+
+Tournament.belongsTo(Team, { as: 'winner', foreignKey: 'winner_id' })
+Team.hasMany(Tournament, { as: 'tournaments_won', foreignKey: 'winner_id', sourceKey: 'id' })
 
 Tournament.hasMany(Match, { as: 'schedule', foreignKey: 'tournament_id', sourceKey: 'id' })
 Match.belongsTo(Tournament, { foreignKey: 'tournament_id', as: 'tournament' })
