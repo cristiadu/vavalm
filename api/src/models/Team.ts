@@ -22,6 +22,7 @@ Team.init({
   short_name: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   logo_image_file: {
     type: DataTypes.BLOB,

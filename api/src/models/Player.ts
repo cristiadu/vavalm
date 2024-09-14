@@ -54,6 +54,7 @@ Player.init({
   nickname: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   full_name: {
     type: DataTypes.STRING,
@@ -62,6 +63,7 @@ Player.init({
   age: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    defaultValue: 18,
   },
   country: {
     type: DataTypes.STRING,
@@ -79,6 +81,24 @@ Player.init({
   player_attributes: {
     type: DataTypes.JSON,
     allowNull: false,
+    defaultValue: {
+      clutch: 0,
+      awareness: 0,
+      aim: 0,
+      positioning: 0,
+      game_reading: 0,
+      resilience: 0,
+      confidence: 0,
+      strategy: 0,
+      adaptability: 0,
+      communication: 0,
+      unpredictability: 0,
+      game_sense: 0,
+      decision_making: 0,
+      rage_fuel: 0,
+      teamwork: 0,
+      utility_usage: 0,
+    } as PlayerAttributes,
   },
 }, {
   sequelize: db.sequelize,

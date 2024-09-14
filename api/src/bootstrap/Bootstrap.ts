@@ -24,7 +24,7 @@ const setupTestData = async () => {
       const logoImageBuffer = Buffer.from(arrayBuffer)
   
       // Create the team with the logo image file
-      await Team.create({ ...teamData, logo_image_file: logoImageBuffer })
+      await Team.create({ ...teamData, logo_image_file: logoImageBuffer, id: undefined })
     }
   } else {
     console.warn('Initial teams data already exists')
@@ -38,6 +38,7 @@ const setupTestData = async () => {
       console.debug('Creating player with data:', playerData)
       await Player.create({
         ...playerData,
+        id: undefined,
       })
     }
   } else {
@@ -54,6 +55,7 @@ const setupTestData = async () => {
       const { team_ids: teamIds, ...rest } = tournamentData
       const tournament = await Tournament.create({
         ...rest,
+        id: undefined,
         started: false,
         ended: false,
         schedule: [],

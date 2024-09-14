@@ -9,6 +9,7 @@ import GameController from './controllers/GameController'
 import db from './models/db'
 import MatchController from './controllers/MatchController'
 import SchedulerService  from './services/SchedulerService'
+import VlrImportController from './controllers/VlrImportController'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -22,6 +23,7 @@ app.use('/players', PlayersController)
 app.use('/tournaments', TournamentController)
 app.use('/games', GameController)
 app.use('/matches', MatchController)
+app.use('/import', VlrImportController)
 
 const forceSync = process.env.FORCE_SYNC === 'true'
 db.sequelize.sync({ force: forceSync }).then(() => {
@@ -33,5 +35,9 @@ db.sequelize.sync({ force: forceSync }).then(() => {
 
 app.listen(port, () => {
   console.info(`Server is running on port ${port}`)
-  SchedulerService.startScheduler()
+  const shouldStartScheduler = process.env.START_SCHEDULER === 'true'
+  if (shouldStartScheduler) {
+    console.info('Starting match scheduler...')
+    SchedulerService.startScheduler()
+  }
 })
