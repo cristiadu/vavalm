@@ -16,7 +16,7 @@ export const fetchTeamsDataFromVLR = async (): Promise<VlrTeam[]> => {
   const teamElements = $('tr').has('td')
   for (const el of teamElements) {
     const short_name = $(el).find('td').first().next().attr('data-sort-value')
-    const full_name = $(el).find('td').first().next().text().trim()
+    const full_name = $(el).find('td').first().next().attr('data-sort-value')
     const country = $(el).find('.rank-item-team-country').text().trim()
     const logo_image_file = $(el).find('td').first().next().find('img').attr('src')
     const logo_url = (logo_image_file ?? '').includes(VLR_URL) ? VLR_URL + logo_image_file : 'https:' + logo_image_file

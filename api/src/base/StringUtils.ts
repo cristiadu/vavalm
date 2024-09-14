@@ -1,7 +1,17 @@
+export const specialCountries: { [key: string]: string } = {
+  'eu': 'Europe',
+  'en': 'England',
+  'un': 'International',
+}
+
 export const countryCodeToCountryName = async (countryCode: string): Promise<string> => {
   // Call the API to fetch the country name by the cc2 code
   // cca2 is the country code in ISO 3166-1 alpha-2 format
   // https://restcountries.com/v3.1/alpha/{cc2}
+
+  if (specialCountries[countryCode]) {
+    return specialCountries[countryCode]
+  }
   
   try {
     const response = await fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
