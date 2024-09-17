@@ -17,11 +17,11 @@ export enum GameMap {
 }
 
 export enum PlayerRole {
-  Initiator = 'Initiator',
-  Duelist = 'Duelist',
-  Controller = 'Controller',
-  Sentinel = 'Sentinel',
-  Flex = 'Flex',
+  INITIATOR = 'Initiator',
+  DUELIST = 'Duelist',
+  CONTROLLER = 'Controller',
+  SENTINEL = 'Sentinel',
+  FLEX = 'Flex',
   IGL = 'IGL',
 }
 

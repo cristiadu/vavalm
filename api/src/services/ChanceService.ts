@@ -86,17 +86,17 @@ const ChanceService = {
    */
   getTradeWinBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
-    case PlayerRole.Duelist:
+    case PlayerRole.DUELIST:
       return 0.40
-    case PlayerRole.Controller:
+    case PlayerRole.CONTROLLER:
       return 0.15
-    case PlayerRole.Flex:
+    case PlayerRole.FLEX:
       return 0.35
-    case PlayerRole.Initiator:
+    case PlayerRole.INITIATOR:
       return 0.20
     case PlayerRole.IGL:
       return 0.10
-    case PlayerRole.Sentinel:
+    case PlayerRole.SENTINEL:
       return 0.20
     default:
       return 0
@@ -111,17 +111,17 @@ const ChanceService = {
    */
   getDuelWinBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
-    case PlayerRole.Duelist:
+    case PlayerRole.DUELIST:
       return 0.30
-    case PlayerRole.Controller:
+    case PlayerRole.CONTROLLER:
       return 0.05
-    case PlayerRole.Flex:
+    case PlayerRole.FLEX:
       return 0.15
-    case PlayerRole.Initiator:
+    case PlayerRole.INITIATOR:
       return 0.25
     case PlayerRole.IGL:
       return 0.00
-    case PlayerRole.Sentinel:
+    case PlayerRole.SENTINEL:
       return 0.05
     default:
       return 0
@@ -137,17 +137,17 @@ const ChanceService = {
    */
   getTradeSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
-    case PlayerRole.Duelist:
+    case PlayerRole.DUELIST:
       return 0.40
-    case PlayerRole.Controller:
+    case PlayerRole.CONTROLLER:
       return 0.15
-    case PlayerRole.Flex:
+    case PlayerRole.FLEX:
       return 0.35
-    case PlayerRole.Initiator:
+    case PlayerRole.INITIATOR:
       return 0.20
     case PlayerRole.IGL:
       return 0.15
-    case PlayerRole.Sentinel:
+    case PlayerRole.SENTINEL:
       return 0.20
     default:
       return 0
@@ -162,17 +162,17 @@ const ChanceService = {
    */
   getDuelSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
-    case PlayerRole.Duelist:
+    case PlayerRole.DUELIST:
       return 0.40
-    case PlayerRole.Controller:
+    case PlayerRole.CONTROLLER:
       return 0.05
-    case PlayerRole.Flex:
+    case PlayerRole.FLEX:
       return 0.15
-    case PlayerRole.Initiator:
+    case PlayerRole.INITIATOR:
       return 0.40
     case PlayerRole.IGL:
       return 0.05
-    case PlayerRole.Sentinel:
+    case PlayerRole.SENTINEL:
       return 0.05
     default:
       return 0

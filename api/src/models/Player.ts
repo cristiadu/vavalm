@@ -72,7 +72,7 @@ Player.init({
   role: {
     type: DataTypes.ENUM(...Object.values(PlayerRole)),
     allowNull: false,
-    defaultValue: PlayerRole.Flex,
+    defaultValue: PlayerRole.FLEX,
   },
   team_id: {
     type: DataTypes.INTEGER,
