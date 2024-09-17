@@ -210,11 +210,6 @@ const getPlayerRoleBasedOnVlrStats = async ($:any, agentsPlayedHTML: any): Promi
     }
   }
 
-  console.log('Duelists:', duelistsRoundPlayed)
-  console.log('Initiators:', initiatorsRoundPlayed)
-  console.log('Controllers:', controllersRoundPlayed)
-  console.log('Sentinels:', sentinelsRoundPlayed)
-
   const maxPlayed = Math.max(duelistsRoundPlayed, initiatorsRoundPlayed, controllersRoundPlayed, sentinelsRoundPlayed, 0)
 
   if (maxPlayed === duelistsRoundPlayed) {
