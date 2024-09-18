@@ -11,43 +11,18 @@ import { PlayerRole } from '../models/enums'
  * @returns {Promise<Array>} - The teams imported from VLR.
  */
 export const importTeamsAndPlayersFromVLR = async (): Promise<VlrTeam[]> => {
-  const teamsData = await fetchTeamsDataFromVLR()
-  for (const teamData of teamsData) {
-    // Upsert a team entry
-    const logoBlob = await downloadImage(teamData.logo_url)
+  const vlrTeamsData = await fetchTeamsDataFromVLR()
+  console.log(`Fetched ${vlrTeamsData.length} teams from VLR`)
 
-    const [team, created] = await Team.upsert({
-      short_name: teamData.short_name,
-      full_name: teamData.full_name,
-      country: teamData.country,
-      logo_image_file: logoBlob,
-    },  {
-      returning: true,
-      conflictFields: ['short_name'], // Ensure upsert is based on unique constraint
-    })
+  for (const vlrTeamData of vlrTeamsData) {
+    const team = await upsertTeamData(vlrTeamData)
 
-    console.log(`Team ${team.short_name} ${created ? 'created' : 'updated'}`)
-    
-
-    for (const playerData of teamData.players) {
-      // Upsert a player entry and associate it with the team
-      const [player, playerCreated] = await Player.upsert({
-        nickname: playerData.nickname,
-        full_name: playerData.full_name,
-        country: playerData.country,
-        team_id: team.id,
-        role: playerData.role,
-      },{
-        returning: true,
-        conflictFields: ['nickname'], // Ensure upsert is based on unique constraint
-      })
-
-      console.log(`Player ${player.nickname} ${playerCreated ? 'created' : 'updated'} and associated with team ${team.short_name}`)
-
+    for (const playerData of vlrTeamData.players) {
+      await updateOrCreatePlayer(playerData, team)
     }
   }
 
-  return teamsData
+  return vlrTeamsData
 }
 
 
@@ -154,7 +129,7 @@ export const fetchPlayerDataFromVLRPlayerPage = async (playerId: string): Promis
   }
 
   try {
-    const response = await fetch(`${VLR_URL}/player/${playerId}?timespan=all`)
+    const response = await fetch(`${VLR_URL}/player/${playerId}?timespan=90d`)
     const body = await response.text()
     const $ = load(body)
 
@@ -210,7 +185,7 @@ const getPlayerRoleBasedOnVlrStats = async ($:any, agentsPlayedHTML: any): Promi
     }
   }
 
-  const maxPlayed = Math.max(duelistsRoundPlayed, initiatorsRoundPlayed, controllersRoundPlayed, sentinelsRoundPlayed, 0)
+  const maxPlayed = Math.max(duelistsRoundPlayed, initiatorsRoundPlayed, controllersRoundPlayed, sentinelsRoundPlayed, 1)
 
   if (maxPlayed === duelistsRoundPlayed) {
     return PlayerRole.DUELIST
@@ -225,8 +200,70 @@ const getPlayerRoleBasedOnVlrStats = async ($:any, agentsPlayedHTML: any): Promi
   return PlayerRole.FLEX
 }
 
+/**
+ * Upserts a team entry based on the team data.
+ * @param vlrTeamData team data from VLR
+ * @returns {Promise<Team>} - The team created or updated.
+ */
+const upsertTeamData = async (vlrTeamData: VlrTeam) => {
+  // Upsert a team entry
+  const logoBlob = await downloadImage(vlrTeamData.logo_url)
+
+  const [team, created] = await Team.upsert({
+    short_name: vlrTeamData.short_name,
+    full_name: vlrTeamData.full_name,
+    country: vlrTeamData.country,
+    logo_image_file: logoBlob,
+  },  {
+    returning: true,
+    conflictFields: ['short_name'], // Ensure upsert is based on unique constraint
+  })
+  
+  console.log(`Team ${team.short_name} ${created ? 'created' : 'updated'}`)
+  return team
+}
+
+/**
+ * Updates or creates a player based on the player data and team.
+ * @param playerData player data from VLR
+ * @param team team data saved in the database
+ */
+const updateOrCreatePlayer = async (playerData: VlrPlayer, team: Team) => {
+  // Get player first to check if it exists
+  const player = await Player.findOne({
+    where: {
+      nickname: playerData.nickname,
+    },
+  })
+
+  if (player) {
+    // Update only team if player exists
+    await player.update({
+      team_id: team.id,
+    })
+
+    console.log(`Player ${player.nickname} updated`)
+    return
+  }
+
+  // Create player if it doesn't exist
+  const playerCreated = await Player.create({
+    nickname: playerData.nickname,
+    full_name: playerData.full_name,
+    country: playerData.country,
+    role: playerData.role,
+    team_id: team.id,
+  }, {
+    returning: true,
+  })
+
+  console.log(`Player ${playerCreated.nickname} created`)
+}
+
 export default {
   fetchTeamsDataFromVLR,
   fetchPlayerDataFromVLRTeamPage,
   importTeamsAndPlayersFromVLR,
 }
+
+
