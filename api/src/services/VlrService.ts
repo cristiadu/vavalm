@@ -1,10 +1,11 @@
 import { load } from 'cheerio'
+
 import { VLR_URL, VlrPlayer, VlrTeam } from '../models/Vlr'
 import { countryCodeToCountryName } from '../base/StringUtils'
-import { downloadImage } from '../base/FileUtils'
-import Team from '../models/Team'
-import Player from '../models/Player'
 import { PlayerRole } from '../models/enums'
+
+import { upsertTeamData } from './TeamService'
+import { updateOrCreatePlayer } from './PlayerService'
 
 /**
  * Imports teams and players from VLR.gg website.
@@ -52,7 +53,7 @@ export const fetchTeamsDataFromVLR = async (): Promise<VlrTeam[]> => {
     }
 
     const players = await fetchPlayerDataFromVLRTeamPage(vlrTeamId)
-    
+
     teams.push({
       id: vlrTeamId,
       short_name,
@@ -83,11 +84,11 @@ export const fetchPlayerDataFromVLRTeamPage = async (teamId: string): Promise<Vl
   const players: any[] = []
 
   const teamRoster = $('.wf-card').find('.team-roster-item')
-  
+
   for (const el of teamRoster) {
     const isStaffOrInactive = $(el).has(".wf-tag").text()
 
-    if(isStaffOrInactive) {
+    if (isStaffOrInactive) {
       continue
     }
 
@@ -96,7 +97,7 @@ export const fetchPlayerDataFromVLRTeamPage = async (teamId: string): Promise<Vl
       console.log('Player ID not found')
       continue
     }
-    
+
     const playerInfo = await fetchPlayerDataFromVLRPlayerPage(player_id)
     const nickname = playerInfo?.nickname ?? $(el).find('.team-roster-item-name-alias').text().trim()
     const full_name = playerInfo?.full_name ?? $(el).find('.team-roster-item-name-real').text().trim()
@@ -158,9 +159,9 @@ export const fetchPlayerDataFromVLRPlayerPage = async (playerId: string): Promis
  * @param agentsPlayedHTML - The tr lines of the HTML that shows the agents the player plays.
  * @returns {PlayerRole} - The role of the player.
  */
-const getPlayerRoleBasedOnVlrStats = async ($:any, agentsPlayedHTML: any): Promise<PlayerRole> => {
+const getPlayerRoleBasedOnVlrStats = async ($: any, agentsPlayedHTML: any): Promise<PlayerRole> => {
   const agentsPlayed = agentsPlayedHTML.map((_: any, line: any) => {
-    return {name: $(line).find('img').first().attr('alt'), rounds: parseInt($(line).find('td').eq(2).text())}
+    return { name: $(line).find('img').first().attr('alt'), rounds: parseInt($(line).find('td').eq(2).text()) }
   }).get()
 
   const duelists = ['jett', 'raze', 'phoenix', 'yoru', 'reyna', 'neon', 'iso']
@@ -175,13 +176,13 @@ const getPlayerRoleBasedOnVlrStats = async ($:any, agentsPlayedHTML: any): Promi
 
   for (const agent of agentsPlayed) {
     if (duelists.includes(agent.name)) {
-      duelistsRoundPlayed+= agent.rounds ? agent.rounds : 0
+      duelistsRoundPlayed += agent.rounds ? agent.rounds : 0
     } else if (initiators.includes(agent.name)) {
-      initiatorsRoundPlayed+= agent.rounds ? agent.rounds : 0
+      initiatorsRoundPlayed += agent.rounds ? agent.rounds : 0
     } else if (controllers.includes(agent.name)) {
-      controllersRoundPlayed+= agent.rounds ? agent.rounds : 0
+      controllersRoundPlayed += agent.rounds ? agent.rounds : 0
     } else if (sentinels.includes(agent.name)) {
-      sentinelsRoundPlayed+= agent.rounds ? agent.rounds : 0
+      sentinelsRoundPlayed += agent.rounds ? agent.rounds : 0
     }
   }
 
@@ -199,71 +200,3 @@ const getPlayerRoleBasedOnVlrStats = async ($:any, agentsPlayedHTML: any): Promi
 
   return PlayerRole.FLEX
 }
-
-/**
- * Upserts a team entry based on the team data.
- * @param vlrTeamData team data from VLR
- * @returns {Promise<Team>} - The team created or updated.
- */
-const upsertTeamData = async (vlrTeamData: VlrTeam) => {
-  // Upsert a team entry
-  const logoBlob = await downloadImage(vlrTeamData.logo_url)
-
-  const [team, created] = await Team.upsert({
-    short_name: vlrTeamData.short_name,
-    full_name: vlrTeamData.full_name,
-    country: vlrTeamData.country,
-    logo_image_file: logoBlob,
-  },  {
-    returning: true,
-    conflictFields: ['short_name'], // Ensure upsert is based on unique constraint
-  })
-  
-  console.log(`Team ${team.short_name} ${created ? 'created' : 'updated'}`)
-  return team
-}
-
-/**
- * Updates or creates a player based on the player data and team.
- * @param playerData player data from VLR
- * @param team team data saved in the database
- */
-const updateOrCreatePlayer = async (playerData: VlrPlayer, team: Team) => {
-  // Get player first to check if it exists
-  const player = await Player.findOne({
-    where: {
-      nickname: playerData.nickname,
-    },
-  })
-
-  if (player) {
-    // Update only team if player exists
-    await player.update({
-      team_id: team.id,
-    })
-
-    console.log(`Player ${player.nickname} updated`)
-    return
-  }
-
-  // Create player if it doesn't exist
-  const playerCreated = await Player.create({
-    nickname: playerData.nickname,
-    full_name: playerData.full_name,
-    country: playerData.country,
-    role: playerData.role,
-    team_id: team.id,
-  }, {
-    returning: true,
-  })
-
-  console.log(`Player ${playerCreated.nickname} created`)
-}
-
-export default {
-  fetchTeamsDataFromVLR,
-  fetchPlayerDataFromVLRTeamPage,
-  importTeamsAndPlayersFromVLR,
-}
-
-

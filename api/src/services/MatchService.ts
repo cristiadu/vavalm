@@ -1,11 +1,14 @@
 import { Op } from "sequelize"
+
+import { getRandomDateBetweenInterval } from "../base/DateUtils"
+
+import Team from "../models/Team"
+import Tournament from "../models/Tournament"
 import Match from "../models/Match"
 import { MatchType } from "../models/enums"
-import GameService from "./GameService"
-import Tournament from "../models/Tournament"
-import { getRandomDateBetweenInterval } from "../base/DateUtils"
-import Team from "../models/Team"
 import Game from "../models/Game"
+
+import GameService from "./GameService"
 
 const MatchService = {
   /**

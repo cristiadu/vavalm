@@ -1,9 +1,10 @@
 import { Router } from 'express'
-import RoundService from '../services/RoundService'
-import DuelService from '../services/DuelService'
-import GameStatsService from '../services/GameStatsService'
+
 import TournamentService from '../services/TournamentService'
 import MatchService from '../services/MatchService'
+import GameStatsService from '../services/GameStatsService'
+import RoundService from '../services/RoundService'
+import DuelService from '../services/DuelService'
 
 const router = Router({ mergeParams: true })
 

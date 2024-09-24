@@ -1,9 +1,16 @@
+// List of special countries that are not in the restcountries API
 export const specialCountries: { [key: string]: string } = {
   'eu': 'Europe',
   'en': 'England',
   'un': 'International',
 }
 
+/**
+ * Fetches the country name from the country code.
+ * @param countryCode - The country code.
+ * @returns {Promise<string>} - A promise that resolves to the country name.
+ * 
+*/
 export const countryCodeToCountryName = async (countryCode: string): Promise<string> => {
   // Call the API to fetch the country name by the cc2 code
   // cca2 is the country code in ISO 3166-1 alpha-2 format
@@ -12,7 +19,7 @@ export const countryCodeToCountryName = async (countryCode: string): Promise<str
   if (specialCountries[countryCode]) {
     return specialCountries[countryCode]
   }
-  
+
   try {
     const response = await fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
     if (!response.ok) {

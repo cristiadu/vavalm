@@ -1,9 +1,11 @@
 import { Association, DataTypes, Model } from 'sequelize'
-import { MatchType } from './enums'
+
 import db from './db'
-import Tournament from './Tournament'
-import Game from './Game'
+
 import Team from './Team'
+import Tournament from './Tournament'
+import { MatchType } from './enums'
+import Game from './Game'
 
 class Match extends Model {
   declare id: number

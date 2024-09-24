@@ -1,6 +1,8 @@
 import { Router } from 'express'
-import RoundController from './RoundController'
+
 import GameService from '../services/GameService'
+
+import RoundController from './RoundController'
 
 const router = Router()
 

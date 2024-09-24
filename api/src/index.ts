@@ -1,14 +1,17 @@
 import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
+
+import setupTestData from './bootstrap/Bootstrap'
+import db from './models/db'
+
+import SchedulerService  from './services/SchedulerService'
+
 import TeamsController from './controllers/TeamsController'
 import PlayersController from './controllers/PlayersController'
 import TournamentController from './controllers/TournamentController'
-import setupTestData from './bootstrap/Bootstrap'
-import GameController from './controllers/GameController'
-import db from './models/db'
 import MatchController from './controllers/MatchController'
-import SchedulerService  from './services/SchedulerService'
+import GameController from './controllers/GameController'
 import VlrImportController from './controllers/VlrImportController'
 
 const app = express()

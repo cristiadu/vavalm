@@ -1,15 +1,17 @@
+import { getRandomTimeBetweenHourInterval } from "../base/DateUtils"
+
+import Team from "../models/Team"
+import Player from "../models/Player"
+import Match from "../models/Match"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
-import Player from "../models/Player"
-import PlayerGameStats from "../models/PlayerGameStats"
-import Team from "../models/Team"
-import RoundService from "./RoundService"
-import GameStatsService from "./GameStatsService"
 import { GameMap } from "../models/enums"
-import { getRandomTimeBetweenHourInterval, getRandomTimeOnDay } from "../base/DateUtils"
+import PlayerGameStats from "../models/PlayerGameStats"
+
 import TournamentService from "./TournamentService"
-import Match from "../models/Match"
 import MatchService from "./MatchService"
+import GameStatsService from "./GameStatsService"
+import RoundService from "./RoundService"
 
 const GameService = {
   /**

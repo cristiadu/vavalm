@@ -1,3 +1,8 @@
+/**
+ *  Download image from url and return as Buffer
+ * @param url url of the image
+ * @returns Buffer of the image
+ */
 export const downloadImage =  async (url: string): Promise<Buffer | null> => {
   try {
     const response = await fetch(url)

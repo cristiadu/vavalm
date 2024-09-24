@@ -1,6 +1,8 @@
 import { Router } from 'express'
-import Player from '../models/Player'
+
 import { ItemsWithPagination } from '../base/types'
+import Player from '../models/Player'
+
 import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '../services/PlayerService'
 
 const router = Router()

@@ -1,6 +1,8 @@
 import { parentPort, workerData } from 'worker_threads'
-import MatchService from '../services/MatchService'
+
 import Match from '../models/Match'
+
+import MatchService from '../services/MatchService'
 
 interface WorkerData {
   matchToPlay: Match

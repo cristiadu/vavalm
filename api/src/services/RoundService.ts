@@ -1,7 +1,8 @@
+import Team from "../models/Team"
 import Player, { PlayerDuelResults } from "../models/Player"
 import GameLog, { RoundState } from "../models/GameLog"
 import GameStats from "../models/GameStats"
-import Team from "../models/Team"
+
 import DuelService from "./DuelService"
 
 const RoundService = {

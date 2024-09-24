@@ -1,8 +1,10 @@
 import { Router } from 'express'
 import Multer from 'multer'
+
+import { ItemsWithPagination } from '../base/types'
 import Team from '../models/Team'
 import Player from '../models/Player'
-import { ItemsWithPagination } from '../base/types'
+
 import { getAllStatsForAllTeams, getAllStatsForTeam } from '../services/TeamService'
 
 const router = Router()

@@ -1,6 +1,8 @@
 import { parentPort, Worker } from 'worker_threads'
-import MatchService from '../services/MatchService'
+
 import Match from '../models/Match'
+
+import MatchService from '../services/MatchService'
 
 const ONE_MINUTE_IN_MS = 60000
 let executing = false
@@ -57,7 +59,6 @@ const startMatchExecutionWorker = (matchId: number, match: Match) => {
 /**
  * Starts the scheduler to check for matches that should be played.
  * 
- * @returns void
 **/
 const startScheduler = async () => {
   setInterval(async () => {

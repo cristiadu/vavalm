@@ -1,5 +1,7 @@
 import { Model, DataTypes, Association } from 'sequelize'
+
 import db from './db'
+
 import Player from './Player'
 import Tournament from './Tournament'
 

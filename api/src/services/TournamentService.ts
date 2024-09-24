@@ -1,9 +1,11 @@
 import { Op } from "sequelize"
+
+import Tournament from "../models/Tournament"
 import Standings from "../models/Standings"
+import Match from "../models/Match"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
-import Tournament from "../models/Tournament"
-import Match from "../models/Match"
+
 import MatchService from "./MatchService"
 
 const TournamentService = {
@@ -13,9 +15,9 @@ const TournamentService = {
    * @param tournamentId id of the tournament
    * @returns the id of the winning team
   **/
-  getWinnerForTournament: async (tournamentId: number) => { 
+  getWinnerForTournament: async (tournamentId: number) => {
     const standings = await Standings.findOne({
-      where: { 
+      where: {
         tournament_id: tournamentId,
         position: 1,
       },
@@ -23,7 +25,7 @@ const TournamentService = {
 
     return standings?.team_id
   },
-  
+
   /**
    * Get the tournament based off a match id.
    * 
@@ -156,7 +158,7 @@ const TournamentService = {
 
         // Check if the match has a winner
         const matchWinner = await MatchService.getWinnerForMatchType(match)
-        if(matchWinner != null) {
+        if (matchWinner != null) {
           if (matchWinner === team1Id) {
             team1Standings.wins += 1
             team2Standings.losses += 1
@@ -201,6 +203,12 @@ const TournamentService = {
     }
   },
 
+  /**
+   * Update standings positions for the tournament.
+   * 
+   * @param tournamentId id of the tournament
+   * 
+    **/
   updateStandingsPositions: async (tournamentId: number) => {
     const standings = await Standings.findAll({
       where: { tournament_id: tournamentId },

@@ -1,4 +1,5 @@
 import { randomInt } from "crypto"
+
 import GameLog, { RoundState } from "../models/GameLog"
 import Player, { PlayerDuel, PlayerDuelResults } from "../models/Player"
 import ChanceService from "./ChanceService"

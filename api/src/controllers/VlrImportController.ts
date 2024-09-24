@@ -1,4 +1,5 @@
 import { Router } from 'express'
+
 import { importTeamsAndPlayersFromVLR } from '../services/VlrService'
 
 const router = Router()

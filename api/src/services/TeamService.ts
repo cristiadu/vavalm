@@ -1,11 +1,45 @@
 import { Op } from "sequelize"
-import { ItemsWithPagination, TeamStats } from "../base/types"
-import Match from "../models/Match"
+
+import { downloadImage } from "../base/FileUtils"
+
 import Team from "../models/Team"
+import { ItemsWithPagination, TeamStats } from "../base/types"
+import { VlrTeam } from "../models/Vlr"
+import Tournament from "../models/Tournament"
+import Match from "../models/Match"
 import Game from "../models/Game"
 import GameStats from "../models/GameStats"
-import Tournament from "../models/Tournament"
 
+/**
+ * Upserts a team entry based on the team data.
+ * @param vlrTeamData team data from VLR
+ * @returns {Promise<Team>} - The team created or updated.
+ */
+export const upsertTeamData = async (vlrTeamData: VlrTeam) => {
+  // Upsert a team entry
+  const logoBlob = await downloadImage(vlrTeamData.logo_url)
+
+  const [team, created] = await Team.upsert({
+    short_name: vlrTeamData.short_name,
+    full_name: vlrTeamData.full_name,
+    country: vlrTeamData.country,
+    logo_image_file: logoBlob,
+  }, {
+    returning: true,
+    conflictFields: ['short_name'], // Ensure upsert is based on unique constraint
+  })
+
+  console.log(`Team ${team.short_name} ${created ? 'created' : 'updated'}`)
+  return team
+}
+
+/**
+ * Get all statistics for all teams.
+ * 
+ * @param limit  The number of items to return
+ * @param offset  The number of items to skip before starting to collect the result set
+ * @returns {Promise<ItemsWithPagination<TeamStats>>} - The teams statistics with pagination.
+ */
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
   const teams = await Team.findAll()
 
@@ -18,6 +52,13 @@ export const getAllStatsForAllTeams = async (limit: number, offset: number): Pro
   }
 }
 
+/**
+ * Get all statistics for a team.
+ * 
+ * @param teamId  The id of the team
+ * @returns {Promise<TeamStats>} - The team statistics.
+ * @throws {Error} - If the team is not found.
+  */
 export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => {
   const team = await Team.findByPk(teamId)
 
@@ -99,6 +140,13 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
   }
 }
 
+/**
+ * Sorts teams by their statistics.
+ * 
+ * @param a  The first team statistics
+ * @param b  The second team statistics
+ * @returns {number} - The comparison result.
+  */
 export const sortTeamsByStats = (a: TeamStats, b: TeamStats): number => {
   // Sort by following criteria:
   const criteria: [keyof TeamStats, boolean][] = [

@@ -1,9 +1,11 @@
 import { Association, DataTypes, Model } from 'sequelize'
+
+import db from './db'
+
+import Match from './Match'
 import { GameMap } from './enums'
 import GameLog from './GameLog'
 import GameStats from './GameStats'
-import db from './db'
-import Match from './Match'
 
 class Game extends Model {
   declare id: number

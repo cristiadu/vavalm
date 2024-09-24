@@ -9,7 +9,6 @@ const GameStatsService = {
    * Updates all statistics for a given game, including game stats and player stats.
    * 
    * @param {number} game_id - The ID of the game to update statistics for.
-   * @returns {Promise<void>} - A promise that resolves when all statistics have been updated.
    */
   updateAllStats: async (game_id: number): Promise<void> => {
     // Update the game stats
@@ -23,8 +22,6 @@ const GameStatsService = {
    * Updates the game statistics for a given game by counting the rounds won by each team.
    * 
    * @param {number} game_id - The ID of the game to update statistics for.
-   * @throws Will throw an error if game statistics are not found for the given game ID.
-   * @returns {Promise<void>} - A promise that resolves when the game statistics have been updated.
    */
   updateGameStats: async (game_id: number): Promise<void> => {
     const gameStats = await GameStats.findOne({
@@ -86,6 +83,7 @@ const GameStatsService = {
    * 
    * @param {Player[]} players - The list of players to initialize stats for.
    * @param {number} gameStatsId - The ID of the game stats.
+   * @param {number} team1Or2 - The team number (1 or 2) to initialize stats for.
    * @returns {Promise<Map<number, PlayerGameStats>>} A map of player IDs to their game stats.
    */
   getPlayerIdToStatsMap: async (players: Player[], gameStatsId: number, team1Or2: number): Promise<Map<number, PlayerGameStats>> => {
@@ -114,8 +112,7 @@ const GameStatsService = {
   /**
    * Updates the player statistics based on game logs.
    * 
-   * @param {GameStats} gameStats - The game stats object containing information about the game.
-   * @returns {Promise<void>} A promise that resolves when the player stats have been updated.
+   * @param {number} game_id - The ID of the game to update player stats for.
    * 
    * This function performs the following steps:
    * 1. Retrieves all game logs for the given game.
