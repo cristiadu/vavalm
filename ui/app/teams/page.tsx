@@ -105,7 +105,7 @@ export default function ListTeams() {
     
   }
 
-  const handlePageChange = (offset: number, limit: number) => {
+  const handlePageChange = (limit: number, offset: number) => {
     fetchCountriesAndTeams(limit, offset)
   }
 

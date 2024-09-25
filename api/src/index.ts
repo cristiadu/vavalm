@@ -38,7 +38,8 @@ db.sequelize.sync({ force: forceSync }).then(() => {
 
 app.listen(port, () => {
   console.info(`Server is running on port ${port}`)
-  const shouldStartScheduler = process.env.START_SCHEDULER !== 'false'
+  const shouldStartScheduler = process.env.START_SCHEDULER != 'false'
+  console.log('shouldStartScheduler', shouldStartScheduler)
   if (shouldStartScheduler) {
     console.info('Starting match scheduler...')
     SchedulerService.startScheduler()

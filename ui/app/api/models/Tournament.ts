@@ -77,9 +77,9 @@ export interface Match {
   id: number
   date: Date
   team1_id: number
-  team1: Team
+  team1?: Team
   team2_id: number
-  team2: Team
+  team2?: Team
   winner_id: number
   winner: Team
   team1_score: number

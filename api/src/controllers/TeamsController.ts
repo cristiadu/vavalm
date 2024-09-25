@@ -16,16 +16,15 @@ router.get('/', async (req, res) => {
   const offset_value = Number(req.query.offset)
 
   try {
-    const countAllTeams = await Team.count()
-    const teams = await Team.findAll({ 
-      order: [['id', 'ASC']], 
-      limit: limit_value ? limit_value: undefined, 
-      offset: offset_value? offset_value: undefined,
+    const teamsWithFindAllAndCount = await Team.findAndCountAll({
+      order: [['id', 'ASC']],
+      limit: limit_value > 0 ? limit_value : undefined,
+      offset: offset_value > 0 ? offset_value : undefined,
     })
 
     const teamsWithPagination: ItemsWithPagination<Team> = {
-      total: countAllTeams,
-      items: teams,
+      total: teamsWithFindAllAndCount.count,
+      items: teamsWithFindAllAndCount.rows,
     }
     
     res.json(teamsWithPagination)

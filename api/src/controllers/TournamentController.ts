@@ -17,19 +17,19 @@ router.get('/', async (req, res) => {
     const limit_value = Number(req.query.limit)
     const offset_value = Number(req.query.offset)
 
-    const countAllTournaments = await Tournament.count()
-    const tournaments = await Tournament.findAll({
+    // Switching the above to use findAllAndCount to get the total count of tournaments
+    const tournamentsFindAll = await Tournament.findAndCountAll({
       order: [['id', 'ASC']],
-      limit: limit_value > 0 ? limit_value : undefined,
-      offset: offset_value > 0 ? offset_value : undefined,
       include: [
         { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] },
       ],
+      limit: limit_value > 0 ? limit_value : undefined,
+      offset: offset_value > 0 ? offset_value : undefined,
     })
 
     const tournamentsWithPagination: ItemsWithPagination<Tournament> = {
-      total: countAllTournaments,
-      items: tournaments,
+      total: tournamentsFindAll.count,
+      items: tournamentsFindAll.rows,
     }
     res.json(tournamentsWithPagination)
   } catch (err) {
@@ -41,41 +41,16 @@ router.get('/', async (req, res) => {
 // Fetch tournament
 router.get('/:id', async (req, res) => {
   const { id } = req.params
-  const limit_value = Number(req.query.limit)
-  const offset_value = Number(req.query.offset)
 
   try {
-    // Step 1: Fetch the primary keys of the Match model
-    const matchesIds = await Match.findAll({
-      attributes: ['id'],
-      where: { tournament_id: id },
-      limit: limit_value > 0 ? limit_value : undefined,
-      offset: offset_value > 0 ? offset_value : undefined,
-      raw: true,
-    })
-
-    // Step 2: Extract the IDs from the result
-    const matchIdsArray = matchesIds.map(game => game.id)
-
-    // Step 3: Fetch the Tournament with the included Game models using the fetched IDs
+    // Step 1: Fetch the Tournament with the included Game models using the fetched IDs
     const tournament = await Tournament.findByPk(id, {
       include: [
         {
-          model: Match,
-          as: 'schedule',
-          where: { id: matchIdsArray },
-          include: [
-            { model: Team, as: 'team1' },
-            { model: Team, as: 'team2' },
-          ],
-        },
-        {
           model: Standings,
           as: 'standings',
-          include: [{ model: Team, as: 'team' }],
         },
         { model: Team, as: 'teams' },
-        { model: Team, as: 'winner' },
       ],
       order: [[{ model: Standings, as: 'standings' }, 'position', 'ASC']],
     })
@@ -83,7 +58,23 @@ router.get('/:id', async (req, res) => {
     if (!tournament) {
       return res.status(404).json({ error: 'Tournament not found' })
     }
+
     res.json(tournament)
+  } catch (err) {
+    console.error('Error executing query:', err)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
+// Fetch match schedule from tournament
+router.get('/:id/schedule', async (req, res) => {
+  const { id } = req.params
+  const limit_value = Number(req.query.limit)
+  const offset_value = Number(req.query.offset)
+
+  try {
+    const matches = await MatchService.getMatchesFromTournament(Number(id), limit_value, offset_value)
+    res.json(matches)
   } catch (err) {
     console.error('Error executing query:', err)
     res.status(500).json({ error: 'Internal Server Error' })

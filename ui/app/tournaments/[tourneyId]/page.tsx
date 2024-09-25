@@ -1,36 +1,63 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { fetchCountries } from '../../api/CountryApi'
-import { getTournament } from '../../api/TournamentsApi'
-import { Tournament } from '../../api/models/Tournament'
+import { fetchTournamentMatchSchedule, getTournament } from '../../api/TournamentsApi'
+import { Match, Tournament } from '../../api/models/Tournament'
 import 'react-quill/dist/quill.snow.css'
 import { asFormattedDate, asSafeHTML } from '../../base/StringUtils'
 import { getWinOrLossColor } from '../../api/models/Team'
 import SectionHeader from '../../base/SectionHeader'
 import { sortByDate } from '../../base/UIUtils'
+import Pagination from '../../base/Pagination'
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../../api/models/constants'
 
 export default function ViewTournament({ params }: { params: { tourneyId: string } }) {
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
+  const [totalMatches, setTotalMatches] = useState<number>(0)
+  const [matches, setMatches] = useState<Match[] | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    const fetchTournamentData = async () => {
-      const tournamentData = await getTournament(Number(params.tourneyId), (data) => {
-        setTournament(data)
+
+  const fetchTournamentMatches = useCallback(async (limit: number, offset: number) => {
+    await fetchTournamentMatchSchedule(Number(params.tourneyId), (data) => {
+      // Use the tournament data to set the teams objects
+      const dataWithTeams = data.items.map((match: Match) => {
+        const team1 = tournament?.teams.find(team => team.id === match.team1_id)
+        const team2 = tournament?.teams.find(team => team.id === match.team2_id)
+        return { ...match, team1, team2 }
       })
 
-      const countries = await fetchCountries(() => {})
-      if (tournamentData.country) {
-        setCountryFlag(countries?.find(c => c.name === tournamentData.country)?.flag || null)
-      }
-    }
+      setMatches(dataWithTeams)
+      setTotalMatches(data.total)
+    }, limit, offset)
+  }, [params.tourneyId, tournament?.teams])
 
-    fetchTournamentData()
+  const fetchTournamentData = useCallback(async () => {
+    const tournamentData = await getTournament(Number(params.tourneyId), (data) => {
+      setTournament(data)
+    })
+
+    const countries = await fetchCountries(() => {})
+    if (tournamentData.country) {
+      setCountryFlag(countries?.find(c => c.name === tournamentData.country)?.flag || null)
+    }
   }, [params.tourneyId])
+
+  useEffect(() => {
+    fetchTournamentData()
+  }, [fetchTournamentData])
+
+  useEffect(() => {
+    fetchTournamentMatches(LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE)
+  }, [fetchTournamentMatches])
+
+  const handleSchedulePageChange = (limit: number, offset: number) => {
+    fetchTournamentMatches(limit, offset)
+  }
 
   if (!tournament) {
     return <div>Loading...</div>
@@ -40,8 +67,8 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
     router.push(`/tournaments/${tournament.id}/logs/${matchId}`)
   }
 
-  const teamsToLogoSrc: Map<number, string> = new Map(tournament.teams.map(team => [team.id!, URL.createObjectURL(team.logo_image_file!)]))
-  const tournamentWinnerLogoSrc = tournament.winner_id ? teamsToLogoSrc.get(tournament.winner_id) : null
+  const teamsToLogoSrc: Map<number, string> = new Map(tournament.teams.map(team => [team.id!, team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"]))
+  const tournamentWinner = tournament.winner_id ? tournament.teams.find(team => team.id === tournament.winner_id) : null
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
@@ -87,13 +114,13 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <Image 
-                src={tournamentWinnerLogoSrc && tournament.ended ? tournamentWinnerLogoSrc : "/images/nologo.svg"} 
-                alt={tournament.winner?.short_name} 
+                src={tournamentWinner?.id && tournament.ended ? teamsToLogoSrc.get(tournamentWinner.id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
+                alt={tournamentWinner?.short_name || "No Team Yet"} 
                 width={30} 
                 height={30} 
                 className="inline-block mr-2" 
               />
-              <span className="text-lg">{tournament.winner?.short_name || "No Team Yet"}</span>
+              <span className="text-lg">{tournamentWinner?.short_name || "No Team Yet"}</span>
             </div>
           </div>
         </div>
@@ -115,7 +142,7 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 </tr>
               </thead>
               <tbody>
-                {tournament.standings && tournament.standings.map((standing, index) => (
+                {tournament.standings && tournament.standings.map((standing) => (
                   <tr key={standing.id}>
                     <td className="py-2 px-2 border-b text-center bg-gray-100">{standing.position}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">
@@ -155,47 +182,49 @@ export default function ViewTournament({ params }: { params: { tourneyId: string
                 </tr>
               </thead>
               <tbody>
-                {tournament.schedule && tournament.schedule.sort(sortByDate).map((match) => (
-                  <tr key={match.id} onClick={() => showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
-                    <td className="py-2 border-b text-center">
-                      {asFormattedDate(match.date)}
-                    </td>
-                    <td className="py-2 border-b text-center">{match.type}</td>
-                    <td className="py-2 border-b items-center">
-                      <div className="flex items-center space-x-2">
-                        <Image 
-                          src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
-                          alt={match?.team1?.short_name} 
-                          width={30} 
-                          height={30} 
-                          className="inline-block mr-2" 
-                        />
-                        <span>{match?.team1?.short_name}</span>
-                      </div>
-                    </td>
-                    <td className="py-2 border-b items-center">
-                      <div className="flex items-center space-x-2">
-                        <Image 
-                          src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
-                          alt={match?.team2?.short_name} 
-                          width={30} 
-                          height={30} 
-                          className="inline-block mr-2" 
-                        />
-                        <span>{match?.team2?.short_name}</span>
-                      </div>
-                    </td>
-                    <td className="py-2 border-b text-center">
-                      <strong>
-                        <span className={getWinOrLossColor(match?.team1, match)}>{match?.team1_score}</span>
+                {matches && matches.sort(sortByDate).map((match) => 
+                  (match.team1 && match.team2) && (
+                    <tr key={match.id} onClick={() => showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
+                      <td className="py-2 border-b text-center">
+                        {asFormattedDate(match.date)}
+                      </td>
+                      <td className="py-2 border-b text-center">{match.type}</td>
+                      <td className="py-2 border-b items-center">
+                        <div className="flex items-center space-x-2">
+                          <Image 
+                            src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
+                            alt={match.team1.short_name} 
+                            width={30} 
+                            height={30} 
+                            className="inline-block mr-2" 
+                          />
+                          <span>{match.team1.short_name}</span>
+                        </div>
+                      </td>
+                      <td className="py-2 border-b items-center">
+                        <div className="flex items-center space-x-2">
+                          <Image 
+                            src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
+                            alt={match.team2.short_name} 
+                            width={30} 
+                            height={30} 
+                            className="inline-block mr-2" 
+                          />
+                          <span>{match.team2.short_name}</span>
+                        </div>
+                      </td>
+                      <td className="py-2 border-b text-center">
+                        <strong>
+                          <span className={getWinOrLossColor(match.team1, match)}>{match?.team1_score}</span>
                         - 
-                        <span className={getWinOrLossColor(match?.team2, match)}>{match?.team2_score}</span>
-                      </strong>
-                    </td>
-                  </tr>
-                ))}
+                          <span className={getWinOrLossColor(match.team2, match)}>{match?.team2_score}</span>
+                        </strong>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+            <Pagination totalItems={totalMatches} onPageChange={handleSchedulePageChange} />
           </div>
         </div>
       </div>

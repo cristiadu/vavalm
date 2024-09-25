@@ -1,5 +1,23 @@
 import { Country } from "./models/Country"
 
+export const specialCountries: Country[] = [
+  {
+    code: 'eu',
+    name: 'Europe',
+    flag: 'https://flagpedia.net/data/org/w580/eu.webp',
+  },
+  {
+    code: 'en',
+    name: 'England',
+    flag: 'https://flagpedia.net/data/flags/w580/gb-eng.webp',
+  },
+  {
+    code: 'un',
+    name: 'International',
+    flag: 'https://flagpedia.net/data/org/w580/un.webp',
+  },
+]
+
 export const fetchCountries = async (closure: (countryData: Country[]) => void) => {
   try {
     const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flags')
@@ -11,6 +29,9 @@ export const fetchCountries = async (closure: (countryData: Country[]) => void) 
       name: country.name.common,
       flag: country.flags.png,
     }))
+
+    // Add special countries to the list
+    countryData.push(...specialCountries)
 
     // Run the closure function after fetching data
     closure(countryData)

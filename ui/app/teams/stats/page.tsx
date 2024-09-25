@@ -46,8 +46,8 @@ const TeamsStatsPage = () => {
   const refreshListData = async (data: ItemsWithPagination<TeamStats>) => {
     if (data.total > 0) {
       setTotalItems(data.total)
-      const items = data.items.map((item:any) => {
-        if (Array.isArray(item.team.logo_image_file.data)) {
+      const items = data.items.map((item: any) => {
+        if (item.team.logo_image_file && item.team.logo_image_file.data) {
           const blob = new Blob([new Uint8Array(item.team.logo_image_file.data)], { type: 'image/png' })
           item.team.logo_image_file = blob
         }
@@ -63,7 +63,7 @@ const TeamsStatsPage = () => {
     router.push(`/teams/${teamId}`)
   }
 
-  const handlePageChange = (offset: number, limit: number) => {
+  const handlePageChange = (limit: number, offset: number) => {
     fetchTeamsStats(refreshListData, limit, offset)
   }
 
@@ -99,14 +99,14 @@ const TeamsStatsPage = () => {
                 )}
               </td>
               <td className="py-2 px-4 border-b border-gray-200">
-                {stats.team.logo_image_file && (
-                  <span className="flex items-center">
-                    <Image src={stats.team.logo_image_file instanceof Blob
-                      ? URL.createObjectURL(stats.team.logo_image_file)
-                      : "/images/nologo.svg"} alt={stats.team.short_name} width={30} height={30} className="mr-2" />
-                    {stats.team.short_name}
-                  </span>
-                )}                
+
+                <span className="flex items-center">
+                  <Image src={stats.team.logo_image_file
+                    ? URL.createObjectURL(stats.team.logo_image_file)
+                    : "/images/nologo.svg"} alt={stats.team.short_name} width={30} height={30} className="mr-2" />
+                  {stats.team.short_name}
+                </span>
+
               </td>
               <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.tournamentsWon, thresholds.tournamentsWon)}`}>{stats.tournamentsWon}</td>
               <td className={`py-2 px-4 border-b border-gray-200 ${getBgColorBasedOnThreshold(stats.tournamentsParticipated, thresholds.tournamentsParticipated)}`}>{stats.tournamentsParticipated}</td>

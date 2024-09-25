@@ -11,6 +11,9 @@ const nextConfig = {
       {
         hostname: 'upload.wikimedia.org',
       },
+      {
+        hostname: 'flagpedia.net',
+      }
     ],
   },
 }

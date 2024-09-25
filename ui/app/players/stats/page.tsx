@@ -49,7 +49,7 @@ const PlayersStatsPage = () => {
   }, [])
 
   const refreshListData = async (data: ItemsWithPagination<AllPlayerStats>) => {
-    if(data.total > 0) {
+    if (data.total > 0) {
       const playerToTeam: Record<number, Team> = {}
 
       const teamFetchPromises = data.items.map((stats: AllPlayerStats) =>
@@ -73,7 +73,7 @@ const PlayersStatsPage = () => {
     router.push(`/players/${player.id}`)
   }
 
-  const handlePageChange = (offset: number, limit: number) => {
+  const handlePageChange = (limit: number, offset: number) => {
     fetchPlayersStats(refreshListData, limit, offset)
   }
 
@@ -122,9 +122,10 @@ const PlayersStatsPage = () => {
               <td className="py-2 px-4 border-b border-gray-200">
                 {playerToTeam && playerToTeam[String(stats.player.id)] ? (
                   <span className="flex items-center">
-                    <Image src={playerToTeam[String(stats.player.id)].logo_image_file
-                      ? URL.createObjectURL(playerToTeam[String(stats.player.id)].logo_image_file as Blob)
-                      : "/images/nologo.svg"} alt={playerToTeam[String(stats.player.id)].short_name} width={30} height={30} className="mr-2" />
+                    <Image src={
+                      playerToTeam[String(stats.player.id)].logo_image_file
+                        ? URL.createObjectURL(playerToTeam[String(stats.player.id)].logo_image_file as Blob)
+                        : "/images/nologo.svg"} alt={playerToTeam[String(stats.player.id)].short_name} width={30} height={30} className="mr-2" />
                     {playerToTeam[String(stats.player.id)].short_name}
                   </span>
                 ) : (

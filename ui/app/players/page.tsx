@@ -91,7 +91,7 @@ export default function ListPlayers() {
     
   }
 
-  const handlePageChange = (offset: number, limit: number) => {
+  const handlePageChange = (limit: number, offset: number) => {
     fetchPlayers(refreshListData, limit, offset)
   }
 

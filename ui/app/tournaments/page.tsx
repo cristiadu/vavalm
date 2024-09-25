@@ -77,7 +77,7 @@ export default function ListTournaments() {
     })
   }
 
-  const handlePageChange = (offset: number, limit: number) => {
+  const handlePageChange = (limit: number, offset: number) => {
     fetchCountriesAndTournaments(offset, limit)
   }
   
@@ -137,7 +137,7 @@ export default function ListTournaments() {
                   <div className="grid grid-cols-3">
                     {tournament.teams?.map((team: Team) => (
                       <div key={team.id} className="flex items-center mb-2">
-                        <Image src={team.logo_image_file instanceof Blob ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={30} height={30} className="mr-2" />
+                        <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={30} height={30} className="mr-2" />
                         {team.short_name}
                       </div>
                     ))}

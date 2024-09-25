@@ -9,8 +9,23 @@ import { MatchType } from "../models/enums"
 import Game from "../models/Game"
 
 import GameService from "./GameService"
+import { ItemsWithPagination } from "../base/types"
 
 const MatchService = {
+  getMatchesFromTournament: async (tournamentId: number, limit: number, offset: number): Promise<ItemsWithPagination<Match>> => {
+    // Get count of all matches from tournament, then get the matches with limit and offset
+    const tournamentMatches = await Match.findAndCountAll({
+      where: { tournament_id: tournamentId },
+      limit,
+      offset,
+    })
+
+    return {
+      items: tournamentMatches.rows,
+      total: tournamentMatches.count,
+    } as ItemsWithPagination<Match>
+  },
+
   /**
    * Plays a full match, playing all games in the match in the order they're supposed to be played.
    *

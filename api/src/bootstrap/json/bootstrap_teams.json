@@ -9,9 +9,9 @@
   },
   { 
     "id": 2,
-    "full_name": "Fnatic", 
+    "full_name": "FNATIC", 
     "description": "<strong>Top EU Team</strong>", 
-    "short_name": "Fnatic", 
+    "short_name": "FNATIC", 
     "country": "United Kingdom",
     "imageLogo": "https://storage-asset.msi.com/global/picture/team/e05185384654285b25d9f639db4bcee8.jpg"
   },
@@ -41,9 +41,9 @@
   },
   {
     "id": 6,
-    "full_name": "KRU Esports",
+    "full_name": "KRÜ Esports",
     "description": "<strong>Top Latino Team</strong>",
-    "short_name": "KRU",
+    "short_name": "KRÜ Esports",
     "country": "Argentina",
     "imageLogo": "https://yt3.googleusercontent.com/ytc/AIdro_nIvHwk42X3JjqMO5cnMjwkswxooWIX5GAyxAagWadRLQ=s900-c-k-c0x00ffffff-no-rj"
   },
@@ -51,7 +51,7 @@
     "id": 7,
     "full_name": "G2 Esports",
     "description": "<strong>Top EU Team</strong>",
-    "short_name": "G2",
+    "short_name": "G2 Esports",
     "country": "Germany",
     "imageLogo": "https://www.opleague.pro/styles/media/team/508/Logo_background.png"
   },
@@ -91,7 +91,7 @@
     "id": 12,
     "full_name": "100 Thieves",
     "description": "<strong>Top NA Team</strong>",
-    "short_name": "100T",
+    "short_name": "100 Thieves",
     "country": "United States",
     "imageLogo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSt4zIiwLG2K3zdWpIYCluphbv4UX5HI2gsJA&s"
   },
