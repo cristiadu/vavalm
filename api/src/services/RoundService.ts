@@ -193,8 +193,8 @@ const RoundService = {
         startedTradeDuel: false,
       } as PlayerDuelResults,
       previous_duel: null,
-      team1_alive_players: gameStats.team1.players || [],
-      team2_alive_players: gameStats.team2.players || [],
+      team1_alive_players: gameStats.team1.players?.slice(0, 5) || [],
+      team2_alive_players: gameStats.team2.players?.slice(0, 5) || [],
       team_won: null,
       finished: false,
     }
