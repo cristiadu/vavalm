@@ -8,7 +8,9 @@
     "clean": "rm -rf node_modules",
     "start": "npx next start",
     "lint": "npx eslint . && npx next lint",
-    "lint:fix": "npx eslint . --fix && npx next lint --fix"
+    "lint:fix": "npx eslint . --fix && npx next lint --fix",
+    "upgrade:dependencies": "npx ncu -u",
+    "upgrade:dependencies:check": "npx ncu"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

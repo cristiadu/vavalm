@@ -52,7 +52,7 @@ export default function ViewMatch(props: { params: ViewMatchParams }) {
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
       <SectionHeader title="Match Logs" />
-      <div className="max-w-6 bg-white p-8 rounded shadow">
+      <div className="bg-white p-8 rounded shadow">
         <MatchHeader match={match} team1Country={team1Country} team2Country={team2Country} />
         <GamePicker games={match.games} selectedGameId={selectedGameId} onClick={handleGameSelection} />
         <GameView gameId={selectedGameId} team1Country={team1Country} team2Country={team2Country} match={match} countries={countries} />
