@@ -150,7 +150,7 @@ const MatchService = {
   createTeamMatchesForTournamentIfNeeded: async (
     teamIds: number[],
     tournament: Tournament,
-    matchType: MatchType
+    matchType: MatchType,
   ): Promise<void> => {
     // Create matches for the tournament, all teams play against each other
     // Create only needed matches, however, if a match already exists, it will not be created again
@@ -178,7 +178,7 @@ const MatchService = {
         const match = await Match.create({
           date: getRandomDateBetweenInterval(
             tournament.start_date,
-            tournament.end_date
+            tournament.end_date,
           ),
           tournament_id: tournament.id,
           team1_id: team1Id,
@@ -270,7 +270,7 @@ const MatchService = {
    */
   deleteTeamsMatchesFromTournament: async (
     teamIds: number[],
-    tournamentId: number
+    tournamentId: number,
   ): Promise<void> => {
     // Delete the matches by the tournament id.
     await Match.destroy({

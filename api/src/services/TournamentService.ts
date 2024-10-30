@@ -54,7 +54,7 @@ const TournamentService = {
    */
   createStandingsForTeamsIfNeeded: async (
     teamIds: number[],
-    tournamentId: number
+    tournamentId: number,
   ) => {
     for (const teamId of teamIds) {
       const standings = await Standings.findOne({
@@ -237,7 +237,7 @@ const TournamentService = {
    */
   removeStandingsForRemovedTeams: async (
     teamIds: number[],
-    tournamentId: number
+    tournamentId: number,
   ) => {
     await Standings.destroy({
       where: { tournament_id: tournamentId, team_id: { [Op.in]: teamIds } },

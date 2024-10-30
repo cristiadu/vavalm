@@ -2,7 +2,7 @@ import { Game, Match } from "./models/Tournament"
 
 export const playFullGame = async (
   game_id: number,
-  closure: (response: { message: string }) => void
+  closure: (response: { message: string }) => void,
 ) => {
   try {
     const response = await fetch(
@@ -12,7 +12,7 @@ export const playFullGame = async (
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     )
 
     if (!response.ok) {
@@ -38,7 +38,7 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     )
 
     if (!response.ok) {
@@ -51,14 +51,14 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
     if (data.team1.logo_image_file) {
       data.team1.logo_image_file = new Blob(
         [new Uint8Array(data.team1.logo_image_file.data)],
-        { type: "image/png" }
+        { type: "image/png" },
       )
     }
 
     if (data.team2.logo_image_file) {
       data.team2.logo_image_file = new Blob(
         [new Uint8Array(data.team2.logo_image_file.data)],
-        { type: "image/png" }
+        { type: "image/png" },
       )
     }
 
@@ -89,14 +89,14 @@ export const getGame = async (game_id: number, closure: (response: Game) => void
     if (data.stats.team1.logo_image_file) {
       data.stats.team1.logo_image_file = new Blob(
         [new Uint8Array(data.stats.team1.logo_image_file.data)],
-        { type: "image/png" }
+        { type: "image/png" },
       )
     }
 
     if (data.stats.team2.logo_image_file) {
       data.stats.team2.logo_image_file = new Blob(
         [new Uint8Array(data.stats.team2.logo_image_file.data)],
-        { type: "image/png" }
+        { type: "image/png" },
       )
     }
 

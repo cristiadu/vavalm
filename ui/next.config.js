@@ -13,7 +13,7 @@ const nextConfig = {
       },
       {
         hostname: 'flagpedia.net',
-      }
+      },
     ],
   },
 }

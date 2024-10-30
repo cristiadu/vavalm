@@ -57,7 +57,7 @@ const PlayersStatsPage = () => {
           if (stats.player.id) {
             playerToTeam[stats.player.id] = team
           }
-        })
+        }),
       )
 
       await Promise.all(teamFetchPromises)

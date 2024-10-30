@@ -46,7 +46,7 @@ export default function ListPlayers() {
         if (player.id) {
           playerToTeam[player.id] = team
         }
-      })
+      }),
     )
 
     await Promise.all(teamFetchPromises)

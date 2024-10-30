@@ -59,7 +59,7 @@ export default function ListTeams() {
             countryFlag: countriesToFlagMap[player.country] || null,
           }))
           return { ...team, players: playersWithFlags }
-        })
+        }),
       )
 
       setTeams(teamsWithPlayersFlags)
