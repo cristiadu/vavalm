@@ -1,0 +1,45 @@
+name: NodeJS with Webpack
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Build Base Project
+      run: |
+        npm run base:install
+        
+    - name: Build Frontend
+      run: |
+        npm run frontend:install
+        npm run frontend:build
+
+    - name: Build Backend
+      run: |
+        npm run backend:install
+        npm run backend:build
+
+    - name: Lint UI
+      run: |
+        npm run frontend:lint
+
+    - name: Lint Backend
+      run: |
+        npm run backend:lint
