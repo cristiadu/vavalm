@@ -1,4 +1,4 @@
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context"
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
 const EXCEPTION_PATTERNS = [/\/tournaments\/.+\/logs/, /\/exception2/]
 
@@ -9,7 +9,8 @@ export const handleBackClick = (
   e.preventDefault()
 
   // Get the current pathname
-  let pathSegments = window.location.pathname.split('/').filter(segment => segment)
+  let pathSegments = [] as string[]
+  //let pathSegments = window.location.pathname.split('/').filter(segment => segment)
 
   while (pathSegments.length > 0) {
     // Remove the last segment to get the parent path

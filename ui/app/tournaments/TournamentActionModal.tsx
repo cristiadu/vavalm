@@ -12,9 +12,11 @@ import { Tournament, TournamentType, Standing, Match } from '../api/models/Tourn
 import { EnumWithFieldName } from '../api/models/types'
 import { editTournament, newTournament } from '../api/TournamentsApi'
 import { quill_config } from '../base/Configs'
-import ReactQuill from 'react-quill'
-import 'react-quill/dist/quill.snow.css'
+import 'react-quill-new/dist/quill.snow.css'
 import DropdownSelect from '../base/DropdownSelect'
+import dynamic from 'next/dynamic'
+
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
 const initialTournamentState = {
   name: '',

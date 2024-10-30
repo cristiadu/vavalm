@@ -1,23 +1,22 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { use, useEffect, useMemo, useState } from "react"
 import { Match } from "../../../../api/models/Tournament"
 import { fetchCountries } from "../../../../api/CountryApi"
 import { Country } from "../../../../api/models/Country"
 import { getMatch } from "../../../../api/GameApi"
-import React from "react"
 import GamePicker from "./games/GamePicker"
 import SectionHeader from "../../../../base/SectionHeader"
 import { sortByDate } from "../../../../base/UIUtils"
 import MatchHeader from "./MatchHeader"
 import GameView from "./games/GameView"
 
-interface ViewMatchProps {
+type ViewMatchParams = Promise<{
   tourneyId: string
   matchId: string
-}
-
-export default function ViewMatch({ params }: { params: ViewMatchProps }) {
+}>
+export default function ViewMatch(props: { params: ViewMatchParams }) {
+  const params = use(props.params)
   const matchId = Number(params.matchId)
   const [match, setMatch] = useState<Match | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
@@ -43,8 +42,8 @@ export default function ViewMatch({ params }: { params: ViewMatchProps }) {
     setSelectedGameId(gameId)
   }
 
-  const team1Country = useMemo(() => countries.find(c => c.name === match?.team1.country), [countries, match])
-  const team2Country = useMemo(() => countries.find(c => c.name === match?.team2.country), [countries, match])
+  const team1Country = useMemo(() => countries.find(c => c.name === match?.team1?.country), [countries, match])
+  const team2Country = useMemo(() => countries.find(c => c.name === match?.team2?.country), [countries, match])
 
   if (!match) {
     return <div>Loading...</div>

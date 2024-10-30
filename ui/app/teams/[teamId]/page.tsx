@@ -1,18 +1,20 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { fetchPlayersByTeam } from '../../api/PlayersApi'
 import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchTeam, fetchTeamStats } from '../../api/TeamsApi'
 import { Team, TeamStats } from '../../api/models/Team'
-import 'react-quill/dist/quill.snow.css'
+import 'react-quill-new/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import SectionHeader from '../../base/SectionHeader'
 
-export default function ViewTeam({ params }: { params: { teamId: string } }) {
+type Params = Promise<{ teamId: string }>
+export default function ViewTeam(props: { params: Params }) {
+  const params = use(props.params)
   const [team, setTeam] = useState<Team | null>(null)
   const [players, setPlayers] = useState<PlayerWithFlag[]>([])
   const [teamStats, setTeamStats] = useState<TeamStats | null>(null)

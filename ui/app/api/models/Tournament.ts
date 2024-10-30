@@ -176,6 +176,6 @@ export interface Tournament {
   teams: Team[]
   schedule: Match[]
   standings: Standing[]
-  winner_id: number
-  winner: Team
+  winner_id?: number
+  winner?: Team
 }

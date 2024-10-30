@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { fetchPlayer, fetchPlayerStats } from '../../api/PlayersApi'
 import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
@@ -11,7 +11,10 @@ import { asWord } from '../../base/StringUtils'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import SectionHeader from '../../base/SectionHeader'
 
-export default function ViewPlayer({ params }: { params: { playerId: string } }) {
+type Params = Promise<{ playerId: string }>
+
+export default function ViewPlayer(props: { params: Params }) {
+  const params = use(props.params)
   const [player, setPlayer] = useState<Player | null>(null)
   const [playerStats, setPlayerStats] = useState<AllPlayerStats | null>(null)
   const [team, setTeam] = useState<Team | null>(null)

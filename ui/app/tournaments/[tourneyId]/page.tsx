@@ -1,12 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchTournamentMatchSchedule, getTournament } from '../../api/TournamentsApi'
 import { Match, Tournament } from '../../api/models/Tournament'
-import 'react-quill/dist/quill.snow.css'
+import 'react-quill-new/dist/quill.snow.css'
 import { asFormattedDate, asSafeHTML } from '../../base/StringUtils'
 import { getWinOrLossColor } from '../../api/models/Team'
 import SectionHeader from '../../base/SectionHeader'
@@ -14,7 +14,9 @@ import { sortByDate } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../../api/models/constants'
 
-export default function ViewTournament({ params }: { params: { tourneyId: string } }) {
+type Params = Promise<{ tourneyId: string }>
+export default function ViewTournament(props: { params: Params }) {
+  const params = use(props.params)
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
   const [totalMatches, setTotalMatches] = useState<number>(0)

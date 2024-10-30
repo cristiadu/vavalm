@@ -10,11 +10,11 @@ import { Team } from '../api/models/Team'
 import Modal from '../base/Modal'
 import { ItemActionModalProps } from '../common/CommonModels'
 import AlertMessage, { AlertType } from '../base/AlertMessage'
-import 'react-quill/dist/quill.snow.css'
+import 'react-quill-new/dist/quill.snow.css'
 import { quill_config } from '../base/Configs'
 import DropdownSelect from '../base/DropdownSelect'
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false })
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
 const initialState : Team = {
   short_name: '',
