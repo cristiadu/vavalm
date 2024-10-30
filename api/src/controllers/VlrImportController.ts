@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 
 import { importTeamsAndPlayersFromVLR } from '../services/VlrService'
 
@@ -7,7 +7,7 @@ const router = Router()
 /**
  * Fetches teams' information from VLR and imports new teams and players into the database.
  */
-router.post('/', async (_req, res) => {
+router.post('/', async (_req: Request, res: Response): Promise<any> => {
   try {
     const teamsData = await importTeamsAndPlayersFromVLR()
     res.status(200).json({ message: 'Teams and players imported successfully', teamsData })

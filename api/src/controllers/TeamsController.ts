@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import Multer from 'multer'
 
 import { ItemsWithPagination } from '../base/types'
@@ -11,7 +11,7 @@ const router = Router()
 const upload = Multer({ storage: Multer.memoryStorage() })
 
 // Fetch all teams
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response): Promise<any> => {
   const limit_value = Number(req.query.limit)
   const offset_value = Number(req.query.offset)
 
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/stats', async (req, res) => {
+router.get('/stats', async (req: Request, res: Response): Promise<any> => {
   try {
     const allTeamsStats = await getAllStatsForAllTeams(Number(req.query.limit), Number(req.query.offset))
     res.json(allTeamsStats)
@@ -45,7 +45,7 @@ router.get('/stats', async (req, res) => {
 })
 
 // Add new teams from JSON file
-router.post('/bulk', async (req, res) => {
+router.post('/bulk', async (req: Request, res: Response): Promise<any> => {
   const teams = req.body
 
   try {
@@ -62,7 +62,7 @@ router.post('/bulk', async (req, res) => {
 })
 
 // Fetch team
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
 
   try {
@@ -78,7 +78,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // Fetch team stats
-router.get('/:id/stats', async (req, res) => {
+router.get('/:id/stats', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
   try {
     const teamStats = await getAllStatsForTeam(Number(id))
@@ -90,7 +90,7 @@ router.get('/:id/stats', async (req, res) => {
 })
 
 // Add a new team
-router.post('/', upload.single('logo_image_file'), async (req, res) => {
+router.post('/', upload.single('logo_image_file'), async (req: Request, res: Response): Promise<any> => {
   const { short_name, full_name, description, country } = req.body
   const logo_image_file = req.file ? req.file.buffer : null
 
@@ -120,7 +120,7 @@ router.post('/', upload.single('logo_image_file'), async (req, res) => {
 })
 
 // Update a team
-router.put('/:id', upload.single('logo_image_file'), async (req, res) => {
+router.put('/:id', upload.single('logo_image_file'), async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
   const { short_name, full_name, description, country } = req.body
   const logo_image_file = req.file ? req.file.buffer : null
@@ -147,7 +147,7 @@ router.put('/:id', upload.single('logo_image_file'), async (req, res) => {
 })
 
 // Delete a team
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
 
   try {
@@ -165,7 +165,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 // Fetch players by team
-router.get('/:id/players', async (req, res) => {
+router.get('/:id/players', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
 
   try {

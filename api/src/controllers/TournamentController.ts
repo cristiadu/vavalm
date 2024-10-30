@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Request, Response, Router } from 'express'
 
 import { ItemsWithPagination } from '../base/types'
 import Team from '../models/Team'
@@ -12,7 +12,7 @@ import MatchService from '../services/MatchService'
 
 const router = Router()
 
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response): Promise<any> => {
   try {
     const limit_value = Number(req.query.limit)
     const offset_value = Number(req.query.offset)
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 })
 
 // Fetch tournament
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
 
   try {
@@ -67,7 +67,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // Fetch match schedule from tournament
-router.get('/:id/schedule', async (req, res) => {
+router.get('/:id/schedule', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
   const limit_value = Number(req.query.limit)
   const offset_value = Number(req.query.offset)
@@ -82,7 +82,7 @@ router.get('/:id/schedule', async (req, res) => {
 })
 
 // Add a new tournament
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response): Promise<any> => {
   const { type, name, description, country, teams, start_date, end_date } = req.body
 
   // Validate input data
@@ -139,7 +139,7 @@ router.post('/', async (req, res) => {
 })
 
 // Update a tournament
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
   const { type, name, description, country, teams, start_date, end_date } = req.body
 
@@ -199,7 +199,7 @@ router.put('/:id', async (req, res) => {
 
 
 // Delete a tournament
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
 
   try {

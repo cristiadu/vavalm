@@ -8,7 +8,7 @@ import { MatchType } from "../models/enums"
 import TournamentService from "../services/TournamentService"
 import MatchService from "../services/MatchService"
 
-const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' ?? false
+const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' || false
 
 const setupTestData = async () => {
   const teams = await Team.findAll()

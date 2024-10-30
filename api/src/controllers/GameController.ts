@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 
 import GameService from '../services/GameService'
 
@@ -7,7 +7,7 @@ import RoundController from './RoundController'
 const router = Router()
 
 // Trigger the game to start
-router.post('/:id/play', async (req, res) => {
+router.post('/:id/play', async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params
     await GameService.playFullGame(Number(id))
@@ -24,7 +24,7 @@ router.post('/:id/play', async (req, res) => {
 })
 
 // Get a specific game
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params
     const game = await GameService.getGame(Number(id))

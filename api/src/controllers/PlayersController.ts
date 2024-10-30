@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, Response, Request } from 'express'
 
 import { ItemsWithPagination } from '../base/types'
 import Player from '../models/Player'
@@ -8,7 +8,7 @@ import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '../services/Play
 const router = Router()
 
 // Fetch all players
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response): Promise<any> => {
   const limit_value = Number(req.query.limit)
   const offset_value = Number(req.query.offset)
 
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 })
 
 // Fetch all players stats
-router.get('/stats', async (req, res) => {
+router.get('/stats', async (req: Request, res: Response): Promise<any> => {
   try {
     const allPlayersStats = await getAllStatsForAllPlayers(Number(req.query.limit), Number(req.query.offset))
     res.json(allPlayersStats)
@@ -43,7 +43,7 @@ router.get('/stats', async (req, res) => {
 })
 
 // Fetch player
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response): Promise<any>  => {
   const { id } = req.params
 
   try {
@@ -59,7 +59,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // Fetch player stats
-router.get('/:id/stats', async (req, res) => {
+router.get('/:id/stats', async (req: Request, res: Response): Promise<any>  => {
   const { id } = req.params
 
   try {
@@ -72,7 +72,7 @@ router.get('/:id/stats', async (req, res) => {
 })
 
 // Add a new player
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response): Promise<any> => {
   const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
 
   // Validate input data
@@ -103,7 +103,7 @@ router.post('/', async (req, res) => {
 })
 
 // Add new players from JSON file
-router.post('/bulk', async (req, res) => {
+router.post('/bulk', async (req: Request, res: Response): Promise<any> => {
   const players = req.body
   try {
     const newPlayers = await Player.bulkCreate(players)
@@ -115,7 +115,7 @@ router.post('/bulk', async (req, res) => {
 })
 
 // Update an existing player
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
   const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
 
@@ -147,7 +147,7 @@ router.put('/:id', async (req, res) => {
 })
 
 // Delete an existing player
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params
 
   try {

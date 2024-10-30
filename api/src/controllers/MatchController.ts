@@ -1,11 +1,11 @@
-import { Router } from "express"
+import { Router, Request, Response } from "express"
 
 import MatchService from "../services/MatchService"
 
 const router = Router()
 
 // Get a specific match
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params
     const match = await MatchService.getMatch(Number(id))
