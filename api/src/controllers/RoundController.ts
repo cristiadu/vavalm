@@ -22,7 +22,8 @@ router.post('/:round/play', async (req: Request, res: Response): Promise<any> =>
     }
 
     await TournamentService.updateStandingsAndWinner(match.tournament_id)
-    console.debug('Game stats updated for game_id:', id)
+    const sanitizedId = id.replace(/\n|\r/g, "")
+    console.debug('Game stats updated for game_id:', sanitizedId)
     res.status(201).json(roundFinishedState)
   } catch (err) {
     console.error('Error executing query:', err)
