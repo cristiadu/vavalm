@@ -10,8 +10,9 @@ const router = Router()
 router.post('/:id/play', async (req: Request, res: Response): Promise<any> => {
   try {
     const { id } = req.params
-    await GameService.playFullGame(Number(id))
-    console.debug('Starting game with id:', id)
+    const sanitizedId = id.replace(/\n|\r/g, "")
+    await GameService.playFullGame(Number(sanitizedId))
+    console.debug('Starting game with id:', sanitizedId)
     res.status(201).json({ message: 'Game started' })
   } catch (err) {
     console.error('Error executing query:', err)
