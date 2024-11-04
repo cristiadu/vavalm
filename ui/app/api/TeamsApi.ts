@@ -1,10 +1,10 @@
-import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
+import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 import { ItemsWithPagination } from "./models/types"
 import { Team, TeamStats } from "./models/Team"
 
 export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
   // Fetch all team pages
-  const response = await fetch(`http://localhost:8000/teams`)
+  const response = await fetch(`${getApiBaseUrl()}/teams`)
   const data = await response.json()
   // Convert Buffer to Blob
   const teamsWithBlob = data.items.map((team: any) => {
@@ -19,7 +19,7 @@ export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
 }
 
 export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
-  const response = await fetch(`http://localhost:8000/teams?limit=${limit}&offset=${offset}`)
+  const response = await fetch(`${getApiBaseUrl()}/teams?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   // Convert Buffer to Blob
   const teamsWithBlob = data.items.map((team: any) => {
@@ -34,7 +34,7 @@ export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) 
 }
 
 export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<TeamStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
-  const response = await fetch(`http://localhost:8000/teams/stats?limit=${limit}&offset=${offset}`)
+  const response = await fetch(`${getApiBaseUrl()}/teams/stats?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   const teamsWithBlob = data.items.map((team: any) => {
     if (team.logo_image_file) {
@@ -48,7 +48,7 @@ export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<Te
 }
 
 export const fetchTeam = async (teamId: number, closure: (teamData: Team) => void) => {
-  const response = await fetch(`http://localhost:8000/teams/${teamId}`)
+  const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}`)
   const data = await response.json()
   // Convert Buffer to Blob
   if (data.logo_image_file) {
@@ -62,7 +62,7 @@ export const fetchTeam = async (teamId: number, closure: (teamData: Team) => voi
 }
 
 export const fetchTeamStats = async (teamId: number, closure: (teamData: TeamStats) => void) => {
-  const response = await fetch(`http://localhost:8000/teams/${teamId}/stats`)
+  const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}/stats`)
   const data = await response.json()
   // Convert Buffer to Blob
   if (data.team.logo_image_file) {
@@ -87,7 +87,7 @@ export const newTeam = async (team: Team, closure: (teamData: Team) => void) => 
   formData.append('description', team.description || '')
 
   try {
-    const response = await fetch('http://localhost:8000/teams', {
+    const response = await fetch(`${getApiBaseUrl()}/teams`, {
       method: 'POST',
       body: formData,
     })
@@ -118,7 +118,7 @@ export const editTeam = async (team: Team, closure: (teamData: Team) => void) =>
   formData.append('description', team.description || '')
 
   try {
-    const response = await fetch(`http://localhost:8000/teams/${team.id}`, {
+    const response = await fetch(`${getApiBaseUrl()}/teams/${team.id}`, {
       method: 'PUT',
       body: formData,
     })
@@ -139,7 +139,7 @@ export const editTeam = async (team: Team, closure: (teamData: Team) => void) =>
 
 export const deleteTeam = async (team: Team, closure: ({message}: {message: string}) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/teams/${team.id}`, {
+    const response = await fetch(`${getApiBaseUrl()}/teams/${team.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

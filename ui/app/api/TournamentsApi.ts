@@ -1,9 +1,9 @@
 import { ItemsWithPagination } from "./models/types"
 import { Match, Tournament } from "./models/Tournament"
-import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
+import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 
 export const fetchTournaments = async (closure: (tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
-  const response = await fetch(`http://localhost:8000/tournaments?limit=${limit}&offset=${offset}`)
+  const response = await fetch(`${getApiBaseUrl()}/tournaments?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
   const tournamentwithBlob = data.items.map((tournament: Tournament) => {
@@ -21,7 +21,7 @@ export const fetchTournaments = async (closure: (tournamentData: ItemsWithPagina
 }
 
 export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (matchData: ItemsWithPagination<Match>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
-  const response = await fetch(`http://localhost:8000/tournaments/${tournamentId}/schedule?limit=${limit}&offset=${offset}`)
+  const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/schedule?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   closure(data as ItemsWithPagination<Match>)
   return data as ItemsWithPagination<Match>
@@ -29,7 +29,7 @@ export const fetchTournamentMatchSchedule = async (tournamentId: number, closure
 
 export const getTournament = async (tournamentId: number, closure: (tournamentData: Tournament) => void) => {
   // Limit here is for the number of matches to fetch
-  const response = await fetch(`http://localhost:8000/tournaments/${tournamentId}`)
+  const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
   const teamsWithBlob = data.teams?.map((team: any) => {
@@ -51,7 +51,7 @@ export const getTournament = async (tournamentId: number, closure: (tournamentDa
 
 export const newTournament = async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
   try {
-    const response = await fetch('http://localhost:8000/tournaments', {
+    const response = await fetch(`${getApiBaseUrl()}/tournaments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export const newTournament = async (tournament: Tournament, closure: (tournament
 
 export const editTournament = async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/tournaments/${tournament.id}`, {
+    const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ export const editTournament = async (tournament: Tournament, closure: (tournamen
 
 export const deleteTournament = async (tournament: Tournament, closure: ({message}: {message: string}) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/tournaments/${tournament.id}`, {
+    const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

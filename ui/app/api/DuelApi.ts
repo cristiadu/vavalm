@@ -1,8 +1,9 @@
+import { getApiBaseUrl } from "./models/constants"
 import { GameLog, RoundState } from "./models/Tournament"
 
 export const playSingleDuel = async (game_id: number, round: number, closure: (roundState: RoundState) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/games/${game_id}/rounds/${round}/duel`, {
+    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}/duel`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,7 +26,7 @@ export const playSingleDuel = async (game_id: number, round: number, closure: (r
 
 export const getLastDuel = async (game_id: number, closure: (lastDuelLog: GameLog) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/games/${game_id}/rounds/last/duel`, {
+    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last/duel`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -8,3 +8,40 @@ services:
       POSTGRES_DB: mydb
     ports:
       - "5432:5432"
+    networks:
+      - vavalm-network
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      additional_contexts:
+         parent_dir: ./
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+    networks:
+      - vavalm-network
+  frontend:
+    depends_on: 
+    - backend
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+      additional_contexts:
+         parent_dir: ./
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_BASE_URL: http://localhost:4000
+    networks:
+      - vavalm-network
+
+networks:
+  vavalm-network:
+    driver: bridge

@@ -1,3 +1,4 @@
+import { getApiBaseUrl } from "./models/constants"
 import { Game, Match } from "./models/Tournament"
 
 export const playFullGame = async (
@@ -6,7 +7,7 @@ export const playFullGame = async (
 ) => {
   try {
     const response = await fetch(
-      `http://localhost:8000/games/${game_id}/play`,
+      `${getApiBaseUrl()}/games/${game_id}/play`,
       {
         method: "POST",
         headers: {
@@ -32,7 +33,7 @@ export const playFullGame = async (
 export const getMatch = async (match_id: number, closure: (response: Match) => void) => {
   try {
     const response = await fetch(
-      `http://localhost:8000/matches/${match_id}`,
+      `${getApiBaseUrl()}/matches/${match_id}`,
       {
         method: "GET",
         headers: {
@@ -72,7 +73,7 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
 
 export const getGame = async (game_id: number, closure: (response: Game) => void) => {
   try {
-    const response = await fetch(`http://localhost:8000/games/${game_id}`, {
+    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
