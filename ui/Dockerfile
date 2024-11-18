@@ -31,8 +31,6 @@ FROM node:lts AS runner
 WORKDIR /app
 
 ENV PORT=3000
-ENV NODE_ENV=production
-ENV API_BASE_URL=http://localhost:4000
 
 # copy built files
 COPY --from=builder /app/.next /app/.next
