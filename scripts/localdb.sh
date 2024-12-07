@@ -12,7 +12,11 @@ stop_postgresql() {
             exit 1
         fi
     elif [ "$platform" = "Linux" ]; then
-        sudo service postgresql stop
+        if systemctl is-active --quiet postgresql; then
+            sudo service postgresql stop
+        else
+            echo "PostgreSQL service is not running."
+        fi
     elif echo "$platform" | grep -q "MINGW"; then
         net stop postgresql
     else
