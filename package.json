@@ -14,7 +14,9 @@
     "localdb": "cd scripts && ./localdb.sh",
     "upgrade:dependencies": "npm-run-all base:upgrade:dependencies backend:upgrade:dependencies frontend:upgrade:dependencies",
     "upgrade:dependencies:check": "npm-run-all base:upgrade:dependencies backend:upgrade:dependencies:check frontend:upgrade:dependencies:check",
+    "audit": "npm-run-all base:audit backend:audit frontend:audit",
 
+    "base:audit": "npm audit fix",
     "base:install": "npm install --ignore-scripts",
     "base:clean": "rm -rf node_modules",
     "base:upgrade:dependencies": "npx ncu -u",
@@ -27,6 +29,7 @@
     "frontend:lint": "npm --prefix ui run lint",
     "frontend:lint:fix": "npm --prefix ui run lint:fix",
     "frontend:clean": "npm --prefix ui run clean",
+    "frontend:audit": "npm --prefix ui audit fix",
     "frontend:upgrade:dependencies": "npm --prefix ui run upgrade:dependencies",
     "frontend:upgrade:dependencies:check": "npm --prefix ui run upgrade:dependencies:check",
     
@@ -38,11 +41,12 @@
     "backend:lint:fix": "npm --prefix api run lint:fix",
     "backend:clean": "npm --prefix api run clean",
     "backend:migrate": "npm --prefix api run migrate",
+    "backend:audit": "npm --prefix api audit fix",
     "backend:upgrade:dependencies": "npm --prefix api run upgrade:dependencies",
     "backend:upgrade:dependencies:check": "npm --prefix api run upgrade:dependencies:check"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
-    "npm-check-updates": "17.1.9"
+    "npm-check-updates": "17.1.11"
   }
 }
