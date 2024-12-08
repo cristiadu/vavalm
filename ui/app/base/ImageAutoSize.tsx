@@ -8,24 +8,24 @@ type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
 }
 
 const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
-  const { imageBlob, fallbackSrc, src, width, height, style, ...rest } = props;
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const { imageBlob, fallbackSrc, src, width, height, style, ...rest } = props
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (imageBlob) {
-      const url = URL.createObjectURL(imageBlob);
-      setObjectUrl(url);
+      const url = URL.createObjectURL(imageBlob)
+      setObjectUrl(url)
 
       // Clean up the object URL when the component unmounts or when imageBlob changes
       return () => {
-        URL.revokeObjectURL(url);
-      };
+        URL.revokeObjectURL(url)
+      }
     } else {
-      setObjectUrl(null);
+      setObjectUrl(null)
     }
-  }, [imageBlob]);
+  }, [imageBlob])
 
-  const imageSrc = objectUrl || src || fallbackSrc || '';
+  const imageSrc = objectUrl || src || fallbackSrc || ''
 
   return (
     <Image
