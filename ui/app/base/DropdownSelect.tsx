@@ -9,7 +9,6 @@ interface DropdownSelectProps<T> {
   displayKey: keyof T
   imageKey?: keyof T
   placeholder: string
-  shouldFormatImageSrc?: boolean
   isMultiSelect: boolean
   imageDimensions?: { width: number; height: number }
   styleCssOnValue?: (value: any) => string
@@ -24,7 +23,6 @@ const DropdownSelect = <T,>({
   imageKey,
   placeholder,
   isMultiSelect,
-  shouldFormatImageSrc,
   imageDimensions = { width: 32, height: 32 },
   styleCssOnValue,
 }: DropdownSelectProps<T>) => {
@@ -69,7 +67,9 @@ const DropdownSelect = <T,>({
               <div key={`selectedItem-${index}`}>
                 {imageKey && (
                   <ImageAutoSize
-                    src={selectedItem[imageKey] && selectedItem[imageKey] instanceof Blob ? URL.createObjectURL(selectedItem[imageKey]) : !shouldFormatImageSrc ? selectedItem[imageKey] as string: '/images/nologo.svg'}
+                    imageBlob={selectedItem[imageKey] as Blob}
+                    fallbackSrc="/images/nologo.svg"
+                    src={selectedItem[imageKey] && !(selectedItem[imageKey] instanceof Blob) ? selectedItem[imageKey] as string: undefined}
                     alt={selectedItem[displayKey] as string}
                     width={imageDimensions.width}
                     height={imageDimensions.height}
@@ -102,7 +102,9 @@ const DropdownSelect = <T,>({
               )}
               {imageKey && (
                 <ImageAutoSize
-                  src={item[imageKey] && item[imageKey] instanceof Blob ? URL.createObjectURL(item[imageKey]) : !shouldFormatImageSrc ? item[imageKey] as string: '/images/nologo.svg'}
+                  imageBlob={item[imageKey] as Blob}
+                  fallbackSrc="/images/nologo.svg"
+                  src={item[imageKey] && !(item[imageKey] instanceof Blob) ? item[imageKey] as string: undefined}
                   alt={item[displayKey] as string}
                   width={imageDimensions.width}
                   height={imageDimensions.height}

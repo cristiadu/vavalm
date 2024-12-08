@@ -151,7 +151,13 @@ export default function ListPlayers() {
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {playerToTeam && playerToTeam[String(player.id)] ? (
                     <span className="flex items-center">
-                      <ImageAutoSize src={playerToTeam[String(player.id)].logo_image_file ? URL.createObjectURL(playerToTeam[String(player.id)].logo_image_file as Blob) : "/images/nologo.svg"} alt={playerToTeam[String(player.id)].short_name} width={32} height={32} className="mr-2" />
+                      <ImageAutoSize 
+                        imageBlob={playerToTeam[String(player.id)].logo_image_file as Blob}
+                        fallbackSrc="/images/nologo.svg"
+                        alt={playerToTeam[String(player.id)].short_name} 
+                        width={32} 
+                        height={32} 
+                        className="mr-2" />
                       {playerToTeam[String(player.id)].short_name}
                     </span>
                   ) : (

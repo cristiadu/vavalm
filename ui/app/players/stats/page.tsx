@@ -122,10 +122,13 @@ const PlayersStatsPage = () => {
               <td className="py-2 px-4 border-b border-gray-200">
                 {playerToTeam && playerToTeam[String(stats.player.id)] ? (
                   <span className="flex items-center">
-                    <ImageAutoSize src={
-                      playerToTeam[String(stats.player.id)].logo_image_file
-                        ? URL.createObjectURL(playerToTeam[String(stats.player.id)].logo_image_file as Blob)
-                        : "/images/nologo.svg"} alt={playerToTeam[String(stats.player.id)].short_name} width={32} height={32} className="mr-2" />
+                    <ImageAutoSize
+                      imageBlob={playerToTeam[String(stats.player.id)].logo_image_file as Blob}
+                      fallbackSrc="/images/nologo.svg"
+                      alt={playerToTeam[String(stats.player.id)].short_name}
+                      width={32}
+                      height={32}
+                      className="mr-2" />
                     {playerToTeam[String(stats.player.id)].short_name}
                   </span>
                 ) : (

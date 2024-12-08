@@ -152,7 +152,8 @@ export default function ListTeams() {
                   <ImageAutoSize
                     width={128}
                     height={128}
-                    src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"}
+                    imageBlob={team.logo_image_file as Blob}
+                    fallbackSrc="/images/nologo.svg"
                     alt={`${team.short_name} logo`}
                     className='rounded-lg w-24 h-24 shadow-lg'
                   />

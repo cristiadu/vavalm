@@ -137,7 +137,12 @@ export default function ListTournaments() {
                   <div className="grid grid-cols-3">
                     {tournament.teams?.map((team: Team) => (
                       <div key={team.id} className="flex items-center mb-2">
-                        <ImageAutoSize src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={32} height={32} className="mr-2" />
+                        <ImageAutoSize 
+                          imageBlob={team.logo_image_file as Blob}
+                          fallbackSrc="/images/nologo.svg"
+                          alt={team.short_name} 
+                          width={32} height={32} 
+                          className="mr-2" />
                         {team.short_name}
                       </div>
                     ))}

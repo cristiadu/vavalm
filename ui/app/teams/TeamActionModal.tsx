@@ -123,7 +123,8 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 width={256}
                 height={256}
                 className="w-full h-auto max-w-screen-sm max-h-80"
-                src={teamState.logo_image_file ? URL.createObjectURL(teamState.logo_image_file) : imageSrc} 
+                imageBlob={teamState.logo_image_file as Blob}
+                fallbackSrc={imageSrc}
                 alt="Team Logo"
               />
             </div>
@@ -176,7 +177,6 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 onSelect={handleCountrySelect}
                 displayKey="name"
                 imageKey="flag"
-                shouldFormatImageSrc={false}
                 placeholder="Select a country"
                 imageDimensions={{ width: 32, height: 16 }}
                 isMultiSelect={false}

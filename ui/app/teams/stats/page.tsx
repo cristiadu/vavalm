@@ -101,9 +101,12 @@ const TeamsStatsPage = () => {
               <td className="py-2 px-4 border-b border-gray-200">
 
                 <span className="flex items-center">
-                  <ImageAutoSize src={stats.team.logo_image_file
-                    ? URL.createObjectURL(stats.team.logo_image_file)
-                    : "/images/nologo.svg"} alt={stats.team.short_name} width={32} height={32} className="mr-2" />
+                  <ImageAutoSize
+                    imageBlob={stats.team.logo_image_file as Blob}
+                    fallbackSrc="/images/nologo.svg"
+                    alt={stats.team.short_name}
+                    width={32} height={32}
+                    className="mr-2" />
                   {stats.team.short_name}
                 </span>
 

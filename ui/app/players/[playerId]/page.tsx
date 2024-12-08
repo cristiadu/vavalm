@@ -85,7 +85,13 @@ export default function ViewPlayer(props: { params: Params }) {
           <div className="text-lg flex items-center">
             <strong>Team:</strong> {team ? (
               <span className="flex items-center ml-2">
-                <ImageAutoSize src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={32} height={32} className="mr-2" />
+                <ImageAutoSize 
+                  imageBlob={team.logo_image_file as Blob} 
+                  fallbackSrc="/images/nologo.svg" 
+                  alt={team.short_name} 
+                  width={32} 
+                  height={32} 
+                  className="mr-2" />
                 {team.short_name}
               </span>
             ) : (
