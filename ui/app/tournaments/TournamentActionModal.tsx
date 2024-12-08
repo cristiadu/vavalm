@@ -189,7 +189,6 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
             onSelect={handleCountrySelect}
             displayKey="name"
             imageKey="flag"
-            shouldFormatImageSrc={false}
             placeholder="Select a country"
             imageDimensions={{ width: 32, height: 16 }}
             isMultiSelect={false}
@@ -211,7 +210,6 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
           <label className="block text-gray-700">Teams</label>
           <DropdownSelect
             dropdownName={'teams'}
-            shouldFormatImageSrc={true}
             items={teams}
             selectedItems={selectedTeams}
             onSelect={handleTeamSelect}

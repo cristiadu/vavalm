@@ -197,7 +197,6 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
               onSelect={handleCountrySelect}
               displayKey="name"
               imageKey="flag"
-              shouldFormatImageSrc={false}
               placeholder="Select a country"
               imageDimensions={{ width: 32, height: 16 }}
               isMultiSelect={false}
@@ -207,7 +206,6 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
             <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">Team</label>
             <DropdownSelect
               dropdownName={'teams'}
-              shouldFormatImageSrc={true}
               items={teams}
               selectedItems={selectedTeam ? [selectedTeam] : []}
               onSelect={handleTeamSelect}
