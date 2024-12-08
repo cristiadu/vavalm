@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
-import Image from 'next/image'
 import { getWinOrLossColor } from '../../../../../api/models/Team'
 import { Country } from '../../../../../api/models/Country'
 import { Game } from '../../../../../api/models/Tournament'
+import ImageAutoSize from '../../../../../base/ImageAutoSize'
 
 interface GameHeaderProps {
   game: Game
@@ -29,12 +29,12 @@ const GameHeader: React.FC<GameHeaderProps> = ({ game, team1Country, team2Countr
         <span className={`text-4xl font-bold text-center mr-7 px-2 py-2 ${getWinOrLossColor(game.stats.team1, game.stats)}`}>
           {game.stats.team1_score}
         </span>
-        {team1Country && (<Image src={team1Country.flag} alt={team1Country.name} width={60} height={60} className="inline-block mx-2" />)}
-        <Image
+        {team1Country && (<ImageAutoSize src={team1Country.flag} alt={team1Country.name} width={64} height={32} className="inline-block mx-2" />)}
+        <ImageAutoSize
           src={team1LogoUrl}
           alt={game.stats.team1.short_name}
-          width={72}
-          height={72}
+          width={80}
+          height={80}
           className="inline-block mr-2"
         />
         <span className="text-4xl font-bold text-center text-white">{game.stats.team1.short_name}</span>
@@ -42,14 +42,14 @@ const GameHeader: React.FC<GameHeaderProps> = ({ game, team1Country, team2Countr
       <span className="text-4xl font-bold text-center text-white mx-4">X</span>
       <div key="team2HeaderGame" className="flex items-center">
         <span className="text-4xl font-bold text-center text-white">{game.stats.team2.short_name}</span>
-        <Image
+        <ImageAutoSize
           src={team2LogoUrl}
           alt={game.stats.team2.short_name}
-          width={72}
-          height={72}
+          width={80}
+          height={80}
           className="inline-block ml-2"
         />
-        {team2Country && (<Image src={team2Country.flag} alt={team2Country.name} width={60} height={60} className="inline-block mx-2" />)}
+        {team2Country && (<ImageAutoSize src={team2Country.flag} alt={team2Country.name} width={64} height={32} className="inline-block mx-2" />)}
         <span className={`text-4xl font-bold text-center ml-7 px-2 py-2 ${getWinOrLossColor(game.stats.team2, game.stats)}`}>
           {game.stats.team2_score}
         </span>

@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import Image from 'next/image'
 import { fetchTournaments, deleteTournament } from '../api/TournamentsApi'
 import { Tournament } from '../api/models/Tournament'
 import { fetchCountries } from '../api/CountryApi'
@@ -13,6 +12,7 @@ import { ItemsWithPagination } from '../api/models/types'
 import Pagination from '../base/Pagination'
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
 import SectionHeader from '../base/SectionHeader'
+import ImageAutoSize from '../base/ImageAutoSize'
 
 export default function ListTournaments() {
   const router = useRouter()
@@ -128,7 +128,7 @@ export default function ListTournaments() {
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900"> {tournament.country && (
                   <span className="flex items-center">
-                    <Image src={countriesToFlagMap[tournament.country]} alt={tournament.country} width={30} height={30} className="mr-2" />
+                    <ImageAutoSize src={countriesToFlagMap[tournament.country]} alt={tournament.country} width={32} height={16} className="mr-2" />
                     {tournament.country}
                   </span>)}
                 </td>              
@@ -137,7 +137,7 @@ export default function ListTournaments() {
                   <div className="grid grid-cols-3">
                     {tournament.teams?.map((team: Team) => (
                       <div key={team.id} className="flex items-center mb-2">
-                        <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={30} height={30} className="mr-2" />
+                        <ImageAutoSize src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={32} height={32} className="mr-2" />
                         {team.short_name}
                       </div>
                     ))}

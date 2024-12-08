@@ -2,7 +2,6 @@
 
 import { use, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchTournamentMatchSchedule, getTournament } from '../../api/TournamentsApi'
 import { Match, Tournament } from '../../api/models/Tournament'
@@ -13,6 +12,7 @@ import SectionHeader from '../../base/SectionHeader'
 import { sortByDate } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../../api/models/constants'
+import ImageAutoSize from '../../base/ImageAutoSize'
 
 type Params = Promise<{ tourneyId: string }>
 export default function ViewTournament(props: { params: Params }) {
@@ -82,7 +82,7 @@ export default function ViewTournament(props: { params: Params }) {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-lg">
             <strong>Country:</strong> 
-            {countryFlag && <Image src={countryFlag} alt={tournament.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
+            {countryFlag && <ImageAutoSize src={countryFlag} alt={tournament.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
             {tournament.country}
           </div>
           <div className="text-lg">
@@ -98,11 +98,11 @@ export default function ViewTournament(props: { params: Params }) {
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             {tournament.teams && tournament.teams.map(team => (
               <div key={team.id} className="flex items-center space-x-2">
-                <Image 
+                <ImageAutoSize 
                   src={team.id && teamsToLogoSrc.get(team.id) ? teamsToLogoSrc.get(team.id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
                   alt={team.short_name} 
-                  width={30} 
-                  height={30} 
+                  width={32} 
+                  height={32} 
                   className="inline-block mr-2" 
                 />
                 <span className="text-lg">{team.short_name}</span>
@@ -115,11 +115,11 @@ export default function ViewTournament(props: { params: Params }) {
           <hr className="mb-2" />
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
-              <Image 
+              <ImageAutoSize 
                 src={tournamentWinner?.id && tournament.ended ? teamsToLogoSrc.get(tournamentWinner.id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
                 alt={tournamentWinner?.short_name || "No Team Yet"} 
-                width={30} 
-                height={30} 
+                width={32} 
+                height={32} 
                 className="inline-block mr-2" 
               />
               <span className="text-lg">{tournamentWinner?.short_name || "No Team Yet"}</span>
@@ -148,11 +148,11 @@ export default function ViewTournament(props: { params: Params }) {
                   <tr key={standing.id}>
                     <td className="py-2 px-2 border-b text-center bg-gray-100">{standing.position}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">
-                      <Image 
+                      <ImageAutoSize 
                         src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
                         alt={standing.team?.short_name} 
-                        width={30} 
-                        height={30} 
+                        width={32} 
+                        height={32} 
                         className="inline-block mr-2" 
                       />
                       <span>{standing.team?.short_name}</span>
@@ -193,11 +193,11 @@ export default function ViewTournament(props: { params: Params }) {
                       <td className="py-2 border-b text-center">{match.type}</td>
                       <td className="py-2 border-b items-center">
                         <div className="flex items-center space-x-2">
-                          <Image 
+                          <ImageAutoSize 
                             src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
                             alt={match.team1.short_name} 
-                            width={30} 
-                            height={30} 
+                            width={32} 
+                            height={32} 
                             className="inline-block mr-2" 
                           />
                           <span>{match.team1.short_name}</span>
@@ -205,11 +205,11 @@ export default function ViewTournament(props: { params: Params }) {
                       </td>
                       <td className="py-2 border-b items-center">
                         <div className="flex items-center space-x-2">
-                          <Image 
+                          <ImageAutoSize 
                             src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
                             alt={match.team2.short_name} 
-                            width={30} 
-                            height={30} 
+                            width={32} 
+                            height={32} 
                             className="inline-block mr-2" 
                           />
                           <span>{match.team2.short_name}</span>

@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
-import Image from 'next/image'
 import { Country } from '../../../../../api/models/Country'
 import { PlayerGameStats } from '../../../../../api/models/Tournament'
 import { getRoleBgColor } from '../../../../../api/models/Player'
 import { ASSISTS_HALF_MULTIPLIER, sortPlayersByStats } from '../../../../../api/models/Tournament'
+import ImageAutoSize from '../../../../../base/ImageAutoSize'
 
 interface GameTeamStatsProps {
   teamName: string
@@ -17,11 +17,11 @@ const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, co
     return function CountryToFlag(country: string) {
       const flag = countryMap.get(country)
       return flag ? (
-        <Image
+        <ImageAutoSize
           src={flag}
           alt={country}
-          width={30}
-          height={30}
+          width={32}
+          height={32}
           className="inline-block mr-2"
         />
       ) : null

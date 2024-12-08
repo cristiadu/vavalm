@@ -1,7 +1,6 @@
 "use client"
 
 import { use, useEffect, useState } from 'react'
-import Image from 'next/image'
 import { fetchPlayer, fetchPlayerStats } from '../../api/PlayersApi'
 import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
@@ -10,6 +9,7 @@ import { Team } from '../../api/models/Team'
 import { asWord } from '../../base/StringUtils'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import SectionHeader from '../../base/SectionHeader'
+import ImageAutoSize from '../../base/ImageAutoSize'
 
 type Params = Promise<{ playerId: string }>
 
@@ -79,13 +79,13 @@ export default function ViewPlayer(props: { params: Params }) {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-lg">
             <strong>Country:</strong> 
-            {countryFlag && <Image src={countryFlag} alt={player.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
+            {countryFlag && <ImageAutoSize src={countryFlag} alt={player.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
             {player.country}
           </div>
           <div className="text-lg flex items-center">
             <strong>Team:</strong> {team ? (
               <span className="flex items-center ml-2">
-                <Image src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={30} height={30} className="mr-2" />
+                <ImageAutoSize src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file as Blob) : "/images/nologo.svg"} alt={team.short_name} width={32} height={32} className="mr-2" />
                 {team.short_name}
               </span>
             ) : (

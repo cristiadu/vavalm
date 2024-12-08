@@ -18,10 +18,10 @@ services:
          parent_dir: ./
     restart: always
     ports:
-      - "4000:4000"
+      - "8000:8000"
     environment:
       NODE_ENV: production
-      PORT: 4000
+      PORT: 8000
     networks:
       - vavalm-network
   frontend:
@@ -38,7 +38,6 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      API_BASE_URL: http://backend:4000
     networks:
       - vavalm-network
 

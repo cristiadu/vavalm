@@ -3,7 +3,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { fetchCountries } from '../api/CountryApi'
 import { fetchTeams, deleteTeam } from '../api/TeamsApi'
 import { Team } from '../api/models/Team'
@@ -15,6 +14,7 @@ import { getRoleBgColor } from '../api/models/Player'
 import Pagination from '../base/Pagination'
 import { PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
 import SectionHeader from '../base/SectionHeader'
+import ImageAutoSize from '../base/ImageAutoSize'
 
 export default function ListTeams() {
   const LIMIT_VALUE_TEAM_LIST = 5
@@ -149,9 +149,9 @@ export default function ListTeams() {
               <tr key={team.id}>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{team.id}</td>
                 <td className="py-4 whitespace-nowrap text-sm text-gray-500">
-                  <Image
-                    width={600}
-                    height={600}
+                  <ImageAutoSize
+                    width={128}
+                    height={128}
                     src={team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"}
                     alt={`${team.short_name} logo`}
                     className='rounded-lg w-24 h-24 shadow-lg'
@@ -161,7 +161,7 @@ export default function ListTeams() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{team.full_name}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900"> {team.country && (
                   <span className="flex items-center">
-                    <Image src={countriesToFlagMap[team.country]} alt={team.country} width={30} height={30} className="mr-2" />
+                    <ImageAutoSize src={countriesToFlagMap[team.country]} alt={team.country} width={32} height={16} className="mr-2" />
                     {team.country}
                   </span>)}
                 </td>
@@ -171,7 +171,7 @@ export default function ListTeams() {
                       <span className={getRoleBgColor(player.role)}>
                         {player.role}
                       </span>
-                      {player.countryFlag && <Image src={player.countryFlag} alt={player.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
+                      {player.countryFlag && <ImageAutoSize src={player.countryFlag} alt={player.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
                       <span className="text-lg">{player.nickname}</span>
                       <span className="text-sm text-gray-600 mt-1">({player.full_name})</span>
                     </div>

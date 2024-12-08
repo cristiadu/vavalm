@@ -27,7 +27,7 @@ FROM node:lts AS runner
 # set the working directory
 WORKDIR /app
 
-ENV PORT=4000
+ENV PORT=8000
 
 # copy built files
 COPY --from=builder /app/dist /app/dist

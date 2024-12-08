@@ -191,6 +191,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
             imageKey="flag"
             shouldFormatImageSrc={false}
             placeholder="Select a country"
+            imageDimensions={{ width: 32, height: 16 }}
             isMultiSelect={false}
           />
         </div>

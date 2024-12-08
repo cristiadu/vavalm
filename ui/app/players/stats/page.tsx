@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { AllPlayerStats, getRoleBgColor, Player } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
 import { fetchPlayersStats } from '../../api/PlayersApi'
@@ -12,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
 import SectionHeader from '../../base/SectionHeader'
+import ImageAutoSize from '../../base/ImageAutoSize'
 
 const thresholds = {
   kda: { high: 1.8, medium: 0.9 },
@@ -109,7 +109,7 @@ const PlayersStatsPage = () => {
               <td className="py-2 px-4 border-b border-gray-200">
                 {stats.player.country && (
                   <span className="flex items-center">
-                    <Image src={countriesToFlagMap[stats.player.country]} alt={stats.player.country} width={30} height={30} className="mr-2" />
+                    <ImageAutoSize src={countriesToFlagMap[stats.player.country]} alt={stats.player.country} width={32} height={16} className="mr-2" />
                   </span>
                 )}
               </td>
@@ -122,10 +122,10 @@ const PlayersStatsPage = () => {
               <td className="py-2 px-4 border-b border-gray-200">
                 {playerToTeam && playerToTeam[String(stats.player.id)] ? (
                   <span className="flex items-center">
-                    <Image src={
+                    <ImageAutoSize src={
                       playerToTeam[String(stats.player.id)].logo_image_file
                         ? URL.createObjectURL(playerToTeam[String(stats.player.id)].logo_image_file as Blob)
-                        : "/images/nologo.svg"} alt={playerToTeam[String(stats.player.id)].short_name} width={30} height={30} className="mr-2" />
+                        : "/images/nologo.svg"} alt={playerToTeam[String(stats.player.id)].short_name} width={32} height={32} className="mr-2" />
                     {playerToTeam[String(stats.player.id)].short_name}
                   </span>
                 ) : (

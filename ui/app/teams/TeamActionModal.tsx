@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import { fetchCountries } from '../api/CountryApi'
 import { Country } from '../api/models/Country'
 import { editTeam, newTeam } from '../api/TeamsApi'
@@ -13,6 +12,7 @@ import AlertMessage, { AlertType } from '../base/AlertMessage'
 import 'react-quill-new/dist/quill.snow.css'
 import { quill_config } from '../base/Configs'
 import DropdownSelect from '../base/DropdownSelect'
+import ImageAutoSize from '../base/ImageAutoSize'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
@@ -119,9 +119,9 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
         <div className="flex flex-wrap -mx-2 mb-4 items-center">
           <div className="w-full md:w-1/2 px-4 mb-6 md:mb-0">
             <div className="border w-full p-2 m-2 max-w-screen-sm max-h-96">
-              <Image
-                width={600}
-                height={600}
+              <ImageAutoSize
+                width={256}
+                height={256}
                 className="w-full h-auto max-w-screen-sm max-h-80"
                 src={teamState.logo_image_file ? URL.createObjectURL(teamState.logo_image_file) : imageSrc} 
                 alt="Team Logo"
@@ -178,6 +178,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 imageKey="flag"
                 shouldFormatImageSrc={false}
                 placeholder="Select a country"
+                imageDimensions={{ width: 32, height: 16 }}
                 isMultiSelect={false}
               />
             </div>

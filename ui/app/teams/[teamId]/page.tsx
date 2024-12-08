@@ -1,7 +1,6 @@
 "use client"
 
 import { use, useEffect, useState } from 'react'
-import Image from 'next/image'
 import { fetchPlayersByTeam } from '../../api/PlayersApi'
 import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
@@ -11,6 +10,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { asSafeHTML } from '../../base/StringUtils'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import SectionHeader from '../../base/SectionHeader'
+import ImageAutoSize from '../../base/ImageAutoSize'
 
 type Params = Promise<{ teamId: string }>
 export default function ViewTeam(props: { params: Params }) {
@@ -71,13 +71,13 @@ export default function ViewTeam(props: { params: Params }) {
       <SectionHeader title="Team Details" />
       <div className="w-full max-w-3xl bg-white p-8 rounded shadow">
         <div className="bg-blue-300 p-4 rounded mb-4 flex items-center justify-center">
-          {logoSrc && <Image src={logoSrc} alt={`${team.short_name} logo`} width={50} height={50} className="inline-block mr-4" />}
+          {logoSrc && <ImageAutoSize src={logoSrc} alt={`${team.short_name} logo`} width={64} height={64} className="inline-block mr-4" />}
           <h2 className="text-3xl font-bold text-center text-white">{team.short_name}</h2>
         </div>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-lg">
             <strong>Country:</strong> 
-            {countryFlag && <Image src={countryFlag} alt={team.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
+            {countryFlag && <ImageAutoSize src={countryFlag} alt={team.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
             {team.country}
           </div>
           <div className="text-lg">
@@ -96,7 +96,7 @@ export default function ViewTeam(props: { params: Params }) {
                 <span className={getRoleBgColor(player.role)}>
                   {player.role}
                 </span>
-                {player.countryFlag && <Image src={player.countryFlag} alt={player.country} width={30} height={30} className="inline-block ml-2 mr-2" />}
+                {player.countryFlag && <ImageAutoSize src={player.countryFlag} alt={player.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
                 <span className="text-lg">{player.nickname}</span>
                 <span className="text-sm text-gray-600 mt-1">({player.full_name})</span>
               </div>

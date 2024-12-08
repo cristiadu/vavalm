@@ -1,8 +1,8 @@
 import React from 'react'
-import Image from 'next/image'
 import { Game, Tournament } from '../../../../../api/models/Tournament'
 import { Country } from '../../../../../api/models/Country'
 import { asFormattedDate } from '../../../../../base/StringUtils'
+import ImageAutoSize from '../../../../../base/ImageAutoSize'
 
 interface GameDetailsProps {
     game: Game
@@ -24,7 +24,7 @@ const GameDetails: React.FC<GameDetailsProps> = ({game, tournament, tournamentCo
       </div>
       <div className="text-lg">
         <strong>Tournament:</strong>
-        {tournamentCountry && (<Image src={tournamentCountry.flag} alt={tournamentCountry.name} width={30} height={30} className="inline-block mx-2" />)}
+        {tournamentCountry && (<ImageAutoSize src={tournamentCountry.flag} alt={tournamentCountry.name} width={32} height={16} className="inline-block mx-2" />)}
         <span>{tournament?.name}</span>
       </div>
     </div>

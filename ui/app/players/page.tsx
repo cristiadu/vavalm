@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { fetchCountries } from '../api/CountryApi'
 import { fetchPlayers, deletePlayer } from '../api/PlayersApi'
 import { getAttributeBgColor, getRoleBgColor, Player } from '../api/models/Player'
@@ -14,6 +13,7 @@ import { asWord } from '../base/StringUtils'
 import Pagination from '../base/Pagination'
 import { ItemsWithPagination } from '../api/models/types'
 import SectionHeader from '../base/SectionHeader'
+import ImageAutoSize from '../base/ImageAutoSize'
 
 export default function ListPlayers() {
   const LIMIT_VALUE_PLAYER_LIST = 5
@@ -143,7 +143,7 @@ export default function ListPlayers() {
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {player.country && (
                     <span className="flex items-center">
-                      <Image src={countriesToFlagMap[player.country]} alt={player.country} width={30} height={30} className="mr-2" />
+                      <ImageAutoSize src={countriesToFlagMap[player.country]} alt={player.country} width={32} height={16} className="mr-2" />
                       {player.country}
                     </span>
                   )}
@@ -151,7 +151,7 @@ export default function ListPlayers() {
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {playerToTeam && playerToTeam[String(player.id)] ? (
                     <span className="flex items-center">
-                      <Image src={playerToTeam[String(player.id)].logo_image_file ? URL.createObjectURL(playerToTeam[String(player.id)].logo_image_file as Blob) : "/images/nologo.svg"} alt={playerToTeam[String(player.id)].short_name} width={30} height={30} className="mr-2" />
+                      <ImageAutoSize src={playerToTeam[String(player.id)].logo_image_file ? URL.createObjectURL(playerToTeam[String(player.id)].logo_image_file as Blob) : "/images/nologo.svg"} alt={playerToTeam[String(player.id)].short_name} width={32} height={32} className="mr-2" />
                       {playerToTeam[String(player.id)].short_name}
                     </span>
                   ) : (

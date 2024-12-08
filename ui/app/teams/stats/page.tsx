@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { fetchTeamsStats } from '../../api/TeamsApi'
 import { fetchCountries } from '../../api/CountryApi'
 import { ItemsWithPagination } from '../../api/models/types'
@@ -10,6 +9,7 @@ import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
 import { TeamStats } from '../../api/models/Team'
 import SectionHeader from '../../base/SectionHeader'
+import ImageAutoSize from '../../base/ImageAutoSize'
 
 const thresholds = {
   tournamentsWon: { high: 1 },
@@ -94,16 +94,16 @@ const TeamsStatsPage = () => {
               <td className="py-2 px-4 border-b border-gray-200">
                 {stats.team.country && (
                   <span className="flex items-center">
-                    <Image src={countriesToFlagMap[stats.team.country]} alt={stats.team.country} width={30} height={30} className="mr-2" />
+                    <ImageAutoSize src={countriesToFlagMap[stats.team.country]} alt={stats.team.country} width={32} height={16} className="mr-2" />
                   </span>
                 )}
               </td>
               <td className="py-2 px-4 border-b border-gray-200">
 
                 <span className="flex items-center">
-                  <Image src={stats.team.logo_image_file
+                  <ImageAutoSize src={stats.team.logo_image_file
                     ? URL.createObjectURL(stats.team.logo_image_file)
-                    : "/images/nologo.svg"} alt={stats.team.short_name} width={30} height={30} className="mr-2" />
+                    : "/images/nologo.svg"} alt={stats.team.short_name} width={32} height={32} className="mr-2" />
                   {stats.team.short_name}
                 </span>
 

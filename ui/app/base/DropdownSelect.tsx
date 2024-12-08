@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
+import ImageAutoSize from './ImageAutoSize'
 
 interface DropdownSelectProps<T> {
   dropdownName: string
@@ -11,6 +11,7 @@ interface DropdownSelectProps<T> {
   placeholder: string
   shouldFormatImageSrc?: boolean
   isMultiSelect: boolean
+  imageDimensions?: { width: number; height: number }
   styleCssOnValue?: (value: any) => string
 }
 
@@ -24,6 +25,7 @@ const DropdownSelect = <T,>({
   placeholder,
   isMultiSelect,
   shouldFormatImageSrc,
+  imageDimensions = { width: 32, height: 32 },
   styleCssOnValue,
 }: DropdownSelectProps<T>) => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -66,11 +68,11 @@ const DropdownSelect = <T,>({
             {selectedItems.map((selectedItem , index) => (
               <div key={`selectedItem-${index}`}>
                 {imageKey && (
-                  <Image
+                  <ImageAutoSize
                     src={selectedItem[imageKey] && selectedItem[imageKey] instanceof Blob ? URL.createObjectURL(selectedItem[imageKey]) : !shouldFormatImageSrc ? selectedItem[imageKey] as string: '/images/nologo.svg'}
                     alt={selectedItem[displayKey] as string}
-                    width={30}
-                    height={30}
+                    width={imageDimensions.width}
+                    height={imageDimensions.height}
                     className="ml-2 mr-2 inline-block"
                   />
                 )}
@@ -99,11 +101,11 @@ const DropdownSelect = <T,>({
                 />
               )}
               {imageKey && (
-                <Image
+                <ImageAutoSize
                   src={item[imageKey] && item[imageKey] instanceof Blob ? URL.createObjectURL(item[imageKey]) : !shouldFormatImageSrc ? item[imageKey] as string: '/images/nologo.svg'}
                   alt={item[displayKey] as string}
-                  width={30}
-                  height={30}
+                  width={imageDimensions.width}
+                  height={imageDimensions.height}
                   className="mr-2"
                 />
               )}
