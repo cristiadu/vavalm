@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image, { ImageProps } from 'next/image'
 
 type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
@@ -7,23 +7,34 @@ type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
   src?: string;
 }
 
-const getImageSrc = (props: ImageAutoSizeProps) => {
-  if (props.imageBlob) {
-    return URL.createObjectURL(props.imageBlob)
-  }
-
-  return props.fallbackSrc || props.src || ''
-}
-
 const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
+  const { imageBlob, fallbackSrc, src, width, height, style, ...rest } = props;
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (imageBlob) {
+      const url = URL.createObjectURL(imageBlob);
+      setObjectUrl(url);
+
+      // Clean up the object URL when the component unmounts or when imageBlob changes
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setObjectUrl(null);
+    }
+  }, [imageBlob]);
+
+  const imageSrc = objectUrl || src || fallbackSrc || '';
+
   return (
     <Image
-      {...props}
+      {...rest}
       alt={props.alt}
-      src={getImageSrc(props)}
-      width={props.width}
-      height={props.height}
-      style={{ maxWidth: props.width, maxHeight: props.height, width: props.width, height: props.height, ...props.style }}
+      src={imageSrc}
+      width={width}
+      height={height}
+      style={{ maxWidth: width, maxHeight: height, width: width, height: height, ...style }}
     />
   )
 }

@@ -21,7 +21,7 @@ const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, co
           src={flag}
           alt={country}
           width={32}
-          height={32}
+          height={16}
           className="inline-block mr-2"
         />
       ) : null
