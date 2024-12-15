@@ -11,16 +11,16 @@ export const playSingleDuel = async (game_id: number, round: number, closure: (r
     })
     
     if (!response.ok) {
-      console.error("Network response was not ok: ", response)
-      return
+      throw new Error(`Network response was not ok: ${response.statusText}`)
     }
     
     const data = await response.json()
-    closure(data as RoundState)
+    closure(data)
     console.debug('Success:', data)
-    return data as RoundState
+    return data
   } catch (error) {
     console.error('Error:', error)
+    throw error
   }
 }
 
@@ -34,15 +34,15 @@ export const getLastDuel = async (game_id: number, closure: (lastDuelLog: GameLo
     })
     
     if (!response.ok) {
-      console.error("Network response was not ok: ", response)
-      return
+      throw new Error(`Network response was not ok: ${response.statusText}`)
     }
     
     const data = await response.json()
-    closure(data as GameLog)
+    closure(data)
     console.debug('Success:', data)
-    return data as GameLog
+    return data
   } catch (error) {
     console.error('Error:', error)
+    throw error
   }
 }

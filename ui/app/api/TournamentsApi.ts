@@ -16,19 +16,19 @@ export const fetchTournaments = async (closure: (tournamentData: ItemsWithPagina
     })
     return { ...tournament, teams: teamsWithBlob }
   })
-  closure({ total: data.total, items: tournamentwithBlob } as ItemsWithPagination<Tournament>)
-  return { total: data.total, items: tournamentwithBlob } as ItemsWithPagination<Tournament>
+  const result = { total: data.total, items: tournamentwithBlob }
+  closure(result)
+  return result
 }
 
 export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (matchData: ItemsWithPagination<Match>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/schedule?limit=${limit}&offset=${offset}`)
   const data = await response.json()
-  closure(data as ItemsWithPagination<Match>)
-  return data as ItemsWithPagination<Match>
+  closure(data)
+  return data
 }
 
 export const getTournament = async (tournamentId: number, closure: (tournamentData: Tournament) => void) => {
-  // Limit here is for the number of matches to fetch
   const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
@@ -45,8 +45,9 @@ export const getTournament = async (tournamentId: number, closure: (tournamentDa
     return { ...standing, team: standingsTeam }
   })
 
-  closure({...data, teams: teamsWithBlob, standings: standingsWithTeamsRef } as Tournament) 
-  return {...data, teams: teamsWithBlob, standings: standingsWithTeamsRef } as Tournament
+  const result = { ...data, teams: teamsWithBlob, standings: standingsWithTeamsRef }
+  closure(result)
+  return result
 }
 
 export const newTournament = async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
@@ -65,9 +66,9 @@ export const newTournament = async (tournament: Tournament, closure: (tournament
     }
 
     const data = await response.json()
-    closure(data as Tournament)
+    closure(data)
     console.debug('Success:', data)
-    return data as Tournament
+    return data
   } catch (error) {
     console.error('Error creating tournament:', error)
   }
@@ -89,9 +90,9 @@ export const editTournament = async (tournament: Tournament, closure: (tournamen
     }
 
     const data = await response.json()
-    closure(data as Tournament)
+    closure(data)
     console.debug('Success:', data)
-    return data as Tournament
+    return data
   } catch (error) {
     console.error('Error updating tournament:', error)
   }
@@ -115,7 +116,7 @@ export const deleteTournament = async (tournament: Tournament, closure: ({messag
     const data = await response.json()
     closure(data)
     console.debug('Success:', data)
-    return data as Tournament
+    return data
   } catch (error) {
     console.error('Error deleting tournament:', error)
   }

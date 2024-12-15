@@ -17,16 +17,16 @@ export const playFullGame = async (
     )
 
     if (!response.ok) {
-      console.error("Network response was not ok: ", response)
-      return
+      throw new Error(`Network response was not ok: ${response.statusText}`)
     }
 
     const data = await response.json()
-    closure(data as { message: string })
+    closure(data)
     console.debug("Success:", data)
-    return data as { message: string }
+    return data
   } catch (error) {
     console.error("Error:", error)
+    throw error
   }
 }
 
@@ -43,8 +43,7 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
     )
 
     if (!response.ok) {
-      console.error("Network response was not ok: ", response)
-      return
+      throw new Error(`Network response was not ok: ${response.statusText}`)
     }
 
     const data = await response.json()
@@ -63,11 +62,12 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
       )
     }
 
-    closure(data as Match)
+    closure(data)
     console.debug("Success:", data)
-    return data as Match
+    return data
   } catch (error) {
     console.error("Error:", error)
+    throw error
   }
 }
 
@@ -81,8 +81,7 @@ export const getGame = async (game_id: number, closure: (response: Game) => void
     })
 
     if (!response.ok) {
-      console.error("Network response was not ok: ", response)
-      return
+      throw new Error(`Network response was not ok: ${response.statusText}`)
     }
 
     const data = await response.json()
@@ -101,10 +100,11 @@ export const getGame = async (game_id: number, closure: (response: Game) => void
       )
     }
 
-    closure(data as Game)
+    closure(data)
     console.debug("Success:", data)
-    return data as Game
+    return data
   } catch (error) {
     console.error("Error:", error)
+    throw error
   }
 }

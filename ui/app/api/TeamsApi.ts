@@ -3,7 +3,6 @@ import { ItemsWithPagination } from "./models/types"
 import { Team, TeamStats } from "./models/Team"
 
 export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
-  // Fetch all team pages
   const response = await fetch(`${getApiBaseUrl()}/teams`)
   const data = await response.json()
   // Convert Buffer to Blob
@@ -14,8 +13,8 @@ export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
     }
     return team
   })
-  closure(teamsWithBlob as Team[])
-  return teamsWithBlob as Team[]
+  closure(teamsWithBlob)
+  return teamsWithBlob
 }
 
 export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
@@ -29,8 +28,9 @@ export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) 
     }
     return team
   })
-  closure({ total: data.total, items: teamsWithBlob } as ItemsWithPagination<Team>)
-  return { total: data.total, items: teamsWithBlob } as ItemsWithPagination<Team>
+  const result = { total: data.total, items: teamsWithBlob }
+  closure(result)
+  return result
 }
 
 export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<TeamStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
@@ -43,8 +43,9 @@ export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<Te
     }
     return team
   })
-  closure({ total: data.total, items: teamsWithBlob } as ItemsWithPagination<TeamStats>)
-  return { total: data.total, items: teamsWithBlob } as ItemsWithPagination<TeamStats>
+  const result = { total: data.total, items: teamsWithBlob }
+  closure(result)
+  return result
 }
 
 export const fetchTeam = async (teamId: number, closure: (teamData: Team) => void) => {
@@ -53,8 +54,9 @@ export const fetchTeam = async (teamId: number, closure: (teamData: Team) => voi
   // Convert Buffer to Blob
   if (data.logo_image_file) {
     const blob = new Blob([new Uint8Array(data.logo_image_file.data)], { type: 'image/png' })
-    closure({ ...data, logo_image_file: blob })
-    return { ...data, logo_image_file: blob } as Team
+    const result = { ...data, logo_image_file: blob }
+    closure(result)
+    return result
   } else {
     closure(data)
     return data
@@ -67,8 +69,9 @@ export const fetchTeamStats = async (teamId: number, closure: (teamData: TeamSta
   // Convert Buffer to Blob
   if (data.team.logo_image_file) {
     const blob = new Blob([new Uint8Array(data.team.logo_image_file.data)], { type: 'image/png' })
-    closure({ ...data, team: { ...data.team, logo_image_file: blob } })
-    return { ...data, team: { ...data.team, logo_image_file: blob } } as TeamStats
+    const result = { ...data, team: { ...data.team, logo_image_file: blob } }
+    closure(result)
+    return result
   } else {
     closure(data)
     return data
@@ -100,7 +103,7 @@ export const newTeam = async (team: Team, closure: (teamData: Team) => void) => 
     const result = await response.json()
     closure(result)
     console.debug('Success:', result)
-    return result as Team
+    return result
   } catch (error) {
     console.error('Error:', error)
   }
@@ -131,7 +134,7 @@ export const editTeam = async (team: Team, closure: (teamData: Team) => void) =>
     const result = await response.json()
     closure(result)
     console.debug('Success:', result)
-    return result as Team
+    return result
   } catch (error) {
     console.error('Error:', error)
   }
