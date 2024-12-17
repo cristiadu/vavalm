@@ -118,4 +118,4 @@ const DropdownSelect = <T,>({
   )
 }
 
-export default React.memo(DropdownSelect)
+export default DropdownSelect

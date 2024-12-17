@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react'
 import { fetchPlayersByTeam } from '../../api/PlayersApi'
 import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
 import { fetchCountries } from '../../api/CountryApi'
+import { Country } from '../../api/models/Country'
 import { fetchTeam, fetchTeamStats } from '../../api/TeamsApi'
 import { Team, TeamStats } from '../../api/models/Team'
 import 'react-quill-new/dist/quill.snow.css'
@@ -45,13 +46,13 @@ export default function ViewTeam(props: { params: Params }) {
 
       const countries = await fetchCountries(() => {})
       if (teamData.country) {
-        setCountryFlag(countries?.find(c => c.name === teamData.country)?.flag || null)
+        setCountryFlag(countries?.find((c: Country) => c.name === teamData.country)?.flag || null)
       }
   
       fetchPlayersByTeam(Number(params.teamId), (data) => {
         const playersWithFlags = data.map(player => ({
           ...player,
-          countryFlag: countries?.find(c => c.name === player.country)?.flag || null,
+          countryFlag: countries?.find((c: Country) => c.name === player.country)?.flag || null,
         }))
         setPlayers(playersWithFlags)
       })

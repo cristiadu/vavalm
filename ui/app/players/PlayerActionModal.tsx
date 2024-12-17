@@ -84,8 +84,11 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
     setPlayerState(prevState => ({ ...prevState, selectedCountry: country }))
   }
 
-  const handleRoleSelect = (role: EnumWithFieldName<PlayerRole>) => {
-    setPlayerState(prevState => ({ ...prevState, role: role.value }))
+  const handleRoleSelect = (item: EnumWithFieldName<PlayerRole>) => {
+    setPlayerState({
+      ...playerState,
+      role: item.value,
+    })
   }
 
   const closeModal = () => {
@@ -173,7 +176,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
                 Role
           </label>
           {playerState.role && (
-            <DropdownSelect 
+            <DropdownSelect
               dropdownName={'role'}
               items={Object.values(PlayerRole).map(value => ({ value }))}
               selectedItems={playerState.role ? [{value: playerState.role}] : []}

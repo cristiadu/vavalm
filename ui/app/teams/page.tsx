@@ -10,11 +10,12 @@ import TeamActionModal from './TeamActionModal'
 import 'react-quill-new/dist/quill.snow.css'
 import { asSafeHTML } from '../base/StringUtils'
 import { fetchPlayersByTeam } from '../api/PlayersApi'
-import { getRoleBgColor } from '../api/models/Player'
+import { getRoleBgColor, Player } from '../api/models/Player'
 import Pagination from '../base/Pagination'
 import { PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
 import SectionHeader from '../base/SectionHeader'
 import ImageAutoSize from '../base/ImageAutoSize'
+import { Country } from '../api/models/Country'
 
 export default function ListTeams() {
   const LIMIT_VALUE_TEAM_LIST = 5
@@ -38,7 +39,7 @@ export default function ListTeams() {
       }) || []
 
       const countriesToFlagMap: Record<string, string> = {}
-      countries.forEach((country) => {
+      countries.forEach((country: Country) => {
         countriesToFlagMap[country.name] = country.flag
       })
       setCountriesToFlagMap(countriesToFlagMap)
@@ -50,11 +51,11 @@ export default function ListTeams() {
       setTotalItems(teamsData.total)
 
       const teamsWithPlayersFlags = await Promise.all(
-        teamsData.items.map(async (team) => {
+        teamsData.items.map(async (team: Team) => {
           const players = await fetchPlayersByTeam(Number(team.id), () => {
             // handle player data
           })
-          const playersWithFlags = players.map((player) => ({
+          const playersWithFlags = players.map((player: Player) => ({
             ...player,
             countryFlag: countriesToFlagMap[player.country] || null,
           }))

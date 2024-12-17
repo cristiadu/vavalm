@@ -13,6 +13,7 @@ import { sortByDate } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../../api/models/constants'
 import ImageAutoSize from '../../base/ImageAutoSize'
+import { Country } from '../../api/models/Country'
 
 type Params = Promise<{ tourneyId: string }>
 export default function ViewTournament(props: { params: Params }) {
@@ -45,7 +46,7 @@ export default function ViewTournament(props: { params: Params }) {
 
     const countries = await fetchCountries(() => {})
     if (tournamentData.country) {
-      setCountryFlag(countries?.find(c => c.name === tournamentData.country)?.flag || null)
+      setCountryFlag(countries?.find((c: Country) => c.name === tournamentData.country)?.flag || null)
     }
   }, [params.tourneyId])
 
