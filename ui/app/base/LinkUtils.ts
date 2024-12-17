@@ -9,8 +9,7 @@ export const handleBackClick = (
   e.preventDefault()
 
   // Get the current pathname
-  let pathSegments = [] as string[]
-  //let pathSegments = window.location.pathname.split('/').filter(segment => segment)
+  let pathSegments = window.location.pathname.split('/').filter(segment => segment)
 
   while (pathSegments.length > 0) {
     // Remove the last segment to get the parent path

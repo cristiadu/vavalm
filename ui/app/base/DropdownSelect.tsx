@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import ImageAutoSize from './ImageAutoSize'
 
 interface DropdownSelectProps<T> {
@@ -29,31 +29,29 @@ const DropdownSelect = <T,>({
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = useCallback((event: MouseEvent) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
       setDropdownOpen(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [])
+  }, [handleClickOutside])
 
-  const handleSelect = (item: T) => {
-    if (isMultiSelect) {
-      onSelect(item)
-    } else {
-      onSelect(item)
+  const handleSelect = useCallback((item: T) => {
+    onSelect(item)
+    if (!isMultiSelect) {
       setDropdownOpen(false)
     }
-  }
+  }, [onSelect, isMultiSelect])
 
-  const sortItemsByDisplayKey = (displayKey: keyof T): ((a: T, b: T) => number) => {
-    return (a, b) => (a[displayKey] as string).localeCompare(b[displayKey] as string)
-  }
+  const sortedItems = useMemo(() => {
+    return items.sort((a, b) => (a[displayKey] as string).localeCompare(b[displayKey] as string))
+  }, [items, displayKey])
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -86,7 +84,7 @@ const DropdownSelect = <T,>({
       </div>
       {dropdownOpen && (
         <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
-          {items.sort(sortItemsByDisplayKey(displayKey)).map((item, index) => (
+          {sortedItems.map((item, index) => (
             <div
               key={`${dropdownName}-${index}`}
               className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
@@ -120,4 +118,4 @@ const DropdownSelect = <T,>({
   )
 }
 
-export default DropdownSelect
+export default React.memo(DropdownSelect)

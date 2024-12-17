@@ -5,4 +5,6 @@ export interface EnumWithFieldName<T> {
 export interface ItemsWithPagination<T> {
   items: T[]
   total: number
+  page?: number
+  pageSize?: number
 }

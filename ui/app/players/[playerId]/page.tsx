@@ -37,24 +37,28 @@ export default function ViewPlayer(props: { params: Params }) {
 
   useEffect(() => {
     const fetchPlayerData = async () => {
-      const playerData = await fetchPlayer(Number(params.playerId), (data) => {
-        setPlayer(data)
-      })
-
-      await fetchPlayerStats(Number(params.playerId), (data) => {
-        setPlayerStats(data)
-      })
-
-      if (playerData.team_id) {
-        await fetchTeam(playerData.team_id, (data) => {
-          setTeam(data)
+      try {
+        const playerData = await fetchPlayer(Number(params.playerId), (data) => {
+          setPlayer(data)
         })
-      }
 
-      if (playerData.country) {
-        await fetchCountries((data) => {
-          setCountryFlag(data.find(c => c.name === playerData.country)?.flag || null)
+        await fetchPlayerStats(Number(params.playerId), (data) => {
+          setPlayerStats(data)
         })
+
+        if (playerData.team_id) {
+          await fetchTeam(playerData.team_id, (data) => {
+            setTeam(data)
+          })
+        }
+
+        if (playerData.country) {
+          await fetchCountries((data) => {
+            setCountryFlag(data.find(c => c.name === playerData.country)?.flag || null)
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching player data:', error)
       }
     }
 

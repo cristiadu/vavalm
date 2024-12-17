@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import Image, { ImageProps } from 'next/image'
 
 type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
@@ -25,7 +25,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
     }
   }, [imageBlob])
 
-  const imageSrc = objectUrl || src || fallbackSrc || ''
+  const imageSrc = useMemo(() => objectUrl || src || fallbackSrc || '', [objectUrl, src, fallbackSrc])
 
   return (
     <Image
@@ -39,4 +39,4 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
   )
 }
 
-export default ImageAutoSize
+export default React.memo(ImageAutoSize)

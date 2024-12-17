@@ -7,31 +7,10 @@ export const sortPlayersByStats = (p1: PlayerGameStats, p2: PlayerGameStats): nu
   const kda1 = (p1.kills + p1.assists * ASSISTS_HALF_MULTIPLIER) / p1.deaths
   const kda2 = (p2.kills + p2.assists * ASSISTS_HALF_MULTIPLIER) / p2.deaths
 
-  if (kda1 > kda2) {
-    return -1
-  } else if (kda1 < kda2) {
-    return 1
-  } else {
-    if (p1.kills > p2.kills) {
-      return -1
-    } else if (p1.kills < p2.kills) {
-      return 1
-    } else {
-      if (p1.assists > p2.assists) {
-        return -1
-      } else if (p1.assists < p2.assists) {
-        return 1
-      } else {
-        if (p1.deaths > p2.deaths) {
-          return 1
-        } else if (p1.deaths < p2.deaths) {
-          return -1
-        } else {
-          return 0
-        }
-      }
-    }
-  }
+  if (kda1 !== kda2) return kda2 - kda1
+  if (p1.kills !== p2.kills) return p2.kills - p1.kills
+  if (p1.assists !== p2.assists) return p2.assists - p1.assists
+  return p1.deaths - p2.deaths
 }
 
 export enum Weapon {

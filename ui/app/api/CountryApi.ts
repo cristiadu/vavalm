@@ -35,8 +35,9 @@ export const fetchCountries = async (closure: (countryData: Country[]) => void) 
 
     // Run the closure function after fetching data
     closure(countryData)
-    return countryData as Country[]
+    return countryData
   } catch (error) {
     console.error('Error fetching countries:', error)
+    throw error
   }
 }
