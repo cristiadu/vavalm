@@ -7,7 +7,6 @@ import { Country } from "../../../../api/models/Country"
 import { getMatch } from "../../../../api/GameApi"
 import GamePicker from "./games/GamePicker"
 import SectionHeader from "../../../../base/SectionHeader"
-import { sortByDate } from "../../../../base/UIUtils"
 import MatchHeader from "./MatchHeader"
 import GameView from "./games/GameView"
 
@@ -28,18 +27,25 @@ export default function ViewMatch(props: { params: ViewMatchParams }) {
         setCountries(countryData)
       })
 
-      await getMatch(matchId, (data: Match) => {
-        setMatch(data)
-        setSelectedGameId(data.games.sort(sortByDate)[0].id)
-      })
+      await fetchMatchData(matchId)
     }
 
     fetchInitialData()
   }, [matchId])
 
+  const fetchMatchData = async (matchIdRequest: number) => {
+    await getMatch(matchIdRequest, (data: Match) => {
+      setMatch(data)
+    })
+  }
+
   const handleGameSelection = (gameId: number) => {
     if (gameId === selectedGameId) return
     setSelectedGameId(gameId)
+  }
+
+  const updateMatchInfo = (newMatchData: Match) => {
+    fetchMatchData(newMatchData.id)
   }
 
   const team1Country = useMemo(() => countries.find(c => c.name === match?.team1?.country), [countries, match])
@@ -54,8 +60,8 @@ export default function ViewMatch(props: { params: ViewMatchParams }) {
       <SectionHeader title="Match Logs" />
       <div className="bg-white p-8 rounded shadow">
         <MatchHeader match={match} team1Country={team1Country} team2Country={team2Country} />
-        <GamePicker games={match.games} selectedGameId={selectedGameId} onClick={handleGameSelection} />
-        <GameView gameId={selectedGameId} team1Country={team1Country} team2Country={team2Country} match={match} countries={countries} />
+        <GamePicker games={match.games} selectedGameId={selectedGameId} onClick={handleGameSelection} matchWinnerId={match.winner_id} />
+        <GameView gameId={selectedGameId} team1Country={team1Country} team2Country={team2Country} match={match} countries={countries} updateMatchInfo={updateMatchInfo} />
       </div>
     </div>
   )

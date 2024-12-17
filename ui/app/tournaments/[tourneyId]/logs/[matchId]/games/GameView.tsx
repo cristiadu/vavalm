@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, lazy, Suspense, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { Game, Match } from '../../../../../api/models/Tournament'
 import { Country } from '../../../../../api/models/Country'
 import { playFullGame, getGame } from '../../../../../api/GameApi'
@@ -16,6 +16,7 @@ interface GameViewProps {
   match: Match
   countries: Country[]
   gameId: number
+  updateMatchInfo: (newMatchData: Match) => void
 }
 
 const GameView: React.FC<GameViewProps> = ({
@@ -24,6 +25,7 @@ const GameView: React.FC<GameViewProps> = ({
   team2Country,
   match,
   countries,
+  updateMatchInfo,
 }) => {
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
@@ -58,6 +60,7 @@ const GameView: React.FC<GameViewProps> = ({
       console.debug('Full Round Execution, Round State:', roundState)
       fetchGameData(gameId)
       setGameBeingPlayedMessage(null)
+      updateMatchInfo({ ...match, games: match.games.map(g => g.id === gameId ? { ...g, stats: { ...g.stats, ...roundState } } : g) })
     })
   }
 
@@ -68,6 +71,7 @@ const GameView: React.FC<GameViewProps> = ({
       console.debug('Single Duel Execution, Round State:', roundState)
       fetchGameData(gameId)
       setGameBeingPlayedMessage(null)
+      updateMatchInfo({ ...match, games: match.games.map(g => g.id === gameId ? { ...g, stats: { ...g.stats, ...roundState } } : g) })
     })
   }
 
@@ -77,6 +81,7 @@ const GameView: React.FC<GameViewProps> = ({
       console.debug('Full Game Execution, Message:', message)
       fetchGameData(gameId)
       setGameBeingPlayedMessage(null)
+      updateMatchInfo({ ...match, games: match.games.map(g => g.id === gameId ? { ...g, stats: { ...g.stats, message } } : g) })
     })
   }
 
