@@ -48,7 +48,7 @@
     "typescript": "^5.7.2",
     "wait-on": "^8.0.1",
     "webpack": "^5.97.1",
-    "webpack-cli": "^5.1.4",
+    "webpack-cli": "^6.0.1",
     "worker-plugin": "^5.0.1"
   }
 }
