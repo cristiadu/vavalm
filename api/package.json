@@ -46,7 +46,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths-webpack-plugin": "^4.2.0",
     "typescript": "^5.7.2",
-    "wait-on": "^8.0.1",
+    "wait-on": "^8.0.2",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1",
     "worker-plugin": "^5.0.1"
