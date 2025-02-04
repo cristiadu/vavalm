@@ -12,7 +12,9 @@
     "clean": "rm -rf node_modules && rm -rf dist",
     "migrate": "cd src && npx sequelize-cli db:migrate",
     "upgrade:dependencies": "npx ncu -u",
-    "upgrade:dependencies:check": "npx ncu"
+    "upgrade:dependencies:check": "npx ncu",
+    "codeql:analyze": "codeql database analyze --format=sarif-latest --output=results.sarif",
+    "codeql:disable-default-setup": "echo 'Disabling default setup for CodeQL analysis'"
   },
   "dependencies": {
     "cheerio": "^1.0.0",

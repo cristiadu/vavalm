@@ -10,7 +10,9 @@
     "lint": "npx eslint . && npx next lint",
     "lint:fix": "npx eslint . --fix && npx next lint --fix",
     "upgrade:dependencies": "npx ncu -u",
-    "upgrade:dependencies:check": "npx ncu"
+    "upgrade:dependencies:check": "npx ncu",
+    "codeql:analyze": "codeql database analyze --format=sarif-latest --output=results.sarif",
+    "codeql:disable-default-setup": "echo 'Disabling default setup for CodeQL analysis'"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
