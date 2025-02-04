@@ -63,12 +63,16 @@ jobs:
     # - name: Setup runtime (example)
     #   uses: actions/setup-example@v1
 
+    # Add a step to disable the default setup for CodeQL analysis
+    - name: Disable default setup for CodeQL analysis
+      run: npm run codeql:disable-default-setup
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
-        build-mode: ${{ matrix.build-mode }}
+        languages: javascript-typescript
+        build-mode: none
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
@@ -96,3 +100,10 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
+
+    - name: Verify SARIF file format
+      run: |
+        if ! jq empty results.sarif; then
+          echo "SARIF file is not correctly formatted"
+          exit 1
+        fi
