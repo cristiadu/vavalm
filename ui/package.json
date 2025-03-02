@@ -32,7 +32,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.10.5",
-    "@typescript-eslint/parser": "8.19.0",
+    "@typescript-eslint/parser": "8.25.0",
     "eslint-config-next": "^15.1.6"
   }
 }
