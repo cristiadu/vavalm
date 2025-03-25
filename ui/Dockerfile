@@ -19,7 +19,6 @@ COPY next.config.js /app
 COPY next-env.d.ts /app
 COPY eslint.config.mjs /app
 COPY tailwind.config.js /app
-COPY postcss.config.js /app
 
 # build the application
 RUN npm run build
