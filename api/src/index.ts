@@ -26,7 +26,8 @@ app.use((req, res, next) => {
   
   res.on('finish', () => {
     const duration = Date.now() - startTime
-    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`)
+    const sanitizedUrl = req.originalUrl.replace(/\n|\r/g, "")
+    console.log(`${req.method} ${sanitizedUrl} ${res.statusCode} ${duration}ms`)
   })
   
   next()
