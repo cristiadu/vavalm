@@ -6,7 +6,7 @@
     "dev": "npm-run-all --parallel watch start",
     "watch": "npx webpack --config webpack.config.js --mode development --watch",
     "build": "npx webpack --config webpack.config.js --mode production",
-    "start": "wait-on dist/bundle.js && node dist/bundle.js",
+    "start": "wait-on dist/bundle.js && node --max-old-space-size=4096 dist/bundle.js",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
     "clean": "rm -rf node_modules && rm -rf dist",

@@ -12,6 +12,13 @@ import TournamentService from "./TournamentService"
 import MatchService from "./MatchService"
 import GameStatsService from "./GameStatsService"
 import RoundService from "./RoundService"
+import CacheService from "./CacheService"
+
+// Cache TTL constants
+const CACHE_TTL = {
+  GAME: 60, // 1 minute
+  GAME_STATS: 120, // 2 minutes
+}
 
 const GameService = {
   /**
@@ -23,6 +30,14 @@ const GameService = {
    * 
    */
   getGame: async (game_id: number): Promise<Game> => {
+    // Try to get from cache first
+    const cacheKey = `game-${game_id}`
+    const cachedGame = CacheService.get<Game>(cacheKey)
+    
+    if (cachedGame) {
+      return cachedGame
+    }
+    
     const game = await Game.findByPk(game_id, {
       include: [
         {
@@ -46,7 +61,9 @@ const GameService = {
     if (!game) {
       throw new Error('Game not found')
     }
-
+    
+    // Cache the result
+    CacheService.set(cacheKey, game, CACHE_TTL.GAME)
     return game
   },
 
@@ -134,9 +151,42 @@ const GameService = {
     // Update tournament standings if the game is finished
     await TournamentService.updateStandingsAndWinner(game.match.tournament_id)
 
+    // Invalidate caches for this game
+    CacheService.delete(`game-${game_id}`)
+    CacheService.delete(`game-stats-${game_id}`)
+
     return { team1_rounds, team2_rounds }
   },
 
+  /**
+   * Retrieves the basic game statistics without loading all associated player data.
+   * This is a lightweight version of getGameFullStatsWithPlayersAndTeams to reduce memory usage.
+   *
+   * @param {number} game_id - The ID of the game to retrieve statistics for.
+   * @returns {Promise<GameStats | null>} - A promise that resolves to the basic game statistics.
+   */
+  getBasicGameStats: async (game_id: number): Promise<GameStats | null> => {
+    // Try to get from cache first
+    const cacheKey = `game-basic-stats-${game_id}`
+    const cachedStats = CacheService.get<GameStats | null>(cacheKey)
+    
+    if (cachedStats) {
+      return cachedStats
+    }
+    
+    // Get only the basic game stats without any nested relations
+    const data = await GameStats.findOne({
+      where: { game_id: game_id },
+      attributes: ['id', 'game_id', 'team1_id', 'team2_id', 'team1_score', 'team2_score', 'winner_id'],
+    })
+    
+    // Cache the result
+    if (data) {
+      CacheService.set(cacheKey, data, CACHE_TTL.GAME_STATS)
+    }
+    
+    return data
+  },
 
   /**
   * Retrieves the full game statistics along with associated players and teams.
@@ -144,18 +194,118 @@ const GameService = {
   * This function fetches the game statistics for a given game ID, including detailed information about the teams and players involved.
   *
   * @param {number} game_id - The ID of the game to retrieve statistics for.
-  * @returns {Promise<GameStats | null>} - A promise that resolves to the game statistics, or null if no game is found.
+  * @param {number} page - The page number for pagination (default: 1).
+  * @param {number} limit - The number of items per page for pagination (default: 20).
+  * @returns {Promise<{ data: GameStats | null, meta: { totalItems: number, totalPages: number, currentPage: number }}>} - A promise that resolves to the game statistics and pagination metadata.
   */
-  getGameFullStatsWithPlayersAndTeams: async (game_id: number): Promise<GameStats | null> => {
-    return await GameStats.findOne({
+  getGameFullStatsWithPlayersAndTeams: async (
+    game_id: number, 
+    page = 1, 
+    limit = 20,
+  ): Promise<{ 
+    data: GameStats | null, 
+    meta: { 
+      totalItems: number, 
+      totalPages: number, 
+      currentPage: number, 
+    },
+  }> => {
+    // Try to get from cache first
+    const cacheKey = `game-stats-${game_id}-page-${page}-limit-${limit}`
+    const cachedStats = CacheService.get<{ data: GameStats | null, meta: any }>(cacheKey)
+    
+    if (cachedStats) {
+      return cachedStats
+    }
+    
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit
+    
+    // Get game stats with pagination for player stats
+    const data = await GameStats.findOne({
       where: { game_id: game_id },
       include: [
-        { model: Team, as: 'team1', include: [{ model: Player, as: 'players', include: [{ model: Team, as: 'team' }] }] },
-        { model: Team, as: 'team2', include: [{ model: Player, as: 'players', include: [{ model: Team, as: 'team' }] }] },
-        { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player', include: [{ model: Team, as: 'team' }] }] },
-        { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player', include: [{ model: Team, as: 'team' }] }] },
+        { 
+          model: Team, 
+          as: 'team1', 
+          include: [{ 
+            model: Player, 
+            as: 'players', 
+            limit,
+            offset,
+            include: [{ model: Team, as: 'team' }], 
+          }], 
+        },
+        { 
+          model: Team, 
+          as: 'team2', 
+          include: [{ 
+            model: Player, 
+            as: 'players', 
+            limit,
+            offset,
+            include: [{ model: Team, as: 'team' }], 
+          }], 
+        },
+        { 
+          model: PlayerGameStats, 
+          as: 'players_stats_team1', 
+          limit,
+          offset,
+          include: [{ 
+            model: Player, 
+            as: 'player', 
+            include: [{ model: Team, as: 'team' }], 
+          }], 
+        },
+        { 
+          model: PlayerGameStats, 
+          as: 'players_stats_team2', 
+          limit,
+          offset,
+          include: [{ 
+            model: Player, 
+            as: 'player', 
+            include: [{ model: Team, as: 'team' }], 
+          }], 
+        },
       ],
     })
+    
+    // Count total items for pagination metadata
+    const gameStats = await GameStats.findOne({
+      where: { game_id: game_id },
+    })
+    
+    let totalTeam1Players = 0
+    let totalTeam2Players = 0
+    
+    if (gameStats) {
+      totalTeam1Players = await Player.count({ 
+        where: { team_id: gameStats.team1_id }, 
+      })
+      
+      totalTeam2Players = await Player.count({ 
+        where: { team_id: gameStats.team2_id }, 
+      })
+    }
+    
+    const totalItems = Math.max(totalTeam1Players, totalTeam2Players)
+    const totalPages = Math.ceil(totalItems / limit)
+    
+    const result = {
+      data,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+      },
+    }
+    
+    // Cache the result
+    CacheService.set(cacheKey, result, CACHE_TTL.GAME_STATS)
+    
+    return result
   },
 }
 
