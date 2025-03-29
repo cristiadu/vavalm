@@ -33,4 +33,4 @@ fi
 
 # Restart PostgreSQL
 stop_postgresql
-docker-compose up -d db
+docker-compose up -d db || docker compose up -d db

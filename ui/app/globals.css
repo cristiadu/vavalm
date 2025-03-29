@@ -1,3 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Additional custom styles */
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}

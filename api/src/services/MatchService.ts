@@ -1,4 +1,5 @@
 import { Op } from "sequelize"
+import { Transaction } from "sequelize"
 
 import { getRandomDateBetweenInterval } from "../base/DateUtils"
 
@@ -10,6 +11,8 @@ import Game from "../models/Game"
 
 import GameService from "./GameService"
 import { ItemsWithPagination } from "../base/types"
+import db from '../models/db'
+import TournamentService from "./TournamentService"
 
 const MatchService = {
   getMatchesFromTournament: async (tournamentId: number, limit: number, offset: number): Promise<ItemsWithPagination<Match>> => {
@@ -27,52 +30,64 @@ const MatchService = {
   },
 
   /**
-   * Plays a full match, playing all games in the match in the order they're supposed to be played.
-   *
-   * @param matchId The ID of the match to play.
-   * @returns A promise that resolves when the match has been played.
+   * Fully plays a match by simulating all of its games.
+   * Uses database transactions to ensure data consistency.
+   * 
+   * @param {number} matchId - The ID of the match to be played.
+   * @returns {Promise<void>} A promise that resolves when all games have been played.
    * @throws {Error} If the match is not found.
    */
   playFullMatch: async (matchId: number): Promise<void> => {
-    const matchWithGamesOrderedByDate = await Match.findByPk(matchId, {
-      include: [
-        {
-          model: Game,
-          as: "games",
-          where: {
-            started: false,
-          },
-        },
-      ],
-      order: [[{ model: Game, as: "games" }, "date", "ASC"]],
+    return db.sequelize.transaction(async (transaction: Transaction) => {
+      const match = await Match.findByPk(matchId, { transaction })
+      if (!match) {
+        throw new Error('Match not found')
+      }
+
+      // Create games for the match if needed
+      const games = await Game.findAll({
+        where: { match_id: matchId },
+        transaction,
+      })
+
+      if (games.length === 0) {
+        await GameService.createGamesForMatch(match)
+      }
+
+      // Get all games for the match
+      const matchGames = await Game.findAll({
+        where: { match_id: matchId },
+        transaction,
+      })
+
+      // Loop through each game and play it
+      const results = []
+      for (const game of matchGames) {
+        const { team1_rounds, team2_rounds } = await GameService.playFullGame(game.id)
+        results.push({ gameId: game.id, team1_rounds, team2_rounds })
+      }
+
+      // Update match results based on games played
+      const team1Wins = results.filter(r => r.team1_rounds > r.team2_rounds).length
+      const team2Wins = results.filter(r => r.team2_rounds > r.team1_rounds).length
+
+      match.team1_score = team1Wins
+      match.team2_score = team2Wins
+      match.finished = true
+
+      if (team1Wins > team2Wins) {
+        match.winner_id = match.team1_id
+      } else if (team2Wins > team1Wins) {
+        match.winner_id = match.team2_id
+      }
+
+      await match.save({ transaction })
+
+      // Update tournament standings
+      if (match.tournament_id) {
+        await TournamentService.updateStandingsAndWinner(match.tournament_id)
+      }
     })
-
-    if (!matchWithGamesOrderedByDate) {
-      throw new Error("Match not found")
-    }
-
-    const minMatchesToWin = MatchService.numberOfGamesToWinForMatchType(matchWithGamesOrderedByDate.type)
-
-    // Play all games in the match
-    let team1GamesWon = 0
-    let team2GamesWon = 0
-    for (const game of matchWithGamesOrderedByDate.games) {
-      game.started = true
-      await game.save()
-      const {team1_rounds, team2_rounds} = await GameService.playFullGame(game.id)
-      game.finished = true
-      await game.save()
-
-      if (team1_rounds > team2_rounds) {
-        team1GamesWon++
-      } else {
-        team2GamesWon++
-      }
-
-      if (team1GamesWon >= minMatchesToWin || team2GamesWon >= minMatchesToWin) {
-        break
-      }
-    }
   },
 
   /**
