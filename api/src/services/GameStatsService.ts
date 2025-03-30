@@ -113,22 +113,30 @@ const GameStatsService = {
    * Updates the player statistics based on game logs.
    * 
    * @param {number} game_id - The ID of the game to update player stats for.
-   * 
-   * This function performs the following steps:
-   * 1. Retrieves all game logs for the given game.
-   * 2. Retrieves or initializes the PlayerGameStats objects for all players involved in the game.
-   * 3. Updates the player stats based on the game logs, but only for logs that have not been included in player stats yet.
-   * 4. Saves the updated player stats to the database.
    */
   updatePlayerStats: async (game_id: number): Promise<void> => {
     try {
-      const gameStats = await GameService.getGameFullStatsWithPlayersAndTeams(game_id)
+      const gameStatsResponse = await GameService.getGameFullStatsWithPlayersAndTeams(game_id)
+      const gameStats = gameStatsResponse.data
 
       if (!gameStats) {
         throw new Error('Game stats not found for updating player stats for each team. game_id:' + game_id)
       }
 
-      // get all the game logs that were not included in player stats
+      // Create the PlayerGameStats object for all players involved in this game
+      const playerIdToStatsTeam1 = await GameStatsService.getPlayerIdToStatsMap(
+        await Player.findAll({ where: { team_id: gameStats.team1_id } }),
+        gameStats.id as number, 
+        1,
+      )
+      
+      const playerIdToStatsTeam2 = await GameStatsService.getPlayerIdToStatsMap(
+        await Player.findAll({ where: { team_id: gameStats.team2_id } }),
+        gameStats.id as number, 
+        2,
+      )
+
+      // Get all the game logs that haven't been included in player stats yet
       const gameLogs = await GameLog.findAll({
         where: {
           game_id: gameStats.game_id,
@@ -141,15 +149,8 @@ const GameStatsService = {
         ],
       })
 
-      console.debug('Updating player stats for game:', gameStats.game_id)
-
-      // Create the PlayerGameStats object for all players involved in this game, but dont save it yet.
-      const playerIdToStatsTeam1 = await GameStatsService.getPlayerIdToStatsMap(gameStats.team1.players as Player[], gameStats.id as number, 1)
-      const playerIdToStatsTeam2 = await GameStatsService.getPlayerIdToStatsMap(gameStats.team2.players as Player[], gameStats.id as number, 2)
-
-      // Update the player stats
       for (const log of gameLogs) {
-        // Create the PlayerGameStats for all players involved in this game
+        // Get the PlayerGameStats for players involved in this game
         const playerStatsTeam1 = playerIdToStatsTeam1.get(log.team1_player_id)
         const playerStatsTeam2 = playerIdToStatsTeam2.get(log.team2_player_id)
 
@@ -175,10 +176,10 @@ const GameStatsService = {
           await log.save()
         } else {
           console.error('Internal Error while updating player stats for game:', gameStats.game_id)
-        } // A -> B   A -> C
+        }
       }
 
-      // Save the player stats
+      // Save all player stats
       for (const playerStats of playerIdToStatsTeam1.values()) {
         await playerStats.save()
       }

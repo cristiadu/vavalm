@@ -1,6 +1,8 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres
+    image: postgres:latest
     restart: always
     environment:
       POSTGRES_USER: user
@@ -10,6 +12,14 @@ services:
       - "5432:5432"
     networks:
       - vavalm-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./api
@@ -24,9 +34,11 @@ services:
       PORT: 8000
     networks:
       - vavalm-network
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
-    depends_on: 
-    - backend
     build:
       context: ./ui
       dockerfile: Dockerfile
@@ -40,7 +52,13 @@ services:
       PORT: 3000
     networks:
       - vavalm-network
+    depends_on:
+      - backend
 
 networks:
   vavalm-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

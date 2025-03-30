@@ -1,6 +1,10 @@
 import { GameLog, RoundState } from "./models/Tournament"
 import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
 
+// Simple cache implementation to store round data
+const roundCache = new Map<string, { data: GameLog[], timestamp: number }>()
+const CACHE_TTL = 60000 // 1 minute cache
+
 export const playFullRound = async (game_id: number, round: number, closure: (roundState: RoundState) => void) => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}/play`, {
@@ -17,16 +21,28 @@ export const playFullRound = async (game_id: number, round: number, closure: (ro
 
     const data = await response.json()
     closure(data as RoundState)
-    console.debug('Success:', data)
+    
+    // Clear cache for this game since data has changed
+    clearCacheForGame(game_id)
+    
     return data as RoundState
   } catch (error) {
     console.error('Error:', error)
   }
 }
 
-export const getLastRound = async (game_id: number, closure: (lastRoundLogs: GameLog[]) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+export const getLastRound = async (game_id: number, closure: (lastRoundLogs: GameLog[]) => void) => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last?limit=${limit}&offset=${offset}`, {
+    const cacheKey = `last_${game_id}`
+    const cachedData = roundCache.get(cacheKey)
+    
+    // Return cached data if available and not expired
+    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
+      closure(cachedData.data)
+      return cachedData.data
+    }
+    
+    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -39,33 +55,67 @@ export const getLastRound = async (game_id: number, closure: (lastRoundLogs: Gam
     }
 
     const data = await response.json()
+    
+    // Cache the response
+    roundCache.set(cacheKey, { data: data as GameLog[], timestamp: Date.now() })
+    
     closure(data as GameLog[])
-    console.debug('Success:', data)
     return data as GameLog[]
   } catch (error) {
-    console.error('Error:', error)
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log('Fetch aborted due to timeout')
+    } else {
+      console.error('Error:', error)
+    }
   }
 }
 
 export const getRound = async (game_id: number, round: number, closure: (roundLogs: GameLog[]) => void) => {
   try {
+    const cacheKey = `round_${game_id}_${round}`
+    const cachedData = roundCache.get(cacheKey)
+    
+    // Return cached data if available and not expired
+    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
+      closure(cachedData.data)
+      return cachedData.data
+    }
+    
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })
-
+    
     if (!response.ok) {
       console.error("Network response was not ok: ", response)
       return
     }
 
-    const data = await response.json()
+    const responseData = await response.json()
+    const data = Array.isArray(responseData) ? responseData : responseData.data || []
+    
+    // Cache the response
+    roundCache.set(cacheKey, { data: data as GameLog[], timestamp: Date.now() })
+    
     closure(data as GameLog[])
-    console.debug('Success:', data)
     return data as GameLog[]
   } catch (error) {
-    console.error('Error:', error)
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log('Fetch aborted due to timeout')
+    } else {
+      console.error('Error:', error)
+    }
+  }
+}
+
+// Helper function to clear cache entries for a specific game
+function clearCacheForGame(game_id: number) {
+  // Clear all cache entries related to this game
+  for (const key of roundCache.keys()) {
+    if (key.includes(`_${game_id}_`)) {
+      roundCache.delete(key)
+    }
   }
 }

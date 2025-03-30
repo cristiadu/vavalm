@@ -13,28 +13,44 @@ import MatchService from '../services/MatchService'
 const router = Router()
 
 router.get('/', async (req: Request, res: Response): Promise<any> => {
-  try {
-    const limit_value = Number(req.query.limit)
-    const offset_value = Number(req.query.offset)
+  const { limit, offset } = req.query
+  const limit_value = Number(limit) || 10 // Default limit
+  const offset_value = Number(offset) || 0 // Default offset
 
-    // Switching the above to use findAllAndCount to get the total count of tournaments
-    const tournamentsFindAll = await Tournament.findAndCountAll({
+  try {
+    // Use a single findAndCountAll query with distinct:true
+    const { count, rows } = await Tournament.findAndCountAll({
+      distinct: true,
+      subQuery: false,
+      limit: Math.min(limit_value, 100),
+      offset: offset_value,
       order: [['id', 'ASC']],
       include: [
-        { model: Team, as: 'teams', attributes: ['id', 'short_name', 'logo_image_file', 'country'] },
+        { 
+          model: Team, 
+          as: 'teams', 
+          attributes: ['id', 'short_name', 'logo_image_file', 'country'],
+        },
       ],
-      limit: limit_value > 0 ? limit_value : undefined,
-      offset: offset_value > 0 ? offset_value : undefined,
     })
-
-    const tournamentsWithPagination: ItemsWithPagination<Tournament> = {
-      total: tournamentsFindAll.count,
-      items: tournamentsFindAll.rows,
+    
+    // If no results but offset was requested, check if offset exceeds total
+    if (rows.length === 0 && offset_value > 0) {
+      if (offset_value >= count) {
+        return res.json({
+          total: count,
+          items: [],
+        })
+      }
     }
-    res.json(tournamentsWithPagination)
-  } catch (err) {
-    console.error('Error executing query', (err as Error).stack)
-    res.status(500).json({ error: 'Internal Server Error' })
+
+    return res.json({
+      total: count,
+      items: rows,
+    })
+  } catch (error) {
+    console.error('Error fetching tournaments:', error)
+    return res.status(500).json({ error: 'Failed to fetch tournaments' })
   }
 })
 

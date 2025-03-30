@@ -24,13 +24,18 @@ export const playSingleDuel = async (game_id: number, round: number, closure: (r
   }
 }
 
-export const getLastDuel = async (game_id: number, closure: (lastDuelLog: GameLog) => void) => {
+export const getLastDuel = async (
+  game_id: number, 
+  closure: (lastDuelLog: GameLog) => void,
+  options?: { signal?: AbortSignal },
+) => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last/duel`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
+      signal: options?.signal,
     })
     
     if (!response.ok) {
@@ -42,6 +47,11 @@ export const getLastDuel = async (game_id: number, closure: (lastDuelLog: GameLo
     console.debug('Success:', data)
     return data
   } catch (error) {
+    // Don't log aborted requests as errors
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log('Fetch aborted')
+      return null
+    }
     console.error('Error:', error)
     throw error
   }

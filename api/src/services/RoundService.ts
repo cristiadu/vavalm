@@ -32,9 +32,11 @@ const RoundService = {
    * 
    * @param {number} game_id - The ID of the game.
    * @param {number} round_number - The number of the round to retrieve.
+   * @param {number} [page=1] - The page number for pagination.
+   * @param {number} [pageSize=100] - The number of items per page.
    * @returns {Promise<GameLog[]>} - A promise that resolves to an array of game logs for the specified round.
    */
-  getRound: async (game_id: number, round_number: number): Promise<GameLog[]> => {
+  getRound: async (game_id: number, round_number: number): Promise<GameLog[]> => {    
     return await GameLog.findAll({
       where: {
         game_id: game_id,
@@ -42,8 +44,16 @@ const RoundService = {
       },
       order: [['id', 'DESC']],
       include: [
-        { model: Player, as: 'team1_player' },
-        { model: Player, as: 'team2_player' },
+        { 
+          model: Player, 
+          as: 'team1_player',
+          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
+        },
+        { 
+          model: Player, 
+          as: 'team2_player', 
+          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
+        },
       ],
     })
   },

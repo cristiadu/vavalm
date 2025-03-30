@@ -71,13 +71,18 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
   }
 }
 
-export const getGame = async (game_id: number, closure: (response: Game) => void) => {
+export const getGame = async (
+  game_id: number, 
+  closure: (response: Game) => void,
+  options?: { signal?: AbortSignal },
+) => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
+      signal: options?.signal,
     })
 
     if (!response.ok) {
@@ -104,6 +109,11 @@ export const getGame = async (game_id: number, closure: (response: Game) => void
     console.debug("Success:", data)
     return data
   } catch (error) {
+    // Don't log aborted requests as errors
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log('Fetch aborted')
+      return null
+    }
     console.error("Error:", error)
     throw error
   }

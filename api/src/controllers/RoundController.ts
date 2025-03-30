@@ -98,7 +98,12 @@ router.get('/last', async (req: Request, res: Response): Promise<any> => {
 router.get('/:round', async (req: Request, res: Response): Promise<any> => {
   try {
     const { id, round } = req.params as { id: string, round: string }
-    const gameLogsFromRound = await RoundService.getRound(Number(id), Number(round))
+    
+    const gameLogsFromRound = await RoundService.getRound(
+      Number(id), 
+      Number(round),
+    )
+    
     res.status(200).json(gameLogsFromRound)
   } catch (err) {
     console.error('Error executing query:', err)
