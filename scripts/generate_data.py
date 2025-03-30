@@ -82,13 +82,30 @@ NICKNAMES = [
     "Frost", "Breeze", "Drift", "Specter", "Ember", "Stealth", "Zephyr", "Sova", "Killjoy", "Vanguard"
 ]
 
-def generate_random_date_range():
-    """Generate a random date range in the future"""
-    start_date = datetime.now() + timedelta(days=random.randint(30, 180))
-    duration = random.randint(3, 14)  # 3-14 days
-    end_date = start_date + timedelta(days=duration)
+def generate_random_date_range(start_date=None, end_date=None):
+    """
+    Generate a random date range in the future or use provided dates
     
-    return start_date.isoformat(), end_date.isoformat()
+    Args:
+        start_date (str, optional): Start date in ISO format (YYYY-MM-DD)
+        end_date (str, optional): End date in ISO format (YYYY-MM-DD)
+    """
+    if start_date and end_date:
+        try:
+            # Parse the provided dates
+            start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+            return start.isoformat(), end.isoformat()
+        except ValueError as e:
+            print(f"Error parsing dates: {e}")
+            print("Using random dates instead.")
+    
+    # Generate random dates if none provided or if parsing failed
+    start = datetime.now() + timedelta(days=random.randint(30, 180))
+    duration = random.randint(3, 14)  # 3-14 days
+    end = start + timedelta(days=duration)
+    
+    return start.isoformat(), end.isoformat()
 
 def generate_tournament_name():
     """Generate a random tournament name"""
@@ -153,8 +170,16 @@ def generate_player_attributes():
     
     return attributes
 
-def create_tournament(count=1):
-    """Create a random tournament using the API"""
+def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
+    """
+    Create a random tournament using the API
+    
+    Args:
+        count (int): Number of tournaments to create
+        start_date (str, optional): Start date in ISO format (YYYY-MM-DD)
+        end_date (str, optional): End date in ISO format (YYYY-MM-DD)
+        team_count (int, optional): Number of teams to include in the tournament
+    """
     teams = fetch_teams()
     
     if not teams:
@@ -164,9 +189,16 @@ def create_tournament(count=1):
     for i in range(count):
         # Generate tournament data
         name = generate_tournament_name()
-        start_date, end_date = generate_random_date_range()
-        team_count = random.randint(4, min(16, len(teams)))
-        selected_teams = random.sample(teams, team_count)
+        tournament_start_date, tournament_end_date = generate_random_date_range(start_date, end_date)
+        
+        # Determine number of teams to include
+        max_teams = min(16, len(teams))
+        if team_count is not None and team_count > 0:
+            num_teams = min(team_count, len(teams))
+        else:
+            num_teams = random.randint(4, max_teams)
+            
+        selected_teams = random.sample(teams, num_teams)
         
         # Filter out any team without a valid ID
         valid_team_ids = []
@@ -187,8 +219,8 @@ def create_tournament(count=1):
             "name": name,
             "description": f"<strong>{name}</strong> is a premier esports tournament.",
             "country": country,
-            "start_date": start_date,
-            "end_date": end_date,
+            "start_date": tournament_start_date,
+            "end_date": tournament_end_date,
             "teams": valid_team_ids,  # This is now a list of objects with id key
         }
         
@@ -197,7 +229,7 @@ def create_tournament(count=1):
         
         try:
             print(f"Creating tournament: {name} in {country} with {len(valid_team_ids)} teams")
-            print(f"Team IDs: {valid_team_ids}")
+            print(f"Start: {tournament_start_date}, End: {tournament_end_date}")
             response = requests.post(f"{API_BASE_URL}/tournaments", json=tournament_data)
             
             if response.status_code == 201:
@@ -307,13 +339,22 @@ def main():
     parser = argparse.ArgumentParser(description="Generate tournaments, teams, and players for VAVALM")
     parser.add_argument("type", choices=["tournament", "team", "player"], help="Type of data to generate")
     parser.add_argument("count", type=int, nargs="?", default=1, help="Number of items to generate")
+    
+    # Tournament options
+    parser.add_argument("--start-date", type=str, help="Start date for tournament (YYYY-MM-DD)")
+    parser.add_argument("--end-date", type=str, help="End date for tournament (YYYY-MM-DD)")
+    parser.add_argument("--teams", type=int, help="Number of teams to include in the tournament")
+    
+    # Team options
     parser.add_argument("--players", type=int, default=5, help="Number of players per team (for team generation)")
+    
+    # Player options
     parser.add_argument("--team", type=int, help="Team ID to assign players to (for player generation)")
     
     args = parser.parse_args()
     
     if args.type == "tournament":
-        create_tournament(args.count)
+        create_tournament(args.count, args.start_date, args.end_date, args.teams)
     elif args.type == "team":
         create_team_with_players(args.count, args.players)
     elif args.type == "player":
@@ -324,6 +365,8 @@ if __name__ == "__main__":
         print("Usage: ./generate_data.py [tournament|team|player] [count] [options]")
         print("Examples:")
         print("  ./generate_data.py tournament 3        # Generate 3 tournaments")
+        print("  ./generate_data.py tournament 1 --start-date=2023-06-01 --end-date=2023-06-15 --teams=8")
+        print("                                         # Generate a tournament with specific dates and 8 teams")
         print("  ./generate_data.py team 2 --players=5  # Generate 2 teams with 5 players each")
         print("  ./generate_data.py player 5            # Generate 5 players assigned to random teams")
         print("  ./generate_data.py player 3 --team=1   # Generate 3 players assigned to team with ID 1")

@@ -36,48 +36,12 @@ const RoundService = {
    * @param {number} [pageSize=100] - The number of items per page.
    * @returns {Promise<GameLog[]>} - A promise that resolves to an array of game logs for the specified round.
    */
-  getRound: async (game_id: number, round_number: number, page = 1, pageSize = 100): Promise<GameLog[]> => {
-    const offset = (page - 1) * pageSize;
-    
-    // First, get the count to see if we need pagination
-    const count = await GameLog.count({
-      where: {
-        game_id: game_id,
-        'round_state.round': round_number,
-      },
-    });
-    
-    // If the count is small, don't bother with pagination
-    if (count <= pageSize) {
-      return await GameLog.findAll({
-        where: {
-          game_id: game_id,
-          'round_state.round': round_number,
-        },
-        order: [['id', 'DESC']],
-        include: [
-          { 
-            model: Player, 
-            as: 'team1_player',
-            attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
-          },
-          { 
-            model: Player, 
-            as: 'team2_player', 
-            attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
-          },
-        ],
-      });
-    }
-    
-    // If there are lots of records, use pagination
+  getRound: async (game_id: number, round_number: number): Promise<GameLog[]> => {    
     return await GameLog.findAll({
       where: {
         game_id: game_id,
         'round_state.round': round_number,
       },
-      limit: pageSize,
-      offset: offset,
       order: [['id', 'DESC']],
       include: [
         { 
@@ -91,7 +55,7 @@ const RoundService = {
           attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
         },
       ],
-    });
+    })
   },
   /**
    * Plays rounds until one team wins 13 rounds or 2 rounds more than the enemy if both get to 12-12 without a winner.

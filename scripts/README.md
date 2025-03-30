@@ -23,6 +23,15 @@ The `generate_data.py` script can generate tournaments, teams with players, and 
 
 # Generate multiple tournaments
 ./generate_data.py tournament 5
+
+# Generate a tournament with specific start and end dates
+./generate_data.py tournament --start-date=2023-06-01 --end-date=2023-06-15
+
+# Generate a tournament with a specific number of teams
+./generate_data.py tournament --teams=8
+
+# Generate a tournament with both custom dates and team count
+./generate_data.py tournament 1 --start-date=2023-06-01 --end-date=2023-06-15 --teams=8
 ```
 
 ### Generate Teams with Players
@@ -57,6 +66,8 @@ The `generate_data.py` script can generate tournaments, teams with players, and 
 - Randomly selects teams from the existing database
 - Sets proper date ranges, types, and countries
 - Provides clear success/failure messages for each operation
+- Supports customizable start and end dates for tournaments
+- Allows specifying the exact number of teams to include in a tournament
 
 ### Team Generator
 
@@ -82,6 +93,9 @@ The Python script is built to work with the VAVALM API models:
 - Handles API responses correctly with proper error handling
 - Generates realistic random data for all entities
 - Expanded data options with a wide variety of names, countries, and roles
+- Provides flexible command-line arguments for customizing generated data
+- Supports ISO-format date inputs for precise tournament scheduling
+- Incorporates validation and error handling for all input parameters
 
 ## Extending the Script
 

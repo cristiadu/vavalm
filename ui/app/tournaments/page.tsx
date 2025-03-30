@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { fetchTournaments, deleteTournament } from '../api/TournamentsApi'
-import { Tournament } from '../api/models/Tournament'
 import { fetchCountries } from '../api/CountryApi'
+import { Tournament } from '../api/models/Tournament'
 import { Team } from '../api/models/Team'
 import TournamentActionModal from './TournamentActionModal'
 import { asSafeHTML } from '../base/StringUtils'
@@ -73,7 +73,10 @@ export default function ListTournaments() {
 
     deleteTournament(tournament, (tournamentData) => {
       console.debug('Tournament deleted:', tournamentData)
-      fetchTournaments(setTournaments)
+      fetchTournaments((data) => {
+        setTournaments(data)
+        setTotalItems(data.total)
+      })
     })
   }
 

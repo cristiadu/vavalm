@@ -221,7 +221,8 @@ const GameService = {
     // Calculate offset for pagination
     const offset = (page - 1) * limit
     
-    // Get game stats with pagination for player stats
+    // Get game stats with associated players and teams
+    // Note: findOne doesn't support limit and offset directly on includes
     const data = await GameStats.findOne({
       where: { game_id: game_id },
       include: [
@@ -230,9 +231,7 @@ const GameService = {
           as: 'team1', 
           include: [{ 
             model: Player, 
-            as: 'players', 
-            limit,
-            offset,
+            as: 'players',
             include: [{ model: Team, as: 'team' }], 
           }], 
         },
@@ -241,17 +240,13 @@ const GameService = {
           as: 'team2', 
           include: [{ 
             model: Player, 
-            as: 'players', 
-            limit,
-            offset,
+            as: 'players',
             include: [{ model: Team, as: 'team' }], 
           }], 
         },
         { 
           model: PlayerGameStats, 
-          as: 'players_stats_team1', 
-          limit,
-          offset,
+          as: 'players_stats_team1',
           include: [{ 
             model: Player, 
             as: 'player', 
@@ -260,9 +255,7 @@ const GameService = {
         },
         { 
           model: PlayerGameStats, 
-          as: 'players_stats_team2', 
-          limit,
-          offset,
+          as: 'players_stats_team2',
           include: [{ 
             model: Player, 
             as: 'player', 
