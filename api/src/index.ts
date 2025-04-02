@@ -94,21 +94,36 @@ const gracefulShutdown = () => {
 process.on('SIGTERM', gracefulShutdown)
 process.on('SIGINT', gracefulShutdown)
 
-const forceSync = process.env.FORCE_SYNC === 'true'
-db.sequelize.sync({ force: forceSync }).then(() => {
-  setupTestData().then(() => {
-    console.info('Test data has been created successfully.')
-  }).catch(err => {
-    console.error('Unable to create test data:', err)
-  })
-})
-
-app.listen(port, () => {
-  console.info(`Server is running on port ${port}`)
-  const shouldStartScheduler = process.env.START_SCHEDULER != 'false'
-  console.log('shouldStartScheduler', shouldStartScheduler)
-  if (shouldStartScheduler) {
-    console.info('Starting match scheduler...')
-    SchedulerService.startScheduler()
+// Initialize database and start server
+const initializeApp = async () => {  
+  try {
+    const forceSync = process.env.FORCE_SYNC === 'true'
+    
+    // Initialize database connection
+    await db.initializeDatabase()
+    
+    // Sync database schema
+    await db.sequelize.sync({ force: forceSync })
+    console.log('Database schema synchronized.')
+    
+    // Setup test data
+    await setupTestData()
+    console.log('Test data has been created successfully.')
+    
+    // Start the server
+    app.listen(port, () => {
+      console.info(`Server is running on port ${port}`)
+      const shouldStartScheduler = process.env.START_SCHEDULER != 'false'
+      console.log('shouldStartScheduler', shouldStartScheduler)
+      if (shouldStartScheduler) {
+        console.info('Starting match scheduler...')
+        SchedulerService.startScheduler()
+      }
+    })
+  } catch (error) {
+    console.error('Failed to initialize application:', error)
+    process.exit(1)
   }
-})
+}
+
+initializeApp()

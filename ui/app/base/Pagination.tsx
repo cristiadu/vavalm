@@ -11,6 +11,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limit
   const [limit, setLimit] = useState(limitValue)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
+  const [showPageSelect, setShowPageSelect] = useState(false)
 
   useEffect(() => {
     setTotalPages(Math.ceil(totalItems / limit))
@@ -36,20 +37,64 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limit
     onPageChange(limit, newOffset)
   }
 
+  const handlePageSelect = (page: number) => {
+    const newOffset = (page - 1) * limit
+    setCurrentPage(page)
+    onPageChange(limit, newOffset)
+    setShowPageSelect(false)
+  }
+
   return (
-    <div className="flex justify-between mt-4">
+    <div className="flex items-center justify-center space-x-4 mt-4">
       <button 
         onClick={handlePreviousPage} 
         disabled={currentPage === 1} 
-        className="bg-gray-500 text-white mr-4 px-4 py-2 rounded hover:bg-gray-700 disabled:bg-gray-300"
+        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-gray-300"
       >
         Previous
       </button>
-      <span className="text-gray-700 py-2">Page {currentPage} of {totalPages}</span>
+
+      {/* Page selector dropdown */}
+      <div className="relative">
+        {showPageSelect && (
+          <div className="absolute bottom-full right-0 mb-1 w-32 bg-white rounded-md shadow-lg z-10">
+            <div className="py-1 max-h-60 overflow-y-auto">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageSelect(page)}
+                  className={`w-full text-left px-4 py-2 text-sm ${
+                    currentPage === page
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Page {page}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <button
+          onClick={() => setShowPageSelect(!showPageSelect)}
+          className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 flex items-center"
+        >
+          <span>Page {currentPage} of {totalPages}</span>
+          <svg
+            className={`w-4 h-4 ml-2 transition-transform ${showPageSelect ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
       <button 
         onClick={handleNextPage} 
         disabled={currentPage >= totalPages} 
-        className="bg-gray-500 text-white px-4 py-2 ml-4 rounded hover:bg-gray-700 disabled:bg-gray-300"
+        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 disabled:bg-gray-300"
       >
         Next
       </button>

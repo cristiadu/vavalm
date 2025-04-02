@@ -1,40 +1,91 @@
-import { Sequelize } from 'sequelize'
-import { env as _env } from 'process'
+import { Sequelize, Dialect } from 'sequelize'
+import config from '../config/config.json'
 
-const env = _env.NODE_ENV || 'development'
-const config = require(__dirname + '/../config/config.json')[env]
-interface DB {
-  sequelize: any,
-  Sequelize: any
-}
+type Environment = 'development' | 'test' | 'production'
+const env = (process.env.NODE_ENV || 'development') as Environment
+const dbConfig = config[env]
 
-const db: DB = {} as DB
+const sequelize = new Sequelize(
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
+  {
+    host: dbConfig.host,
+    dialect: dbConfig.dialect as Dialect,
+    pool: {
+      max: dbConfig.pool.max,
+      min: dbConfig.pool.min,
+      acquire: dbConfig.pool.acquire,
+      idle: dbConfig.pool.idle,
+      evict: dbConfig.pool.evict,
+    },
+    logging: false,
+  },
+)
 
-let sequelize
-if (config.use_env_variable) {
-  const useEnvVariable = _env[config.use_env_variable]
-  if (useEnvVariable) {
-    sequelize = new Sequelize(useEnvVariable, { logging: null, ...config })
-  } else {
-    throw new Error(`Environment variable ${config.use_env_variable} is not defined.`)
+// Add connection validation with retries
+const validateConnection = async (attempts = 3): Promise<void> => {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await sequelize.authenticate()
+      console.log('Database connection established successfully.')
+      return
+    } catch (error) {
+      console.error(`Unable to connect to the database (attempt ${i + 1}/${attempts}):`, error)
+      if (i < attempts - 1) {
+        const delay = Math.pow(1.5, i) * 1000 // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay))
+      } else {
+        throw error
+      }
+    }
   }
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, { logging: null, ...config })
 }
 
-// Validate database connection
-sequelize.authenticate()
-  .then(() => {
-    console.log('Connection has been established successfully.')
-  })
-  .then(() => {
-    console.log('All tables have been created successfully.')
-  })
-  .catch((err) => {
-    console.error('Unable to connect to the database:', err)
-  })
+// Add connection pool monitoring
+const monitorPool = () => {
+  setInterval(async () => {
+    const pool = sequelize.connectionManager
+    try {
+      const connection = await pool.getConnection({ type: 'read' })
+      console.log('Pool status - Connection available')
+      // @ts-ignore - release method exists on the connection object
+      connection.release()
+    } catch (error) {
+      console.log('Pool status - No connection available')
+    }
+  }, 60000) // Log every minute
+}
 
-db.sequelize = sequelize
-db.Sequelize = Sequelize
+// Initialize connection and monitoring
+const initializeDatabase = async () => {
+  try {
+    await validateConnection()
+    monitorPool()
+  } catch (error) {
+    console.error('Failed to initialize database connection:', error)
+    process.exit(1)
+  }
+}
+
+// Graceful shutdown
+const shutdown = async () => {
+  try {
+    await sequelize.close()
+    console.log('Database connection closed.')
+  } catch (error) {
+    console.error('Error closing database connection:', error)
+  }
+}
+
+// Handle process termination
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)
+
+const db = {
+  sequelize,
+  Sequelize,
+  initializeDatabase,
+}
 
 export default db

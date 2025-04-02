@@ -1,11 +1,11 @@
 const path = require('path')
-const { IgnorePlugin } = require('webpack')
+const webpack = require('webpack')
 const WorkerPlugin = require('worker-plugin')
 
 const config = {
-  entry: './src/index.ts', // Adjust the entry point as needed
+  entry: './src/index.ts',
   target: 'node',
-  mode: 'development', // Change to 'production' for production builds
+  mode: 'development',
   module: {
     rules: [
       {
@@ -32,10 +32,16 @@ const config = {
     express: 'commonjs express',
     sequelize: 'commonjs sequelize',
   },
-  devtool: 'source-map', // Enable source maps for debugging
+  devtool: 'source-map',
+  watch: true,
+  watchOptions: {
+    ignored: /node_modules/,
+    aggregateTimeout: 300,
+    poll: 1000,
+  },
   plugins: [
-    new IgnorePlugin({
-      resourceRegExp: /migrations/, // Adjust the regex to match your migrations directory or files
+    new webpack.IgnorePlugin({
+      resourceRegExp: /migrations/,
     }),
     new WorkerPlugin(),
   ],

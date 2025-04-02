@@ -18,10 +18,10 @@ router.get('/', async (req: Request, res: Response): Promise<any> => {
   const offset_value = Number(offset) || 0 // Default offset
 
   try {
+    const count = await Tournament.count()
+
     // Use a single findAndCountAll query with distinct:true
-    const { count, rows } = await Tournament.findAndCountAll({
-      distinct: true,
-      subQuery: false,
+    const rows = await Tournament.findAll({
       limit: Math.min(limit_value, 100),
       offset: offset_value,
       order: [['id', 'ASC']],

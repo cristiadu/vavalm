@@ -14,8 +14,8 @@ const setupTestData = async () => {
   const teams = await Team.findAll()
   if (teams.length === 0 || forceBootstrap) {
     // Read JSON file with teams data and create them
-    const teamsData: any[] = require('./json/bootstrap_teams.json')
-    for (const teamData of teamsData) {
+    const teamsData = await import('./json/bootstrap_teams.json', { assert: { type: 'json' } })
+    for (const teamData of teamsData.default) {
       console.debug('Creating team with data:', teamData)
   
       // Fetch the image from the URL and convert it to an ArrayBuffer
@@ -35,8 +35,8 @@ const setupTestData = async () => {
   const players = await Player.findAll()
   if (players.length === 0 || forceBootstrap) {
     // Read JSON file with players data and create them
-    const playersData: Player[] = require('./json/bootstrap_players.json')
-    for (const playerData of playersData) {
+    const playersData = await import('./json/bootstrap_players.json', { assert: { type: 'json' } })
+    for (const playerData of playersData.default) {
       console.debug('Creating player with data:', playerData)
       await Player.create({
         ...playerData,
@@ -50,10 +50,10 @@ const setupTestData = async () => {
   const tournaments = await Tournament.findAll()
   if (tournaments.length === 0 || forceBootstrap) {
     // Read JSON file with tournaments data and create them
-    const tournamentsData = require('./json/bootstrap_tournaments.json')
+    const tournamentsData = await import('./json/bootstrap_tournaments.json', { assert: { type: 'json' } })
 
     // Since tournament JSON loaded has team_ids and not teams, we need to associate the teams with the tournament
-    for (const tournamentData of tournamentsData) {
+    for (const tournamentData of tournamentsData.default) {
       const { team_ids: teamIds, ...rest } = tournamentData
       const tournament = await Tournament.create({
         ...rest,
