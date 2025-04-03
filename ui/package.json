@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 npx next dev",
-    "build": "npx next build",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm next dev",
+    "build": "pnpm next build",
     "clean": "rm -rf node_modules",
-    "start": "npx next start",
-    "lint": "npx eslint . && npx next lint",
-    "lint:fix": "npx eslint . --fix && npx next lint --fix",
+    "start": "pnpm next start",
+    "lint": "pnpm eslint . && pnpm next lint",
+    "lint:fix": "pnpm eslint . --fix && pnpm next lint --fix",
     "upgrade:dependencies": "pnpm upgrade --latest"
   },
   "dependencies": {
