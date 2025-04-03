@@ -17,29 +17,36 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.7.1
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: pnpm
+        cache-dependency-path: "**/pnpm-lock.yaml"
 
     - name: Build Base Project
       run: |
-        npm run base:install
+        pnpm base:install
         
     - name: Build Frontend
       run: |
-        npm run frontend:install
-        npm run frontend:build
+        pnpm frontend:install
+        pnpm frontend:build
 
     - name: Build Backend
       run: |
-        npm run backend:install
-        npm run backend:build
+        pnpm backend:install
+        pnpm backend:build
 
     - name: Lint UI
       run: |
-        npm run frontend:lint
+        pnpm frontend:lint
 
     - name: Lint Backend
       run: |
-        npm run backend:lint
+        pnpm backend:lint
