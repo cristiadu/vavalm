@@ -11,6 +11,10 @@ export interface Team {
   players?: PlayerWithFlag[]
 }
 
+export interface TeamWithLogoImageData extends Omit<Team, 'logo_image_file'> {
+  logo_image_file?: { data: number[] } | Blob | null
+}
+
 export interface TeamStats {
   team: Team
   tournamentsWon: number

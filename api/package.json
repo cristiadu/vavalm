@@ -8,7 +8,7 @@
     "watch": "webpack --watch --config webpack.config.js --mode development",
     "server": "nodemon --watch dist/bundle.js dist/bundle.js",
     "dev:built": "npm-run-all --parallel build start",
-    "build": "NODE_ENV=production npx webpack --config webpack.config.js --mode production",
+    "build": "NODE_ENV=production pnpm webpack --config webpack.config.js --mode production",
     "start": "wait-on dist/bundle.js && node --max-old-space-size=4096 dist/bundle.js",
     "lint": "pnpm eslint .",
     "lint:fix": "pnpm eslint . --fix",

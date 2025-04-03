@@ -45,7 +45,7 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
       })
 
       const countries = await fetchCountries(() => {})
-      if (teamData.country) {
+      if (teamData?.country) {
         setCountryFlag(countries?.find((c: Country) => c.name === teamData.country)?.flag || null)
       }
   

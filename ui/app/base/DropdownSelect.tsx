@@ -74,7 +74,7 @@ const DropdownSelect = <T,>({
                     className="ml-2 mr-2 inline-block"
                   />
                 )}
-                <span className={styleCssOnValue && styleCssOnValue(selectedItem[displayKey])}>{String(selectedItem[displayKey])}</span>
+                <span className={styleCssOnValue && styleCssOnValue(String(selectedItem[displayKey]))}>{String(selectedItem[displayKey])}</span>
               </div>
             ))}
           </div>
@@ -109,7 +109,7 @@ const DropdownSelect = <T,>({
                   className="mr-2"
                 />
               )}
-              <span className={styleCssOnValue && styleCssOnValue(item[displayKey])}>{String(item[displayKey])}</span>
+              <span className={styleCssOnValue && styleCssOnValue(String(item[displayKey]))}>{String(item[displayKey])}</span>
             </div>
           ))}
         </div>

@@ -1,16 +1,18 @@
 import { ItemsWithPagination } from "./models/types"
 import { Match, Standing, Tournament } from "./models/Tournament"
 import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
-import { Team } from "./models/Team"
+import { Team, TeamWithLogoImageData } from "./models/Team"
 
 export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Tournament>> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
   const tournamentwithBlob = data.items.map((tournament: Tournament) => {
-    const teamsWithBlob = tournament.teams.map((team: Team) => {
+    const teamsWithBlob = tournament.teams.map((team: TeamWithLogoImageData) => {
       if (team.logo_image_file) {
-        const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
+        const blob = team.logo_image_file instanceof Blob 
+          ? team.logo_image_file 
+          : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
         return { ...team, logo_image_file: blob }
       }
       return team
@@ -33,9 +35,11 @@ export const getTournament = async (tournamentId: number, closure: (_tournamentD
   const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
-  const teamsWithBlob = data.teams?.map((team: Team) => {
+  const teamsWithBlob = data.teams?.map((team: TeamWithLogoImageData) => {
     if (team.logo_image_file) {
-      const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
+      const blob = team.logo_image_file instanceof Blob 
+        ? team.logo_image_file 
+        : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
       return { ...team, logo_image_file: blob }
     }
     return team

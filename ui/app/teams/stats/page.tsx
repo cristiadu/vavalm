@@ -7,7 +7,7 @@ import { ItemsWithPagination } from '../../api/models/types'
 import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
 import Pagination from '../../base/Pagination'
-import { TeamStats } from '../../api/models/Team'
+import { TeamStats, TeamWithLogoImageData } from '../../api/models/Team'
 import SectionHeader from '../../base/SectionHeader'
 import ImageAutoSize from '../../base/ImageAutoSize'
 
@@ -47,8 +47,9 @@ const TeamsStatsPage = (): React.ReactNode => {
     if (data.total > 0) {
       setTotalItems(data.total)
       const items = data.items.map((item: TeamStats) => {
-        if (item.team.logo_image_file && item.team.logo_image_file.data) {
-          const blob = new Blob([new Uint8Array(item.team.logo_image_file.data)], { type: 'image/png' })
+        const team = item.team as TeamWithLogoImageData
+        if (team.logo_image_file && 'data' in team.logo_image_file) {
+          const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
           item.team.logo_image_file = blob
         }
         return item
