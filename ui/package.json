@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm next dev",
     "build": "pnpm next build",
-    "clean": "rm -rf node_modules",
+    "clean": "rm -rf node_modules && rm -rf .next",
     "start": "pnpm next start",
     "lint": "pnpm eslint . && pnpm next lint",
     "lint:fix": "pnpm eslint . --fix && pnpm next lint --fix",
@@ -37,7 +37,7 @@
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.4",
     "eslint-plugin-react": "^7.37.4",
-    "globals": "^11.12.0",
+    "globals": "^16.0.0",
     "style-loader": "^4.0.0",
     "typescript-eslint": "^8.29.0"
   }

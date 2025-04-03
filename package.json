@@ -17,7 +17,7 @@
 
     "base:audit": "pnpm audit fix",
     "base:install": "pnpm install --ignore-scripts",
-    "base:clean": "rm -rf node_modules",
+    "base:clean": "rm -rf node_modules && rm -rf node-compile-cache",
     "base:upgrade:dependencies": "pnpm upgrade --latest",
 
     "frontend:install": "pnpm -C ui install",
