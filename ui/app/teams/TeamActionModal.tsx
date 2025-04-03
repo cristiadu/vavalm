@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { fetchCountries } from '../api/CountryApi'
 import { Country } from '../api/models/Country'
@@ -58,11 +58,11 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     }
   }, [team, isEdit, setInitialValues])
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
+      reader.onloadend = (): void => {
         setImageSrc(reader.result as string)
         setTeamState({ ...teamState, logo_image_file: file })
       }
@@ -70,18 +70,18 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     }
   }
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     onClose()
     setInitialValues(true)
     setImageSrc('/images/nologo.svg')
     setValidationError(null)
   }
 
-  const handleCountrySelect = (country: Country) => {
+  const handleCountrySelect = (country: Country): void => {
     setTeamState({ ...teamState, country: country.name })
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
 
     const requestTeam: Team = {

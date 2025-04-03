@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Match, Game } from "../../../../../api/models/Tournament"
+import React, { useCallback, useEffect, useRef, useState } from "react"
+import { Match, Game, GameLog } from "../../../../../api/models/Tournament"
 import { Country } from "../../../../../api/models/Country"
 import { getGame, playFullGame, getMatch } from "../../../../../api/GameApi"
 import { getLastDuel } from "../../../../../api/DuelApi"
@@ -10,7 +10,6 @@ import { playSingleDuel } from "../../../../../api/DuelApi"
 import GameHeader from "./GameHeader"
 import GameLogsTable from "./GameLogsTable"
 import GameTeamStats from "./GameTeamStats"
-import AlertMessage from "../../../../../base/AlertMessage"
 
 type GameViewProps = {
   gameId: number
@@ -18,7 +17,7 @@ type GameViewProps = {
   team2Country?: Country
   match: Match
   countries: Country[]
-  updateMatchInfo: (match: Match) => void
+  updateMatchInfo: (_match: Match) => void
   refreshMatchData: () => Promise<void>
 }
 
@@ -29,10 +28,10 @@ export enum AlertType {
   INFO = "info",
 }
 
-export default function GameView(props: GameViewProps) {
+export default function GameView(props: GameViewProps): React.ReactNode {
   const { gameId, team1Country, team2Country, match, countries, updateMatchInfo } = props
   const [game, setGame] = useState<Game | null>(null)
-  const [lastDuel, setLastDuel] = useState<any>(null)
+  const [lastDuel, setLastDuel] = useState<GameLog | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
@@ -71,7 +70,7 @@ export default function GameView(props: GameViewProps) {
             setLastRoundPlayed(duelData?.round_state?.round || 0)
           }
         } catch (duelError) {
-          console.log('Failed to fetch duel data, but game data is available')
+          console.log('Failed to fetch duel data, but game data is available. Error: ', duelError)
         }
       } else {
         setFetchError('Failed to load game data')
@@ -98,21 +97,10 @@ export default function GameView(props: GameViewProps) {
     fetchGameData()
     
     // Cleanup function
-    return () => {
+    return (): void => {
       isMounted.current = false
     }
   }, [gameId, fetchGameData])
-
-  // Calculate winning team information
-  const winningTeam = useMemo(() => {
-    if (!game?.stats?.winner_id) return null
-    return game.stats.winner_id === match.team1?.id ? match.team1 : match.team2
-  }, [game, match])
-
-  const winningTeamCountry = useMemo(() => {
-    if (!winningTeam) return null
-    return winningTeam.id === match.team1?.id ? team1Country : team2Country
-  }, [winningTeam, match, team1Country, team2Country])
 
   // Handle playing a round
   const handlePlayRound = useCallback(() => {

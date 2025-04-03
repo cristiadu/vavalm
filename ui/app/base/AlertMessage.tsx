@@ -13,7 +13,7 @@ interface AlertMessageProps {
   type: AlertType
 }
 
-const getIconForType = (type: AlertType) => {
+const getIconForType = (type: AlertType): string => {
   switch (type) {
   case AlertType.ERROR:
     return '❌'
@@ -28,7 +28,7 @@ const getIconForType = (type: AlertType) => {
   }
 }
 
-const getColorForType = (type: AlertType) => {
+const getColorForType = (type: AlertType): string => {
   switch (type) {
   case AlertType.ERROR:
     return 'bg-red-100 border-red-400 text-red-700'

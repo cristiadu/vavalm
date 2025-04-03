@@ -17,7 +17,7 @@ import SectionHeader from '../base/SectionHeader'
 import ImageAutoSize from '../base/ImageAutoSize'
 import { Country } from '../api/models/Country'
 
-export default function ListTeams() {
+export default function ListTeams(): React.ReactNode {
   const LIMIT_VALUE_TEAM_LIST = 5
 
   const router = useRouter()
@@ -32,11 +32,11 @@ export default function ListTeams() {
     fetchCountriesAndTeams()
   }, [])
 
-  const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+  const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<void> => {
     try {
       const countries = await fetchCountries(() => {
         // handle country data
-      }) || []
+      }) ?? []
 
       const countriesToFlagMap: Record<string, string> = {}
       countries.forEach((country: Country) => {
@@ -69,25 +69,25 @@ export default function ListTeams() {
     }
   }
 
-  const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
     e.preventDefault()
     setIsEditActionOpened(false)
     setTeamActionModalOpened(true)
   }
 
-  const closeTeamActionModal = () => {
+  const closeTeamActionModal = (): void => {
     setIsEditActionOpened(false)
     setTeamActionModalOpened(false)
     setTeamToEdit(null)
     fetchCountriesAndTeams()
   }
 
-  const handleView = (team: Team) => {
+  const handleView = (team: Team): void => {
     // Send user to player details page
     router.push(`/teams/${team.id}`)
   }
 
-  const handleEdit = (team: Team) => {
+  const handleEdit = (team: Team): void => {
     // Use same modal as NewPlayerModal but with prefilled data'
     console.debug('Editing team:', team)
     setIsEditActionOpened(true)
@@ -95,7 +95,7 @@ export default function ListTeams() {
     setTeamActionModalOpened(true)
   }
 
-  const handleDelete = (team: Team) => {
+  const handleDelete = (team: Team): void => {
     // Show confirm dialog and if confirmed delete player
     const confirmed = confirm(`Are you sure you want to delete team '${team.short_name}'?`)
     if(!confirmed) return
@@ -106,7 +106,7 @@ export default function ListTeams() {
     
   }
 
-  const handlePageChange = (limit: number, offset: number) => {
+  const handlePageChange = (limit: number, offset: number): void => {
     fetchCountriesAndTeams(limit, offset)
   }
 

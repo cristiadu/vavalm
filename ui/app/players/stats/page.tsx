@@ -28,7 +28,7 @@ const thresholds = {
   totalAssists: { high: 0.5, medium: 0.3, ratioCalculation: true },
 }
 
-const PlayersStatsPage = () => {
+const PlayersStatsPage = (): React.ReactNode => {
   const router = useRouter()
   const [playersStats, setPlayersStats] = useState<AllPlayerStats[]>([])
   const [playerToTeam, setPlayerToTeam] = useState<Record<string, Team>>({})
@@ -48,7 +48,7 @@ const PlayersStatsPage = () => {
     fetchPlayersStats(refreshListData, LIMIT_VALUE_PLAYER_LIST)
   }, [])
 
-  const refreshListData = async (data: ItemsWithPagination<AllPlayerStats>) => {
+  const refreshListData = async (data: ItemsWithPagination<AllPlayerStats>): Promise<void> => {
     if (data.total > 0) {
       const playerToTeam: Record<number, Team> = {}
 
@@ -68,12 +68,12 @@ const PlayersStatsPage = () => {
     }
   }
 
-  const handleView = (player: Player) => {
+  const handleView = (player: Player): void => {
     // Send user to player details page
     router.push(`/players/${player.id}`)
   }
 
-  const handlePageChange = (limit: number, offset: number) => {
+  const handlePageChange = (limit: number, offset: number): void => {
     fetchPlayersStats(refreshListData, limit, offset)
   }
 

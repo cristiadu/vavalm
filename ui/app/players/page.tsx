@@ -17,7 +17,7 @@ import ImageAutoSize from '../base/ImageAutoSize'
 
 const DEFAULT_LIMIT_VALUE_PLAYER_LIST = 5 // Return to original value
 
-export default function ListPlayers() {
+export default function ListPlayers(): React.ReactNode {
   const router = useRouter()
   const [players, setPlayers] = useState<Player[]>([])
   const [playerToEdit, setPlayerToEdit] = useState<Player | null>(null)

@@ -17,7 +17,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
       setObjectUrl(url)
 
       // Clean up the object URL when the component unmounts or when imageBlob changes
-      return () => {
+      return (): void => {
         URL.revokeObjectURL(url)
       }
     } else {

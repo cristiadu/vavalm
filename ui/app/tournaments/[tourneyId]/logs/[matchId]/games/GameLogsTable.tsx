@@ -32,7 +32,7 @@ const GameLogRow = memo(({ log }: { log: GameLog }) => (
 // Add display name for debugging
 GameLogRow.displayName = 'GameLogRow'
 
-const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTableProps) => {
+const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTableProps): React.ReactNode => {
   const [state, setState] = useState({
     currentRound: initialRound,
     maxRound: maxRoundNumber,

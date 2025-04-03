@@ -7,7 +7,7 @@ import { handleBackClick } from './LinkUtils'
 
 interface SectionHeaderProps {
   title: string
-  action?: (e: any) => void
+  action?: (_e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
   actionText?: string
 }
 

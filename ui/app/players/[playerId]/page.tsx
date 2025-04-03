@@ -13,7 +13,7 @@ import ImageAutoSize from '../../base/ImageAutoSize'
 
 type Params = Promise<{ playerId: string }>
 
-export default function ViewPlayer(props: { params: Params }) {
+export default function ViewPlayer(props: { params: Params }): React.ReactNode {
   const params = use(props.params)
   const [player, setPlayer] = useState<Player | null>(null)
   const [playerStats, setPlayerStats] = useState<AllPlayerStats | null>(null)
@@ -36,7 +36,7 @@ export default function ViewPlayer(props: { params: Params }) {
   }
 
   useEffect(() => {
-    const fetchPlayerData = async () => {
+    const fetchPlayerData = async (): Promise<void> => {
       try {
         const playerData = await fetchPlayer(Number(params.playerId), (data) => {
           setPlayer(data)

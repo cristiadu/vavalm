@@ -5,13 +5,13 @@ interface DropdownSelectProps<T> {
   dropdownName: string
   items: T[]
   selectedItems: T[]
-  onSelect: (item: T) => void
+  onSelect: (_item: T) => void
   displayKey: keyof T
   imageKey?: keyof T
   placeholder: string
   isMultiSelect: boolean
   imageDimensions?: { width: number; height: number }
-  styleCssOnValue?: (value: any) => string
+  styleCssOnValue?: (_value: string) => string
 }
 
 const DropdownSelect = <T,>({
@@ -25,7 +25,7 @@ const DropdownSelect = <T,>({
   isMultiSelect,
   imageDimensions = { width: 32, height: 32 },
   styleCssOnValue,
-}: DropdownSelectProps<T>) => {
+}: DropdownSelectProps<T>): React.ReactNode => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -37,7 +37,7 @@ const DropdownSelect = <T,>({
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside)
-    return () => {
+    return (): void => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [handleClickOutside])

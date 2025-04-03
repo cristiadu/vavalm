@@ -5,11 +5,11 @@ const EXCEPTION_PATTERNS = [/\/tournaments\/.+\/logs/, /\/exception2/]
 export const handleBackClick = (
   e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   router: AppRouterInstance,
-) => {
+): void => {
   e.preventDefault()
 
   // Get the current pathname
-  let pathSegments = window.location.pathname.split('/').filter(segment => segment)
+  const pathSegments = window.location.pathname.split('/').filter(segment => segment)
 
   while (pathSegments.length > 0) {
     // Remove the last segment to get the parent path

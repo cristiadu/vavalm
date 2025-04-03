@@ -3,7 +3,7 @@ import { AllPlayerStats, Player } from "./models/Player"
 import { ItemsWithPagination } from "./models/types"
 
 // Cache for API responses to reduce network requests
-const playerCache: Record<string, { data: any, timestamp: number }> = {}
+const playerCache: Record<string, { data: object, timestamp: number }> = {}
 const CACHE_TTL = 60000 // 1 minute cache TTL
 
 // Helper function to get/set cached data
@@ -23,16 +23,16 @@ const withCache = async <T>(
   const data = await fetchFn()
   
   // Cache the new data
-  playerCache[cacheKey] = { data, timestamp: now }
+  playerCache[cacheKey] = { data: data as object, timestamp: now }
   
   return data
 }
 
 export const fetchPlayersStats = async (
-  closure: (playerData: ItemsWithPagination<AllPlayerStats>) => void, 
+  closure: (_playerData: ItemsWithPagination<AllPlayerStats>) => void, 
   limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, 
   offset: number = PAGE_OFFSET_INITIAL_VALUE,
-) => {
+): Promise<ItemsWithPagination<AllPlayerStats>> => {
   const cacheKey = `playersStats:${limit}:${offset}`
   
   try {
@@ -63,8 +63,8 @@ export const fetchPlayersStats = async (
 
 export const fetchPlayersByTeam = async (
   teamId: number, 
-  closure: (playerData: Player[]) => void,
-) => {
+  closure: (_playerData: Player[]) => void,
+): Promise<Player[]> => {
   const cacheKey = `playersByTeam:${teamId}`
   
   try {
@@ -92,10 +92,10 @@ export const fetchPlayersByTeam = async (
 }
 
 export const fetchPlayers = async (
-  closure: (playerData: ItemsWithPagination<Player>) => void, 
+  closure: (_playerData: ItemsWithPagination<Player>) => void, 
   limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, 
   offset: number = PAGE_OFFSET_INITIAL_VALUE,
-) => {
+): Promise<ItemsWithPagination<Player>> => {
   const cacheKey = `players:${limit}:${offset}`
   
   try {
@@ -125,8 +125,8 @@ export const fetchPlayers = async (
 
 export const fetchPlayer = async (
   playerId: number, 
-  closure: (playerData: Player) => void,
-) => {
+  closure: (_playerData: Player) => void,
+): Promise<Player> => {
   const cacheKey = `player:${playerId}`
   
   try {
@@ -155,8 +155,8 @@ export const fetchPlayer = async (
 
 export const fetchPlayerStats = async (
   playerId: number, 
-  closure: (playerData: AllPlayerStats) => void,
-) => {
+  closure: (_playerData: AllPlayerStats) => void,
+): Promise<AllPlayerStats> => {
   const cacheKey = `playerStats:${playerId}`
   
   try {
@@ -183,7 +183,7 @@ export const fetchPlayerStats = async (
 }
 
 // Invalidate cache when modifying data
-const invalidatePlayerCache = () => {
+const invalidatePlayerCache = (): void => {
   Object.keys(playerCache).forEach(key => {
     if (key.startsWith('player') || key.startsWith('team')) {
       delete playerCache[key]
@@ -191,7 +191,7 @@ const invalidatePlayerCache = () => {
   })
 }
 
-export const newPlayer = async (player: Player, closure: (playerData: Player) => void) => {
+export const newPlayer = async (player: Player, closure: (_playerData: Player) => void): Promise<Player | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/players`, {
       method: 'POST',
@@ -203,7 +203,7 @@ export const newPlayer = async (player: Player, closure: (playerData: Player) =>
   
     if (!response.ok) {
       console.error("Network response was not ok: ", player)
-      return
+      return null
     }
   
     const result = await response.json()
@@ -213,10 +213,11 @@ export const newPlayer = async (player: Player, closure: (playerData: Player) =>
     return result
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }
 
-export const editPlayer = async (player: Player, closure: (playerData: Player) => void) => {
+export const editPlayer = async (player: Player, closure: (_playerData: Player) => void): Promise<Player | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/players/${player.id}`, {
       method: 'PUT',
@@ -228,20 +229,21 @@ export const editPlayer = async (player: Player, closure: (playerData: Player) =
   
     if (!response.ok) {
       console.error("Network response was not ok: ", player)
-      return
+      return null
     }
   
     const result = await response.json()
     invalidatePlayerCache() // Clear cache after modifications
     closure(result)
     console.debug('Success:', result)
-    return result
+    return result as Player
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }
 
-export const deletePlayer = async (player: Player, closure: ({message}: {message: string}) => void) => {
+export const deletePlayer = async (player: Player, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/players/${player.id}`, {
       method: 'DELETE',
@@ -253,15 +255,16 @@ export const deletePlayer = async (player: Player, closure: ({message}: {message
   
     if (!response.ok) {
       console.error("Network response was not ok: ", player)
-      return
+      return null
     }
   
     const result = await response.json()
     invalidatePlayerCache() // Clear cache after modifications
     closure(result)
     console.debug('Success:', result)
-    return result
+    return result as {message: string}
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }

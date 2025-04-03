@@ -3,8 +3,8 @@ import { Game, Match } from "./models/Tournament"
 
 export const playFullGame = async (
   game_id: number,
-  closure: (response: { message: string }) => void,
-) => {
+  closure: (_response: { message: string }) => void,
+): Promise<void> => {
   try {
     const response = await fetch(
       `${getApiBaseUrl()}/games/${game_id}/play`,
@@ -30,7 +30,7 @@ export const playFullGame = async (
   }
 }
 
-export const getMatch = async (match_id: number, closure: (response: Match) => void) => {
+export const getMatch = async (match_id: number, closure: (_response: Match) => void): Promise<Match | null> => {
   try {
     const response = await fetch(
       `${getApiBaseUrl()}/matches/${match_id}`,
@@ -64,7 +64,7 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
 
     closure(data)
     console.debug("Success:", data)
-    return data
+    return data as Match
   } catch (error) {
     console.error("Error:", error)
     throw error
@@ -73,9 +73,9 @@ export const getMatch = async (match_id: number, closure: (response: Match) => v
 
 export const getGame = async (
   game_id: number, 
-  closure: (response: Game) => void,
+  closure: (_response: Game) => void,
   options?: { signal?: AbortSignal },
-) => {
+): Promise<Game | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}`, {
       method: "GET",

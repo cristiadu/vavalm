@@ -1,13 +1,14 @@
 import { ItemsWithPagination } from "./models/types"
-import { Match, Tournament } from "./models/Tournament"
+import { Match, Standing, Tournament } from "./models/Tournament"
 import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
+import { Team } from "./models/Team"
 
-export const fetchTournaments = async (closure: (tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Tournament>> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
   const tournamentwithBlob = data.items.map((tournament: Tournament) => {
-    const teamsWithBlob = tournament.teams.map((team: any) => {
+    const teamsWithBlob = tournament.teams.map((team: Team) => {
       if (team.logo_image_file) {
         const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
         return { ...team, logo_image_file: blob }
@@ -18,21 +19,21 @@ export const fetchTournaments = async (closure: (tournamentData: ItemsWithPagina
   })
   const result = { total: data.total, items: tournamentwithBlob }
   closure(result)
-  return result
+  return result as ItemsWithPagination<Tournament>
 }
 
-export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (matchData: ItemsWithPagination<Match>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (_matchData: ItemsWithPagination<Match>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Match>> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/schedule?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   closure(data)
-  return data
+  return data as ItemsWithPagination<Match>
 }
 
-export const getTournament = async (tournamentId: number, closure: (tournamentData: Tournament) => void) => {
+export const getTournament = async (tournamentId: number, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
   const data = await response.json()
   // Convert Buffer to Blob for team logos
-  const teamsWithBlob = data.teams?.map((team: any) => {
+  const teamsWithBlob = data.teams?.map((team: Team) => {
     if (team.logo_image_file) {
       const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
       return { ...team, logo_image_file: blob }
@@ -40,8 +41,8 @@ export const getTournament = async (tournamentId: number, closure: (tournamentDa
     return team
   })
 
-  const standingsWithTeamsRef = data.standings?.map((standing: any) => {
-    const standingsTeam = teamsWithBlob.find((team: any) => team.id === standing.team_id)
+  const standingsWithTeamsRef = data.standings?.map((standing: Standing) => {
+    const standingsTeam = teamsWithBlob.find((team: Team) => team.id === standing.team_id)
     return { ...standing, team: standingsTeam }
   })
 
@@ -50,7 +51,7 @@ export const getTournament = async (tournamentId: number, closure: (tournamentDa
   return result
 }
 
-export const newTournament = async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
+export const newTournament = async (tournament: Tournament, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/tournaments`, {
       method: 'POST',
@@ -62,7 +63,7 @@ export const newTournament = async (tournament: Tournament, closure: (tournament
 
     if (!response.ok) {
       console.error("Network response was not ok: ", tournament)
-      return
+      return null
     }
 
     const data = await response.json()
@@ -71,10 +72,11 @@ export const newTournament = async (tournament: Tournament, closure: (tournament
     return data
   } catch (error) {
     console.error('Error creating tournament:', error)
+    return null
   }
 }
 
-export const editTournament = async (tournament: Tournament, closure: (tournamentData: Tournament) => void) => {
+export const editTournament = async (tournament: Tournament, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}`, {
       method: 'PUT',
@@ -86,19 +88,20 @@ export const editTournament = async (tournament: Tournament, closure: (tournamen
 
     if (!response.ok) {
       console.error("Network response was not ok: ", tournament)
-      return
+      return null
     }
 
     const data = await response.json()
     closure(data)
     console.debug('Success:', data)
-    return data
+    return data as Tournament
   } catch (error) {
     console.error('Error updating tournament:', error)
+    return null
   }
 }
 
-export const deleteTournament = async (tournament: Tournament, closure: ({message}: {message: string}) => void) => {
+export const deleteTournament = async (tournament: Tournament, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}`, {
       method: 'DELETE',
@@ -110,14 +113,15 @@ export const deleteTournament = async (tournament: Tournament, closure: ({messag
 
     if (!response.ok) {
       console.error("Network response was not ok: ", tournament)
-      return
+      return null
     }
 
     const data = await response.json()
     closure(data)
     console.debug('Success:', data)
-    return data
+    return data as {message: string}
   } catch (error) {
     console.error('Error deleting tournament:', error)
+    return null
   }
 }

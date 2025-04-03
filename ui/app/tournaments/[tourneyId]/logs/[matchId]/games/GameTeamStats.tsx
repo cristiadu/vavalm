@@ -14,7 +14,7 @@ interface GameTeamStatsProps {
 const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, countries }) => {
   const playerCountryToFlag = useMemo(() => {
     const countryMap = new Map(countries.map(c => [c.name, c.flag]))
-    return function CountryToFlag(country: string) {
+    return function CountryToFlag(country: string): React.ReactNode {
       const flag = countryMap.get(country)
       return flag ? (
         <ImageAutoSize

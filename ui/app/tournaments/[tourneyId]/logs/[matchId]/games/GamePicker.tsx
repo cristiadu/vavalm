@@ -5,7 +5,7 @@ import { sortByDate } from '../../../../../base/UIUtils'
 interface GamePickerProps {
   games: Game[]
   selectedGameId: number
-  onClick: (id: number) => void
+  onClick: (_id: number) => void
   matchWinnerId: number | null
 }
 
@@ -13,7 +13,7 @@ const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick,
   // We don't need this useEffect anymore as the parent component handles selection
   
   const sortedGames = React.useMemo(() => 
-    [...games].sort(sortByDate),
+    [...games].sort((a, b) => sortByDate(new Date(a.date), new Date(b.date))),
   [games],
   )
 

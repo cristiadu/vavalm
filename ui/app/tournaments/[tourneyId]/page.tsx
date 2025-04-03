@@ -16,7 +16,7 @@ import ImageAutoSize from '../../base/ImageAutoSize'
 import { Country } from '../../api/models/Country'
 
 type Params = Promise<{ tourneyId: string }>
-export default function ViewTournament(props: { params: Params }) {
+export default function ViewTournament(props: { params: Params }): React.ReactNode {
   const params = use(props.params)
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
@@ -45,7 +45,7 @@ export default function ViewTournament(props: { params: Params }) {
     })
 
     const countries = await fetchCountries(() => {})
-    if (tournamentData.country) {
+    if (tournamentData?.country) {
       setCountryFlag(countries?.find((c: Country) => c.name === tournamentData.country)?.flag || null)
     }
   }, [params.tourneyId])
@@ -58,7 +58,7 @@ export default function ViewTournament(props: { params: Params }) {
     fetchTournamentMatches(LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE)
   }, [fetchTournamentMatches])
 
-  const handleSchedulePageChange = (limit: number, offset: number) => {
+  const handleSchedulePageChange = (limit: number, offset: number): void => {
     fetchTournamentMatches(limit, offset)
   }
 
@@ -185,7 +185,7 @@ export default function ViewTournament(props: { params: Params }) {
                 </tr>
               </thead>
               <tbody>
-                {matches && matches.sort(sortByDate).map((match) => 
+                {matches && matches.sort((a, b) => sortByDate(new Date(a.date), new Date(b.date))).map((match) => 
                   (match.team1 && match.team2) && (
                     <tr key={match.id} onClick={() => showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
                       <td className="py-2 border-b text-center">

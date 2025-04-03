@@ -3,7 +3,7 @@ export const PAGE_OFFSET_INITIAL_VALUE: number = 0
 export const MAXIMUM_PAGE_SIZE: number = 100
 export const CACHE_DURATION_MS: number = 60000 // 1 minute
 
-export const getApiBaseUrl = () => {
+export const getApiBaseUrl = (): string => {
   return process.env.API_BASE_URL || 'http://localhost:8000'
 }
 

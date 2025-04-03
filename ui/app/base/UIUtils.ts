@@ -1,7 +1,7 @@
 import { Threshold } from "../common/CommonModels"
 import { getRatio } from "./NumberUtils"
 
-export const getBgColorBasedOnThreshold = (value: number, thresholds: Threshold, total: number = 0) => {
+export const getBgColorBasedOnThreshold = (value: number, thresholds: Threshold, total: number = 0): string => {
   if(thresholds.noColor) {
     return 'bg-gray-200'
   }
@@ -19,6 +19,6 @@ export const getBgColorBasedOnThreshold = (value: number, thresholds: Threshold,
   return thresholds.higherIsWorse ? 'bg-green-200' : 'bg-red-200'
 }
 
-export const sortByDate = (a: any, b: any): number => {
-  return new Date(a.date).getTime() - new Date(b.date).getTime()
+export const sortByDate = (a: Date, b: Date): number => {
+  return a.getTime() - b.getTime()
 }

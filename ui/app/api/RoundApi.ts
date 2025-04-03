@@ -1,11 +1,11 @@
 import { GameLog, RoundState } from "./models/Tournament"
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
+import { getApiBaseUrl } from "./models/constants"
 
 // Simple cache implementation to store round data
 const roundCache = new Map<string, { data: GameLog[], timestamp: number }>()
 const CACHE_TTL = 60000 // 1 minute cache
 
-export const playFullRound = async (game_id: number, round: number, closure: (roundState: RoundState) => void) => {
+export const playFullRound = async (game_id: number, round: number, closure: (_roundState: RoundState) => void): Promise<RoundState | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}/play`, {
       method: 'POST',
@@ -16,7 +16,7 @@ export const playFullRound = async (game_id: number, round: number, closure: (ro
 
     if (!response.ok) {
       console.error("Network response was not ok: ", response)
-      return
+      return null
     }
 
     const data = await response.json()
@@ -28,10 +28,11 @@ export const playFullRound = async (game_id: number, round: number, closure: (ro
     return data as RoundState
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }
 
-export const getLastRound = async (game_id: number, closure: (lastRoundLogs: GameLog[]) => void) => {
+export const getLastRound = async (game_id: number, closure: (_lastRoundLogs: GameLog[]) => void): Promise<GameLog[] | null> => {
   try {
     const cacheKey = `last_${game_id}`
     const cachedData = roundCache.get(cacheKey)
@@ -39,7 +40,7 @@ export const getLastRound = async (game_id: number, closure: (lastRoundLogs: Gam
     // Return cached data if available and not expired
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
       closure(cachedData.data)
-      return cachedData.data
+      return cachedData.data as GameLog[]
     }
     
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last`, {
@@ -51,7 +52,7 @@ export const getLastRound = async (game_id: number, closure: (lastRoundLogs: Gam
 
     if (!response.ok) {
       console.error("Network response was not ok: ", response)
-      return
+      return null
     }
 
     const data = await response.json()
@@ -67,10 +68,11 @@ export const getLastRound = async (game_id: number, closure: (lastRoundLogs: Gam
     } else {
       console.error('Error:', error)
     }
+    return null
   }
 }
 
-export const getRound = async (game_id: number, round: number, closure: (roundLogs: GameLog[]) => void) => {
+export const getRound = async (game_id: number, round: number, closure: (_roundLogs: GameLog[]) => void): Promise<GameLog[] | null> => {
   try {
     const cacheKey = `round_${game_id}_${round}`
     const cachedData = roundCache.get(cacheKey)
@@ -78,7 +80,7 @@ export const getRound = async (game_id: number, round: number, closure: (roundLo
     // Return cached data if available and not expired
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
       closure(cachedData.data)
-      return cachedData.data
+      return cachedData.data as GameLog[]
     }
     
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}`, {
@@ -90,7 +92,7 @@ export const getRound = async (game_id: number, round: number, closure: (roundLo
     
     if (!response.ok) {
       console.error("Network response was not ok: ", response)
-      return
+      return null
     }
 
     const responseData = await response.json()
@@ -107,11 +109,12 @@ export const getRound = async (game_id: number, round: number, closure: (roundLo
     } else {
       console.error('Error:', error)
     }
+    return null
   }
 }
 
 // Helper function to clear cache entries for a specific game
-function clearCacheForGame(game_id: number) {
+function clearCacheForGame(game_id: number): void {
   // Clear all cache entries related to this game
   for (const key of roundCache.keys()) {
     if (key.includes(`_${game_id}_`)) {

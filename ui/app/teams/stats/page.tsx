@@ -24,7 +24,7 @@ const thresholds = {
   totalMapsLost: { high: 60, medium: 40, higherIsWorse: true, percentageCalculation: true },
 }
 
-const TeamsStatsPage = () => {
+const TeamsStatsPage = (): React.ReactNode => {
   const router = useRouter()
   const [teamsStats, setTeamsStats] = useState<TeamStats[]>([])
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
@@ -43,10 +43,10 @@ const TeamsStatsPage = () => {
     fetchTeamsStats(refreshListData, LIMIT_VALUE_TEAM_LIST)
   }, [])
 
-  const refreshListData = async (data: ItemsWithPagination<TeamStats>) => {
+  const refreshListData = async (data: ItemsWithPagination<TeamStats>): Promise<void> => {
     if (data.total > 0) {
       setTotalItems(data.total)
-      const items = data.items.map((item: any) => {
+      const items = data.items.map((item: TeamStats) => {
         if (item.team.logo_image_file && item.team.logo_image_file.data) {
           const blob = new Blob([new Uint8Array(item.team.logo_image_file.data)], { type: 'image/png' })
           item.team.logo_image_file = blob
@@ -58,12 +58,12 @@ const TeamsStatsPage = () => {
     }
   }
 
-  const handleView = (teamId: number) => {
+  const handleView = (teamId: number): void => {
     // Send user to team details page
     router.push(`/teams/${teamId}`)
   }
 
-  const handlePageChange = (limit: number, offset: number) => {
+  const handlePageChange = (limit: number, offset: number): void => {
     fetchTeamsStats(refreshListData, limit, offset)
   }
 

@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 
-const Modal = ({ isOpen, onClose, children, title }: { isOpen: boolean, onClose: () => void, children: React.ReactNode, title: string }) => {
+const Modal = ({ isOpen, onClose, children, title }: { isOpen: boolean, onClose: () => void, children: React.ReactNode, title: string }): React.ReactNode => {
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         onClose()
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
-    return () => {
+    return (): void => {
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [onClose])

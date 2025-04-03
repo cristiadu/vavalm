@@ -2,11 +2,11 @@ import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE 
 import { ItemsWithPagination } from "./models/types"
 import { Team, TeamStats } from "./models/Team"
 
-export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
+export const fetchAllTeams = async (closure: (_teamData: Team[]) => void): Promise<Team[]> => {
   const response = await fetch(`${getApiBaseUrl()}/teams`)
   const data = await response.json()
   // Convert Buffer to Blob
-  const teamsWithBlob = data.items.map((team: any) => {
+  const teamsWithBlob = data.items.map((team: Team) => {
     if (team.logo_image_file) {
       const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
       return { ...team, logo_image_file: blob }
@@ -14,14 +14,14 @@ export const fetchAllTeams = async (closure: (teamData: Team[]) => void) => {
     return team
   })
   closure(teamsWithBlob)
-  return teamsWithBlob
+  return teamsWithBlob as Team[]
 }
 
-export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+export const fetchTeams = async (closure: (_teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Team>> => {
   const response = await fetch(`${getApiBaseUrl()}/teams?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   // Convert Buffer to Blob
-  const teamsWithBlob = data.items.map((team: any) => {
+  const teamsWithBlob = data.items.map((team: Team) => {
     if (team.logo_image_file) {
       const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
       return { ...team, logo_image_file: blob }
@@ -30,13 +30,13 @@ export const fetchTeams = async (closure: (teamData: ItemsWithPagination<Team>) 
   })
   const result = { total: data.total, items: teamsWithBlob }
   closure(result)
-  return result
+  return result as ItemsWithPagination<Team>
 }
 
-export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<TeamStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE) => {
+export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination<TeamStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<TeamStats>> => {
   const response = await fetch(`${getApiBaseUrl()}/teams/stats?limit=${limit}&offset=${offset}`)
   const data = await response.json()
-  const teamsWithBlob = data.items.map((team: any) => {
+  const teamsWithBlob = data.items.map((team: Team) => {
     if (team.logo_image_file) {
       const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
       return { ...team, logo_image_file: blob }
@@ -45,10 +45,10 @@ export const fetchTeamsStats = async (closure: (teamData: ItemsWithPagination<Te
   })
   const result = { total: data.total, items: teamsWithBlob }
   closure(result)
-  return result
+  return result as ItemsWithPagination<TeamStats>
 }
 
-export const fetchTeam = async (teamId: number, closure: (teamData: Team) => void) => {
+export const fetchTeam = async (teamId: number, closure: (_teamData: Team) => void): Promise<Team | null> => {
   const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}`)
   const data = await response.json()
   // Convert Buffer to Blob
@@ -56,14 +56,14 @@ export const fetchTeam = async (teamId: number, closure: (teamData: Team) => voi
     const blob = new Blob([new Uint8Array(data.logo_image_file.data)], { type: 'image/png' })
     const result = { ...data, logo_image_file: blob }
     closure(result)
-    return result
+    return result as Team
   } else {
     closure(data)
-    return data
+    return data as Team
   }
 }
 
-export const fetchTeamStats = async (teamId: number, closure: (teamData: TeamStats) => void) => {
+export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamStats) => void): Promise<TeamStats | null> => {
   const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}/stats`)
   const data = await response.json()
   // Convert Buffer to Blob
@@ -71,14 +71,14 @@ export const fetchTeamStats = async (teamId: number, closure: (teamData: TeamSta
     const blob = new Blob([new Uint8Array(data.team.logo_image_file.data)], { type: 'image/png' })
     const result = { ...data, team: { ...data.team, logo_image_file: blob } }
     closure(result)
-    return result
+    return result as TeamStats
   } else {
     closure(data)
-    return data
+    return data as TeamStats
   }
 }
   
-export const newTeam = async (team: Team, closure: (teamData: Team) => void) => {
+export const newTeam = async (team: Team, closure: (_teamData: Team) => void): Promise<Team | null> => {
   const formData = new FormData()
   if(team.logo_image_file) {
     formData.append('logo_image_file', team.logo_image_file)
@@ -97,19 +97,20 @@ export const newTeam = async (team: Team, closure: (teamData: Team) => void) => 
 
     if (!response.ok) {
       console.error("Network response was not ok: ", formData)
-      return
+      return null
     }
 
     const result = await response.json()
     closure(result)
     console.debug('Success:', result)
-    return result
+    return result as Team
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }
   
-export const editTeam = async (team: Team, closure: (teamData: Team) => void) => {
+export const editTeam = async (team: Team, closure: (_teamData: Team) => void): Promise<Team | null> => {
   const formData = new FormData()
   if(team.logo_image_file) {
     formData.append('logo_image_file', team.logo_image_file)
@@ -128,19 +129,20 @@ export const editTeam = async (team: Team, closure: (teamData: Team) => void) =>
 
     if (!response.ok) {
       console.error("Network response was not ok: ", formData)
-      return
+      return null
     }
 
     const result = await response.json()
     closure(result)
     console.debug('Success:', result)
-    return result
+    return result as Team
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }
 
-export const deleteTeam = async (team: Team, closure: ({message}: {message: string}) => void) => {
+export const deleteTeam = async (team: Team, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/teams/${team.id}`, {
       method: 'DELETE',
@@ -152,14 +154,15 @@ export const deleteTeam = async (team: Team, closure: ({message}: {message: stri
 
     if (!response.ok) {
       console.error("Network response was not ok: ", team)
-      return
+      return null
     }
 
     const result = await response.json()
     closure(result)
     console.debug('Success:', result)
-    return result
+    return result as {message: string}
   } catch (error) {
     console.error('Error:', error)
+    return null
   }
 }

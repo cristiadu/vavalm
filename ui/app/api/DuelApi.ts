@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "./models/constants"
 import { GameLog, RoundState } from "./models/Tournament"
 
-export const playSingleDuel = async (game_id: number, round: number, closure: (roundState: RoundState) => void) => {
+export const playSingleDuel = async (game_id: number, round: number, closure: (_roundState: RoundState) => void): Promise<void> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}/duel`, {
       method: 'POST',
@@ -26,9 +26,9 @@ export const playSingleDuel = async (game_id: number, round: number, closure: (r
 
 export const getLastDuel = async (
   game_id: number, 
-  closure: (lastDuelLog: GameLog) => void,
+  closure: (_lastDuelLog: GameLog) => void,
   options?: { signal?: AbortSignal },
-) => {
+): Promise<void> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last/duel`, {
       method: 'GET',

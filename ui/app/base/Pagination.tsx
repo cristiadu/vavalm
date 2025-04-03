@@ -3,7 +3,7 @@ import { LIMIT_PER_PAGE_INITIAL_VALUE } from '../api/models/constants'
 
 interface PaginationProps {
   totalItems: number
-  onPageChange: (limit: number, offset: number) => void
+  onPageChange: (_limit: number, _offset: number) => void
   limitValue?: number
 }
 
@@ -21,7 +21,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limit
     setLimit(limitValue)
   }, [limitValue])
 
-  const handlePreviousPage = () => {
+  const handlePreviousPage = (): void => {
     const newCurrentPage = Math.max(currentPage - 1, 1)
     const newOffset = (newCurrentPage - 1) * limit
 
@@ -29,7 +29,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limit
     onPageChange(limit, newOffset)
   }
 
-  const handleNextPage = () => {
+  const handleNextPage = (): void => {
     const newCurrentPage = Math.min(currentPage + 1, totalPages)
     const newOffset = (newCurrentPage - 1) * limit
 
@@ -37,7 +37,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limit
     onPageChange(limit, newOffset)
   }
 
-  const handlePageSelect = (page: number) => {
+  const handlePageSelect = (page: number): void => {
     const newOffset = (page - 1) * limit
     setCurrentPage(page)
     onPageChange(limit, newOffset)

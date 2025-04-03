@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { editPlayer, newPlayer } from '../api/PlayersApi'
 import { getRoleBgColor, Player, PlayerAttributes, PlayerRole } from '../api/models/Player'
 import Modal from '../base/Modal'
@@ -76,28 +76,28 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
     }
   }, [player, isEdit, setInitialValues])
 
-  const handleTeamSelect = (team: Team) => {
+  const handleTeamSelect = (team: Team): void => {
     setPlayerState(prevState => ({ ...prevState, teamId: team.id ?? null }))
   }
 
-  const handleCountrySelect = (country: Country) => {
+  const handleCountrySelect = (country: Country): void => {
     setPlayerState(prevState => ({ ...prevState, selectedCountry: country }))
   }
 
-  const handleRoleSelect = (item: EnumWithFieldName<PlayerRole>) => {
+  const handleRoleSelect = (item: EnumWithFieldName<PlayerRole>): void => {
     setPlayerState({
       ...playerState,
       role: item.value,
     })
   }
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     onClose()
     setInitialValues(true)
     setValidationError(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setValidationError(null)
 

@@ -18,7 +18,7 @@ export const specialCountries: Country[] = [
   },
 ]
 
-export const fetchCountries = async (closure: (countryData: Country[]) => void) => {
+export const fetchCountries = async (closure: (_countryData: Country[]) => void): Promise<Country[] | null> => {
   try {
     const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flags')
     if (!response.ok) {
@@ -35,7 +35,7 @@ export const fetchCountries = async (closure: (countryData: Country[]) => void) 
 
     // Run the closure function after fetching data
     closure(countryData)
-    return countryData
+    return countryData as Country[]
   } catch (error) {
     console.error('Error fetching countries:', error)
     throw error

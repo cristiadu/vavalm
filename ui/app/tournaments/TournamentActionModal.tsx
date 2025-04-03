@@ -72,15 +72,15 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     }
   }, [tournament, isEdit, setInitialValues])
 
-  const handleCountrySelect = (country: Country) => {
+  const handleCountrySelect = (country: Country): void => {
     setTournamentState(prevState => ({ ...prevState, country }))
   }
 
-  const handleTypeSelect = (tournament_type: EnumWithFieldName<TournamentType>) => {
+  const handleTypeSelect = (tournament_type: EnumWithFieldName<TournamentType>): void => {
     setTournamentState(prevState => ({ ...prevState, type: tournament_type.value }))
   }
 
-  const handleTeamSelect = (team: Team) => {
+  const handleTeamSelect = (team: Team): void => {
     setTournamentState(prevState => {
       const isSelected = prevState.teams.some(selectedTeam => selectedTeam.id === team.id)
       const updatedTeams = isSelected
@@ -90,13 +90,13 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     })
   }
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     onClose()
     setInitialValues(true)
     setValidationError(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setValidationError(null)
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { use, useCallback, useEffect, useMemo, useState } from "react"
 import { Match } from "../../../../api/models/Tournament"
 import { fetchCountries } from "../../../../api/CountryApi"
 import { Country } from "../../../../api/models/Country"
@@ -18,16 +18,13 @@ type ViewMatchParams = Promise<{
   matchId: string
 }>
 
-export default function ViewMatch(props: { params: ViewMatchParams }) {
+export default function ViewMatch(props: { params: ViewMatchParams }): React.ReactNode {
   const params = use(props.params)
   const matchId = Number(params.matchId)
   const [match, setMatch] = useState<Match | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
   const [selectedGameId, setSelectedGameId] = useState<number>(0)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  
-  // Keep track of fetch requests to cancel them if needed
-  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Fetch country data only once
   useEffect(() => {
@@ -37,11 +34,6 @@ export default function ViewMatch(props: { params: ViewMatchParams }) {
   }, [])
 
   const fetchMatchData = useCallback(async (matchIdRequest: number) => {
-    // Cancel any in-flight requests
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-    
     // Check if we have the data in the cache
     if (matchCache.has(matchIdRequest)) {
       const cachedMatch = matchCache.get(matchIdRequest)
@@ -52,14 +44,10 @@ export default function ViewMatch(props: { params: ViewMatchParams }) {
     setIsLoading(true)
     
     try {
-      // Create a new abort controller for this request
-      abortControllerRef.current = new AbortController()
-      const signal = abortControllerRef.current.signal
-      
       // Fetch match data with the signal
       const data = await getMatch(matchIdRequest, () => {})
       
-      if (!signal.aborted) {
+      if (data) {
         setMatch(data)
         
         // Cache the result
@@ -77,22 +65,13 @@ export default function ViewMatch(props: { params: ViewMatchParams }) {
         console.error('Error fetching match data:', error)
       }
     } finally {
-      if (abortControllerRef.current?.signal.aborted === false) {
-        setIsLoading(false)
-      }
+      setIsLoading(false)
     }
   }, [selectedGameId])
 
   // Effect to fetch match data when the matchId changes
   useEffect(() => {
     fetchMatchData(matchId)
-    
-    // Cleanup function
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }
   }, [matchId, fetchMatchData])
 
   const handleGameSelection = useCallback((gameId: number) => {

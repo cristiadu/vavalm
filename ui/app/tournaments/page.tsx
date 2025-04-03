@@ -14,7 +14,7 @@ import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../api/
 import SectionHeader from '../base/SectionHeader'
 import ImageAutoSize from '../base/ImageAutoSize'
 
-export default function ListTournaments() {
+export default function ListTournaments(): React.ReactNode {
   const router = useRouter()
   const [tournaments, setTournaments] = useState<ItemsWithPagination<Tournament> | null>(null)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
@@ -42,32 +42,32 @@ export default function ListTournaments() {
     fetchCountriesAndTournaments(PAGE_OFFSET_INITIAL_VALUE, LIMIT_PER_PAGE_INITIAL_VALUE)
   }, [fetchCountriesAndTournaments])
 
-  const openNewTournamentModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  const openNewTournamentModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
     e.preventDefault()
     setIsEditActionOpened(false)
     setTournamentToEdit(null)
     setTournamentActionModalOpened(true)
   }
 
-  const closeTournamentActionModal = () => {
+  const closeTournamentActionModal = (): void => {
     setIsEditActionOpened(false)
     setTournamentActionModalOpened(false)
     setTournamentToEdit(null)
     fetchCountriesAndTournaments(PAGE_OFFSET_INITIAL_VALUE, LIMIT_PER_PAGE_INITIAL_VALUE)
   }
 
-  const handleView = (tournament: Tournament) => {
+  const handleView = (tournament: Tournament): void => {
     router.push(`/tournaments/${tournament.id}`)
   }
 
-  const handleEdit = (tournament: Tournament) => {
+  const handleEdit = (tournament: Tournament): void => {
     console.debug('Editing tournament:', tournament)
     setIsEditActionOpened(true)
     setTournamentToEdit(tournament)
     setTournamentActionModalOpened(true)
   }
 
-  const handleDelete = (tournament: Tournament) => {
+  const handleDelete = (tournament: Tournament): void => {
     const confirmed = confirm(`Are you sure you want to delete tournament '${tournament.name}'?`)
     if (!confirmed) return
 
@@ -80,7 +80,7 @@ export default function ListTournaments() {
     })
   }
 
-  const handlePageChange = (limit: number, offset: number) => {
+  const handlePageChange = (limit: number, offset: number): void => {
     fetchCountriesAndTournaments(offset, limit)
   }
   

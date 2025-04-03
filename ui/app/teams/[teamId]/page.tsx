@@ -14,7 +14,7 @@ import SectionHeader from '../../base/SectionHeader'
 import ImageAutoSize from '../../base/ImageAutoSize'
 
 type Params = Promise<{ teamId: string }>
-export default function ViewTeam(props: { params: Params }) {
+export default function ViewTeam(props: { params: Params }): React.ReactNode {
   const params = use(props.params)
   const [team, setTeam] = useState<Team | null>(null)
   const [players, setPlayers] = useState<PlayerWithFlag[]>([])
@@ -35,7 +35,7 @@ export default function ViewTeam(props: { params: Params }) {
   }
 
   useEffect(() => {
-    const fetchTeamData = async () => {
+    const fetchTeamData = async (): Promise<void> => {
       const teamData = await fetchTeam(Number(params.teamId), (data) => {
         setTeam(data)
       })
