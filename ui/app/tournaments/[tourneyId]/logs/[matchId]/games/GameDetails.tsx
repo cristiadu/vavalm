@@ -1,8 +1,8 @@
 import React from 'react'
-import { Game, Tournament } from '../../../../../api/models/Tournament'
-import { Country } from '../../../../../api/models/Country'
-import { asFormattedDate } from '../../../../../base/StringUtils'
-import ImageAutoSize from '../../../../../base/ImageAutoSize'
+import { Game, Tournament } from '@/api/models/Tournament'
+import { Country } from '@/api/models/Country'
+import { asFormattedDate } from '@/base/StringUtils'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 interface GameDetailsProps {
     game: Game

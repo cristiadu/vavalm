@@ -1,5 +1,5 @@
 import React from 'react'
-import { asWord } from './StringUtils'
+import { asWord } from '@/base/StringUtils'
 
 export enum AlertType {
   ERROR = 'error',

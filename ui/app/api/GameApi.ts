@@ -1,5 +1,5 @@
-import { getApiBaseUrl } from "./models/constants"
-import { Game, Match } from "./models/Tournament"
+import { getApiBaseUrl } from "@/api/models/constants"
+import { Game, Match } from "@/api/models/Tournament"
 
 export const playFullGame = async (
   game_id: number,

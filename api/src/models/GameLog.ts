@@ -5,19 +5,40 @@ import db from '@/models/db'
 import Team from '@/models/Team'
 import Player, { PlayerDuelResults } from '@/models/Player'
 import { Weapon } from '@/models/enums'
+import { BaseEntityModel } from '@/base/types'
+import { GameLogApiModel, RoundStateApiModel } from '@/models/contract/GameLogApiModel'
 
-// Manage a Round state as it goes.
-export interface RoundState {
-  round: number
-  duel: PlayerDuelResults | null
-  previous_duel: PlayerDuelResults | null
-  team1_alive_players: Player[]
-  team2_alive_players: Player[]
-  team_won: Team | null
-  finished: boolean
+export class RoundState extends BaseEntityModel {
+  constructor(
+    public round: number,
+    public duel: PlayerDuelResults,
+    public team1_alive_players: Player[],
+    public team2_alive_players: Player[],
+    public team_won: Team | null,
+    public finished: boolean,
+    public previous_duel?: PlayerDuelResults,
+  ) {
+    super()
+  }
+  
+  toApiModel(): RoundStateApiModel {
+    return new RoundStateApiModel(
+      this.round,
+      this.duel,
+      this.team1_alive_players.map(player => player.toApiModel()) || [],
+      this.team2_alive_players.map(player => player.toApiModel()) || [],
+      this.team_won?.toApiModel() || null,
+      this.finished,
+      this.previous_duel,
+    )
+  }
+
+  toEntityModel(): RoundState {
+    return this
+  }
 }
 
-export class GameLog extends Model {
+export class GameLog extends Model implements BaseEntityModel {
   declare id?: number
   declare round_state: RoundState
   declare duel_buff: number
@@ -38,6 +59,26 @@ export class GameLog extends Model {
     team1_player: Association<GameLog, Player>
     team2_player: Association<GameLog, Player>
     player_killed: Association<GameLog, Player>
+  }
+
+  toApiModel(): GameLogApiModel {
+    return new GameLogApiModel(
+      this.round_state.toApiModel(),
+      this.duel_buff,
+      this.trade_buff,
+      this.trade,
+      this.weapon,
+      this.game_id,
+      this.team1_player_id,
+      this.team2_player_id,
+      this.player_killed_id,
+      this.included_on_player_stats,
+      this.included_on_team_stats,
+    )
+  }
+
+  toEntityModel(): GameLog {
+    return this
   }
 }
 

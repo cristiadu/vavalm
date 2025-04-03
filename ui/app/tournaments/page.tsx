@@ -2,17 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { fetchTournaments, deleteTournament } from '../api/TournamentsApi'
-import { fetchCountries } from '../api/CountryApi'
-import { Tournament } from '../api/models/Tournament'
-import { Team } from '../api/models/Team'
-import TournamentActionModal from './TournamentActionModal'
-import { asSafeHTML } from '../base/StringUtils'
-import { ItemsWithPagination } from '../api/models/types'
-import Pagination from '../base/Pagination'
-import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
-import SectionHeader from '../base/SectionHeader'
-import ImageAutoSize from '../base/ImageAutoSize'
+import { fetchTournaments, deleteTournament } from '@/api/TournamentsApi'
+import { fetchCountries } from '@/api/CountryApi'
+import { Tournament } from '@/api/models/Tournament'
+import { Team } from '@/api/models/Team'
+import TournamentActionModal from '@/tournaments/TournamentActionModal'
+import { asSafeHTML } from '@/base/StringUtils'
+import { ItemsWithPagination } from '@/api/models/types'
+import Pagination from '@/base/Pagination'
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
+import SectionHeader from '@/base/SectionHeader'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 export default function ListTournaments(): React.ReactNode {
   const router = useRouter()
@@ -120,7 +120,7 @@ export default function ListTournaments(): React.ReactNode {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {tournaments && tournaments.items.map((tournament) => (
-              <tr key={tournament.id}>
+              <tr key={`tournament-${tournament.id}`}>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tournament.id}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tournament.name}</td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tournament.type}</td>
@@ -139,7 +139,7 @@ export default function ListTournaments(): React.ReactNode {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <div className="grid grid-cols-3">
                     {tournament.teams?.map((team: Team) => (
-                      <div key={team.id} className="flex items-center mb-2">
+                      <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center mb-2">
                         <ImageAutoSize 
                           imageBlob={team.logo_image_file as Blob}
                           fallbackSrc="/images/nologo.svg"

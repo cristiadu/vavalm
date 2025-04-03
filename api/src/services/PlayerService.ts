@@ -88,21 +88,21 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   })
 
   if (playerStats.length === 0) {
-    return {
-      player: await Player.findByPk(playerId) as Player,
-      kda: parseFloat(0.00.toFixed(2)),
-      winrate: parseFloat(0.00.toFixed(2)),
-      mapWinrate: parseFloat(0.00.toFixed(2)),
-      totalMapsPlayed: 0,
-      totalMapsWon: 0,
-      totalMapsLost: 0,
-      totalMatchesWon: 0,
-      totalMatchesLost: 0,
-      totalMatchesPlayed: 0,
-      totalKills: 0,
-      totalDeaths: 0,
-      totalAssists: 0,
-    }
+    return new AllPlayerStats(
+      (await Player.findByPk(playerId) as Player).toApiModel(),
+      parseFloat(0.00.toFixed(2)),
+      parseFloat(0.00.toFixed(2)),
+      parseFloat(0.00.toFixed(2)),
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    )
   }
 
   // Get all maps the specific player has won and played
@@ -136,21 +136,21 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   const winrate = parseFloat((totalMatchesWon / distinctMatches.length).toFixed(2)) * 100
   const mapWinrate = parseFloat((totalMapWins / totalMaps).toFixed(2)) * 100
 
-  return {
-    player: playerStats[0].player,
+  return new AllPlayerStats(
+    playerStats[0].player.toApiModel(),
     kda,
     winrate,
     mapWinrate,
-    totalMapsPlayed: totalMaps,
-    totalMapsWon: totalMapWins,
-    totalMapsLost: totalMaps - totalMapWins,
-    totalMatchesWon: totalMatchesWon,
-    totalMatchesLost: distinctMatches.length - totalMatchesWon,
-    totalMatchesPlayed: distinctMatches.length,
+    totalMaps,
+    totalMapWins,
+    totalMaps - totalMapWins,
+    totalMatchesWon,
+    distinctMatches.length - totalMatchesWon,
+    distinctMatches.length,
     totalKills,
     totalDeaths,
     totalAssists,
-  }
+  )
 }
 
 /**
@@ -167,10 +167,10 @@ export const getAllStatsForAllPlayers = async (limit: number, offset: number): P
   // Apply limit and offset
   const paginatedPlayerStats = playerStats.slice(offset, offset + limit)
 
-  return {
-    items: paginatedPlayerStats,
-    total: players.length,
-  }
+  return new ItemsWithPagination<AllPlayerStats>(
+    paginatedPlayerStats,
+    players.length,
+  )
 }
 
 /**

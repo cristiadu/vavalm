@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from 'react'
-import { getRound } from '../../../../../api/RoundApi'
-import { GameLog } from '../../../../../api/models/Tournament'
+import { getRound } from '@/api/RoundApi'
+import { GameLog } from '@/api/models/Tournament'
 
 type GameLogsTableProps = {
   gameId: number
@@ -133,7 +133,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTablePr
             </thead>
             <tbody>
               {state.logs.map((log, index) => (
-                <GameLogRow key={`${log.id || index}-${log.round_state.round}`} log={log} />
+                <GameLogRow key={`tournament-${gameId}-round-${log.round_state.round}-${log.id || index}`} log={log} />
               ))}
             </tbody>
           </table>

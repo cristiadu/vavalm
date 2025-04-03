@@ -1,5 +1,5 @@
-import { Player } from "./Player"
-import { Team } from "./Team"
+import { Player } from "@/api/models/Player"
+import { Team } from "@/api/models/Team"
 
 export const ASSISTS_HALF_MULTIPLIER: number = 0.5
 

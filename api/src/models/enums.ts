@@ -1,7 +1,14 @@
+
+/**
+ * @tsoaModel
+ */
 export enum TournamentType {
   SINGLE_GROUP = 'SINGLE_GROUP',
 }
 
+/* 
+* @tsoaModel
+*/
 export enum GameMap {
   BIND = 'Bind',
   HAVEN = 'Haven',
@@ -16,6 +23,9 @@ export enum GameMap {
   PEARL = 'Pearl',
 }
 
+/* 
+* @tsoaModel
+*/
 export enum PlayerRole {
   INITIATOR = 'Initiator',
   DUELIST = 'Duelist',
@@ -25,6 +35,9 @@ export enum PlayerRole {
   IGL = 'IGL',
 }
 
+/* 
+* @tsoaModel
+*/
 export enum MatchType {
   BO1 = 'BO1',
   BO3 = 'BO3',
@@ -33,6 +46,9 @@ export enum MatchType {
   SHOWMATCH = 'SHOWMATCH',
 }
 
+/* 
+* @tsoaModel
+*/
 export enum Weapon {
   VANDAL = 'Vandal',
   PHANTOM = 'Phantom',

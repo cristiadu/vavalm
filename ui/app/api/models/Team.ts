@@ -1,5 +1,5 @@
-import { PlayerWithFlag } from "./Player"
-import { GameStats, Match } from "./Tournament"
+import { PlayerWithFlag } from "@/api/models/Player"
+import { GameStats, Match } from "@/api/models/Tournament"
 
 export interface Team {
   short_name: string

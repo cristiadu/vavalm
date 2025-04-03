@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
-import { Country } from '../../../../../api/models/Country'
-import { PlayerGameStats } from '../../../../../api/models/Tournament'
-import { getRoleBgColor } from '../../../../../api/models/Player'
-import { ASSISTS_HALF_MULTIPLIER, sortPlayersByStats } from '../../../../../api/models/Tournament'
-import ImageAutoSize from '../../../../../base/ImageAutoSize'
+import { Country } from '@/api/models/Country'
+import { PlayerGameStats } from '@/api/models/Tournament'
+import { getRoleBgColor } from '@/api/models/Player'
+import { ASSISTS_HALF_MULTIPLIER, sortPlayersByStats } from '@/api/models/Tournament'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 interface GameTeamStatsProps {
   teamName: string
@@ -45,7 +45,7 @@ const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, co
         </thead>
         <tbody>
           {playerStats.sort(sortPlayersByStats).map((playerStats, index) => (
-            <tr key={index}>
+            <tr key={`game-team-stats-${teamName}-player-${playerStats.player.id}-${index}`}>
               <td className="py-2 pl-4 border-b border-gray-200">
                 {playerStats.player.country && playerCountryToFlag(playerStats.player.country)}
               </td>

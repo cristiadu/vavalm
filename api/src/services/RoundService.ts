@@ -195,19 +195,19 @@ const RoundService = {
       throw new Error(`Game stats not found for game_id: ${game_id}`)
     }
 
-    return {
-      round: round_number,
-      duel: {
+    return new RoundState(
+      round_number,
+      {
         winner: null,
         loser: null,
         startedTradeDuel: false,
       } as PlayerDuelResults,
-      previous_duel: null,
-      team1_alive_players: gameStats.team1.players?.slice(0, 5) || [],
-      team2_alive_players: gameStats.team2.players?.slice(0, 5) || [],
-      team_won: null,
-      finished: false,
-    }
+      gameStats.team1.players?.slice(0, 5) || [],
+      gameStats.team2.players?.slice(0, 5) || [],
+      null,
+      false,
+      undefined,
+    )
   },
 }
 

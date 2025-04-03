@@ -16,6 +16,13 @@ import TournamentService from '@/services/TournamentService'
 import { MAX_CONCURRENT_MATCHES } from '@/models/constants'
 
 const MatchService = {
+  /**
+   * Get matches from a tournament with pagination
+   * @param tournamentId The tournament ID
+   * @param limit Number of matches to return
+   * @param offset Number of matches to skip
+   * @returns A paginated list of matches
+   */
   getMatchesFromTournament: async (tournamentId: number, limit: number, offset: number): Promise<ItemsWithPagination<Match>> => {
     // Get count of all matches from tournament, then get the matches with limit and offset
     const tournamentMatches = await Match.findAndCountAll({
@@ -257,7 +264,6 @@ const MatchService = {
           break
         default:
           bestOf = 1
-          break
         }
 
         for (let i = 0; i < bestOf; i++) {

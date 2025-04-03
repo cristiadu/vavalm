@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
-import { Match } from '../../../../api/models/Tournament'
-import { Country } from '../../../../api/models/Country'
-import { getWinOrLossColor } from '../../../../api/models/Team'
-import ImageAutoSize from '../../../../base/ImageAutoSize'
+import { Match } from '@/api/models/Tournament'
+import { Country } from '@/api/models/Country'
+import { getWinOrLossColor } from '@/api/models/Team'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 interface MatchHeaderProps {
   match: Match;

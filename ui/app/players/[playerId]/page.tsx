@@ -1,15 +1,15 @@
 "use client"
 
 import { use, useEffect, useState } from 'react'
-import { fetchPlayer, fetchPlayerStats } from '../../api/PlayersApi'
-import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '../../api/models/Player'
-import { fetchCountries } from '../../api/CountryApi'
-import { fetchTeam } from '../../api/TeamsApi'
-import { Team } from '../../api/models/Team'
-import { asWord } from '../../base/StringUtils'
-import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
-import SectionHeader from '../../base/SectionHeader'
-import ImageAutoSize from '../../base/ImageAutoSize'
+import { fetchPlayer, fetchPlayerStats } from '@/api/PlayersApi'
+import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '@/api/models/Player'
+import { fetchCountries } from '@/api/CountryApi'
+import { fetchTeam } from '@/api/TeamsApi'
+import { Team } from '@/api/models/Team'
+import { asWord } from '@/base/StringUtils'
+import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
+import SectionHeader from '@/base/SectionHeader'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 type Params = Promise<{ playerId: string }>
 

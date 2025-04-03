@@ -1,5 +1,5 @@
-import { GameLog, RoundState } from "./models/Tournament"
-import { getApiBaseUrl } from "./models/constants"
+import { GameLog, RoundState } from "@/api/models/Tournament"
+import { getApiBaseUrl } from "@/api/models/constants"
 
 // Simple cache implementation to store round data
 const roundCache = new Map<string, { data: GameLog[], timestamp: number }>()

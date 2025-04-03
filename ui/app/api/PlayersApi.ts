@@ -1,6 +1,6 @@
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
-import { AllPlayerStats, Player } from "./models/Player"
-import { ItemsWithPagination } from "./models/types"
+import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
+import { AllPlayerStats, Player } from "@/api/models/Player"
+import { ItemsWithPagination } from "@/api/models/types"
 
 // Cache for API responses to reduce network requests
 const playerCache: Record<string, { data: object, timestamp: number }> = {}

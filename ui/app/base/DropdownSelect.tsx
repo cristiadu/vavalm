@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import ImageAutoSize from './ImageAutoSize'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 interface DropdownSelectProps<T> {
   dropdownName: string
@@ -86,7 +86,7 @@ const DropdownSelect = <T,>({
         <div className="absolute z-10 w-full bg-white border border-gray-200 rounded mt-1 max-h-60 overflow-y-auto">
           {sortedItems.map((item, index) => (
             <div
-              key={`${dropdownName}-${index}`}
+              key={`dropdown-${dropdownName}-${index}`}
               className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleSelect(item)}
             >

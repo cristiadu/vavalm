@@ -1,17 +1,17 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { AllPlayerStats, getRoleBgColor, Player } from '../../api/models/Player'
-import { fetchCountries } from '../../api/CountryApi'
-import { fetchPlayersStats } from '../../api/PlayersApi'
-import { Team } from '../../api/models/Team'
-import { fetchTeam } from '../../api/TeamsApi'
-import { ItemsWithPagination } from '../../api/models/types'
+import { AllPlayerStats, getRoleBgColor, Player } from '@/api/models/Player'
+import { fetchCountries } from '@/api/CountryApi'
+import { fetchPlayersStats } from '@/api/PlayersApi'
+import { Team } from '@/api/models/Team'
+import { fetchTeam } from '@/api/TeamsApi'
+import { ItemsWithPagination } from '@/api/models/types'
 import { useRouter } from 'next/navigation'
-import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
-import Pagination from '../../base/Pagination'
-import SectionHeader from '../../base/SectionHeader'
-import ImageAutoSize from '../../base/ImageAutoSize'
+import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
+import Pagination from '@/base/Pagination'
+import SectionHeader from '@/base/SectionHeader'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 const thresholds = {
   kda: { high: 1.8, medium: 0.9 },
@@ -105,7 +105,7 @@ const PlayersStatsPage = (): React.ReactNode => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {playersStats.map(stats => (
-            <tr key={stats.player.id}>
+            <tr key={`player-stats-${stats.player.id}`}>
               <td className="py-2 px-4 border-b border-gray-200">
                 {stats.player.country && (
                   <span className="flex items-center">

@@ -1,5 +1,5 @@
-import { Threshold } from "../common/CommonModels"
-import { getRatio } from "./NumberUtils"
+import { Threshold } from "@/common/CommonModels"
+import { getRatio } from "@/base/NumberUtils"
 
 export const getBgColorBasedOnThreshold = (value: number, thresholds: Threshold, total: number = 0): string => {
   if(thresholds.noColor) {

@@ -18,3 +18,9 @@ export interface VlrTeam {
   logo_url: string
   players: VlrPlayer[]
 }
+
+export interface VlrImportResponse {
+  teamsData: VlrTeam[]
+  message?: string
+  error?: string
+}

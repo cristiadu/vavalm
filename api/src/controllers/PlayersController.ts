@@ -1,89 +1,99 @@
-import { Router, Response, Request } from 'express'
+import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "tsoa"
+import { ItemsWithPagination } from "@/base/types"
+import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
+import { AllPlayerStats } from "@/base/types"
+import Player from "@/models/Player"
+import { getAllStatsForPlayer } from "@/services/PlayerService"
+import { getAllStatsForAllPlayers } from "@/services/PlayerService"
 
-import { ItemsWithPagination } from '@/base/types'
-import Player from '@/models/Player'
-
-import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '@/services/PlayerService'
-
-const router = Router() 
-
-// Fetch all players
-router.get('/', async (req: Request, res: Response) => {
-  const limit_value = Number(req.query.limit)
-  const offset_value = Number(req.query.offset)
-
-  try {
-    const playersWithFindAllAndCount = await Player.findAndCountAll({
-      order: [['id', 'ASC']],
-      limit: limit_value > 0 ? limit_value : undefined,
-      offset: offset_value > 0 ? offset_value : undefined,
+@Route("players")
+export class PlayersController extends Controller {
+  /**
+   * Get all players with optional filtering
+   * @param teamId Optional team ID to filter by
+   * @param limit Maximum number of players to return
+   * @param offset Number of players to skip
+   */
+  @Get()
+  @OperationId("getPlayers")
+  public async getPlayers(
+    @Query() teamId?: number,
+    @Query() limit = 10,
+    @Query() offset = 0,
+  ): Promise<ItemsWithPagination<PlayerApiModel>> {
+    const filter = teamId ? { team_id: teamId } : {}
+    
+    const players = await Player.findAndCountAll({
+      where: filter,
+      limit: Math.min(limit, 100),
+      offset,
+      order: [["id", "ASC"]],
     })
+    
+    const result = new ItemsWithPagination<Player>(players.rows, players.count)
+    return result.toApiModel(new ItemsWithPagination<PlayerApiModel>([], 0))
+  }
 
-    const playersWithPagination: ItemsWithPagination<Player> = {
-      total: playersWithFindAllAndCount.count,
-      items: playersWithFindAllAndCount.rows,
+  /**
+   * Retrieves stats for all players
+   * @param limit Maximum number of players to include
+   * @param offset Number of players to skip
+   */
+  @Get("stats")
+  @OperationId("getPlayersStats")
+  public async getPlayersStats(
+    @Query() limit: number = 10,
+    @Query() offset: number = 0,
+  ): Promise<ItemsWithPagination<AllPlayerStats>> {
+    const stats = await getAllStatsForAllPlayers(limit, offset)
+    const result = new ItemsWithPagination<AllPlayerStats>(stats.items, stats.total)
+    return result.toApiModel(new ItemsWithPagination<AllPlayerStats>([], 0))
+  }
+
+  /**
+   * Get a specific player by ID
+   * @param playerId The ID of the player to retrieve
+   */
+  @Get("{playerId}")
+  @OperationId("getPlayer")
+  public async getPlayer(@Path() playerId: number): Promise<PlayerApiModel> {
+    const player = await Player.findByPk(playerId)
+    
+    if (!player) {
+      this.setStatus(404)
+      throw new Error("Player not found")
     }
     
-    res.json(playersWithPagination)
-  } catch (err) {
-    console.error('Error executing query', (err as Error).stack)
-    res.status(500).json({ error: 'Internal Server Error' })
+    return player.toApiModel()
   }
-})
 
-// Fetch all players stats
-router.get('/stats', async (req: Request, res: Response) => {
-  try {
-    const allPlayersStats = await getAllStatsForAllPlayers(Number(req.query.limit), Number(req.query.offset))
-    res.json(allPlayersStats)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
+  /**
+   * Retrieves stats for a specific player
+   * @param playerId The ID of the player to retrieve stats for
+   */
+  @Get("{playerId}/stats")
+  @OperationId("getPlayerStats")
+  public async getPlayerStats(@Path() playerId: number): Promise<AllPlayerStats> {
+    return (await getAllStatsForPlayer(playerId)).toApiModel()
   }
-})
 
-// Fetch player
-router.get('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const player = await Player.findByPk(id)
-    if (!player) {
-      res.status(404).json({ error: 'Player not found' })
-      return
+  /**
+   * Creates a new player
+   * @param requestBody The player data to create
+   */
+  @Post()
+  @OperationId("createPlayer")
+  @SuccessResponse("201", "Player created")
+  public async createPlayer(
+    @Body() requestBody: PlayerApiModel,
+  ): Promise<PlayerApiModel> {
+    const { nickname, full_name, age, country, team_id, player_attributes, role } = requestBody
+    
+    if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
+      this.setStatus(400)
+      throw new Error("nickname, full_name, age, country, role, and player_attributes are required")
     }
-    res.json(player)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
 
-// Fetch player stats
-router.get('/:id/stats', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const playerStats = await getAllStatsForPlayer(Number(id))
-    res.json(playerStats)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Add a new player
-router.post('/', async (req: Request, res: Response) => {
-  const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
-
-  // Validate input data
-  if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
-    res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
-    return
-  }
-
-  try {
-    console.debug('Creating player with data:', { nickname, full_name, age, country, team_id, player_attributes })
     const player = await Player.create({
       nickname,
       full_name,
@@ -93,45 +103,49 @@ router.post('/', async (req: Request, res: Response) => {
       team_id,
       player_attributes,
     })
-    res.status(201).json(player)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
+    
+    this.setStatus(201)
+    return player.toApiModel()
+  }
+
+  /**
+   * Creates multiple players from a bulk upload
+   * @param requestBody Array of player data to create
+   */
+  @Post("bulk")
+  @OperationId("createPlayersBulk")
+  @SuccessResponse("201", "Players created successfully")
+  public async createPlayersBulk(
+    @Body() requestBody: PlayerApiModel[],
+  ): Promise<PlayerApiModel[]> {
+    const newPlayers = await Player.bulkCreate(await Promise.all(requestBody.map(player => player.toEntityModelBulk())))
+    
+    this.setStatus(201)
+    return newPlayers.map(player => player.toApiModel())
+  }
+
+  /**
+   * Updates an existing player
+   * @param playerId The ID of the player to update
+   * @param requestBody The player data to update
+   */
+  @Put("{playerId}")
+  @OperationId("updatePlayer")
+  public async updatePlayer(
+    @Path() playerId: number,
+    @Body() requestBody: PlayerApiModel,
+  ): Promise<PlayerApiModel> {
+    const { nickname, full_name, age, country, team_id, player_attributes, role } = requestBody
+    
+    if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
+      this.setStatus(400)
+      throw new Error("nickname, full_name, age, country, role, and player_attributes are required")
     }
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Add new players from JSON file
-router.post('/bulk', async (req: Request, res: Response) => {
-  const players = req.body
-  try {
-    const newPlayers = await Player.bulkCreate(players)
-    res.status(201).json(newPlayers)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Update an existing player
-router.put('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-  const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
-
-  // Validate input data
-  if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
-    res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
-    return
-  }
-
-  try {
-    const player = await Player.findByPk(id)
+    
+    const player = await Player.findByPk(playerId)
     if (!player) {
-      res.status(404).json({ error: 'Player not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Player not found")
     }
 
     player.nickname = nickname
@@ -140,33 +154,26 @@ router.put('/:id', async (req: Request, res: Response) => {
     player.role = role
     player.country = country
     player.team_id = team_id
-    player.player_attributes = player_attributes
+    player.player_attributes = await player_attributes.toEntityModel()
 
     await player.save()
-    res.json(player)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
+    
+    return player.toApiModel()
   }
-})
 
-// Delete an existing player
-router.delete('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const player = await Player.findByPk(id)
+  /**
+   * Deletes a player
+   * @param playerId The ID of the player to delete
+   */
+  @Delete("{playerId}")
+  @OperationId("deletePlayer")
+  public async deletePlayer(@Path() playerId: number): Promise<void> {
+    const player = await Player.findByPk(playerId)
     if (!player) {
-      res.status(404).json({ error: 'Player not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Player not found")
     }
 
     await player.destroy()
-    res.json({ message: 'Player deleted successfully' })
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
   }
-})
-
-export default router
+}

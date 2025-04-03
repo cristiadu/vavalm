@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import { editPlayer, newPlayer } from '../api/PlayersApi'
-import { getRoleBgColor, Player, PlayerAttributes, PlayerRole } from '../api/models/Player'
-import Modal from '../base/Modal'
-import { fetchCountries } from '../api/CountryApi'
-import {Country} from '../api/models/Country'
-import { fetchAllTeams } from '../api/TeamsApi'
-import { Team } from '../api/models/Team'
-import { ItemActionModalProps } from '../common/CommonModels'
-import AlertMessage, { AlertType } from '../base/AlertMessage'
-import DropdownSelect from '../base/DropdownSelect'
-import { EnumWithFieldName } from '../api/models/types'
+import { editPlayer, newPlayer } from '@/api/PlayersApi'
+import { getRoleBgColor, Player, PlayerAttributes, PlayerRole } from '@/api/models/Player'
+import Modal from '@/base/Modal'
+import { fetchCountries } from '@/api/CountryApi'
+import {Country} from '@/api/models/Country'
+import { fetchAllTeams } from '@/api/TeamsApi'
+import { Team } from '@/api/models/Team'
+import { ItemActionModalProps } from '@/common/CommonModels'
+import AlertMessage, { AlertType } from '@/base/AlertMessage'
+import DropdownSelect from '@/base/DropdownSelect'
+import { EnumWithFieldName } from '@/api/models/types'
 
 const defaultPlayerAttributes: PlayerAttributes = {
   clutch: 0,
@@ -223,7 +223,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
           <h3 className="text-xl mb-2">Player Attributes</h3>
           <div className="grid grid-cols-3 gap-4">
             {Object.keys(defaultPlayerAttributes).map((attribute) => (
-              <div key={attribute} className="mb-2">
+              <div key={`modal-player-attribute-${attribute}`} className="mb-2">
                 <label className="block text-gray-700 capitalize">{attribute.replace('_', ' ')}</label>
                 <input
                   type="number"

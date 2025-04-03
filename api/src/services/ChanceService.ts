@@ -1,5 +1,5 @@
 import { PlayerRole } from "@/models/enums"
-import Player, { PlayerAttributes } from "@/models/Player"
+import Player, { PlayerAttributes, PlayerAttributesContract } from "@/models/Player"
 
 const ChanceService = {
   /**
@@ -40,13 +40,13 @@ const ChanceService = {
 
     // Calculate the chances for each attribute player -> player2
     const chancesPlayer1 = player1Attributes.reduce((acc, attributeName: string) => {
-      acc[attributeName as keyof PlayerAttributes] = ChanceService.getChancesOnAttribute(attributeName, player1, player2)
+      acc[attributeName as keyof PlayerAttributesContract] = ChanceService.getChancesOnAttribute(attributeName, player1, player2)
       return acc
     }, {} as PlayerAttributes)
 
     // Calculate the chances for each attribute player2 -> player
     const chancesPlayer2 = player2Attributes.reduce((acc, attributeName: string) => {
-      acc[attributeName as keyof PlayerAttributes] = ChanceService.getChancesOnAttribute(attributeName, player2, player1)
+      acc[attributeName as keyof PlayerAttributesContract] = ChanceService.getChancesOnAttribute(attributeName, player2, player1)
       return acc
     }, {} as PlayerAttributes)
 
@@ -72,8 +72,8 @@ const ChanceService = {
       throw new Error(`Invalid attribute or counter name. {attribute: ${attributeName}, counter: ${counterAttributeName}}`)
     }
 
-    const player1Attribute = player1.player_attributes[attributeName as keyof PlayerAttributes]
-    const player2Attribute = player2.player_attributes[counterAttributeName as keyof PlayerAttributes]
+    const player1Attribute = player1.player_attributes[attributeName as keyof PlayerAttributesContract]
+    const player2Attribute = player2.player_attributes[counterAttributeName as keyof PlayerAttributesContract]
 
     return Math.max(0, player1Attribute - player2Attribute)
   },

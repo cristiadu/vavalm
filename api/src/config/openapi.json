@@ -1,0 +1,196 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"MatchApiModel": {
+				"properties": {
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"date": {
+						"type": "string"
+					},
+					"tournament_id": {
+						"type": "number",
+						"format": "double"
+					},
+					"team1_id": {
+						"type": "number",
+						"format": "double"
+					},
+					"team2_id": {
+						"type": "number",
+						"format": "double"
+					},
+					"type": {
+						"type": "string"
+					},
+					"team1_score": {
+						"type": "number",
+						"format": "double"
+					},
+					"team2_score": {
+						"type": "number",
+						"format": "double"
+					},
+					"included_on_standings": {
+						"type": "boolean"
+					},
+					"started": {
+						"type": "boolean"
+					},
+					"finished": {
+						"type": "boolean"
+					},
+					"winner_id": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"id",
+					"date",
+					"tournament_id",
+					"team1_id",
+					"team2_id",
+					"type",
+					"team1_score",
+					"team2_score",
+					"included_on_standings",
+					"started",
+					"finished"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ItemsWithPagination_MatchApiModel_": {
+				"properties": {
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/MatchApiModel"
+						},
+						"type": "array"
+					},
+					"total": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"items",
+					"total"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"bearer": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		}
+	},
+	"info": {
+		"title": "backend",
+		"version": "0.1.0",
+		"contact": {}
+	},
+	"paths": {
+		"/matches/{matchId}": {
+			"get": {
+				"operationId": "GetMatch",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MatchApiModel"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves a specific match by its ID",
+				"security": [],
+				"parameters": [
+					{
+						"description": "The ID of the match to retrieve",
+						"in": "path",
+						"name": "matchId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/matches": {
+			"get": {
+				"operationId": "GetMatches",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ItemsWithPagination_MatchApiModel_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieves all matches with optional filtering",
+				"security": [],
+				"parameters": [
+					{
+						"description": "Filter matches by tournament ID",
+						"in": "query",
+						"name": "tournamentId",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Maximum number of matches to return",
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Number of matches to skip",
+						"in": "query",
+						"name": "offset",
+						"required": false,
+						"schema": {
+							"default": 0,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/api"
+		}
+	]
+}

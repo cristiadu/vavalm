@@ -3,8 +3,10 @@ import { Association, DataTypes, Model } from 'sequelize'
 import db from '@/models/db'
 
 import Team from '@/models/Team'
+import { BaseEntityModel } from '@/base/types'
+import { StandingsApiModel } from '@/models/contract/StandingsApiModel'
 
-class Standings extends Model {
+export class Standings extends Model implements BaseEntityModel {
   declare team: Team
   declare wins: number
   declare losses: number
@@ -18,6 +20,24 @@ class Standings extends Model {
 
   static associations: {
     team: Association<Standings, Team>
+  }
+
+  toApiModel(): StandingsApiModel {
+    return new StandingsApiModel(
+      this.wins,
+      this.losses,
+      this.maps_won,
+      this.maps_lost,
+      this.rounds_won,
+      this.rounds_lost,
+      this.tournament_id,
+      this.team_id,
+      this.position,
+    )
+  }
+
+  toEntityModel(): Standings {
+    return this
   }
 }
 

@@ -1,47 +1,61 @@
-import { Router, Request, Response } from 'express'
+import { Controller, Get, OperationId, Path, Post, Route, SuccessResponse } from "tsoa"
+import GameService from "@/services/GameService"
+import { GameApiModel } from "@/models/contract/GameApiModel"
+import { GameStatsApiModel } from "@/models/contract/GameStatsApiModel"
 
-import GameService from '@/services/GameService'
-
-import RoundController from '@/controllers/RoundController'
-
-const router = Router()
-
-// Trigger the game to start
-router.post('/:id/play', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params
-    const sanitizedId = id.replace(/\n|\r/g, "")
-    await GameService.playFullGame(Number(sanitizedId))
-    console.debug('Starting game with id:', sanitizedId)
-    res.status(201).json({ message: 'Game started' })
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
+@Route("games")
+export class GameController extends Controller {
+  /**
+   * Retrieves a specific game by its ID
+   * @param gameId The ID of the game to retrieve
+   */
+  @Get("{gameId}")
+  @OperationId("getGame")
+  public async getGame(@Path() gameId: number): Promise<GameApiModel> {
+    const game = await GameService.getGame(gameId)
+    if (!game) {
+      this.setStatus(404)
+      throw new Error("Game not found")
     }
-    res.status(500).json({ error: 'Internal Server Error' })
+    return game.toApiModel()
   }
-})
 
-// Get a specific game 
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params
-    const game = await GameService.getGame(Number(id))
-    res.status(200).json(game)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
+  /**
+   * Plays a game and completes it with simulated results
+   * @param gameId The ID of the game to play
+   */
+  @Post("{gameId}/play")
+  @OperationId("playGame")
+  @SuccessResponse("200", "Game played successfully")
+  public async playGame(@Path() gameId: number): Promise<void> {
+    await GameService.playFullGame(gameId)
+    this.setStatus(200)
+  }
+
+  /**
+   * Retrieves games for a specific match
+   * @param matchId The ID of the match to retrieve games for
+   */
+  @Get("match/{matchId}")
+  @OperationId("getGamesByMatch")
+  public async getGamesByMatch(@Path() matchId: number): Promise<GameApiModel[]> {
+    const games = await GameService.getGamesFromMatch(matchId)
+    return games.map(game => game.toApiModel())
+  }
+
+  /**
+   * Retrieves the stats for a specific game
+   * @param gameId The ID of the game to retrieve stats for
+   */
+  @Get("{gameId}/stats")
+  @OperationId("getGameStats")
+  public async getGameStats(@Path() gameId: number): Promise<GameStatsApiModel> {
+    const stats = await GameService.getGameStats(gameId)
+    if (!stats || !stats.data) {
+      this.setStatus(404)
+      throw new Error("Game stats not found")
     }
-    res.status(500).json({ error: 'Internal Server Error' })
+    
+    return stats.data.toApiModel()
   }
-})
-
-// /games/:id/rounds endpoints
-// send parameter id to RoundController
-router.use('/:id/rounds', RoundController)
-
-export default router
+}

@@ -1,0 +1,30 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/*.ts"],
+  "spec": {
+    "outputDirectory": "docs/api",
+    "specVersion": 3,
+    "basePath": "/api",
+    "specFileBaseName": "openapi",
+    "securityDefinitions": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "routes": {
+    "routesDir": "src/routes",
+    "basePath": "/api"
+  },
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "ignore": {
+    "methods": ["toApiModel", "toEntityModel"]
+  }
+}   

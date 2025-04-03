@@ -21,7 +21,7 @@ except ImportError:
     print("For best results, install cairosvg: pip install cairosvg")
 
 # API base URL
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://localhost:8000/api"
 
 # Tournament types from API
 TOURNAMENT_TYPE = ["SINGLE_GROUP"]
@@ -597,6 +597,19 @@ def generate_player_attributes():
     
     return attributes
 
+def fetch_team_details(team_id):
+    """Fetch detailed information for a specific team"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/teams/{team_id}")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Error fetching team {team_id}: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Error fetching team details: {e}")
+        return None
+
 def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
     """
     Create a random tournament using the API
@@ -627,20 +640,21 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             
         selected_teams = random.sample(teams, num_teams)
         
-        # Filter out any team without a valid ID
-        valid_team_ids = []
+        # Get team IDs for the teams array
+        team_ids = []
         for team in selected_teams:
             team_id = team.get("id")
             if team_id is not None:
-                valid_team_ids.append({"id": team_id})  # Use string 'id' as key
+                # Just use the ID number
+                team_ids.append(team_id)
         
-        if not valid_team_ids:
+        if not team_ids:
             print("No valid team IDs found. Cannot create tournament.")
             continue
             
         country = random.choice(COUNTRIES)
         
-        # Create tournament payload matching the bootstrap_tournaments.json format
+        # Create tournament payload matching the TournamentApiModel format
         tournament_data = {
             "type": "SINGLE_GROUP",
             "name": name,
@@ -648,14 +662,16 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             "country": country,
             "start_date": tournament_start_date,
             "end_date": tournament_end_date,
-            "teams": valid_team_ids,  # This is now a list of objects with id key
+            "started": False,
+            "ended": False,
+            "teams": team_ids
         }
         
         # Print the full payload for debugging
         print(f"Tournament payload: {json.dumps(tournament_data, indent=2)}")
         
         try:
-            print(f"Creating tournament: {name} in {country} with {len(valid_team_ids)} teams")
+            print(f"Creating tournament: {name} in {country} with {len(team_ids)} teams")
             print(f"Start: {tournament_start_date}, End: {tournament_end_date}")
             response = requests.post(f"{API_BASE_URL}/tournaments", json=tournament_data)
             
@@ -664,6 +680,13 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             else:
                 print(f"❌ Failed to create tournament: {response.status_code}")
                 print(f"Response: {response.text}")
+                
+                # Try to get more detailed error information
+                try:
+                    error_text = response.text
+                    print(f"Error details: {error_text}")
+                except:
+                    pass
         except Exception as e:
             print(f"Error: {e}")
 

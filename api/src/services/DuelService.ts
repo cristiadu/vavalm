@@ -130,8 +130,8 @@ const DuelService = {
     await GameLog.create({
       round_state: playedRound,
       last_duel_of_round: playedRound.finished,
-      duel_buff: ChanceService.getDuelWinBuffByPlayerRole(duelResults.winner),
-      trade_buff: ChanceService.getTradeWinBuffByPlayerRole(duelResults.winner),
+      duel_buff: ChanceService.getDuelWinBuffByPlayerRole(await duelResults.winner.toEntityModel()),
+      trade_buff: ChanceService.getTradeWinBuffByPlayerRole(await duelResults.winner.toEntityModel()),
       trade: currentRound.duel?.startedTradeDuel && currentRound.duel.loser?.team_id === playedRound.duel?.winner?.team_id || false,
       game_id: game_id,
       team1_player_id: team1Player.id,
@@ -168,8 +168,8 @@ const DuelService = {
     const winner = randomNumber < duelChances.chancesPlayer1 ? duel.player1 : duel.player2
     console.debug(`Player ${winner.nickname} won the duel against ${winner === duel.player1 ? duel.player2.nickname : duel.player1.nickname}!`)
     return {
-      winner: winner,
-      loser: winner === duel.player1 ? duel.player2 : duel.player1,
+      winner: winner.toApiModel(),
+      loser: winner === duel.player1 ? duel.player2.toApiModel() : duel.player1.toApiModel(),
       startedTradeDuel: DuelService.shouldTradeHappen(winner),
     }
   },

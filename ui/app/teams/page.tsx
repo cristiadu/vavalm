@@ -3,19 +3,19 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { fetchCountries } from '../api/CountryApi'
-import { fetchTeams, deleteTeam } from '../api/TeamsApi'
-import { Team } from '../api/models/Team'
-import TeamActionModal from './TeamActionModal'
+import { fetchCountries } from '@/api/CountryApi'
+import { fetchTeams, deleteTeam } from '@/api/TeamsApi'
+import { Team } from '@/api/models/Team'
+import TeamActionModal from '@/teams/TeamActionModal'
 import 'react-quill-new/dist/quill.snow.css'
-import { asSafeHTML } from '../base/StringUtils'
-import { fetchPlayersByTeam } from '../api/PlayersApi'
-import { getRoleBgColor, Player } from '../api/models/Player'
-import Pagination from '../base/Pagination'
-import { PAGE_OFFSET_INITIAL_VALUE } from '../api/models/constants'
-import SectionHeader from '../base/SectionHeader'
-import ImageAutoSize from '../base/ImageAutoSize'
-import { Country } from '../api/models/Country'
+import { asSafeHTML } from '@/base/StringUtils'
+import { fetchPlayersByTeam } from '@/api/PlayersApi'
+import { getRoleBgColor, Player } from '@/api/models/Player'
+import Pagination from '@/base/Pagination'
+import { PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
+import SectionHeader from '@/base/SectionHeader'
+import ImageAutoSize from '@/base/ImageAutoSize'
+import { Country } from '@/api/models/Country'
 
 export default function ListTeams(): React.ReactNode {
   const LIMIT_VALUE_TEAM_LIST = 5
@@ -147,7 +147,7 @@ export default function ListTeams(): React.ReactNode {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {teams.map((team) => (
-              <tr key={team.id}>
+              <tr key={`team-row-${team.id}`}>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{team.id}</td>
                 <td className="py-4 whitespace-nowrap text-sm text-gray-500">
                   <ImageAutoSize
@@ -169,7 +169,7 @@ export default function ListTeams(): React.ReactNode {
                 </td>
                 <td className="py-4 text-sm font-medium text-gray-900 grid grid-cols-2">
                   {team.players && team.players.map(player => (
-                    <div key={player.id} className="flex items-center space-x-2 mb-2">
+                    <div key={`team-${team.id}-player-${player.id}`} className="flex items-center space-x-2 mb-2">
                       <span className={getRoleBgColor(player.role)}>
                         {player.role}
                       </span>

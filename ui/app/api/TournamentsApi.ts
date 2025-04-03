@@ -1,7 +1,7 @@
-import { ItemsWithPagination } from "./models/types"
-import { Match, Standing, Tournament } from "./models/Tournament"
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
-import { Team, TeamWithLogoImageData } from "./models/Team"
+import { ItemsWithPagination } from "@/api/models/types"
+import { Match, Standing, Tournament } from "@/api/models/Tournament"
+import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
+import { Team, TeamWithLogoImageData } from "@/api/models/Team"
 
 export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Tournament>> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments?limit=${limit}&offset=${offset}`)

@@ -1,26 +1,21 @@
 import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
-
+import swaggerUi from 'swagger-ui-express'
+import yaml from 'yaml'
+import { RegisterRoutes } from './routes/routes'
+import fs from 'fs'
+import path from 'path'
 import setupTestData from './bootstrap/Bootstrap'
 import db from './models/db'
 
 import SchedulerService from '@/services/SchedulerService'
-
-import TeamsController from '@/controllers/TeamsController'
-import PlayersController from '@/controllers/PlayersController'
-import TournamentController from '@/controllers/TournamentController'
-import MatchController from '@/controllers/MatchController'
-import GameController from '@/controllers/GameController'
-import VlrImportController from '@/controllers/VlrImportController'
 
 const app = express()
 const port = process.env.PORT || 8000
 
 // Database connection health tracking
 let dbConnectionHealthy = true
-let consecutiveDbErrors = 0
-const DB_ERROR_THRESHOLD = 3
 const DB_HEALTH_CHECK_INTERVAL = 30000 // 30 seconds
 
 app.use(bodyParser.json())
@@ -40,7 +35,7 @@ app.use((req, res, next) => {
 })
 
 // Add database connection check middleware
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   // Skip health check endpoint to avoid recursion
   if (req.path === '/health') {
     return next()
@@ -54,47 +49,6 @@ app.use((req, res, next) => {
   next()
 })
 
-// Add timeout middleware for API requests
-app.use((req, res, next) => {
-  // Set a 30 second timeout for all requests
-  req.setTimeout(30000, () => {
-    res.status(503).json({ error: 'Request timeout' })
-  })
-  next()
-})
-
-// Add error handling middleware
-app.use((err: Error, _req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err)
-  
-  // Check if it's a database error
-  if (err.name && (
-    err.name.includes('Sequelize') || 
-    err.name.includes('ConnectionError') ||
-    err.name.includes('TimeoutError') ||
-    err.message?.includes('too many clients')
-  )) {
-    // Track database errors
-    dbConnectionHealthy = false
-    consecutiveDbErrors++
-    
-    if (consecutiveDbErrors >= DB_ERROR_THRESHOLD) {
-      console.error('Database connection issues detected. Pausing background workers.')
-      SchedulerService.pauseWorker()
-    }
-  }
-  
-  // Send error response
-  if (res && typeof res.send === 'function') {
-    res.statusCode = 500
-    res.send({ error: 'Internal server error' })
-  } else {
-    console.error('Could not send error response - invalid response object')
-  }
-  
-  next(err)
-})
-
 // Add health check endpoint
 app.get('/health', async (_req, res) => {
   try {
@@ -105,7 +59,6 @@ app.get('/health', async (_req, res) => {
     if (!dbConnectionHealthy) {
       console.log('Database connection restored. Resuming background workers.')
       dbConnectionHealthy = true
-      consecutiveDbErrors = 0
       SchedulerService.resumeWorker()
     }
     
@@ -126,48 +79,20 @@ app.get('/health', async (_req, res) => {
   }
 })
 
-// Routes
-app.use('/teams', TeamsController)
-app.use('/players', PlayersController)
-app.use('/tournaments', TournamentController)
-app.use('/games', GameController)
-app.use('/matches', MatchController)
-app.use('/import', VlrImportController)
+// Register routes using TSOA's RegisterRoutes function
+RegisterRoutes(app)
 
-// Global error handlers for uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error)
-  
-  // Check if it's a database-related error
-  if (error.message && (
-    error.message.includes('database') ||
-    error.message.includes('connection') ||
-    error.message.includes('sequelize') ||
-    error.message.includes('too many clients')
-  )) {
-    dbConnectionHealthy = false
-    SchedulerService.pauseWorker()
-  }
-  
-  // Let the process exit if in development, but keep running in production
-  if (process.env.NODE_ENV !== 'production') {
-    throw new Error('Database connection issues detected. Pausing background workers.')
-  }
-})
+// Serve swagger docs
+const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/api/openapi.yaml'), 'utf8')
 
-process.on('unhandledRejection', (reason: unknown) => {
-  console.error('Unhandled Promise Rejection:', reason)
-  
-  // Check if it's a database-related error
-  if (reason instanceof Error && reason.message && (
-    reason.message.includes('database') ||
-    reason.message.includes('connection') ||
-    reason.message.includes('sequelize') ||
-    reason.message.includes('too many clients')
-  )) {
-    dbConnectionHealthy = false
-    SchedulerService.pauseWorker()
-  }
+// Convert YAML to JSON
+const openApiJsonDoc = yaml.parse(openApiYamlDoc)
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJsonDoc))
+
+// Serve swagger.json for tools that need it
+app.get('/swagger.json', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../docs/api/openapi.json'))
 })
 
 // Periodic database health checks
@@ -178,7 +103,6 @@ setInterval(async () => {
     if (!dbConnectionHealthy) {
       console.log('Database connection restored. Resuming background workers.')
       dbConnectionHealthy = true
-      consecutiveDbErrors = 0
       SchedulerService.resumeWorker()
     }
   } catch (error) {
@@ -187,7 +111,6 @@ setInterval(async () => {
     if (dbConnectionHealthy) {
       console.error('Database connection issues detected. Pausing background workers.')
       dbConnectionHealthy = false
-      consecutiveDbErrors++
       SchedulerService.pauseWorker()
     }
   }

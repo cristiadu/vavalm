@@ -4,8 +4,9 @@ import db from '@/models/db'
 
 import Player from '@/models/Player'
 import Tournament from '@/models/Tournament'
+import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
-class Team extends Model {
+export class Team extends Model {
   declare id?: number
   declare logo_image_file: Buffer | null
   declare short_name: string
@@ -17,6 +18,21 @@ class Team extends Model {
 
   static associations: {
     players: Association<Team, Player>
+  }
+
+  toApiModel(): TeamApiModel {
+    return new TeamApiModel(
+      this.short_name,
+      this.full_name,
+      this.description,
+      this.country,
+      this.logo_image_file ? this.logo_image_file.toString("base64") : undefined,
+      this.id,
+    )
+  }
+
+  toEntityModel(): Team {
+    return this
   }
 }
 

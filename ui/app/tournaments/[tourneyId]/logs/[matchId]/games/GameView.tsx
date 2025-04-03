@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Match, Game, GameLog } from "../../../../../api/models/Tournament"
-import { Country } from "../../../../../api/models/Country"
-import { getGame, playFullGame, getMatch } from "../../../../../api/GameApi"
-import { getLastDuel } from "../../../../../api/DuelApi"
-import { playFullRound } from "../../../../../api/RoundApi"
-import { playSingleDuel } from "../../../../../api/DuelApi"
-import GameHeader from "./GameHeader"
-import GameLogsTable from "./GameLogsTable"
-import GameTeamStats from "./GameTeamStats"
+import { Match, Game, GameLog } from "@/api/models/Tournament"
+import { Country } from "@/api/models/Country"
+import { getGame, playFullGame, getMatch } from "@/api/GameApi"
+import { getLastDuel } from "@/api/DuelApi"
+import { playFullRound } from "@/api/RoundApi"
+import { playSingleDuel } from "@/api/DuelApi"
+import GameHeader from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameHeader"
+import GameLogsTable from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameLogsTable"
+import GameTeamStats from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameTeamStats"
 
 type GameViewProps = {
   gameId: number

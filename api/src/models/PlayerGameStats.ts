@@ -4,8 +4,13 @@ import db from '@/models/db'
 
 import Player from '@/models/Player'
 import GameStats from '@/models/GameStats'
+import { PlayerGameStatsApiModel } from '@/models/contract/PlayerGameStatsApiModel'
+import { BaseEntityModel } from '@/base/types'
 
-class PlayerGameStats extends Model {
+/**
+ * @tsoaModel
+ */
+export class PlayerGameStats extends Model implements BaseEntityModel {
   declare player: Player
   declare kills: number
   declare deaths: number
@@ -18,6 +23,21 @@ class PlayerGameStats extends Model {
 
   static associations: {
     player: Association<PlayerGameStats, Player>
+  }
+
+  toApiModel(): PlayerGameStatsApiModel {
+    return new PlayerGameStatsApiModel(
+      this.kills,
+      this.deaths,
+      this.assists,
+      this.player_id,
+      this.game_stats_player1_id,
+      this.game_stats_player2_id,
+    )
+  }
+
+  toEntityModel(): PlayerGameStats {
+    return this
   }
 }
 

@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
-import { getWinOrLossColor } from '../../../../../api/models/Team'
-import { Country } from '../../../../../api/models/Country'
-import { Game } from '../../../../../api/models/Tournament'
-import ImageAutoSize from '../../../../../base/ImageAutoSize'
+import { getWinOrLossColor } from '@/api/models/Team'
+import { Country } from '@/api/models/Country'
+import { Game } from '@/api/models/Tournament'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 interface GameHeaderProps {
   game: Game

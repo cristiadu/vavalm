@@ -6,9 +6,11 @@ import Team from '@/models/Team'
 import Tournament from '@/models/Tournament'
 import { MatchType } from '@/models/enums'
 import Game from '@/models/Game'
+import { MatchApiModel } from '@/models/contract/MatchApiModel'
+import { BaseEntityModel } from '@/base/types'
 
-class Match extends Model {
-  declare id: number
+export class Match extends Model implements BaseEntityModel {
+  declare id?: number
   declare date: Date
   declare type: MatchType
   declare team1_id: number
@@ -23,12 +25,35 @@ class Match extends Model {
   declare tournament_id: number
   declare tournament: Tournament
   declare included_on_standings: boolean
-  declare started : boolean
-  declare finished : boolean
+  declare started: boolean
+  declare finished: boolean
 
   public static associations: {
     games: Association<Match, Game>
     tournament: Association<Match, Tournament>
+  }
+
+  toApiModel(): MatchApiModel {
+    const apiModel = new MatchApiModel(
+      this.date.toISOString(),
+      this.tournament_id,
+      this.team1_id,
+      this.team2_id,
+      this.type,
+      this.team1_score,
+      this.team2_score,
+      this.included_on_standings,
+      this.started,
+      this.finished,
+      this.winner_id,
+      this.id,
+    )
+    return apiModel
+  }
+
+
+  toEntityModel(): Match {
+    return this
   }
 }
 

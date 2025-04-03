@@ -1,6 +1,6 @@
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "./models/constants"
-import { ItemsWithPagination } from "./models/types"
-import { Team, TeamStats, TeamWithLogoImageData } from "./models/Team"
+import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
+import { ItemsWithPagination } from "@/api/models/types"
+import { Team, TeamStats, TeamWithLogoImageData } from "@/api/models/Team"
 
 export const fetchAllTeams = async (closure: (_teamData: Team[]) => void): Promise<Team[]> => {
   const response = await fetch(`${getApiBaseUrl()}/teams`)

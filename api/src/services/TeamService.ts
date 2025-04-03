@@ -2,13 +2,13 @@ import { Op } from "sequelize"
 
 import { downloadImage } from '@/base/FileUtils'
 
-import Team from '@/models/Team'
 import { ItemsWithPagination, TeamStats } from '@/base/types'
 import { VlrTeam } from '@/models/Vlr'
 import Tournament from '@/models/Tournament'
 import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
+import Team from '@/models/Team'
 
 /**
  * Upserts a team entry based on the team data.
@@ -33,23 +33,14 @@ export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
   return team
 }
 
-/**
- * Get all statistics for all teams.
- * 
- * @param limit  The number of items to return
- * @param offset  The number of items to skip before starting to collect the result set
- * @returns {Promise<ItemsWithPagination<TeamStats>>} - The teams statistics with pagination.
- */
+
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
   const teams = await Team.findAll()
 
   const teamsStats = (await Promise.all(teams.map(team => getAllStatsForTeam(team.id as number)))).sort(sortTeamsByStats)
   const paginatedTeamsStats = teamsStats.slice(offset, offset + limit)
 
-  return {
-    items: paginatedTeamsStats,
-    total: teams.length,
-  }
+  return new ItemsWithPagination<TeamStats>(paginatedTeamsStats, teams.length)
 }
 
 /**
@@ -94,19 +85,19 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
   })
 
   if (mapsPlayedForTeam.length === 0) {
-    return {
-      team: team,
-      tournamentsWon: 0,
-      tournamentsParticipated: 0,
-      winrate: 0.0,
-      totalMatchesPlayed: 0,
-      totalMatchesWon: 0,
-      totalMatchesLost: 0,
-      mapWinrate: 0.0,
-      totalMapsPlayed: 0,
-      totalMapsWon: 0,
-      totalMapsLost: 0,
-    }
+    return new TeamStats(
+      team.toApiModel(),
+      0,
+      0,
+      0.0,
+      0,
+      0,
+      0,
+      0.0,
+      0,
+      0,
+      0,
+    )
   }
 
   const totalMapsPlayed = mapsPlayedForTeam.length
@@ -125,19 +116,19 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
     .filter((tournament, index, self) => tournament && index === self.findIndex(t => t?.id === tournament.id))
   const tournamentsWon = distinctTournaments.filter(tournament => tournament.winner_id === teamId).length
 
-  return {
-    team: team,
-    tournamentsWon: tournamentsWon,
-    tournamentsParticipated: distinctTournaments.length,
-    winrate: parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2)),
-    totalMatchesPlayed: totalMatchesPlayed,
-    totalMatchesWon: totalMatchesWon,
-    totalMatchesLost: totalMatchesLost,
-    mapWinrate: parseFloat(((totalMapsWon / totalMapsPlayed) * 100).toFixed(2)),
-    totalMapsPlayed: totalMapsPlayed,
-    totalMapsWon: totalMapsWon,
-    totalMapsLost: totalMapsLost,
-  }
+  return new TeamStats(
+    team.toApiModel(),
+    tournamentsWon,
+    distinctTournaments.length,
+    parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2)),
+    totalMatchesPlayed,
+    totalMatchesWon,
+    totalMatchesLost,
+    parseFloat(((totalMapsWon / totalMapsPlayed) * 100).toFixed(2)),
+    totalMapsPlayed,
+    totalMapsWon,
+    totalMapsLost,
+  )
 }
 
 /**

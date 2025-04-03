@@ -4,7 +4,7 @@ export const MAXIMUM_PAGE_SIZE: number = 100
 export const CACHE_DURATION_MS: number = 60000 // 1 minute
 
 export const getApiBaseUrl = (): string => {
-  return process.env.API_BASE_URL || 'http://localhost:8000'
+  return process.env.API_BASE_URL || 'http://localhost:8000/api'
 }
 
 // Amount of time to wait for API responses before timing out

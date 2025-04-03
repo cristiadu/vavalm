@@ -1,189 +1,203 @@
-import { Router, Request, Response } from 'express'
-import Multer from 'multer'
+import { Body, Controller, Delete, FormField, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { ItemsWithPagination } from "@/base/types"
+import { TeamApiModel } from "@/models/contract/TeamApiModel"
+import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
+import { TeamStats } from "@/base/types"
+import Team from "@/models/Team"
+import Player from "@/models/Player"
+import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamService"
+import { Op } from "sequelize"
 
-import { ItemsWithPagination } from '@/base/types'
-import Team from '@/models/Team'
-import Player from '@/models/Player'
+@Route("teams")
+export class TeamsController extends Controller {
+  /**
+   * Get all teams with optional filtering
+   * @param country Optional country filter
+   * @param limit Maximum number of teams to return
+   * @param offset Number of teams to skip
+   */
+  @Get()
+  @OperationId("getTeams")
+  public async getTeams(
+    @Query() country?: string,
+    @Query() limit = 10, 
+    @Query() offset = 0,
+  ): Promise<ItemsWithPagination<TeamApiModel>> {
+    const filter = {}
+    if (country) {
+      Object.assign(filter, { country: { [Op.like]: `%${country}%` } })
+    }
 
-import { getAllStatsForAllTeams, getAllStatsForTeam } from '@/services/TeamService'
-
-const router = Router()
-const upload = Multer({ storage: Multer.memoryStorage() })
-
-// Fetch all teams
-router.get('/', async (req: Request, res: Response) => {
-  const limit_value = Number(req.query.limit)
-  const offset_value = Number(req.query.offset)
-
-  try {
-    const teamsWithFindAllAndCount = await Team.findAndCountAll({
-      order: [['id', 'ASC']],
-      limit: limit_value > 0 ? limit_value : undefined,
-      offset: offset_value > 0 ? offset_value : undefined,
+    const teams = await Team.findAndCountAll({
+      where: filter,
+      limit: Math.min(limit, 100),
+      offset,
+      order: [["id", "ASC"]],
     })
+    
+    const result = new ItemsWithPagination(teams.rows, teams.count)
+    return result.toApiModel(new ItemsWithPagination<TeamApiModel>([], 0))
+  }
 
-    const teamsWithPagination: ItemsWithPagination<Team> = {
-      total: teamsWithFindAllAndCount.count,
-      items: teamsWithFindAllAndCount.rows,
+  /**
+   * Retrieves stats for all teams
+   * @param limit Maximum number of teams to include
+   * @param offset Number of teams to skip
+   */
+  @Get("stats")
+  @OperationId("getTeamsStats")
+  public async getTeamsStats(
+    @Query() limit: number = 10,
+    @Query() offset: number = 0,
+  ): Promise<ItemsWithPagination<TeamStats>> {
+    const result = await getAllStatsForAllTeams(limit, offset)
+    return result.toApiModel(new ItemsWithPagination<TeamStats>([], 0))
+  }
+
+  /**
+   * Creates multiple teams from a bulk upload
+   * @param requestBody Array of team data to create
+   */
+  @Post("bulk")
+  @OperationId("createTeamsBulk")
+  @SuccessResponse("201", "Teams created successfully")
+  public async createTeamsBulk(
+    @Body() requestBody: TeamApiModel[],
+  ): Promise<TeamApiModel[]> {
+    const newTeams = await Team.bulkCreate(await Promise.all(requestBody.map(team => team.toEntityModelBulk())))
+    
+    this.setStatus(201)
+    return newTeams.map(team => team.toApiModel())
+  }
+
+  /**
+   * Get a specific team by ID
+   * @param teamId The ID of the team to retrieve
+   */
+  @Get("{teamId}")
+  @OperationId("getTeam")
+  public async getTeam(@Path() teamId: number): Promise<TeamApiModel> {
+    const team = await Team.findByPk(teamId, {
+      include: [
+        { model: Player, as: "players" },
+      ],
+    })
+    
+    if (!team) {
+      this.setStatus(404)
+      throw new Error("Team not found")
     }
     
-    res.json(teamsWithPagination)
-  } catch (err) {
-    console.error('Error executing query', (err as Error).stack)
-    res.status(500).json({ error: 'Internal Server Error' })
+    return team.toApiModel()
   }
-})
 
-router.get('/stats', async (req: Request, res: Response) => {
-  try {
-    const allTeamsStats = await getAllStatsForAllTeams(Number(req.query.limit), Number(req.query.offset))
-    res.json(allTeamsStats)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
+  /**
+   * Retrieves stats for a specific team
+   * @param teamId The ID of the team to retrieve stats for
+   */
+  @Get("{teamId}/stats")
+  @OperationId("getTeamStats")
+  public async getTeamStats(@Path() teamId: number): Promise<TeamStats> {
+    return (await getAllStatsForTeam(teamId)).toApiModel()
   }
-})
 
-// Add new teams from JSON file
-router.post('/bulk', async (req: Request, res: Response) => {
-  const teams = req.body
-
-  try {
-    const newTeams = await Team.bulkCreate(teams)
-    res.status(201).json(newTeams)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
+  /**
+   * Creates a new team
+   * @param requestBody The team data to create
+   */
+  @Post()
+  @OperationId("createTeam")
+  @SuccessResponse("201", "Team created")
+  public async createTeam(
+    @FormField() short_name: string,
+    @FormField() full_name: string,
+    @FormField() description: string,
+    @FormField() country: string,
+    @UploadedFile() logo_image_file?: Buffer,
+  ): Promise<TeamApiModel> {
+    if (!short_name || !full_name || !country) {
+      this.setStatus(400)
+      throw new Error("short_name, full_name, and country are required")
     }
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
 
-// Fetch team
-router.get('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const team = await Team.findByPk(id)
-    if (!team) {
-      res.status(404).json({ error: 'Team not found' })
-      return
-    }
-    res.json(team)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Fetch team stats
-router.get('/:id/stats', async (req: Request, res: Response) => {
-  const { id } = req.params
-  try {
-    const teamStats = await getAllStatsForTeam(Number(id))
-    res.json(teamStats)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Add a new team
-router.post('/', upload.single('logo_image_file'), async (req: Request, res: Response) => {
-  const { short_name, full_name, description, country } = req.body
-  const logo_image_file = req.file ? req.file.buffer : null
-
-  // Validate input data
-  if (!short_name || !full_name || !country) {
-    res.status(400).json({ error: 'short_name, country and full_name are required' })
-    return
-  }
-
-  try {
-    console.debug('Creating team with data:', { short_name, full_name, logo_image_file, description, country })
     const team = await Team.create({
       short_name,
       full_name,
-      logo_image_file,
       description,
       country,
+      logo_image_file,
     })
-    res.status(201).json(team)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
-    }
-    res.status(500).json({ error: 'Internal Server Error' })
+    
+    this.setStatus(201)
+    return team.toApiModel()
   }
-})
 
-// Update a team
-router.put('/:id', upload.single('logo_image_file'), async (req: Request, res: Response) => {
-  const { id } = req.params
-  const { short_name, full_name, description, country } = req.body
-  const logo_image_file = req.file ? req.file.buffer : null
-
-  try {
-    const team = await Team.findByPk(id)
+  /**
+   * Updates an existing team
+   * @param teamId The ID of the team to update
+   */
+  @Put("{teamId}")
+  @OperationId("updateTeam")
+  public async updateTeam(
+    @Path() teamId: number,
+    @FormField() short_name: string,
+    @FormField() full_name: string,
+    @FormField() description: string,
+    @FormField() country: string,
+    @UploadedFile() logo_image_file?: Buffer,
+  ): Promise<TeamApiModel> {
+    const team = await Team.findByPk(teamId)
     if (!team) {
-      res.status(404).json({ error: 'Team not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Team not found")
     }
 
-    console.debug('Updating team with data:', { short_name, full_name, logo_image_file, description, country })
     team.short_name = short_name
     team.full_name = full_name
-    team.logo_image_file = logo_image_file
     team.description = description
     team.country = country
+    if (logo_image_file) {
+      team.logo_image_file = logo_image_file
+    }
+    
     await team.save()
-
-    res.json(team)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
+    
+    return team.toApiModel()
   }
-})
 
-// Delete a team
-router.delete('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const team = await Team.findByPk(id)
+  /**
+   * Deletes a team
+   * @param teamId The ID of the team to delete
+   */
+  @Delete("{teamId}")
+  @OperationId("deleteTeam")
+  public async deleteTeam(@Path() teamId: number): Promise<void> {
+    const team = await Team.findByPk(teamId)
     if (!team) {
-      res.status(404).json({ error: 'Team not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Team not found")
     }
 
     await team.destroy()
-    res.json({ message: 'Team deleted successfully' })
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
   }
-})
 
-// Fetch players by team
-router.get('/:id/players', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const team = await Team.findByPk(id, {include: [{ model: Player, as: 'players' }]})
+  /**
+   * Retrieves all players for a specific team
+   * @param teamId The ID of the team to retrieve players for
+   */
+  @Get("{teamId}/players")
+  @OperationId("getTeamPlayers")
+  public async getTeamPlayers(@Path() teamId: number): Promise<PlayerApiModel[]> {
+    const team = await Team.findByPk(teamId, { include: [{ model: Player, as: "players" }] })
     if (!team) {
-      res.status(404).json({ error: 'Team not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Team not found")
     }
 
-    res.json(team.players)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
+    if (!team.players) {
+      return []
+    }
 
-export default router
+    return team.players.map(player => player.toApiModel())
+  }
+}

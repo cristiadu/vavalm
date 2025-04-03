@@ -1,14 +1,14 @@
 "use client"
 
 import { use, useCallback, useEffect, useMemo, useState } from "react"
-import { Match } from "../../../../api/models/Tournament"
-import { fetchCountries } from "../../../../api/CountryApi"
-import { Country } from "../../../../api/models/Country"
-import { getMatch } from "../../../../api/GameApi"
-import GamePicker from "./games/GamePicker"
-import SectionHeader from "../../../../base/SectionHeader"
-import MatchHeader from "./MatchHeader"
-import GameView from "./games/GameView"
+import { Match } from "@/api/models/Tournament"
+import { fetchCountries } from "@/api/CountryApi"
+import { Country } from "@/api/models/Country"
+import { getMatch } from "@/api/GameApi"
+import GamePicker from "@/tournaments/[tourneyId]/logs/[matchId]/games/GamePicker"
+import SectionHeader from "@/base/SectionHeader"
+import MatchHeader from "@/tournaments/[tourneyId]/logs/[matchId]/MatchHeader"
+import GameView from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameView"
 
 // Create a simple cache to store match data
 const matchCache = new Map<number, Match>()
@@ -126,7 +126,7 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
         <GamePicker games={match.games} selectedGameId={selectedGameId} onClick={handleGameSelection} matchWinnerId={match.winner_id} />
         {selectedGameId > 0 ? (
           <GameView 
-            key={`game-${selectedGameId}`} // Key helps with proper component recreation
+            key={`tournament-${match.tournament_id}-match-${match.id}-game-${selectedGameId}`} // Key helps with proper component recreation
             gameId={selectedGameId} 
             team1Country={team1Country} 
             team2Country={team2Country} 

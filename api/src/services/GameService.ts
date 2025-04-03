@@ -1,4 +1,4 @@
-import { getRandomTimeBetweenHourInterval } from "../base/DateUtils"
+import { getRandomTimeBetweenHourInterval } from "@/base/DateUtils"
 
 import Team from "@/models/Team"
 import Player from "@/models/Player"
@@ -93,6 +93,24 @@ const GameService = {
   },
 
   /**
+   * Retrieves all games for a given match.
+   * 
+   * @param {number} match_id - The ID of the match to retrieve games for.
+   * @returns {Promise<Game[]>} A promise that resolves to an array of games.
+   */
+  getGamesFromMatch: async (match_id: number): Promise<Game[]> => {
+    return await Game.findAll({
+      where: {
+        match_id: match_id,
+      },
+      include: [
+        { model: GameStats, as: 'stats' },
+        { model: Match, as: 'match' },
+      ],
+    })
+  },
+
+  /**
    * Creates the necessary games for a match based on its type.
    * 
    * @param {Match} match - The match to create games for.
@@ -125,7 +143,7 @@ const GameService = {
    * The first team to get 13 rounds wins.
    * 
    * @param {number} game_id - The ID of the game to be played.
-   * @returns {Promise<void>} A promise that resolves when the game has been fully played and stats have been updated.
+   * @returns {Promise<{team1_rounds: number, team2_rounds: number}>} A promise that resolves to the number of rounds won by each team.
    * @throws {Error} If the game or game stats are not found.
    */
   playFullGame: async (game_id: number): Promise<{team1_rounds: number, team2_rounds: number}> => {

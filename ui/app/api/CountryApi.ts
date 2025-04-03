@@ -1,4 +1,4 @@
-import { Country } from "./models/Country"
+import { Country } from "@/api/models/Country"
 
 export const specialCountries: Country[] = [
   {

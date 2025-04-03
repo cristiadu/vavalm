@@ -1,0 +1,1625 @@
+openapi: 3.0.0
+components:
+  examples: {}
+  headers: {}
+  parameters: {}
+  requestBodies: {}
+  responses: {}
+  schemas:
+    PlayerRole:
+      enum:
+        - Initiator
+        - Duelist
+        - Controller
+        - Sentinel
+        - Flex
+        - IGL
+      type: string
+    VlrPlayer:
+      properties:
+        id:
+          type: string
+        nickname:
+          type: string
+        full_name:
+          type: string
+        country:
+          type: string
+        role:
+          $ref: "#/components/schemas/PlayerRole"
+      required:
+        - id
+        - nickname
+        - full_name
+        - country
+        - role
+      type: object
+      additionalProperties: false
+    VlrTeam:
+      properties:
+        id:
+          type: string
+        short_name:
+          type: string
+        full_name:
+          type: string
+        country:
+          type: string
+        logo_url:
+          type: string
+        players:
+          items:
+            $ref: "#/components/schemas/VlrPlayer"
+          type: array
+      required:
+        - id
+        - short_name
+        - full_name
+        - country
+        - logo_url
+        - players
+      type: object
+      additionalProperties: false
+    VlrImportResponse:
+      properties:
+        teamsData:
+          items:
+            $ref: "#/components/schemas/VlrTeam"
+          type: array
+        message:
+          type: string
+        error:
+          type: string
+      required:
+        - teamsData
+      type: object
+      additionalProperties: false
+    TournamentType:
+      enum:
+        - SINGLE_GROUP
+      type: string
+    TeamApiModel:
+      properties:
+        short_name:
+          type: string
+        full_name:
+          type: string
+        description:
+          type: string
+        country:
+          type: string
+        logo_image_file:
+          type: string
+        id:
+          type: number
+          format: double
+      required:
+        - short_name
+        - full_name
+        - description
+        - country
+      type: object
+      additionalProperties: false
+    TournamentApiModel:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        country:
+          type: string
+        type:
+          $ref: "#/components/schemas/TournamentType"
+        start_date:
+          type: string
+        end_date:
+          type: string
+        started:
+          type: boolean
+        ended:
+          type: boolean
+        winner_id:
+          type: number
+          format: double
+        teams:
+          items:
+            $ref: "#/components/schemas/TeamApiModel"
+          type: array
+        id:
+          type: number
+          format: double
+      required:
+        - name
+        - description
+        - country
+        - type
+        - start_date
+        - end_date
+        - started
+        - ended
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_TournamentApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TournamentApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    MatchApiModel:
+      properties:
+        date:
+          type: string
+        tournament_id:
+          type: number
+          format: double
+        team1_id:
+          type: number
+          format: double
+        team2_id:
+          type: number
+          format: double
+        type:
+          type: string
+        team1_score:
+          type: number
+          format: double
+        team2_score:
+          type: number
+          format: double
+        included_on_standings:
+          type: boolean
+        started:
+          type: boolean
+        finished:
+          type: boolean
+        winner_id:
+          type: number
+          format: double
+        id:
+          type: number
+          format: double
+      required:
+        - date
+        - tournament_id
+        - team1_id
+        - team2_id
+        - type
+        - team1_score
+        - team2_score
+        - included_on_standings
+        - started
+        - finished
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_MatchApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/MatchApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    StandingsApiModel:
+      properties:
+        wins:
+          type: number
+          format: double
+        losses:
+          type: number
+          format: double
+        maps_won:
+          type: number
+          format: double
+        maps_lost:
+          type: number
+          format: double
+        rounds_won:
+          type: number
+          format: double
+        rounds_lost:
+          type: number
+          format: double
+        tournament_id:
+          type: number
+          format: double
+        team_id:
+          type: number
+          format: double
+        position:
+          type: number
+          format: double
+        id:
+          type: number
+          format: double
+      required:
+        - wins
+        - losses
+        - maps_won
+        - maps_lost
+        - rounds_won
+        - rounds_lost
+        - tournament_id
+        - team_id
+        - position
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_TeamApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TeamApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    TeamStats:
+      properties:
+        team:
+          $ref: "#/components/schemas/TeamApiModel"
+        tournamentsWon:
+          type: number
+          format: double
+        tournamentsParticipated:
+          type: number
+          format: double
+        winrate:
+          type: number
+          format: double
+        totalMatchesPlayed:
+          type: number
+          format: double
+        totalMatchesWon:
+          type: number
+          format: double
+        totalMatchesLost:
+          type: number
+          format: double
+        mapWinrate:
+          type: number
+          format: double
+        totalMapsPlayed:
+          type: number
+          format: double
+        totalMapsWon:
+          type: number
+          format: double
+        totalMapsLost:
+          type: number
+          format: double
+      required:
+        - team
+        - tournamentsWon
+        - tournamentsParticipated
+        - winrate
+        - totalMatchesPlayed
+        - totalMatchesWon
+        - totalMatchesLost
+        - mapWinrate
+        - totalMapsPlayed
+        - totalMapsWon
+        - totalMapsLost
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_TeamStats_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TeamStats"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    PlayerAttributesApiModel:
+      properties:
+        clutch:
+          type: number
+          format: double
+        awareness:
+          type: number
+          format: double
+        aim:
+          type: number
+          format: double
+        positioning:
+          type: number
+          format: double
+        game_reading:
+          type: number
+          format: double
+        resilience:
+          type: number
+          format: double
+        confidence:
+          type: number
+          format: double
+        strategy:
+          type: number
+          format: double
+        adaptability:
+          type: number
+          format: double
+        communication:
+          type: number
+          format: double
+        unpredictability:
+          type: number
+          format: double
+        game_sense:
+          type: number
+          format: double
+        decision_making:
+          type: number
+          format: double
+        rage_fuel:
+          type: number
+          format: double
+        teamwork:
+          type: number
+          format: double
+        utility_usage:
+          type: number
+          format: double
+      required:
+        - clutch
+        - awareness
+        - aim
+        - positioning
+        - game_reading
+        - resilience
+        - confidence
+        - strategy
+        - adaptability
+        - communication
+        - unpredictability
+        - game_sense
+        - decision_making
+        - rage_fuel
+        - teamwork
+        - utility_usage
+      type: object
+      additionalProperties: false
+    PlayerApiModel:
+      properties:
+        nickname:
+          type: string
+        full_name:
+          type: string
+        age:
+          type: number
+          format: double
+        country:
+          type: string
+        team_id:
+          type: number
+          format: double
+        role:
+          $ref: "#/components/schemas/PlayerRole"
+        player_attributes:
+          $ref: "#/components/schemas/PlayerAttributesApiModel"
+        id:
+          type: number
+          format: double
+      required:
+        - nickname
+        - full_name
+        - age
+        - country
+        - team_id
+        - role
+        - player_attributes
+      type: object
+      additionalProperties: false
+    PlayerDuelResults:
+      properties:
+        winner:
+          allOf:
+            - $ref: "#/components/schemas/PlayerApiModel"
+          nullable: true
+        loser:
+          allOf:
+            - $ref: "#/components/schemas/PlayerApiModel"
+          nullable: true
+        startedTradeDuel:
+          type: boolean
+      required:
+        - winner
+        - loser
+        - startedTradeDuel
+      type: object
+      additionalProperties: false
+    RoundStateApiModel:
+      properties:
+        round:
+          type: number
+          format: double
+        duel:
+          $ref: "#/components/schemas/PlayerDuelResults"
+        previous_duel:
+          $ref: "#/components/schemas/PlayerDuelResults"
+        team1_alive_players:
+          items:
+            $ref: "#/components/schemas/PlayerApiModel"
+          type: array
+        team2_alive_players:
+          items:
+            $ref: "#/components/schemas/PlayerApiModel"
+          type: array
+        team_won:
+          allOf:
+            - $ref: "#/components/schemas/TeamApiModel"
+          nullable: true
+        finished:
+          type: boolean
+      required:
+        - round
+        - duel
+        - previous_duel
+        - team1_alive_players
+        - team2_alive_players
+        - team_won
+        - finished
+      type: object
+      additionalProperties: false
+    Weapon:
+      enum:
+        - Vandal
+        - Phantom
+        - Operator
+        - Sheriff
+        - Ghost
+        - Marshal
+        - Ares
+        - Odin
+        - Bucky
+        - Judge
+        - Frenzy
+        - Shorty
+      type: string
+    GameLogApiModel:
+      properties:
+        round_state:
+          $ref: "#/components/schemas/RoundStateApiModel"
+        duel_buff:
+          type: number
+          format: double
+        trade_buff:
+          type: number
+          format: double
+        trade:
+          type: boolean
+        weapon:
+          $ref: "#/components/schemas/Weapon"
+        game_id:
+          type: number
+          format: double
+        team1_player_id:
+          type: number
+          format: double
+        team2_player_id:
+          type: number
+          format: double
+        player_killed_id:
+          type: number
+          format: double
+        included_on_player_stats:
+          type: boolean
+        included_on_team_stats:
+          type: boolean
+        id:
+          type: number
+          format: double
+      required:
+        - round_state
+        - duel_buff
+        - trade_buff
+        - trade
+        - weapon
+        - game_id
+        - team1_player_id
+        - team2_player_id
+        - player_killed_id
+        - included_on_player_stats
+        - included_on_team_stats
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_PlayerApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/PlayerApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    AllPlayerStats:
+      properties:
+        player:
+          $ref: "#/components/schemas/PlayerApiModel"
+        kda:
+          type: number
+          format: double
+        winrate:
+          type: number
+          format: double
+        mapWinrate:
+          type: number
+          format: double
+        totalMatchesPlayed:
+          type: number
+          format: double
+        totalMatchesWon:
+          type: number
+          format: double
+        totalMatchesLost:
+          type: number
+          format: double
+        totalMapsPlayed:
+          type: number
+          format: double
+        totalMapsWon:
+          type: number
+          format: double
+        totalMapsLost:
+          type: number
+          format: double
+        totalKills:
+          type: number
+          format: double
+        totalDeaths:
+          type: number
+          format: double
+        totalAssists:
+          type: number
+          format: double
+      required:
+        - player
+        - kda
+        - winrate
+        - mapWinrate
+        - totalMatchesPlayed
+        - totalMatchesWon
+        - totalMatchesLost
+        - totalMapsPlayed
+        - totalMapsWon
+        - totalMapsLost
+        - totalKills
+        - totalDeaths
+        - totalAssists
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_AllPlayerStats_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/AllPlayerStats"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    GameMap:
+      enum:
+        - Bind
+        - Haven
+        - Split
+        - Ascent
+        - Fracture
+        - Icebox
+        - Breeze
+        - Sunset
+        - Abyss
+        - Lotus
+        - Pearl
+      type: string
+    GameApiModel:
+      properties:
+        date:
+          type: string
+        map:
+          $ref: "#/components/schemas/GameMap"
+        match_id:
+          type: number
+          format: double
+        included_on_standings:
+          type: boolean
+        started:
+          type: boolean
+        finished:
+          type: boolean
+        id:
+          type: number
+          format: double
+      required:
+        - date
+        - map
+        - match_id
+        - included_on_standings
+        - started
+        - finished
+      type: object
+      additionalProperties: false
+    GameStatsApiModel:
+      properties:
+        team1_score:
+          type: number
+          format: double
+        team2_score:
+          type: number
+          format: double
+        game_id:
+          type: number
+          format: double
+        team1_id:
+          type: number
+          format: double
+        team2_id:
+          type: number
+          format: double
+        winner_id:
+          type: number
+          format: double
+        id:
+          type: number
+          format: double
+      required:
+        - team1_score
+        - team2_score
+        - game_id
+        - team1_id
+        - team2_id
+      type: object
+      additionalProperties: false
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+info:
+  title: backend
+  version: 0.1.0
+  contact: {}
+paths:
+  /vlr:
+    post:
+      operationId: importTeamsAndPlayersFromVLR
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VlrImportResponse"
+      security: []
+      parameters: []
+  /tournaments:
+    get:
+      operationId: getTournaments
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_TournamentApiModel_"
+      description: Retrieves all tournaments with optional pagination
+      security: []
+      parameters:
+        - description: Maximum number of tournaments to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 10
+            format: double
+            type: number
+        - description: Number of tournaments to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            default: 0
+            format: double
+            type: number
+    post:
+      operationId: createTournament
+      responses:
+        "201":
+          description: Tournament created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TournamentApiModel"
+      description: Creates a new tournament
+      security: []
+      parameters: []
+      requestBody:
+        description: The tournament data to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TournamentApiModel"
+              description: The tournament data to create
+  /tournaments/{tournamentId}:
+    get:
+      operationId: getTournament
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TournamentApiModel"
+      description: Retrieves a specific tournament by its ID
+      security: []
+      parameters:
+        - description: The ID of the tournament to retrieve
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
+    put:
+      operationId: updateTournament
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TournamentApiModel"
+      description: Updates an existing tournament
+      security: []
+      parameters:
+        - description: The ID of the tournament to update
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
+      requestBody:
+        description: The tournament data to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TournamentApiModel"
+              description: The tournament data to update
+  /tournaments/{tournamentId}/schedule:
+    get:
+      operationId: getTournamentSchedule
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_MatchApiModel_"
+      description: Retrieves the match schedule for a tournament
+      security: []
+      parameters:
+        - description: The ID of the tournament to retrieve the schedule for
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
+        - description: Maximum number of matches to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            format: double
+            type: number
+        - description: Number of matches to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            format: double
+            type: number
+  /tournaments/{tournamentId}/standings:
+    get:
+      operationId: getTournamentStandings
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/StandingsApiModel"
+                type: array
+      description: Retrieves the standings for a tournament
+      security: []
+      parameters:
+        - description: The ID of the tournament to retrieve standings for
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
+  /tournaments/{tournamentId}/start:
+    post:
+      operationId: startTournament
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TournamentApiModel"
+      description: Starts a tournament
+      security: []
+      parameters:
+        - description: The ID of the tournament to start
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
+  /tournaments/{tournamentId}/end:
+    post:
+      operationId: endTournament
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TournamentApiModel"
+      description: Ends a tournament
+      security: []
+      parameters:
+        - description: The ID of the tournament to end
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                winner_id:
+                  type: number
+                  format: double
+              required:
+                - winner_id
+              type: object
+  /teams:
+    get:
+      operationId: getTeams
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_TeamApiModel_"
+      description: Get all teams with optional filtering
+      security: []
+      parameters:
+        - description: Optional country filter
+          in: query
+          name: country
+          required: false
+          schema:
+            type: string
+        - description: Maximum number of teams to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 10
+            format: double
+            type: number
+        - description: Number of teams to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            default: 0
+            format: double
+            type: number
+    post:
+      operationId: createTeam
+      responses:
+        "201":
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamApiModel"
+      description: Creates a new team
+      security: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                short_name:
+                  type: string
+                full_name:
+                  type: string
+                description:
+                  type: string
+                country:
+                  type: string
+                logo_image_file:
+                  type: string
+                  format: binary
+              required:
+                - short_name
+                - full_name
+                - description
+                - country
+  /teams/stats:
+    get:
+      operationId: getTeamsStats
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_TeamStats_"
+      description: Retrieves stats for all teams
+      security: []
+      parameters:
+        - description: Maximum number of teams to include
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 10
+            format: double
+            type: number
+        - description: Number of teams to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            default: 0
+            format: double
+            type: number
+  /teams/bulk:
+    post:
+      operationId: createTeamsBulk
+      responses:
+        "201":
+          description: Teams created successfully
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/TeamApiModel"
+                type: array
+      description: Creates multiple teams from a bulk upload
+      security: []
+      parameters: []
+      requestBody:
+        description: Array of team data to create
+        required: true
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: "#/components/schemas/TeamApiModel"
+              type: array
+              description: Array of team data to create
+  /teams/{teamId}:
+    get:
+      operationId: getTeam
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamApiModel"
+      description: Get a specific team by ID
+      security: []
+      parameters:
+        - description: The ID of the team to retrieve
+          in: path
+          name: teamId
+          required: true
+          schema:
+            format: double
+            type: number
+    put:
+      operationId: updateTeam
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamApiModel"
+      description: Updates an existing team
+      security: []
+      parameters:
+        - description: The ID of the team to update
+          in: path
+          name: teamId
+          required: true
+          schema:
+            format: double
+            type: number
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                short_name:
+                  type: string
+                full_name:
+                  type: string
+                description:
+                  type: string
+                country:
+                  type: string
+                logo_image_file:
+                  type: string
+                  format: binary
+              required:
+                - short_name
+                - full_name
+                - description
+                - country
+    delete:
+      operationId: deleteTeam
+      responses:
+        "204":
+          description: No content
+      description: Deletes a team
+      security: []
+      parameters:
+        - description: The ID of the team to delete
+          in: path
+          name: teamId
+          required: true
+          schema:
+            format: double
+            type: number
+  /teams/{teamId}/stats:
+    get:
+      operationId: getTeamStats
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamStats"
+      description: Retrieves stats for a specific team
+      security: []
+      parameters:
+        - description: The ID of the team to retrieve stats for
+          in: path
+          name: teamId
+          required: true
+          schema:
+            format: double
+            type: number
+  /teams/{teamId}/players:
+    get:
+      operationId: getTeamPlayers
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/PlayerApiModel"
+                type: array
+      description: Retrieves all players for a specific team
+      security: []
+      parameters:
+        - description: The ID of the team to retrieve players for
+          in: path
+          name: teamId
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/rounds/{round}/play:
+    post:
+      operationId: playRound
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoundStateApiModel"
+      description: Play a full round in a game
+      security: []
+      parameters:
+        - description: The ID of the game
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+        - description: The round number to play
+          in: path
+          name: round
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/rounds/{round}/duel:
+    post:
+      operationId: playDuel
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoundStateApiModel"
+      description: Play a single duel in a round
+      security: []
+      parameters:
+        - description: The ID of the game
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+        - description: The round number
+          in: path
+          name: round
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/rounds/last/duel:
+    get:
+      operationId: getLastDuel
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameLogApiModel"
+      description: Get the last duel in a game
+      security: []
+      parameters:
+        - description: The ID of the game
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/rounds/last:
+    get:
+      operationId: getLastRound
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/GameLogApiModel"
+                type: array
+      description: Get logs for the last round in a game
+      security: []
+      parameters:
+        - description: The ID of the game
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/rounds/{round}:
+    get:
+      operationId: getRound
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/GameLogApiModel"
+                type: array
+      description: Get logs for a specific round in a game
+      security: []
+      parameters:
+        - description: The ID of the game
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+        - description: The round number
+          in: path
+          name: round
+          required: true
+          schema:
+            format: double
+            type: number
+  /players:
+    get:
+      operationId: getPlayers
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_PlayerApiModel_"
+      description: Get all players with optional filtering
+      security: []
+      parameters:
+        - description: Optional team ID to filter by
+          in: query
+          name: teamId
+          required: false
+          schema:
+            format: double
+            type: number
+        - description: Maximum number of players to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 10
+            format: double
+            type: number
+        - description: Number of players to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            default: 0
+            format: double
+            type: number
+    post:
+      operationId: createPlayer
+      responses:
+        "201":
+          description: Player created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerApiModel"
+      description: Creates a new player
+      security: []
+      parameters: []
+      requestBody:
+        description: The player data to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerApiModel"
+              description: The player data to create
+  /players/stats:
+    get:
+      operationId: getPlayersStats
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_AllPlayerStats_"
+      description: Retrieves stats for all players
+      security: []
+      parameters:
+        - description: Maximum number of players to include
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 10
+            format: double
+            type: number
+        - description: Number of players to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            default: 0
+            format: double
+            type: number
+  /players/{playerId}:
+    get:
+      operationId: getPlayer
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerApiModel"
+      description: Get a specific player by ID
+      security: []
+      parameters:
+        - description: The ID of the player to retrieve
+          in: path
+          name: playerId
+          required: true
+          schema:
+            format: double
+            type: number
+    put:
+      operationId: updatePlayer
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerApiModel"
+      description: Updates an existing player
+      security: []
+      parameters:
+        - description: The ID of the player to update
+          in: path
+          name: playerId
+          required: true
+          schema:
+            format: double
+            type: number
+      requestBody:
+        description: The player data to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerApiModel"
+              description: The player data to update
+    delete:
+      operationId: deletePlayer
+      responses:
+        "204":
+          description: No content
+      description: Deletes a player
+      security: []
+      parameters:
+        - description: The ID of the player to delete
+          in: path
+          name: playerId
+          required: true
+          schema:
+            format: double
+            type: number
+  /players/{playerId}/stats:
+    get:
+      operationId: getPlayerStats
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllPlayerStats"
+      description: Retrieves stats for a specific player
+      security: []
+      parameters:
+        - description: The ID of the player to retrieve stats for
+          in: path
+          name: playerId
+          required: true
+          schema:
+            format: double
+            type: number
+  /players/bulk:
+    post:
+      operationId: createPlayersBulk
+      responses:
+        "201":
+          description: Players created successfully
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/PlayerApiModel"
+                type: array
+      description: Creates multiple players from a bulk upload
+      security: []
+      parameters: []
+      requestBody:
+        description: Array of player data to create
+        required: true
+        content:
+          application/json:
+            schema:
+              items:
+                $ref: "#/components/schemas/PlayerApiModel"
+              type: array
+              description: Array of player data to create
+  /matches/{matchId}:
+    get:
+      operationId: getMatch
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchApiModel"
+      description: Retrieves a specific match by its ID
+      security: []
+      parameters:
+        - description: The ID of the match to retrieve
+          in: path
+          name: matchId
+          required: true
+          schema:
+            format: double
+            type: number
+  /matches:
+    get:
+      operationId: getMatches
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsWithPagination_MatchApiModel_"
+      description: Retrieves all matches with optional filtering
+      security: []
+      parameters:
+        - description: Filter matches by tournament ID
+          in: query
+          name: tournamentId
+          required: false
+          schema:
+            format: double
+            type: number
+        - description: Maximum number of matches to return
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 10
+            format: double
+            type: number
+        - description: Number of matches to skip
+          in: query
+          name: offset
+          required: false
+          schema:
+            default: 0
+            format: double
+            type: number
+  /games/{gameId}:
+    get:
+      operationId: getGame
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameApiModel"
+      description: Retrieves a specific game by its ID
+      security: []
+      parameters:
+        - description: The ID of the game to retrieve
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/play:
+    post:
+      operationId: playGame
+      responses:
+        "200":
+          description: Game played successfully
+      description: Plays a game and completes it with simulated results
+      security: []
+      parameters:
+        - description: The ID of the game to play
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/match/{matchId}:
+    get:
+      operationId: getGamesByMatch
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/GameApiModel"
+                type: array
+      description: Retrieves games for a specific match
+      security: []
+      parameters:
+        - description: The ID of the match to retrieve games for
+          in: path
+          name: matchId
+          required: true
+          schema:
+            format: double
+            type: number
+  /games/{gameId}/stats:
+    get:
+      operationId: getGameStats
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameStatsApiModel"
+      description: Retrieves the stats for a specific game
+      security: []
+      parameters:
+        - description: The ID of the game to retrieve stats for
+          in: path
+          name: gameId
+          required: true
+          schema:
+            format: double
+            type: number
+servers:
+  - url: /api

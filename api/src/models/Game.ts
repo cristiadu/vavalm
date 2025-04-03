@@ -6,8 +6,10 @@ import Match from '@/models/Match'
 import { GameMap } from '@/models/enums'
 import GameLog from '@/models/GameLog'
 import GameStats from '@/models/GameStats'
+import { BaseEntityModel } from '@/base/types'
+import { GameApiModel } from '@/models/contract/GameApiModel'
 
-class Game extends Model {
+export class Game extends Model implements BaseEntityModel {
   declare id: number
   declare date: Date
   declare map: GameMap
@@ -22,6 +24,22 @@ class Game extends Model {
   public static associations: {
     logs: Association<Game, GameLog>
     stats: Association<Game, GameStats>
+  }
+
+  toApiModel(): GameApiModel {
+    return new GameApiModel(
+      this.date.toISOString(),
+      this.map,
+      this.match_id,
+      this.included_on_standings,
+      this.started,
+      this.finished,
+      this.id,
+    )
+  }
+
+  toEntityModel(): Game {
+    return this
   }
 }
 

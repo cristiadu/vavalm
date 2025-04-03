@@ -11,8 +11,11 @@ import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 import GameLog from '@/models/GameLog'
 import PlayerGameStats from '@/models/PlayerGameStats'
+import { BaseEntityModel } from '@/base/types'
+import { TournamentApiModel } from '@/models/contract/TournamentApiModel'
 
-class Tournament extends Model {
+export class Tournament extends Model implements BaseEntityModel {
+  /** @format int64 */
   declare id?: number
   declare type: TournamentType
   declare name: string
@@ -21,9 +24,12 @@ class Tournament extends Model {
   declare schedule: Match[]
   declare teams: Team[]
   declare standings: Standings[]
+  /** @format int64 */
   declare winner_id: number
   declare winner: Team
+  /** @format date-time */
   declare start_date: Date
+  /** @format date-time */
   declare end_date: Date
   declare started: boolean
   declare ended: boolean
@@ -36,6 +42,25 @@ class Tournament extends Model {
     teams: Association<Tournament, Team>
     standings: Association<Tournament, Standings>
     winner: Association<Tournament, Team>
+  }
+
+  toApiModel(): TournamentApiModel {
+    return new TournamentApiModel(
+      this.name,
+      this.description,
+      this.country,
+      this.type,
+      this.start_date.toISOString(),
+      this.end_date.toISOString(),
+      this.started,
+      this.ended,
+      this.winner_id,
+      this.teams?.map(team => team.toApiModel()),
+    )
+  }
+
+  toEntityModel(): Tournament {
+    return this
   }
 }
 Tournament.init({

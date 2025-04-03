@@ -1,240 +1,284 @@
-import { Request, Response, Router } from 'express'
+import { Body, Controller, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "tsoa"
+import { ItemsWithPagination } from "@/base/types"
+import { TournamentApiModel } from "@/models/contract/TournamentApiModel"
+import { MatchApiModel } from "@/models/contract/MatchApiModel"
+import { StandingsApiModel } from "@/models/contract/StandingsApiModel"
+import Team from "@/models/Team"
+import Tournament from "@/models/Tournament"
+import Standings from "@/models/Standings"
+import { MatchType } from "@/models/enums"
+import TournamentService from "@/services/TournamentService"
+import MatchService from "@/services/MatchService"
+import { TeamApiModel } from "@/models/contract/TeamApiModel"
 
-import Team from '@/models/Team'
-import Tournament from '@/models/Tournament'
-import Standings from '@/models/Standings'
-import Match from '@/models/Match'
-import { MatchType } from '@/models/enums'
-
-import TournamentService from '@/services/TournamentService'
-import MatchService from '@/services/MatchService'
-
-const router = Router()
-
-router.get('/', async (req: Request, res: Response) => {
-  const { limit, offset } = req.query
-  const limit_value = Number(limit) || 10 // Default limit
-  const offset_value = Number(offset) || 0 // Default offset
-
-  try {
+@Route("tournaments")
+export class TournamentController extends Controller {
+  /**
+   * Retrieves all tournaments with optional pagination
+   * @param limit Maximum number of tournaments to return
+   * @param offset Number of tournaments to skip
+   */
+  @Get()
+  @OperationId("getTournaments")
+  public async getTournaments(
+    @Query() limit = 10,
+    @Query() offset = 0,
+  ): Promise<ItemsWithPagination<TournamentApiModel>> {
     const count = await Tournament.count()
-
-    // Use a single findAndCountAll query with distinct:true
+    
     const rows = await Tournament.findAll({
-      limit: Math.min(limit_value, 100),
-      offset: offset_value,
-      order: [['id', 'ASC']],
+      limit: Math.min(limit, 100),
+      offset,
+      order: [["id", "ASC"]],
       include: [
         { 
           model: Team, 
-          as: 'teams', 
-          attributes: ['id', 'short_name', 'logo_image_file', 'country'],
+          as: "teams", 
+          attributes: ["id", "short_name", "logo_image_file", "country"],
         },
       ],
     })
     
-    // If no results but offset was requested, check if offset exceeds total
-    if (rows.length === 0 && offset_value > 0) {
-      if (offset_value >= count) {
-        res.json({
-          total: count,
-          items: [],
-        })
-        return
-      }
-    }
-
-    res.json({
-      total: count,
-      items: rows,
-    })
-    return
-  } catch (error) {
-    console.error('Error fetching tournaments:', error)
-    res.status(500).json({ error: 'Failed to fetch tournaments' })
+    const result = new ItemsWithPagination<Tournament>(rows, count)
+    return result.toApiModel(new ItemsWithPagination<TournamentApiModel>([], 0))
   }
-})
 
-// Fetch tournament
-router.get('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    // Step 1: Fetch the Tournament with the included Game models using the fetched IDs
-    const tournament = await Tournament.findByPk(id, {
+  /**
+   * Retrieves a specific tournament by its ID
+   * @param tournamentId The ID of the tournament to retrieve
+   */
+  @Get("{tournamentId}")
+  @OperationId("getTournament")
+  public async getTournament(@Path() tournamentId: number): Promise<TournamentApiModel> {
+    const tournament = await Tournament.findByPk(tournamentId, {
       include: [
         {
           model: Standings,
-          as: 'standings',
+          as: "standings",
         },
-        { model: Team, as: 'teams' },
+        { model: Team, as: "teams" },
       ],
-      order: [[{ model: Standings, as: 'standings' }, 'position', 'ASC']],
+      order: [[{ model: Standings, as: "standings" }, "position", "ASC"]],
     })
-
+    
     if (!tournament) {
-      res.status(404).json({ error: 'Tournament not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Tournament not found")
     }
-
-    res.json(tournament)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Fetch match schedule from tournament
-router.get('/:id/schedule', async (req: Request, res: Response) => {
-  const { id } = req.params
-  const limit_value = Number(req.query.limit)
-  const offset_value = Number(req.query.offset)
-
-  try {
-    const matches = await MatchService.getMatchesFromTournament(Number(id), limit_value, offset_value)
-    res.json(matches)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Add a new tournament
-router.post('/', async (req: Request, res: Response) => {
-  const { type, name, description, country, teams, start_date, end_date } = req.body
-
-  // Validate input data
-  if (!type || !name || !teams || !country || !start_date || !end_date) {
-    res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
+    
+    return tournament.toApiModel()
   }
 
-  try {
-    console.debug('Creating team with data:', { type, name, description, country, teams, start_date })
+  /**
+   * Retrieves the match schedule for a tournament
+   * @param tournamentId The ID of the tournament to retrieve the schedule for
+   * @param limit Maximum number of matches to return
+   * @param offset Number of matches to skip
+   */
+  @Get("{tournamentId}/schedule")
+  @OperationId("getTournamentSchedule")
+  public async getTournamentSchedule(
+    @Path() tournamentId: number,
+    @Query() limit?: number,
+    @Query() offset?: number,
+  ): Promise<ItemsWithPagination<MatchApiModel>> {
+    const result = await MatchService.getMatchesFromTournament(tournamentId, limit || 10, offset || 0)
+    return result.toApiModel(new ItemsWithPagination<MatchApiModel>([], 0))
+  }
+
+  /**
+   * Retrieves the standings for a tournament
+   * @param tournamentId The ID of the tournament to retrieve standings for
+   */
+  @Get("{tournamentId}/standings")
+  @OperationId("getTournamentStandings")
+  public async getTournamentStandings(
+    @Path() tournamentId: number,
+  ): Promise<StandingsApiModel[]> {
+    const tournament = await Tournament.findByPk(tournamentId, {
+      include: [
+        {
+          model: Standings,
+          as: "standings",
+        },
+      ],
+      order: [[{ model: Standings, as: "standings" }, "position", "ASC"]],
+    })
+    
+    if (!tournament) {
+      this.setStatus(404)
+      throw new Error("Tournament not found")
+    }
+    
+    if (!tournament.standings) {
+      return []
+    }
+    
+    return tournament.standings.map(standing => standing.toApiModel())
+  }
+
+  /**
+   * Creates a new tournament
+   * @param requestBody The tournament data to create
+   */
+  @Post()
+  @OperationId("createTournament")
+  @SuccessResponse("201", "Tournament created")
+  public async createTournament(
+    @Body() requestBody: TournamentApiModel,
+  ): Promise<TournamentApiModel> {
+    const { type, name, description, country, teams, start_date, end_date } = requestBody
+    
+    if (!type || !name || !teams || !country || !start_date || !end_date) {
+      this.setStatus(400)
+      throw new Error("Please provide type, name, teams, country and start/end date.")
+    }
+    
     const tournament = await Tournament.create({
       type,
       name,
       description,
       country,
-      start_date,
-      end_date, 
+      start_date: new Date(start_date),
+      end_date: new Date(end_date),
       started: false,
       ended: false,
-      schedule: [],
-      standings: [],
-    }, {
-      include: [
-        { model: Match, as: 'schedule' },
-        { model: Standings, as: 'standings' },
-        { model: Team, as: 'teams' },
-      ],
     })
-
+    
     // Associate existing teams with the new tournament
-    if (teams && teams.length > 0) {
-      const teamIds = teams.map((team: Team) => team.id)
+    if (teams && tournament.id && teams.length > 0) {
+      const teamIds = teams.map(teamOrId => teamOrId instanceof TeamApiModel ? teamOrId.id : teamOrId) as number[]
       await tournament.addTeams(teamIds)
-
+      
       // Create standings object for teams if they don't exist
-      await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
+      await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id)
       await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament, MatchType.BO3)
     }
+    
+    this.setStatus(201)
+    return tournament.toApiModel()
+  }
 
-    const tournamentCreated = await Tournament.findByPk(tournament.id, {
-      include: [
-        { model: Match, as: 'schedule' },
-        { model: Standings, as: 'standings' },
-        { model: Team, as: 'teams', attributes: ['id', 'short_name'] }],
-    }) as Tournament
-    res.status(201).json(tournamentCreated)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    if (err instanceof Error) {
-      console.error('Error message:', err.message)
-      console.error('Error stack:', err.stack)
+  /**
+   * Updates an existing tournament
+   * @param tournamentId The ID of the tournament to update
+   * @param requestBody The tournament data to update
+   */
+  @Put("{tournamentId}")
+  @OperationId("updateTournament")
+  public async updateTournament(
+    @Path() tournamentId: number,
+    @Body() requestBody: TournamentApiModel,
+  ): Promise<TournamentApiModel> {
+    const { type, name, description, country, teams, start_date, end_date } = requestBody
+    
+    if (!type || !name || !teams || !country || !start_date || !end_date) {
+      this.setStatus(400)
+      throw new Error("Please provide type, name, teams, country and start/end date.")
     }
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-// Update a tournament
-router.put('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-  const { type, name, description, country, teams, start_date, end_date } = req.body
-
-  // Validate input data
-  if (!type || !name || !teams || !country || !start_date || !end_date) {
-    res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
-    return
-  }
-
-  try {
-    const tournament = await Tournament.findByPk(id, {
+    
+    const tournament = await Tournament.findByPk(tournamentId, {
       include: [
-        { model: Team, as: 'teams' },
+        { model: Team, as: "teams" },
       ],
     })
-
+    
     if (!tournament) {
-      res.status(404).json({ error: 'Tournament not found' })
-      return
+      this.setStatus(404)
+      throw new Error("Tournament not found")
     }
-
-    const teamIds = teams.map((team: Team) => team.id)
-    const removedTeamIds = tournament.teams
-      .filter((team: Team) => !teamIds.includes(team.id))
-      .map((team: Team) => team.id) as number[]
-
-
-    console.debug('Updating tournament with data:', { type, name, description, country, teams, start_date, end_date })
+    
+    const removedTeamIds: number[] = tournament.teams
+      .filter(team => team?.id !== null)
+      .filter(team => team?.id && !teams.map(t => t.id).includes(team.id))
+      .map(team => team.id) as number[]
+    
     await tournament.update({
       type,
       name,
       description,
       country,
-      start_date,
-      end_date,
+      start_date: new Date(start_date),
+      end_date: new Date(end_date),
     })
-
-    // Associate existing teams with the new tournament
-    await tournament.setTeams(teamIds)
-
-    // Create standings object for teams if they don't exist
-    await TournamentService.createStandingsForTeamsIfNeeded(teamIds, tournament.id as number)
-
-    // Create games for the tournament if they don't exist
-    await MatchService.createTeamMatchesForTournamentIfNeeded(teamIds, tournament, MatchType.BO3)
-
-    // Remove standings for teams that were removed from the tournament
-    await TournamentService.removeStandingsForRemovedTeams(removedTeamIds, tournament.id as number)
-
-    // Remove games for teams that were removed from the tournament
-    await MatchService.deleteTeamsMatchesFromTournament(removedTeamIds, tournament.id as number)
-    const tournamentUpdated = await Tournament.findByPk(tournament.id) as Tournament
-    res.json(tournamentUpdated)
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-
-// Delete a tournament
-router.delete('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
-
-  try {
-    const team = await Tournament.findByPk(id)
-    if (!team) {
-      res.status(404).json({ error: 'Tournament not found' })
-      return
+    
+    // Associate teams with the tournament
+    await tournament.setTeams(teams.map(team => team?.id) as number[])
+    
+    // Update standings and matches
+    if (removedTeamIds && removedTeamIds.length > 0) {
+      await TournamentService.removeStandingsForRemovedTeams(removedTeamIds, tournamentId)
+      await MatchService.deleteTeamsMatchesFromTournament(removedTeamIds, tournamentId)
     }
-
-    await team.destroy()
-    res.json({ message: 'Tournament deleted successfully' })
-  } catch (err) {
-    console.error('Error executing query:', err)
-    res.status(500).json({ error: 'Internal Server Error' })
+    
+    // Create new standings and matches for new teams
+    const existingTeamIds = tournament.teams.map(team => team.id)
+    const newTeamIds = teams.filter(team => team.id && !existingTeamIds.includes(team.id)).map(team => team.id) as number[]
+    
+    if (newTeamIds.length > 0) {
+      await TournamentService.createStandingsForTeamsIfNeeded(newTeamIds, tournamentId)
+      await MatchService.createTeamMatchesForTournamentIfNeeded(newTeamIds, tournament, MatchType.BO3)
+    }
+    
+    return tournament.toApiModel()
   }
-})
-
-export default router
+  
+  /**
+   * Starts a tournament
+   * @param tournamentId The ID of the tournament to start
+   */
+  @Post("{tournamentId}/start")
+  @OperationId("startTournament")
+  public async startTournament(@Path() tournamentId: number): Promise<TournamentApiModel> {
+    const tournament = await Tournament.findByPk(tournamentId)
+    
+    if (!tournament) {
+      this.setStatus(404)
+      throw new Error("Tournament not found")
+    }
+    
+    if (tournament.started) {
+      this.setStatus(400)
+      throw new Error("Tournament has already started")
+    }
+    
+    await tournament.update({ started: true })
+    return tournament.toApiModel()
+  }
+  
+  /**
+   * Ends a tournament
+   * @param tournamentId The ID of the tournament to end
+   * @param winnerId The ID of the winning team
+   */
+  @Post("{tournamentId}/end")
+  @OperationId("endTournament")
+  public async endTournament(
+    @Path() tournamentId: number,
+    @Body() requestBody: { winner_id: number },
+  ): Promise<TournamentApiModel> {
+    const tournament = await Tournament.findByPk(tournamentId)
+    
+    if (!tournament) {
+      this.setStatus(404)
+      throw new Error("Tournament not found")
+    }
+    
+    if (!tournament.started) {
+      this.setStatus(400)
+      throw new Error("Tournament has not started")
+    }
+    
+    if (tournament.ended) {
+      this.setStatus(400)
+      throw new Error("Tournament has already ended")
+    }
+    
+    await tournament.update({ 
+      ended: true,
+      winner_id: requestBody.winner_id,
+    })
+    
+    return tournament.toApiModel()
+  }
+}

@@ -1,5 +1,5 @@
-import { getApiBaseUrl } from "./models/constants"
-import { GameLog, RoundState } from "./models/Tournament"
+import { getApiBaseUrl } from "@/api/models/constants"
+import { GameLog, RoundState } from "@/api/models/Tournament"
 
 export const playSingleDuel = async (game_id: number, round: number, closure: (_roundState: RoundState) => void): Promise<void> => {
   try {

@@ -2,17 +2,17 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
-import { fetchCountries } from '../api/CountryApi'
-import { Country } from '../api/models/Country'
-import { editTeam, newTeam } from '../api/TeamsApi'
-import { Team } from '../api/models/Team'
-import Modal from '../base/Modal'
-import { ItemActionModalProps } from '../common/CommonModels'
-import AlertMessage, { AlertType } from '../base/AlertMessage'
+import { fetchCountries } from '@/api/CountryApi'
+import { Country } from '@/api/models/Country'
+import { editTeam, newTeam } from '@/api/TeamsApi'
+import { Team } from '@/api/models/Team'
+import Modal from '@/base/Modal'
+import { ItemActionModalProps } from '@/common/CommonModels'
+import AlertMessage, { AlertType } from '@/base/AlertMessage'
 import 'react-quill-new/dist/quill.snow.css'
-import { quill_config } from '../base/Configs'
-import DropdownSelect from '../base/DropdownSelect'
-import ImageAutoSize from '../base/ImageAutoSize'
+import { quill_config } from '@/base/Configs'
+import DropdownSelect from '@/base/DropdownSelect'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 

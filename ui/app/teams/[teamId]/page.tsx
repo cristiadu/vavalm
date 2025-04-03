@@ -1,17 +1,17 @@
 "use client"
 
 import { use, useEffect, useState } from 'react'
-import { fetchPlayersByTeam } from '../../api/PlayersApi'
-import { getRoleBgColor, PlayerWithFlag } from '../../api/models/Player'
-import { fetchCountries } from '../../api/CountryApi'
-import { Country } from '../../api/models/Country'
-import { fetchTeam, fetchTeamStats } from '../../api/TeamsApi'
-import { Team, TeamStats } from '../../api/models/Team'
+import { fetchPlayersByTeam } from '@/api/PlayersApi'
+import { getRoleBgColor, PlayerWithFlag } from '@/api/models/Player'
+import { fetchCountries } from '@/api/CountryApi'
+import { Country } from '@/api/models/Country'
+import { fetchTeam, fetchTeamStats } from '@/api/TeamsApi'
+import { Team, TeamStats } from '@/api/models/Team'
 import 'react-quill-new/dist/quill.snow.css'
-import { asSafeHTML } from '../../base/StringUtils'
-import { getBgColorBasedOnThreshold } from '../../base/UIUtils'
-import SectionHeader from '../../base/SectionHeader'
-import ImageAutoSize from '../../base/ImageAutoSize'
+import { asSafeHTML } from '@/base/StringUtils'
+import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
+import SectionHeader from '@/base/SectionHeader'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 type Params = Promise<{ teamId: string }>
 export default function ViewTeam(props: { params: Params }): React.ReactNode {
@@ -93,7 +93,7 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
           <hr className="mb-2" />
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             {players && players.map(player => (
-              <div key={player.id} className="flex items-center space-x-2">
+              <div key={`team-${team.id}-player-${player.id}`} className="flex items-center space-x-2">
                 <span className={getRoleBgColor(player.role)}>
                   {player.role}
                 </span>

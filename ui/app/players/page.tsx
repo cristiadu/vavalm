@@ -2,18 +2,18 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
-import { fetchCountries } from '../api/CountryApi'
-import { fetchPlayers, deletePlayer } from '../api/PlayersApi'
-import { getAttributeBgColor, getRoleBgColor, Player } from '../api/models/Player'
+import { fetchCountries } from '@/api/CountryApi'
+import { fetchPlayers, deletePlayer } from '@/api/PlayersApi'
+import { getAttributeBgColor, getRoleBgColor, Player } from '@/api/models/Player'
 import 'react-quill-new/dist/quill.snow.css'
-import PlayerActionModal from './PlayerActionModal'
-import { fetchTeam } from '../api/TeamsApi'
-import { Team } from '../api/models/Team'
-import { asWord } from '../base/StringUtils'
-import Pagination from '../base/Pagination'
-import { ItemsWithPagination } from '../api/models/types'
-import SectionHeader from '../base/SectionHeader'
-import ImageAutoSize from '../base/ImageAutoSize'
+import PlayerActionModal from '@/players/PlayerActionModal'
+import { fetchTeam } from '@/api/TeamsApi'
+import { Team } from '@/api/models/Team'
+import { asWord } from '@/base/StringUtils'
+import Pagination from '@/base/Pagination'
+import { ItemsWithPagination } from '@/api/models/types'
+import SectionHeader from '@/base/SectionHeader'
+import ImageAutoSize from '@/base/ImageAutoSize'
 
 const DEFAULT_LIMIT_VALUE_PLAYER_LIST = 5 // Return to original value
 
@@ -156,7 +156,7 @@ export default function ListPlayers(): React.ReactNode {
             {isLoading ? (
               // Display placeholder loading rows
               Array.from({ length: 5 }).map((_, index) => (
-                <tr key={`loading-${index}`}>
+                <tr key={`row-loading-${index}`}>
                   <td colSpan={9}>
                     <div className="animate-pulse h-16 bg-gray-100 my-1"></div>
                   </td>
@@ -171,7 +171,7 @@ export default function ListPlayers(): React.ReactNode {
             ) : (
               // Inline the player rows instead of using a separate component
               players.map((player) => (
-                <tr key={player.id}>
+                <tr key={`player-row-${player.id}`}>
                   <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.id}</td>
                   <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.nickname}</td>
                   <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.full_name}</td>
@@ -209,7 +209,7 @@ export default function ListPlayers(): React.ReactNode {
                     <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">
                       {Object.entries(player.player_attributes).map(([key, value]) => {
                         return (
-                          <div key={key} className="flex items-center space-x-1">
+                          <div key={`player-attributes-${key}`} className="flex items-center space-x-1">
                             <span className={`w-6 h-6 flex items-center justify-center rounded text-xs text-white ${getAttributeBgColor(value)}`}>{value}</span>
                             <span className="text-xs text-gray-900 truncate">{asWord(key)}</span>
                           </div>

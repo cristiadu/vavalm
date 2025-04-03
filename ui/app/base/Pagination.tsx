@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { LIMIT_PER_PAGE_INITIAL_VALUE } from '../api/models/constants'
+import { LIMIT_PER_PAGE_INITIAL_VALUE } from '@/api/models/constants'
 
 interface PaginationProps {
   totalItems: number
@@ -61,7 +61,7 @@ const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limit
             <div className="py-1 max-h-60 overflow-y-auto">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
-                  key={page}
+                  key={`page-${page}`}
                   onClick={() => handlePageSelect(page)}
                   className={`w-full text-left px-4 py-2 text-sm ${
                     currentPage === page

@@ -5,8 +5,10 @@ import db from '@/models/db'
 import Team from '@/models/Team'
 import PlayerGameStats from '@/models/PlayerGameStats'
 import Game from '@/models/Game'
+import { BaseEntityModel } from '@/base/types'
+import { GameStatsApiModel } from '@/models/contract/GameStatsApiModel'
 
-class GameStats extends Model {
+export class GameStats extends Model implements BaseEntityModel {
   declare id?: number
   declare team1: Team
   declare team2: Team
@@ -28,6 +30,22 @@ class GameStats extends Model {
     players_stats_team1: Association<GameStats, PlayerGameStats>
     players_stats_team2: Association<GameStats, PlayerGameStats>
     winner: Association<GameStats, Team>
+  }
+
+  toApiModel(): GameStatsApiModel {
+    return new GameStatsApiModel(
+      this.team1_score,
+      this.team2_score,
+      this.game_id,
+      this.team1_id,
+      this.team2_id,
+      this.winner_id,
+      this.id,
+    )
+  }
+
+  toEntityModel(): GameStats {
+    return this
   }
 }
 
