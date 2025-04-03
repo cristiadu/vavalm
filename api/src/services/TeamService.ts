@@ -15,14 +15,14 @@ import GameStats from '@/models/GameStats'
  * @param vlrTeamData team data from VLR
  * @returns {Promise<Team>} - The team created or updated.
  */
-export const upsertTeamData = async (vlrTeamData: VlrTeam) => {
+export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
   // Upsert a team entry
-  const logoBlob = await downloadImage(vlrTeamData.logo_url)
+  const logoBlob = await downloadImage(teamData.logo_url)
 
   const [team, created] = await Team.upsert({
-    short_name: vlrTeamData.short_name,
-    full_name: vlrTeamData.full_name,
-    country: vlrTeamData.country,
+    short_name: teamData.short_name,
+    full_name: teamData.full_name,
+    country: teamData.country,
     logo_image_file: logoBlob,
   }, {
     returning: true,

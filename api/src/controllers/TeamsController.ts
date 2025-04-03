@@ -11,7 +11,7 @@ const router = Router()
 const upload = Multer({ storage: Multer.memoryStorage() })
 
 // Fetch all teams
-router.get('/', async (req: Request, res: Response): Promise<any> => {
+router.get('/', async (req: Request, res: Response) => {
   const limit_value = Number(req.query.limit)
   const offset_value = Number(req.query.offset)
 
@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response): Promise<any> => {
   }
 })
 
-router.get('/stats', async (req: Request, res: Response): Promise<any> => {
+router.get('/stats', async (req: Request, res: Response) => {
   try {
     const allTeamsStats = await getAllStatsForAllTeams(Number(req.query.limit), Number(req.query.offset))
     res.json(allTeamsStats)
@@ -45,7 +45,7 @@ router.get('/stats', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Add new teams from JSON file
-router.post('/bulk', async (req: Request, res: Response): Promise<any> => {
+router.post('/bulk', async (req: Request, res: Response) => {
   const teams = req.body
 
   try {
@@ -62,13 +62,14 @@ router.post('/bulk', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Fetch team
-router.get('/:id', async (req: Request, res: Response): Promise<any> => {
+router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
     const team = await Team.findByPk(id)
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' })
+      res.status(404).json({ error: 'Team not found' })
+      return
     }
     res.json(team)
   } catch (err) {
@@ -78,7 +79,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Fetch team stats
-router.get('/:id/stats', async (req: Request, res: Response): Promise<any> => {
+router.get('/:id/stats', async (req: Request, res: Response) => {
   const { id } = req.params
   try {
     const teamStats = await getAllStatsForTeam(Number(id))
@@ -90,13 +91,14 @@ router.get('/:id/stats', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Add a new team
-router.post('/', upload.single('logo_image_file'), async (req: Request, res: Response): Promise<any> => {
+router.post('/', upload.single('logo_image_file'), async (req: Request, res: Response) => {
   const { short_name, full_name, description, country } = req.body
   const logo_image_file = req.file ? req.file.buffer : null
 
   // Validate input data
   if (!short_name || !full_name || !country) {
-    return res.status(400).json({ error: 'short_name, country and full_name are required' })
+    res.status(400).json({ error: 'short_name, country and full_name are required' })
+    return
   }
 
   try {
@@ -120,7 +122,7 @@ router.post('/', upload.single('logo_image_file'), async (req: Request, res: Res
 })
 
 // Update a team
-router.put('/:id', upload.single('logo_image_file'), async (req: Request, res: Response): Promise<any> => {
+router.put('/:id', upload.single('logo_image_file'), async (req: Request, res: Response) => {
   const { id } = req.params
   const { short_name, full_name, description, country } = req.body
   const logo_image_file = req.file ? req.file.buffer : null
@@ -128,7 +130,8 @@ router.put('/:id', upload.single('logo_image_file'), async (req: Request, res: R
   try {
     const team = await Team.findByPk(id)
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' })
+      res.status(404).json({ error: 'Team not found' })
+      return
     }
 
     console.debug('Updating team with data:', { short_name, full_name, logo_image_file, description, country })
@@ -147,13 +150,14 @@ router.put('/:id', upload.single('logo_image_file'), async (req: Request, res: R
 })
 
 // Delete a team
-router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
+router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
     const team = await Team.findByPk(id)
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' })
+      res.status(404).json({ error: 'Team not found' })
+      return
     }
 
     await team.destroy()
@@ -165,13 +169,14 @@ router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Fetch players by team
-router.get('/:id/players', async (req: Request, res: Response): Promise<any> => {
+router.get('/:id/players', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
     const team = await Team.findByPk(id, {include: [{ model: Player, as: 'players' }]})
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' })
+      res.status(404).json({ error: 'Team not found' })
+      return
     }
 
     res.json(team.players)

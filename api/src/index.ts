@@ -64,7 +64,7 @@ app.use((req, res, next) => {
 })
 
 // Add error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response) => {
   console.error('Unhandled error:', err)
   
   // Check if it's a database error
@@ -88,7 +88,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 })
 
 // Add health check endpoint
-app.get('/health', async (req, res) => {
+app.get('/health', async (_req, res) => {
   try {
     // Check database connection
     await db.sequelize.authenticate()
@@ -106,14 +106,14 @@ app.get('/health', async (req, res) => {
       database: dbConnectionHealthy ? 'connected' : 'issues detected',
       workers: SchedulerService.getWorkerStatus(),
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Health check failed:', error)
     dbConnectionHealthy = false
     
     res.status(503).json({
       status: 'degraded',
       database: 'connection issues',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     })
   }
 })
@@ -143,15 +143,15 @@ process.on('uncaughtException', (error) => {
   
   // Let the process exit if in development, but keep running in production
   if (process.env.NODE_ENV !== 'production') {
-    process.exit(1)
+    throw new Error('Database connection issues detected. Pausing background workers.')
   }
 })
 
-process.on('unhandledRejection', (reason: any, promise) => {
+process.on('unhandledRejection', (reason: unknown) => {
   console.error('Unhandled Promise Rejection:', reason)
   
   // Check if it's a database-related error
-  if (reason && reason.message && (
+  if (reason instanceof Error && reason.message && (
     reason.message.includes('database') ||
     reason.message.includes('connection') ||
     reason.message.includes('sequelize') ||
@@ -186,7 +186,7 @@ setInterval(async () => {
 }, DB_HEALTH_CHECK_INTERVAL)
 
 // Graceful shutdown
-const gracefulShutdown = () => {
+const gracefulShutdown = (): void => {
   console.log('Received shutdown signal, closing connections...')
   
   // Stop scheduler
@@ -196,17 +196,17 @@ const gracefulShutdown = () => {
   db.sequelize.close()
     .then(() => {
       console.log('Database connections closed')
-      process.exit(0)
+      throw new Error('Database connection issues detected. Pausing background workers.')
     })
     .catch((err: Error) => {
       console.error('Error closing database connections:', err)
-      process.exit(1)
+      throw new Error('Database connection issues detected. Pausing background workers.')
     })
     
   // Force exit after timeout if graceful shutdown fails
   setTimeout(() => {
     console.error('Forced shutdown after timeout')
-    process.exit(1)
+    throw new Error('Database connection issues detected. Pausing background workers.')
   }, 10000)
 }
 
@@ -215,7 +215,7 @@ process.on('SIGTERM', gracefulShutdown)
 process.on('SIGINT', gracefulShutdown)
 
 // Initialize database and start server
-const initializeApp = async () => {  
+const initializeApp = async (): Promise<void> => {  
   try {
     const forceSync = process.env.FORCE_SYNC === 'true'
     
@@ -242,7 +242,7 @@ const initializeApp = async () => {
     })
   } catch (error) {
     console.error('Failed to initialize application:', error)
-    process.exit(1)
+    throw error
   }
 }
 

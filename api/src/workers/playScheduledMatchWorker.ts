@@ -22,7 +22,7 @@ console.log('Worker received match data:', JSON.stringify(matchToPlay, null, 2))
 /**
  * Reports database errors back to the parent thread
  */
-const reportDbError = (error: any) => {
+const reportDbError = (error: Error): void => {
   // Check if this is a database-related error
   const errorString = String(error)
   if (
@@ -95,20 +95,20 @@ const startMatchExecution = async (): Promise<void> => {
         matchId,
       })
     }
-  } catch (error: any) {
+  } catch (error) {
     // Get match ID safely for error reporting
     const matchId = getMatchId()
     console.error(`Error playing match ${matchId || 'unknown'}:`, error)
     
     // Report database errors for circuit breaker
-    reportDbError(error)
+    reportDbError(error instanceof Error ? error : new Error(String(error)))
     
     // Signal error to parent
     if (parentPort) {
       parentPort.postMessage({
         type: 'error',
         matchId: matchId || 'unknown',
-        error: error.toString(),
+        error: String(error),
       })
     }
   }
@@ -120,7 +120,7 @@ startMatchExecution()
     // Get match ID safely for error reporting
     const matchId = getMatchId()
     console.error(`Unhandled error in match execution for match ${matchId || 'unknown'}:`, error)
-    reportDbError(error)
+    reportDbError(error instanceof Error ? error : new Error(String(error)))
   })
   .finally(() => {
     // Force exit the worker to ensure no lingering connections
@@ -128,6 +128,10 @@ startMatchExecution()
     const matchId = getMatchId()
     setTimeout(() => {
       console.log(`Worker for match ${matchId || 'unknown'} is shutting down to free connections`)
-      process.exit(0)
+      if (parentPort) {
+        parentPort.postMessage({ type: 'shutdown' })
+      } else {
+        throw new Error('Worker shutdown: Parent port not available')
+      }
     }, 500)
   })

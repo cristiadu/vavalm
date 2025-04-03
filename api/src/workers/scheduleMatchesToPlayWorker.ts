@@ -23,7 +23,7 @@ let lastCircuitBreak = 0
  * 
  * @param error The error that occurred
  */
-const reportDbError = (error: any) => {
+const reportDbError = (error: Error): void => {
   if (parentPort) {
     try {
       parentPort.postMessage({
@@ -45,7 +45,7 @@ const reportDbError = (error: any) => {
  * 
  * @param error The error that occurred
  */
-const handleDbError = (error: any) => {
+const handleDbError = (error: Error): void => {
   console.error('Database error in scheduler worker:', error)
   
   // Track consecutive errors for circuit breaker
@@ -65,7 +65,7 @@ const handleDbError = (error: any) => {
 /**
  * Resets the circuit breaker if enough time has passed
  */
-const resetCircuitBreakerIfNeeded = () => {
+const resetCircuitBreakerIfNeeded = (): void => {
   if (circuitBroken && (Date.now() - lastCircuitBreak > CIRCUIT_BREAKER_RESET_TIME)) {
     console.log('Circuit breaker reset. Resuming normal operation.')
     circuitBroken = false
@@ -76,7 +76,7 @@ const resetCircuitBreakerIfNeeded = () => {
 /**
  * Record a successful operation for tracking circuit breaker state
  */
-const recordSuccess = () => {
+const recordSuccess = (): void => {
   // Reset consecutive errors on success
   if (consecutiveErrors > 0) {
     consecutiveErrors--
@@ -86,7 +86,7 @@ const recordSuccess = () => {
 /**
  * Fetch matches that should be played based on their scheduled time
  */
-const fetchMatchesThatShouldBePlayed = async () => {
+const fetchMatchesThatShouldBePlayed = async (): Promise<Match[]> => {
   // Skip processing if circuit breaker is active or worker is paused
   if (circuitBroken || workerPaused) {
     return []
@@ -106,9 +106,9 @@ const fetchMatchesThatShouldBePlayed = async () => {
     // Record success for circuit breaker
     recordSuccess()
     
-    return limitedMatches
+    return limitedMatches as Match[]
   } catch (error) {
-    handleDbError(error)
+    handleDbError(error as Error)
     return []
   }
 }
@@ -138,7 +138,7 @@ const updateMatchStatus = async (matchId: number, started: boolean): Promise<voi
  * 
  * @param match The match to be played
  */
-const startMatchExecution = async (match: Match) => {
+const startMatchExecution = async (match: Match): Promise<void> => {
   if (circuitBroken || workerPaused) {
     console.log(`Skipping match ${match.id} due to circuit breaker or pause state`)
     return
@@ -163,7 +163,7 @@ const startMatchExecution = async (match: Match) => {
     recordSuccess()
   } catch (error) {
     console.error(`Error starting match ${match.id}:`, error)
-    handleDbError(error)
+    handleDbError(error as Error)
     
     // Attempt to revert status if possible
     try {
@@ -177,7 +177,7 @@ const startMatchExecution = async (match: Match) => {
 /**
  * Main worker function to check for matches that should be played
  */
-const startMatchExecutionWorker = async () => {
+const startMatchExecutionWorker = async (): Promise<void> => {
   if (!workerActive) {
     console.log('Worker has been terminated, stopping execution')
     return
@@ -212,7 +212,7 @@ const startMatchExecutionWorker = async () => {
     recordSuccess()
   } catch (error) {
     console.error('Error in match execution worker:', error)
-    handleDbError(error)
+    handleDbError(error as Error)
   }
   
   // Schedule next check with dynamic interval based on system health
@@ -262,7 +262,7 @@ if (parentPort) {
 }
 
 // Handle worker thread termination
-process.on('beforeExit', () => {
+process.on('beforeExit', (): void => {
   workerActive = false
   if (checkInterval) {
     clearTimeout(checkInterval)

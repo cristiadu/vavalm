@@ -7,7 +7,7 @@ import Tournament from '@/models/Tournament'
 
 class Team extends Model {
   declare id?: number
-  declare logo_image_file: any
+  declare logo_image_file: Buffer | null
   declare short_name: string
   declare full_name: string
   declare description: string

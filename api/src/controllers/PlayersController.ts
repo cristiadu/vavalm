@@ -8,7 +8,7 @@ import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '@/services/Playe
 const router = Router() 
 
 // Fetch all players
-router.get('/', async (req: Request, res: Response): Promise<any> => {
+router.get('/', async (req: Request, res: Response) => {
   const limit_value = Number(req.query.limit)
   const offset_value = Number(req.query.offset)
 
@@ -32,7 +32,7 @@ router.get('/', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Fetch all players stats
-router.get('/stats', async (req: Request, res: Response): Promise<any> => {
+router.get('/stats', async (req: Request, res: Response) => {
   try {
     const allPlayersStats = await getAllStatsForAllPlayers(Number(req.query.limit), Number(req.query.offset))
     res.json(allPlayersStats)
@@ -43,13 +43,14 @@ router.get('/stats', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Fetch player
-router.get('/:id', async (req: Request, res: Response): Promise<any>  => {
+router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
     const player = await Player.findByPk(id)
     if (!player) {
-      return res.status(404).json({ error: 'Player not found' })
+      res.status(404).json({ error: 'Player not found' })
+      return
     }
     res.json(player)
   } catch (err) {
@@ -59,7 +60,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<any>  => {
 })
 
 // Fetch player stats
-router.get('/:id/stats', async (req: Request, res: Response): Promise<any>  => {
+router.get('/:id/stats', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
@@ -72,12 +73,13 @@ router.get('/:id/stats', async (req: Request, res: Response): Promise<any>  => {
 })
 
 // Add a new player
-router.post('/', async (req: Request, res: Response): Promise<any> => {
+router.post('/', async (req: Request, res: Response) => {
   const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
 
   // Validate input data
   if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
-    return res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
+    res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
+    return
   }
 
   try {
@@ -103,7 +105,7 @@ router.post('/', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Add new players from JSON file
-router.post('/bulk', async (req: Request, res: Response): Promise<any> => {
+router.post('/bulk', async (req: Request, res: Response) => {
   const players = req.body
   try {
     const newPlayers = await Player.bulkCreate(players)
@@ -115,19 +117,21 @@ router.post('/bulk', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Update an existing player
-router.put('/:id', async (req: Request, res: Response): Promise<any> => {
+router.put('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   const { nickname, full_name, age, country, team_id, player_attributes, role } = req.body
 
   // Validate input data
   if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
-    return res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
+    res.status(400).json({ error: 'nickname, full_name, age, country, role, and player_attributes are required' })
+    return
   }
 
   try {
     const player = await Player.findByPk(id)
     if (!player) {
-      return res.status(404).json({ error: 'Player not found' })
+      res.status(404).json({ error: 'Player not found' })
+      return
     }
 
     player.nickname = nickname
@@ -147,13 +151,14 @@ router.put('/:id', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Delete an existing player
-router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
+router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
     const player = await Player.findByPk(id)
     if (!player) {
-      return res.status(404).json({ error: 'Player not found' })
+      res.status(404).json({ error: 'Player not found' })
+      return
     }
 
     await player.destroy()

@@ -37,7 +37,7 @@ const DuelService = {
    * @returns {{team1Player: Player, team2Player: Player}} - The players selected to play the duel.
    * @throws {Error} - Throws an error if no players are alive in one of the teams or if no players are available for selection.
    **/
-  chooseDuelPlayers: async (currentRound: RoundState) => {
+  chooseDuelPlayers: async (currentRound: RoundState): Promise<{ team1Player: Player, team2Player: Player }> => {
     // If it's a trade duel, we select the winner from the currently finished duel as a player for the next duel
     // Need to account that player can be on team1_alive_players or team2_alive_players
     let team1Player = null

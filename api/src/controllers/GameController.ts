@@ -7,7 +7,7 @@ import RoundController from '@/controllers/RoundController'
 const router = Router()
 
 // Trigger the game to start
-router.post('/:id/play', async (req: Request, res: Response): Promise<any> => {
+router.post('/:id/play', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const sanitizedId = id.replace(/\n|\r/g, "")
@@ -25,7 +25,7 @@ router.post('/:id/play', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Get a specific game
-router.get('/:id', async (req: Request, res: Response): Promise<any> => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const game = await GameService.getGame(Number(id))

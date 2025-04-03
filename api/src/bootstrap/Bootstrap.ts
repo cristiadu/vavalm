@@ -10,7 +10,7 @@ import MatchService from "@/services/MatchService"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' || false
 
-const setupTestData = async () => {
+const setupTestData = async (): Promise<void> => {
   const teams = await Team.findAll()
   if (teams.length === 0 || forceBootstrap) {
     // Read JSON file with teams data and create them

@@ -4,7 +4,7 @@
  */
 
 class MemoryCache {
-  private cache: Map<string, { value: any, expiry: number | null }>
+  private cache: Map<string, { value: unknown, expiry: number | null }>
   private defaultTTL: number
 
   constructor(defaultTTL = 300) { // Default 5 minutes TTL

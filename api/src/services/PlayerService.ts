@@ -12,7 +12,7 @@ import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
  * @param playerData player data from VLR
  * @param team team data saved in the database
  */
-export const updateOrCreatePlayer = async (playerData: VlrPlayer, team: Team) => {
+export const updateOrCreatePlayer = async (playerData: VlrPlayer, team: Team): Promise<void> => {
   // Get player first to check if it exists
   const player = await Player.findOne({
     where: {

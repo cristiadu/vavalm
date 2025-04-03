@@ -1,5 +1,4 @@
-import { load } from 'cheerio'
-
+import * as cheerio from 'cheerio'
 import { VLR_URL, VlrPlayer, VlrTeam } from '@/models/Vlr'
 import { countryCodeToCountryName } from '@/base/StringUtils'
 import { PlayerRole } from '@/models/enums'
@@ -34,9 +33,9 @@ export const importTeamsAndPlayersFromVLR = async (): Promise<VlrTeam[]> => {
 export const fetchTeamsDataFromVLR = async (): Promise<VlrTeam[]> => {
   const response = await fetch(`${VLR_URL}/rankings/all`)
   const body = await response.text()
-  const $ = load(body)
+  const $ = cheerio.load(body)
 
-  const teams: any[] = []
+  const teams: VlrTeam[] = []
 
   const teamElements = $('tr').has('td')
   for (const el of teamElements) {
@@ -79,9 +78,9 @@ export const fetchPlayerDataFromVLRTeamPage = async (teamId: string): Promise<Vl
 
   const response = await fetch(`${VLR_URL}/team/${teamId}`)
   const body = await response.text()
-  const $ = load(body)
+  const $ = cheerio.load(body)
 
-  const players: any[] = []
+  const players: VlrPlayer[] = []
 
   const teamRoster = $('.wf-card').find('.team-roster-item')
 
@@ -132,7 +131,7 @@ export const fetchPlayerDataFromVLRPlayerPage = async (playerId: string): Promis
   try {
     const response = await fetch(`${VLR_URL}/player/${playerId}?timespan=90d`)
     const body = await response.text()
-    const $ = load(body)
+    const $ = cheerio.load(body)
 
     const nickname = $('.player-header .wf-title').text().trim() !== '' ? $('.player-header .wf-title').text().trim() : null
     const full_name = $('.player-header .player-real-name').text().trim() !== '' ? $('.player-header .player-real-name').text().trim() : null
@@ -156,13 +155,25 @@ export const fetchPlayerDataFromVLRPlayerPage = async (playerId: string): Promis
 
 /**
  * Maps the role of a player based on the role statistics from VLR.gg.
+ * @param $ - The Cheerio API object for parsing HTML
  * @param agentsPlayedHTML - The tr lines of the HTML that shows the agents the player plays.
  * @returns {PlayerRole} - The role of the player.
  */
-const getPlayerRoleBasedOnVlrStats = async ($: any, agentsPlayedHTML: any): Promise<PlayerRole> => {
-  const agentsPlayed = agentsPlayedHTML.map((_: any, line: any) => {
-    return { name: $(line).find('img').first().attr('alt'), rounds: parseInt($(line).find('td').eq(2).text()) }
-  }).get()
+const getPlayerRoleBasedOnVlrStats = async ($: ReturnType<typeof cheerio.load>, agentsPlayedHTML: cheerio.Cheerio): Promise<PlayerRole> => {
+  type AgentData = { name: string | undefined; rounds: number };
+  
+  const agentsPlayed: AgentData[] = [];
+  
+  agentsPlayedHTML.each(function(_: number, element: cheerio.Element) {
+    const imgAlt = $(element).find('img').first().attr('alt');
+    const roundsText = $(element).find('td').eq(2).text();
+    const rounds = roundsText ? parseInt(roundsText) || 0 : 0;
+    
+    agentsPlayed.push({
+      name: imgAlt,
+      rounds: rounds
+    });
+  });
 
   const duelists = ['jett', 'raze', 'phoenix', 'yoru', 'reyna', 'neon', 'iso']
   const initiators = ['sova', 'breach', 'skye', 'kayo', 'gekko', 'fade']
@@ -175,14 +186,17 @@ const getPlayerRoleBasedOnVlrStats = async ($: any, agentsPlayedHTML: any): Prom
   let sentinelsRoundPlayed = 0
 
   for (const agent of agentsPlayed) {
-    if (duelists.includes(agent.name)) {
-      duelistsRoundPlayed += agent.rounds ? agent.rounds : 0
-    } else if (initiators.includes(agent.name)) {
-      initiatorsRoundPlayed += agent.rounds ? agent.rounds : 0
-    } else if (controllers.includes(agent.name)) {
-      controllersRoundPlayed += agent.rounds ? agent.rounds : 0
-    } else if (sentinels.includes(agent.name)) {
-      sentinelsRoundPlayed += agent.rounds ? agent.rounds : 0
+    if (!agent.name) continue;
+    
+    const agentName = agent.name.toLowerCase();
+    if (duelists.includes(agentName)) {
+      duelistsRoundPlayed += agent.rounds
+    } else if (initiators.includes(agentName)) {
+      initiatorsRoundPlayed += agent.rounds
+    } else if (controllers.includes(agentName)) {
+      controllersRoundPlayed += agent.rounds
+    } else if (sentinels.includes(agentName)) {
+      sentinelsRoundPlayed += agent.rounds
     }
   }
 

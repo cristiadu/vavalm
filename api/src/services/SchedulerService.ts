@@ -118,20 +118,44 @@ const cleanupWorkers = (): void => {
  * @param matchData - The match data, which might be in different formats
  * @returns The match ID if found, or undefined
  */
-const extractMatchId = (matchData: any): number | undefined => {
+const extractMatchId = (matchData: unknown): number | undefined => {
   if (!matchData) return undefined
 
   // Handle different possible data structures
-  if (typeof matchData.id !== 'undefined') return matchData.id
-  if (matchData.dataValues && typeof matchData.dataValues.id !== 'undefined') return matchData.dataValues.id
-  
-  // Try to get it from a Sequelize model's get method
-  if (matchData.get && typeof matchData.get === 'function') {
-    try {
-      const plainData = matchData.get({ plain: true })
-      if (plainData && typeof plainData.id !== 'undefined') return plainData.id
-    } catch (e) {
-      console.error('Error extracting ID from match data:', e)
+  if (typeof matchData === 'object' && matchData !== null) {
+    const data = matchData as Record<string, unknown>
+    
+    // If id is directly available
+    if (typeof data.id !== 'undefined') return Number(data.id)
+    
+    // If id is in dataValues property
+    if (
+      data.dataValues && 
+      typeof data.dataValues === 'object' && 
+      data.dataValues !== null && 
+      typeof (data.dataValues as Record<string, unknown>).id !== 'undefined'
+    ) {
+      return Number((data.dataValues as Record<string, unknown>).id)
+    }
+    
+    // Try to get it from a Sequelize model's get method
+    if (
+      data.get && 
+      typeof data.get === 'function'
+    ) {
+      try {
+        const plainData = data.get({ plain: true })
+        if (
+          plainData && 
+          typeof plainData === 'object' && 
+          plainData !== null && 
+          typeof (plainData as Record<string, unknown>).id !== 'undefined'
+        ) {
+          return Number((plainData as Record<string, unknown>).id)
+        }
+      } catch (e) {
+        console.error('Error extracting ID from match data:', e)
+      }
     }
   }
   
@@ -143,10 +167,10 @@ const extractMatchId = (matchData: any): number | undefined => {
  * Used to limit concurrent match processing.
  * 
  * @param {number} matchId - The match ID to process
- * @param {any} matchData - The match data to process
+ * @param {unknown} matchData - The match data to process
  * @returns {boolean} - Whether the worker was created
 **/
-const createMatchWorker = async (matchId: number, matchData: any): Promise<boolean> => {
+const createMatchWorker = async (matchId: number, matchData: unknown): Promise<boolean> => {
   // Check if scheduler is paused or we're at max capacity
   if (schedulerPaused) {
     console.log(`Scheduler paused, delaying match ${matchId} processing`)
@@ -198,7 +222,7 @@ const createMatchWorker = async (matchId: number, matchData: any): Promise<boole
  * 
  * @returns {object} - Current worker status
  */
-const getWorkerStatus = () => {
+const getWorkerStatus = (): { activeWorkers: number, maxWorkers: number, schedulerActive: boolean, paused: boolean } => {
   return {
     activeWorkers: workerPool.length,
     maxWorkers: MAX_CONCURRENT_WORKERS,
@@ -217,6 +241,5 @@ export default {
   cleanupWorkers,
   pauseWorker,
   resumeWorker,
-  getWorkerStatus,
-  getWorkerPoolStats: () => ({ activeWorkers: workerPool.length, maxWorkers: MAX_CONCURRENT_WORKERS }),
+  getWorkerStatus
 }

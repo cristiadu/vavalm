@@ -43,33 +43,33 @@ const validateConnection = async (attempts = 3): Promise<void> => {
 }
 
 // Add connection pool monitoring
-const monitorPool = () => {
+const monitorPool = (): void => {
   setInterval(async () => {
     const pool = sequelize.connectionManager
     try {
       const connection = await pool.getConnection({ type: 'read' })
       console.log('Pool status - Connection available')
-      // @ts-ignore - release method exists on the connection object
-      connection.release()
-    } catch (error) {
+      const connWithRelease = connection as { release: () => void };
+      connWithRelease.release();
+    } catch {
       console.log('Pool status - No connection available')
     }
   }, 60000) // Log every minute
 }
 
 // Initialize connection and monitoring
-const initializeDatabase = async () => {
+const initializeDatabase = async (): Promise<void> => {
   try {
     await validateConnection()
     monitorPool()
   } catch (error) {
     console.error('Failed to initialize database connection:', error)
-    process.exit(1)
+    throw error
   }
 }
 
 // Graceful shutdown
-const shutdown = async () => {
+const shutdown = async (): Promise<void> => {
   try {
     await sequelize.close()
     console.log('Database connection closed.')

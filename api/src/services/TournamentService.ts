@@ -15,7 +15,7 @@ const TournamentService = {
    * @param tournamentId id of the tournament
    * @returns the id of the winning team
   **/
-  getWinnerForTournament: async (tournamentId: number) => {
+  getWinnerForTournament: async (tournamentId: number): Promise<number | null> => {
     const standings = await Standings.findOne({
       where: {
         tournament_id: tournamentId,
@@ -23,7 +23,7 @@ const TournamentService = {
       },
     })
 
-    return standings?.team_id
+    return standings?.team_id ?? null
   },
 
   /**
@@ -33,7 +33,7 @@ const TournamentService = {
    * @returns the tournament
    * 
    **/
-  getTournamentByMatchId: async (matchId: number) => {
+  getTournamentByMatchId: async (matchId: number): Promise<Tournament | null> => {
     const tournament = await Tournament.findOne({
       include: [
         {
@@ -44,7 +44,7 @@ const TournamentService = {
       ],
     })
 
-    return tournament
+    return tournament ?? null
   },
   /**
    * Create standings for teams that have been added to the tournament.
@@ -55,7 +55,7 @@ const TournamentService = {
   createStandingsForTeamsIfNeeded: async (
     teamIds: number[],
     tournamentId: number,
-  ) => {
+  ): Promise<void> => {
     for (const teamId of teamIds) {
       const standings = await Standings.findOne({
         where: { tournament_id: tournamentId, team_id: teamId },
@@ -80,7 +80,7 @@ const TournamentService = {
    *
    * @param tournamentId id of the tournament
    */
-  updateStandingsAndWinner: async (tournamentId: number) => {
+  updateStandingsAndWinner: async (tournamentId: number): Promise<void> => {
     // Get tournament
     const tournament = await Tournament.findByPk(tournamentId)
     if (!tournament || !tournament.id) {
@@ -119,20 +119,22 @@ const TournamentService = {
     })
 
     // Update standings for each based on the matches
-    let numberOfFinalizedMatches = 0
     for (const match of matches) {
       const games = match.games
       const team1Id = match.team1_id
       const team2Id = match.team2_id
 
-      const team1Standings = await Standings.findOne({
+      let team1Standings: Standings | null = null
+      let team2Standings: Standings | null = null
+      
+      team1Standings = await Standings.findOne({
         where: { tournament_id: tournamentId, team_id: team1Id },
       })
-      const team2Standings = await Standings.findOne({
+      team2Standings = await Standings.findOne({
         where: { tournament_id: tournamentId, team_id: team2Id },
       })
 
-      if (team1Standings && team2Standings) {
+      if (team1Standings !== null && team2Standings !== null) {
         for (const game of games) {
           team1Standings.rounds_won += game.stats.team1_score
           team1Standings.rounds_lost += game.stats.team2_score
@@ -171,7 +173,6 @@ const TournamentService = {
 
           match.winner_id = matchWinner
           match.included_on_standings = true
-          numberOfFinalizedMatches += 1
         }
 
         await team1Standings.save()
@@ -209,7 +210,7 @@ const TournamentService = {
    * @param tournamentId id of the tournament
    * 
     **/
-  updateStandingsPositions: async (tournamentId: number) => {
+  updateStandingsPositions: async (tournamentId: number): Promise<void> => {
     const standings = await Standings.findAll({
       where: { tournament_id: tournamentId },
       order: [
@@ -238,7 +239,7 @@ const TournamentService = {
   removeStandingsForRemovedTeams: async (
     teamIds: number[],
     tournamentId: number,
-  ) => {
+  ): Promise<void> => {
     await Standings.destroy({
       where: { tournament_id: tournamentId, team_id: { [Op.in]: teamIds } },
     })

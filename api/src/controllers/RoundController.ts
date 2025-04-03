@@ -9,7 +9,7 @@ import DuelService from '@/services/DuelService'
 const router = Router({ mergeParams: true })
 
 // Trigger the round to start
-router.post('/:round/play', async (req: Request, res: Response): Promise<any> => {
+router.post('/:round/play', async (req: Request, res: Response) => {
   try {
     const { id, round } = req.params as { id: string, round: string }
     const gameId = Number(id)
@@ -36,7 +36,7 @@ router.post('/:round/play', async (req: Request, res: Response): Promise<any> =>
 })
 
 // Trigger a single round duel
-router.post('/:round/duel', async (req: Request, res: Response): Promise<any> => {
+router.post('/:round/duel', async (req: Request, res: Response) => {
   try {
     const { id, round } = req.params as { id: string, round: string }
     const gameId = Number(id)
@@ -63,7 +63,7 @@ router.post('/:round/duel', async (req: Request, res: Response): Promise<any> =>
 })
 
 // Get last duel log from a game
-router.get('/last/duel', async (req: Request, res: Response): Promise<any> => {
+router.get('/last/duel', async (req: Request, res: Response) => {
   try {
     const { id } = req.params as { id: string }
     const lastDuelLog = await DuelService.getLastDuel(Number(id))
@@ -79,7 +79,7 @@ router.get('/last/duel', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Get last round logs from a game
-router.get('/last', async (req: Request, res: Response): Promise<any> => {
+router.get('/last', async (req: Request, res: Response) => {
   try {
     const { id } = req.params as { id: string }
     const lastRoundLogs = await RoundService.getLastRound(Number(id))
@@ -95,7 +95,7 @@ router.get('/last', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Get a specific round logs from a game
-router.get('/:round', async (req: Request, res: Response): Promise<any> => {
+router.get('/:round', async (req: Request, res: Response) => {
   try {
     const { id, round } = req.params as { id: string, round: string }
     

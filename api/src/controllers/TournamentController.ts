@@ -11,7 +11,7 @@ import MatchService from '@/services/MatchService'
 
 const router = Router()
 
-router.get('/', async (req: Request, res: Response): Promise<any> => {
+router.get('/', async (req: Request, res: Response) => {
   const { limit, offset } = req.query
   const limit_value = Number(limit) || 10 // Default limit
   const offset_value = Number(offset) || 0 // Default offset
@@ -36,25 +36,27 @@ router.get('/', async (req: Request, res: Response): Promise<any> => {
     // If no results but offset was requested, check if offset exceeds total
     if (rows.length === 0 && offset_value > 0) {
       if (offset_value >= count) {
-        return res.json({
+        res.json({
           total: count,
           items: [],
         })
+        return
       }
     }
 
-    return res.json({
+    res.json({
       total: count,
       items: rows,
     })
+    return
   } catch (error) {
     console.error('Error fetching tournaments:', error)
-    return res.status(500).json({ error: 'Failed to fetch tournaments' })
+    res.status(500).json({ error: 'Failed to fetch tournaments' })
   }
 })
 
 // Fetch tournament
-router.get('/:id', async (req: Request, res: Response): Promise<any> => {
+router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
@@ -71,7 +73,8 @@ router.get('/:id', async (req: Request, res: Response): Promise<any> => {
     })
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' })
+      res.status(404).json({ error: 'Tournament not found' })
+      return
     }
 
     res.json(tournament)
@@ -82,7 +85,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Fetch match schedule from tournament
-router.get('/:id/schedule', async (req: Request, res: Response): Promise<any> => {
+router.get('/:id/schedule', async (req: Request, res: Response) => {
   const { id } = req.params
   const limit_value = Number(req.query.limit)
   const offset_value = Number(req.query.offset)
@@ -97,17 +100,17 @@ router.get('/:id/schedule', async (req: Request, res: Response): Promise<any> =>
 })
 
 // Add a new tournament
-router.post('/', async (req: Request, res: Response): Promise<any> => {
+router.post('/', async (req: Request, res: Response) => {
   const { type, name, description, country, teams, start_date, end_date } = req.body
 
   // Validate input data
   if (!type || !name || !teams || !country || !start_date || !end_date) {
-    return res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
+    res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
   }
 
   try {
     console.debug('Creating team with data:', { type, name, description, country, teams, start_date })
-    let tournament = await Tournament.create({
+    const tournament = await Tournament.create({
       type,
       name,
       description,
@@ -128,7 +131,7 @@ router.post('/', async (req: Request, res: Response): Promise<any> => {
 
     // Associate existing teams with the new tournament
     if (teams && teams.length > 0) {
-      const teamIds = teams.map((team: any) => team.id)
+      const teamIds = teams.map((team: Team) => team.id)
       await tournament.addTeams(teamIds)
 
       // Create standings object for teams if they don't exist
@@ -154,13 +157,14 @@ router.post('/', async (req: Request, res: Response): Promise<any> => {
 })
 
 // Update a tournament
-router.put('/:id', async (req: Request, res: Response): Promise<any> => {
+router.put('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   const { type, name, description, country, teams, start_date, end_date } = req.body
 
   // Validate input data
   if (!type || !name || !teams || !country || !start_date || !end_date) {
-    return res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
+    res.status(400).json({ error: "Please provide type, name, teams, country and start/end date." })
+    return
   }
 
   try {
@@ -171,10 +175,11 @@ router.put('/:id', async (req: Request, res: Response): Promise<any> => {
     })
 
     if (!tournament) {
-      return res.status(404).json({ error: 'Tournament not found' })
+      res.status(404).json({ error: 'Tournament not found' })
+      return
     }
 
-    const teamIds = teams.map((team: any) => team.id)
+    const teamIds = teams.map((team: Team) => team.id)
     const removedTeamIds = tournament.teams
       .filter((team: Team) => !teamIds.includes(team.id))
       .map((team: Team) => team.id) as number[]
@@ -214,13 +219,14 @@ router.put('/:id', async (req: Request, res: Response): Promise<any> => {
 
 
 // Delete a tournament
-router.delete('/:id', async (req: Request, res: Response): Promise<any> => {
+router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
     const team = await Tournament.findByPk(id)
     if (!team) {
-      return res.status(404).json({ error: 'Tournament not found' })
+      res.status(404).json({ error: 'Tournament not found' })
+      return
     }
 
     await team.destroy()

@@ -7,7 +7,12 @@ import WorkerPlugin from 'worker-plugin'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Export a function that gets env and argv from webpack CLI
+/**
+ * Webpack configuration function
+ * @param {object} _env - Environment variables
+ * @param {object} argv - CLI arguments
+ * @returns {webpack.Configuration} Webpack configuration object
+ */
 export default (_env, argv) => {
   const isProduction = argv.mode === 'production'
   console.log(`Building in ${isProduction ? 'production' : 'development'} mode`)
