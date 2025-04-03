@@ -13,6 +13,7 @@ import GameService from '@/services/GameService'
 import { ItemsWithPagination } from '@/base/types'
 import db from '@/models/db'
 import TournamentService from '@/services/TournamentService'
+import { MAX_CONCURRENT_MATCHES } from '@/workers/scheduleMatchesToPlayWorker'
 
 const MatchService = {
   getMatchesFromTournament: async (tournamentId: number, limit: number, offset: number): Promise<ItemsWithPagination<Match>> => {

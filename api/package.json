@@ -2,6 +2,7 @@
   "name": "backend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "npm-run-all --parallel watch server",
     "watch": "webpack --watch --config webpack.config.js --mode development",

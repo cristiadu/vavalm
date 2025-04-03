@@ -1,10 +1,10 @@
 import { parentPort } from 'worker_threads'
-import Match from '../models/Match'
-import MatchService from '../services/MatchService'
-import SchedulerService from '../services/SchedulerService'
+import Match from '@/models/Match'
+import MatchService from '@/services/MatchService'
+import SchedulerService from '@/services/SchedulerService'
 
 // Constants for worker configuration
-const MAX_CONCURRENT_MATCHES = 10 // Reduced from 15 to prevent overloading the database
+export const MAX_CONCURRENT_MATCHES = 10 // Reduced from 15 to prevent overloading the database
 const STANDARD_CHECK_INTERVAL = 60000 // 1 minute between checks
 const REDUCED_CHECK_INTERVAL = 120000 // 2 minutes when under stress
 const CIRCUIT_BREAKER_THRESHOLD = 5 // Number of consecutive errors before circuit breaks

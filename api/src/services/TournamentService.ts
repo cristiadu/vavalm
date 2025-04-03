@@ -6,7 +6,7 @@ import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 
-import MatchService from "./MatchService"
+import MatchService from '@/services/MatchService'
 
 const TournamentService = {
   /**

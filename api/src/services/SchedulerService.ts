@@ -1,6 +1,4 @@
 import { Worker } from 'worker_threads'
-import Match from '../models/Match'
-import MatchService from '../services/MatchService'
 
 // Track active workers to manage resources
 let workerPool: Worker[] = []
