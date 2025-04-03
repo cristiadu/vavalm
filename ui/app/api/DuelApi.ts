@@ -28,7 +28,7 @@ export const getLastDuel = async (
   game_id: number, 
   closure: (_lastDuelLog: GameLog) => void,
   options?: { signal?: AbortSignal },
-): Promise<void> => {
+): Promise<GameLog | null> => {
   try {
     const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last/duel`, {
       method: 'GET',
