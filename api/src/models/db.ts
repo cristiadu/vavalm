@@ -1,5 +1,5 @@
 import { Sequelize, Dialect } from 'sequelize'
-import config from '../config/config.json'
+import config from '@/config/config.json'
 
 type Environment = 'development' | 'test' | 'production'
 const env = (process.env.NODE_ENV || 'development') as Environment

@@ -1,10 +1,10 @@
 import { Op } from "sequelize"
 
-import Tournament from "../models/Tournament"
-import Standings from "../models/Standings"
-import Match from "../models/Match"
-import Game from "../models/Game"
-import GameStats from "../models/GameStats"
+import Tournament from '@/models/Tournament'
+import Standings from '@/models/Standings'
+import Match from '@/models/Match'
+import Game from '@/models/Game'
+import GameStats from '@/models/GameStats'
 
 import MatchService from "./MatchService"
 

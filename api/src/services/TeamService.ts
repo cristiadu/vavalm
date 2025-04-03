@@ -1,14 +1,14 @@
 import { Op } from "sequelize"
 
-import { downloadImage } from "../base/FileUtils"
+import { downloadImage } from '@/base/FileUtils'
 
-import Team from "../models/Team"
-import { ItemsWithPagination, TeamStats } from "../base/types"
-import { VlrTeam } from "../models/Vlr"
-import Tournament from "../models/Tournament"
-import Match from "../models/Match"
-import Game from "../models/Game"
-import GameStats from "../models/GameStats"
+import Team from '@/models/Team'
+import { ItemsWithPagination, TeamStats } from '@/base/types'
+import { VlrTeam } from '@/models/Vlr'
+import Tournament from '@/models/Tournament'
+import Match from '@/models/Match'
+import Game from '@/models/Game'
+import GameStats from '@/models/GameStats'
 
 /**
  * Upserts a team entry based on the team data.

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 
-import { importTeamsAndPlayersFromVLR } from '../services/VlrService'
+import { importTeamsAndPlayersFromVLR } from '@/services/VlrService'
 
 const router = Router()
 

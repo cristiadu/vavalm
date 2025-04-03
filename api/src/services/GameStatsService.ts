@@ -1,8 +1,8 @@
-import GameLog from "../models/GameLog"
-import GameStats from "../models/GameStats"
-import Player from "../models/Player"
-import PlayerGameStats from "../models/PlayerGameStats"
-import GameService from "./GameService"
+import GameLog from '@/models/GameLog'
+import GameStats from '@/models/GameStats'
+import Player from '@/models/Player'
+import PlayerGameStats from '@/models/PlayerGameStats'
+import GameService from '@/services/GameService'
 
 const GameStatsService = {
   /**

@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express'
 import Multer from 'multer'
 
-import { ItemsWithPagination } from '../base/types'
-import Team from '../models/Team'
-import Player from '../models/Player'
+import { ItemsWithPagination } from '@/base/types'
+import Team from '@/models/Team'
+import Player from '@/models/Player'
 
-import { getAllStatsForAllTeams, getAllStatsForTeam } from '../services/TeamService'
+import { getAllStatsForAllTeams, getAllStatsForTeam } from '@/services/TeamService'
 
 const router = Router()
 const upload = Multer({ storage: Multer.memoryStorage() })

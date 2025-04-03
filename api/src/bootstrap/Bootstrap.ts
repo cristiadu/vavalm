@@ -1,12 +1,12 @@
 import { env } from "process"
 
-import Player from "../models/Player"
-import Team from "../models/Team"
-import Tournament from "../models/Tournament"
-import { MatchType } from "../models/enums"
+import Player from "@/models/Player"
+import Team from "@/models/Team"
+import Tournament from "@/models/Tournament"
+import { MatchType } from "@/models/enums"
 
-import TournamentService from "../services/TournamentService"
-import MatchService from "../services/MatchService"
+import TournamentService from "@/services/TournamentService"
+import MatchService from "@/services/MatchService"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' || false
 

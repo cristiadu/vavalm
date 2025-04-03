@@ -1,10 +1,10 @@
 import { Association, DataTypes, Model } from 'sequelize'
 
-import db from './db'
+import db from '@/models/db'
 
-import Team from './Team'
-import PlayerGameStats from './PlayerGameStats'
-import Game from './Game'
+import Team from '@/models/Team'
+import PlayerGameStats from '@/models/PlayerGameStats'
+import Game from '@/models/Game'
 
 class GameStats extends Model {
   declare id?: number

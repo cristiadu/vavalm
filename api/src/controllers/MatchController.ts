@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express"
 
-import MatchService from "../services/MatchService"
+import MatchService from "@/services/MatchService"
 
 const router = Router()
 

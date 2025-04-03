@@ -1,16 +1,16 @@
 import { Association, DataTypes, Model } from 'sequelize'
 
-import db from './db'
+import db from '@/models/db'
 
-import Team from './Team'
-import Player from './Player'
-import { TournamentType } from './enums'
-import Standings from './Standings'
-import Match from './Match'
-import Game from './Game'
-import GameStats from './GameStats'
-import GameLog from './GameLog'
-import PlayerGameStats from './PlayerGameStats'
+import Team from '@/models/Team'
+import Player from '@/models/Player'
+import { TournamentType } from '@/models/enums'
+import Standings from '@/models/Standings'
+import Match from '@/models/Match'
+import Game from '@/models/Game'
+import GameStats from '@/models/GameStats'
+import GameLog from '@/models/GameLog'
+import PlayerGameStats from '@/models/PlayerGameStats'
 
 class Tournament extends Model {
   declare id?: number

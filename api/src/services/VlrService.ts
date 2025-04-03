@@ -1,11 +1,11 @@
 import { load } from 'cheerio'
 
-import { VLR_URL, VlrPlayer, VlrTeam } from '../models/Vlr'
-import { countryCodeToCountryName } from '../base/StringUtils'
-import { PlayerRole } from '../models/enums'
+import { VLR_URL, VlrPlayer, VlrTeam } from '@/models/Vlr'
+import { countryCodeToCountryName } from '@/base/StringUtils'
+import { PlayerRole } from '@/models/enums'
 
-import { upsertTeamData } from './TeamService'
-import { updateOrCreatePlayer } from './PlayerService'
+import { upsertTeamData } from '@/services/TeamService'
+import { updateOrCreatePlayer } from '@/services/PlayerService'
 
 /**
  * Imports teams and players from VLR.gg website.

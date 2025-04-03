@@ -1,9 +1,9 @@
 import { Model, DataTypes, Association } from 'sequelize'
 
-import db from './db'
+import db from '@/models/db'
 
-import Team from './Team'
-import { PlayerRole } from './enums'
+import Team from '@/models/Team'
+import { PlayerRole } from '@/models/enums'
 
 export interface PlayerDuel {
   player1: Player

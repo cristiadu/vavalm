@@ -1,4 +1,4 @@
-import { PlayerRole } from "./enums"
+import { PlayerRole } from '@/models/enums'
 
 export const VLR_URL = 'https://www.vlr.gg'
 

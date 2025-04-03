@@ -1,9 +1,9 @@
 import { randomInt } from "crypto"
 
-import GameLog, { RoundState } from "../models/GameLog"
-import Player, { PlayerDuel, PlayerDuelResults } from "../models/Player"
-import ChanceService from "./ChanceService"
-import { Weapon } from "../models/enums"
+import GameLog, { RoundState } from "@/models/GameLog"
+import Player, { PlayerDuel, PlayerDuelResults } from "@/models/Player"
+import ChanceService from "@/services/ChanceService"
+import { Weapon } from "@/models/enums"
 
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 

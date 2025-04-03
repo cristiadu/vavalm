@@ -1,18 +1,18 @@
 import { Op } from "sequelize"
 import { Transaction } from "sequelize"
 
-import { getRandomDateBetweenInterval } from "../base/DateUtils"
+import { getRandomDateBetweenInterval } from '@/base/DateUtils'
 
-import Team from "../models/Team"
-import Tournament from "../models/Tournament"
-import Match from "../models/Match"
-import { MatchType } from "../models/enums"
-import Game from "../models/Game"
+import Team from '@/models/Team'
+import Tournament from '@/models/Tournament'
+import Match from '@/models/Match'
+import { MatchType } from '@/models/enums'
+import Game from '@/models/Game'
 
-import GameService from "./GameService"
-import { ItemsWithPagination } from "../base/types"
-import db from '../models/db'
-import TournamentService from "./TournamentService"
+import GameService from '@/services/GameService'
+import { ItemsWithPagination } from '@/base/types'
+import db from '@/models/db'
+import TournamentService from '@/services/TournamentService'
 
 const MatchService = {
   getMatchesFromTournament: async (tournamentId: number, limit: number, offset: number): Promise<ItemsWithPagination<Match>> => {
@@ -91,6 +91,41 @@ const MatchService = {
   },
 
   /**
+   * Updates a match's status fields
+   * 
+   * @param {number} matchId - The ID of the match to update
+   * @param {object} statusUpdate - The status fields to update
+   * @returns {Promise<boolean>} - Whether the update was successful
+   */
+  updateMatchStatus: async (matchId: number, statusUpdate: {
+    started?: boolean;
+    finished?: boolean;
+  }): Promise<boolean> => {
+    try {
+      const match = await Match.findByPk(matchId)
+      if (!match) {
+        console.error(`Match ${matchId} not found for status update`)
+        return false
+      }
+
+      // Update the fields that were provided
+      if (typeof statusUpdate.started !== 'undefined') {
+        match.started = statusUpdate.started
+      }
+
+      if (typeof statusUpdate.finished !== 'undefined') {
+        match.finished = statusUpdate.finished
+      }
+
+      await match.save()
+      return true
+    } catch (error) {
+      console.error(`Error updating match ${matchId} status:`, error)
+      return false
+    }
+  },
+
+  /**
    * Retrieves all matches that should be played based on a before date.
    * It limits the number of matches to 10 at at time.
    * 
@@ -106,7 +141,7 @@ const MatchService = {
         started: false,
       },
       order: [['date', 'ASC']],
-      limit: 10,
+      limit: MAX_CONCURRENT_MATCHES,
     })
   },
 
@@ -198,14 +233,40 @@ const MatchService = {
           tournament_id: tournament.id,
           team1_id: team1Id,
           team1_score: 0,
-          team2_score: 0,
           team2_id: team2Id,
+          team2_score: 0,
           type: matchType,
-          included_on_standings: false,
+          winner_id: null,
+          included_on_standings: true,
+          started: false,
+          finished: false,
         })
 
-        // Create the games for the match
-        await GameService.createGamesForMatch(match)
+        // Create the games
+        let bestOf
+        switch (matchType) {
+        case MatchType.BO1:
+          bestOf = 1
+          break
+        case MatchType.BO3:
+          bestOf = 3
+          break
+        case MatchType.BO5:
+          bestOf = 5
+          break
+        default:
+          bestOf = 1
+          break
+        }
+
+        for (let i = 0; i < bestOf; i++) {
+          await Game.create({
+            match_id: match.id,
+            team1_rounds: 0,
+            team2_rounds: 0,
+            map: GameService.getRandomMap(),
+          })
+        }
       })
     })
   },

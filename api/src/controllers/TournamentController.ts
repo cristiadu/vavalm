@@ -1,14 +1,13 @@
 import { Request, Response, Router } from 'express'
 
-import { ItemsWithPagination } from '../base/types'
-import Team from '../models/Team'
-import Tournament from '../models/Tournament'
-import Standings from '../models/Standings'
-import Match from '../models/Match'
-import { MatchType } from '../models/enums'
+import Team from '@/models/Team'
+import Tournament from '@/models/Tournament'
+import Standings from '@/models/Standings'
+import Match from '@/models/Match'
+import { MatchType } from '@/models/enums'
 
-import TournamentService from '../services/TournamentService'
-import MatchService from '../services/MatchService'
+import TournamentService from '@/services/TournamentService'
+import MatchService from '@/services/MatchService'
 
 const router = Router()
 

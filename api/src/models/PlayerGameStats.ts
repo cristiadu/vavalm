@@ -1,9 +1,9 @@
 import { Association, DataTypes, Model } from 'sequelize'
 
-import db from './db'
+import db from '@/models/db'
 
-import Player from './Player'
-import GameStats from './GameStats'
+import Player from '@/models/Player'
+import GameStats from '@/models/GameStats'
 
 class PlayerGameStats extends Model {
   declare player: Player

@@ -1,10 +1,10 @@
 import { Association, DataTypes, Model } from 'sequelize'
 
-import db from './db'
+import db from '@/models/db'
 
-import Team from './Team'
-import Player, { PlayerDuelResults } from './Player'
-import { Weapon } from './enums'
+import Team from '@/models/Team'
+import Player, { PlayerDuelResults } from '@/models/Player'
+import { Weapon } from '@/models/enums'
 
 // Manage a Round state as it goes.
 export interface RoundState {

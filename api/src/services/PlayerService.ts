@@ -1,11 +1,11 @@
-import Team from "../models/Team"
-import Player from "../models/Player"
-import PlayerGameStats from "../models/PlayerGameStats"
-import { VlrPlayer } from "../models/Vlr"
-import Match from "../models/Match"
-import Game from "../models/Game"
-import GameStats from "../models/GameStats"
-import { AllPlayerStats, ItemsWithPagination } from "../base/types"
+import Team from '@/models/Team'
+import Player from '@/models/Player'
+import PlayerGameStats from '@/models/PlayerGameStats'
+import { VlrPlayer } from '@/models/Vlr'
+import Match from '@/models/Match'
+import Game from '@/models/Game'
+import GameStats from '@/models/GameStats'
+import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
 
 /**
  * Updates or creates a player based on the player data and team.

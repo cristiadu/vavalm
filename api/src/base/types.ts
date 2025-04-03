@@ -1,5 +1,5 @@
-import Player from "../models/Player"
-import Team from "../models/Team"
+import Player from "@/models/Player"
+import Team from "@/models/Team"
 
 export interface ItemsWithPagination<T> {
   items: T[]

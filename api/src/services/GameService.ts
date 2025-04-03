@@ -1,18 +1,18 @@
 import { getRandomTimeBetweenHourInterval } from "../base/DateUtils"
 
-import Team from "../models/Team"
-import Player from "../models/Player"
-import Match from "../models/Match"
-import Game from "../models/Game"
-import GameStats from "../models/GameStats"
-import { GameMap } from "../models/enums"
-import PlayerGameStats from "../models/PlayerGameStats"
+import Team from "@/models/Team"
+import Player from "@/models/Player"
+import Match from "@/models/Match"
+import Game from "@/models/Game"
+import GameStats from "@/models/GameStats"
+import { GameMap } from "@/models/enums"
+import PlayerGameStats from "@/models/PlayerGameStats"
 
-import TournamentService from "./TournamentService"
-import MatchService from "./MatchService"
-import GameStatsService from "./GameStatsService"
-import RoundService from "./RoundService"
-import CacheService from "./CacheService"
+import TournamentService from "@/services/TournamentService"
+import MatchService from "@/services/MatchService"
+import GameStatsService from "@/services/GameStatsService"
+import RoundService from "@/services/RoundService"
+import CacheService from "@/services/CacheService"
 
 // Cache TTL constants
 const CACHE_TTL = {
@@ -299,6 +299,15 @@ const GameService = {
     CacheService.set(cacheKey, result, CACHE_TTL.GAME_STATS)
     
     return result
+  },
+
+  /**
+   * Returns a random map from the GameMap enum.
+   * 
+   * @returns {GameMap} A random map from the GameMap enum.
+   */
+  getRandomMap: (): GameMap => {
+    return Object.values(GameMap)[Math.floor(Math.random() * Object.values(GameMap).length)]
   },
 }
 

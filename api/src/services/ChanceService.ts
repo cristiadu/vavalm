@@ -1,5 +1,5 @@
-import { PlayerRole } from "../models/enums"
-import Player, { PlayerAttributes } from "../models/Player"
+import { PlayerRole } from "@/models/enums"
+import Player, { PlayerAttributes } from "@/models/Player"
 
 const ChanceService = {
   /**

@@ -3,11 +3,14 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "src/*.ts",
     "src/**/*.ts",
     "src/*.js",
     "src/**/*.js",
-  ]
+  ],
 }

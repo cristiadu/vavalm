@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express'
 
-import GameService from '../services/GameService'
+import GameService from '@/services/GameService'
 
-import RoundController from './RoundController'
+import RoundController from '@/controllers/RoundController'
 
 const router = Router()
 

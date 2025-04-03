@@ -1,8 +1,8 @@
 import { Association, DataTypes, Model } from 'sequelize'
 
-import db from './db'
+import db from '@/models/db'
 
-import Team from './Team'
+import Team from '@/models/Team'
 
 class Standings extends Model {
   declare team: Team

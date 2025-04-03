@@ -1,11 +1,11 @@
 import { Router, Response, Request } from 'express'
 
-import { ItemsWithPagination } from '../base/types'
-import Player from '../models/Player'
+import { ItemsWithPagination } from '@/base/types'
+import Player from '@/models/Player'
 
-import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '../services/PlayerService'
+import { getAllStatsForAllPlayers, getAllStatsForPlayer } from '@/services/PlayerService'
 
-const router = Router()
+const router = Router() 
 
 // Fetch all players
 router.get('/', async (req: Request, res: Response): Promise<any> => {
