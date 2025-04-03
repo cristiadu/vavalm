@@ -10,8 +10,7 @@
     "start": "npx next start",
     "lint": "npx eslint . && npx next lint",
     "lint:fix": "npx eslint . --fix && npx next lint --fix",
-    "upgrade:dependencies": "npx ncu -u",
-    "upgrade:dependencies:check": "npx ncu"
+    "upgrade:dependencies": "pnpm upgrade --latest"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

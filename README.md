@@ -26,8 +26,9 @@ Valorant e-sports manager game which some set of rules I invented in my head.
 
 ## Pre-requisites
 
-1. Node 20.X+
+1. Node 22.X+ and PNPM
     - See: <https://nodejs.org/en/download/package-manager>
+    - Run: `npm install -g pnpm`
 2. PostgreSQL.
     - See: <https://medium.com/@dan.chiniara/installing-postgresql-for-windows-7ec8145698e3>
 3. Docker
