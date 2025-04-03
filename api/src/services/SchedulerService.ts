@@ -241,5 +241,5 @@ export default {
   cleanupWorkers,
   pauseWorker,
   resumeWorker,
-  getWorkerStatus
+  getWorkerStatus,
 }

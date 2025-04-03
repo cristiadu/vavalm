@@ -199,7 +199,7 @@ const GameService = {
   getGameStats: async (
     game_id: number,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<{
     data: GameStats | null,
     meta: { totalItems: number, totalPages: number, currentPage: number }
@@ -224,7 +224,7 @@ const GameService = {
       include: [
         { model: Team, as: 'team1' },
         { model: Team, as: 'team2' },
-        { model: Team, as: 'winner' }
+        { model: Team, as: 'winner' },
       ],
     })
     
@@ -243,7 +243,7 @@ const GameService = {
     const playersStatsTeam1 = await PlayerGameStats.findAll({
       where: { 
         game_stats_id: gameStats.id,
-        team_id: gameStats.team1_id 
+        team_id: gameStats.team1_id, 
       },
       include: [{ model: Player, as: 'player' }],
       limit: limit,
@@ -253,7 +253,7 @@ const GameService = {
     const playersStatsTeam2 = await PlayerGameStats.findAll({
       where: { 
         game_stats_id: gameStats.id,
-        team_id: gameStats.team2_id 
+        team_id: gameStats.team2_id, 
       },
       include: [{ model: Player, as: 'player' }],
       limit: limit,
@@ -262,9 +262,9 @@ const GameService = {
     
     // Create a complete data object with player stats
     // Explicitly set the player stats properties without using spread operator
-    const gameStatsJSON = gameStats.toJSON();
-    gameStatsJSON.players_stats_team1 = playersStatsTeam1;
-    gameStatsJSON.players_stats_team2 = playersStatsTeam2;
+    const gameStatsJSON = gameStats.toJSON()
+    gameStatsJSON.players_stats_team1 = playersStatsTeam1
+    gameStatsJSON.players_stats_team2 = playersStatsTeam2
     
     // Get total items for pagination
     const totalItems = await PlayerGameStats.count({
@@ -298,7 +298,7 @@ const GameService = {
    * @returns {Promise<{ data: GameStats | null }>} - Complete game statistics with all players and teams.
    */
   getGameFullStatsWithPlayersAndTeams: async (
-    game_id: number
+    game_id: number,
   ): Promise<{
     data: GameStats | null
   }> => {
@@ -333,7 +333,7 @@ const GameService = {
     })
     
     const result = {
-      data
+      data,
     }
     
     // Cache the result

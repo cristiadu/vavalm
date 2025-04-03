@@ -162,18 +162,18 @@ export const fetchPlayerDataFromVLRPlayerPage = async (playerId: string): Promis
 const getPlayerRoleBasedOnVlrStats = async ($: ReturnType<typeof cheerio.load>, agentsPlayedHTML: cheerio.Cheerio): Promise<PlayerRole> => {
   type AgentData = { name: string | undefined; rounds: number };
   
-  const agentsPlayed: AgentData[] = [];
+  const agentsPlayed: AgentData[] = []
   
   agentsPlayedHTML.each(function(_: number, element: cheerio.Element) {
-    const imgAlt = $(element).find('img').first().attr('alt');
-    const roundsText = $(element).find('td').eq(2).text();
-    const rounds = roundsText ? parseInt(roundsText) || 0 : 0;
+    const imgAlt = $(element).find('img').first().attr('alt')
+    const roundsText = $(element).find('td').eq(2).text()
+    const rounds = roundsText ? parseInt(roundsText) || 0 : 0
     
     agentsPlayed.push({
       name: imgAlt,
-      rounds: rounds
-    });
-  });
+      rounds: rounds,
+    })
+  })
 
   const duelists = ['jett', 'raze', 'phoenix', 'yoru', 'reyna', 'neon', 'iso']
   const initiators = ['sova', 'breach', 'skye', 'kayo', 'gekko', 'fade']
@@ -186,9 +186,9 @@ const getPlayerRoleBasedOnVlrStats = async ($: ReturnType<typeof cheerio.load>, 
   let sentinelsRoundPlayed = 0
 
   for (const agent of agentsPlayed) {
-    if (!agent.name) continue;
+    if (!agent.name) continue
     
-    const agentName = agent.name.toLowerCase();
+    const agentName = agent.name.toLowerCase()
     if (duelists.includes(agentName)) {
       duelistsRoundPlayed += agent.rounds
     } else if (initiators.includes(agentName)) {

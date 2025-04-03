@@ -49,6 +49,10 @@ export default defineConfig([
     rules: {
       ...nodeRules,
       ...tsRules,
+      // Style rules
+      "indent": ["error", 2],
+      "semi": ["error", "never"],
+      "comma-dangle": ["error", "always-multiline"]
     }
   }
 ]);
