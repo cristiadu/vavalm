@@ -64,7 +64,7 @@ app.use((req, res, next) => {
 })
 
 // Add error handling middleware
-app.use((err: Error, _req: express.Request, res: express.Response) => {
+app.use((err: Error, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Unhandled error:', err)
   
   // Check if it's a database error
@@ -84,7 +84,15 @@ app.use((err: Error, _req: express.Request, res: express.Response) => {
     }
   }
   
-  res.status(500).json({ error: 'Internal server error' })
+  // Send error response
+  if (res && typeof res.send === 'function') {
+    res.statusCode = 500
+    res.send({ error: 'Internal server error' })
+  } else {
+    console.error('Could not send error response - invalid response object')
+  }
+  
+  next(err)
 })
 
 // Add health check endpoint

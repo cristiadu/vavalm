@@ -24,7 +24,7 @@ router.post('/:id/play', async (req: Request, res: Response) => {
   }
 })
 
-// Get a specific game
+// Get a specific game 
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params

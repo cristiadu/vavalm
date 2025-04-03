@@ -44,16 +44,21 @@ export default (_env, argv) => {
     output: {
       filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist'),
+      module: true,
+      library: {
+        type: 'module',
+      },
     },
     externals: {
-      pg: 'commonjs pg',
-      express: 'commonjs express',
-      sequelize: 'commonjs sequelize',
+      pg: 'module pg',
+      express: 'module express',
+      sequelize: 'module sequelize',
+      url: 'module url',
     },
     devtool: isProduction ? false : 'source-map',
     watch: !isProduction,
     watchOptions: {
-      ignored: /node_modules/,
+      ignored: /node_modules|dist/,
       aggregateTimeout: 300,
       poll: 1000,
     },
@@ -66,5 +71,8 @@ export default (_env, argv) => {
         'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
       }),
     ],
+    experiments: {
+      outputModule: true,
+    },
   }
 }

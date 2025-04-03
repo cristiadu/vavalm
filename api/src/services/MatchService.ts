@@ -13,7 +13,7 @@ import GameService from '@/services/GameService'
 import { ItemsWithPagination } from '@/base/types'
 import db from '@/models/db'
 import TournamentService from '@/services/TournamentService'
-import { MAX_CONCURRENT_MATCHES } from '@/workers/scheduleMatchesToPlayWorker'
+import { MAX_CONCURRENT_MATCHES } from '@/models/constants'
 
 const MatchService = {
   getMatchesFromTournament: async (tournamentId: number, limit: number, offset: number): Promise<ItemsWithPagination<Match>> => {
@@ -261,12 +261,7 @@ const MatchService = {
         }
 
         for (let i = 0; i < bestOf; i++) {
-          await Game.create({
-            match_id: match.id,
-            team1_rounds: 0,
-            team2_rounds: 0,
-            map: GameService.getRandomMap(),
-          })
+          await GameService.createGameForMatch(match, GameService.getRandomMap())
         }
       })
     })

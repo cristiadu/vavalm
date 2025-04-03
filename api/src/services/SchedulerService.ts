@@ -1,8 +1,8 @@
 import { Worker } from 'worker_threads'
+import { MAX_CONCURRENT_WORKERS } from '@/models/constants'
 
 // Track active workers to manage resources
 let workerPool: Worker[] = []
-const MAX_CONCURRENT_WORKERS = 4
 
 // Track scheduler state
 let schedulerPaused = false
