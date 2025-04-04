@@ -40,7 +40,7 @@ const models: TsoaRoute.Models = {
             "country": {"dataType":"string","required":true},
             "role": {"ref":"PlayerRole","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "VlrTeam": {
@@ -53,7 +53,7 @@ const models: TsoaRoute.Models = {
             "logo_url": {"dataType":"string","required":true},
             "players": {"dataType":"array","array":{"dataType":"refObject","ref":"VlrPlayer"},"required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "VlrImportResponse": {
@@ -63,7 +63,7 @@ const models: TsoaRoute.Models = {
             "message": {"dataType":"string"},
             "error": {"dataType":"string"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "TournamentType": {
@@ -81,7 +81,7 @@ const models: TsoaRoute.Models = {
             "logo_image_file": {"dataType":"string"},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "TournamentApiModel": {
@@ -99,7 +99,7 @@ const models: TsoaRoute.Models = {
             "teams": {"dataType":"array","array":{"dataType":"union","subSchemas":[{"ref":"TeamApiModel"},{"dataType":"double"}]}},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_TournamentApiModel_": {
@@ -108,7 +108,26 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TournamentApiModel"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GameMap": {
+        "dataType": "refEnum",
+        "enums": ["Bind","Haven","Split","Ascent","Fracture","Icebox","Breeze","Sunset","Abyss","Lotus","Pearl"],
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GameApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "date": {"dataType":"string","required":true},
+            "map": {"ref":"GameMap","required":true},
+            "match_id": {"dataType":"double","required":true},
+            "included_on_standings": {"dataType":"boolean","required":true},
+            "started": {"dataType":"boolean","required":true},
+            "finished": {"dataType":"boolean","required":true},
+            "id": {"dataType":"double"},
+        },
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "MatchApiModel": {
@@ -126,8 +145,11 @@ const models: TsoaRoute.Models = {
             "finished": {"dataType":"boolean","required":true},
             "winner_id": {"dataType":"double"},
             "id": {"dataType":"double"},
+            "team1": {"ref":"TeamApiModel"},
+            "team2": {"ref":"TeamApiModel"},
+            "games": {"dataType":"array","array":{"dataType":"refObject","ref":"GameApiModel"}},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_MatchApiModel_": {
@@ -136,7 +158,7 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"MatchApiModel"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "StandingsApiModel": {
@@ -153,7 +175,7 @@ const models: TsoaRoute.Models = {
             "position": {"dataType":"double","required":true},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_TeamApiModel_": {
@@ -162,7 +184,7 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TeamApiModel"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "TeamStats": {
@@ -180,7 +202,7 @@ const models: TsoaRoute.Models = {
             "totalMapsWon": {"dataType":"double","required":true},
             "totalMapsLost": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_TeamStats_": {
@@ -189,7 +211,7 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TeamStats"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "PlayerAttributesApiModel": {
@@ -212,7 +234,7 @@ const models: TsoaRoute.Models = {
             "teamwork": {"dataType":"double","required":true},
             "utility_usage": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "PlayerApiModel": {
@@ -227,7 +249,7 @@ const models: TsoaRoute.Models = {
             "player_attributes": {"ref":"PlayerAttributesApiModel","required":true},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "PlayerDuelResults": {
@@ -237,7 +259,7 @@ const models: TsoaRoute.Models = {
             "loser": {"dataType":"union","subSchemas":[{"ref":"PlayerApiModel"},{"dataType":"enum","enums":[null]}],"required":true},
             "startedTradeDuel": {"dataType":"boolean","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RoundStateApiModel": {
@@ -251,7 +273,7 @@ const models: TsoaRoute.Models = {
             "finished": {"dataType":"boolean","required":true},
             "previous_duel": {"ref":"PlayerDuelResults"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Weapon": {
@@ -275,7 +297,7 @@ const models: TsoaRoute.Models = {
             "included_on_team_stats": {"dataType":"boolean","required":true},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_PlayerApiModel_": {
@@ -284,7 +306,7 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "AllPlayerStats": {
@@ -304,7 +326,7 @@ const models: TsoaRoute.Models = {
             "totalDeaths": {"dataType":"double","required":true},
             "totalAssists": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_AllPlayerStats_": {
@@ -313,26 +335,7 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"AllPlayerStats"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GameMap": {
-        "dataType": "refEnum",
-        "enums": ["Bind","Haven","Split","Ascent","Fracture","Icebox","Breeze","Sunset","Abyss","Lotus","Pearl"],
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GameApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "date": {"dataType":"string","required":true},
-            "map": {"ref":"GameMap","required":true},
-            "match_id": {"dataType":"double","required":true},
-            "included_on_standings": {"dataType":"boolean","required":true},
-            "started": {"dataType":"boolean","required":true},
-            "finished": {"dataType":"boolean","required":true},
-            "id": {"dataType":"double"},
-        },
-        "additionalProperties": false,
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "GameStatsApiModel": {
@@ -345,12 +348,32 @@ const models: TsoaRoute.Models = {
             "team2_id": {"dataType":"double","required":true},
             "winner_id": {"dataType":"double"},
             "id": {"dataType":"double"},
+            "team1": {"ref":"TeamApiModel"},
+            "team2": {"ref":"TeamApiModel"},
+            "players_stats_team1": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerGameStatsApiModel"}},
+            "players_stats_team2": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerGameStatsApiModel"}},
         },
-        "additionalProperties": false,
+        "additionalProperties": true,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "PlayerGameStatsApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "kills": {"dataType":"double","required":true},
+            "deaths": {"dataType":"double","required":true},
+            "assists": {"dataType":"double","required":true},
+            "player_id": {"dataType":"double","required":true},
+            "game_stats_player1_id": {"dataType":"double"},
+            "game_stats_player2_id": {"dataType":"double"},
+            "game_stats_player1": {"ref":"GameStatsApiModel"},
+            "game_stats_player2": {"ref":"GameStatsApiModel"},
+            "player": {"ref":"PlayerApiModel"},
+        },
+        "additionalProperties": true,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
-const templateService = new ExpressTemplateService(models, {"noImplicitAdditionalProperties":"throw-on-extras","bodyCoercion":true});
+const templateService = new ExpressTemplateService(models, {"noImplicitAdditionalProperties":"ignore","bodyCoercion":true});
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -369,7 +392,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
     
         const argsVlrImportController_importTeamsAndPlayersFromVLR: Record<string, TsoaRoute.ParameterSchema> = {
         };
-        app.post('/api/vlr',
+        app.post('/./vlr',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(VlrImportController)),
             ...(fetchMiddlewares<RequestHandler>(VlrImportController.prototype.importTeamsAndPlayersFromVLR)),
 
@@ -400,7 +424,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/tournaments',
+        app.get('/./tournaments',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournaments)),
 
@@ -430,7 +455,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_getTournament: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
         };
-        app.get('/api/tournaments/:tournamentId',
+        app.get('/./tournaments/:tournamentId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournament)),
 
@@ -459,10 +485,11 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsTournamentController_getTournamentSchedule: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
-                limit: {"in":"query","name":"limit","dataType":"double"},
-                offset: {"in":"query","name":"offset","dataType":"double"},
+                limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
+                offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/tournaments/:tournamentId/schedule',
+        app.get('/./tournaments/:tournamentId/schedule',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournamentSchedule)),
 
@@ -492,7 +519,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_getTournamentStandings: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
         };
-        app.get('/api/tournaments/:tournamentId/standings',
+        app.get('/./tournaments/:tournamentId/standings',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournamentStandings)),
 
@@ -522,7 +550,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_createTournament: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"TournamentApiModel"},
         };
-        app.post('/api/tournaments',
+        app.post('/./tournaments',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.createTournament)),
 
@@ -553,7 +582,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"TournamentApiModel"},
         };
-        app.put('/api/tournaments/:tournamentId',
+        app.put('/./tournaments/:tournamentId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.updateTournament)),
 
@@ -583,7 +613,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_startTournament: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
         };
-        app.post('/api/tournaments/:tournamentId/start',
+        app.post('/./tournaments/:tournamentId/start',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.startTournament)),
 
@@ -614,7 +645,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"winner_id":{"dataType":"double","required":true}}},
         };
-        app.post('/api/tournaments/:tournamentId/end',
+        app.post('/./tournaments/:tournamentId/end',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.endTournament)),
 
@@ -646,7 +678,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/teams',
+        app.get('/./teams',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeams)),
 
@@ -677,7 +710,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/teams/stats',
+        app.get('/./teams/stats',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeamsStats)),
 
@@ -707,7 +741,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_createTeamsBulk: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"TeamApiModel"}},
         };
-        app.post('/api/teams/bulk',
+        app.post('/./teams/bulk',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.createTeamsBulk)),
 
@@ -737,7 +772,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_getTeam: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.get('/api/teams/:teamId',
+        app.get('/./teams/:teamId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeam)),
 
@@ -767,7 +803,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_getTeamStats: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.get('/api/teams/:teamId/stats',
+        app.get('/./teams/:teamId/stats',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeamStats)),
 
@@ -801,7 +838,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 country: {"in":"formData","name":"country","required":true,"dataType":"string"},
                 logo_image_file: {"in":"formData","name":"logo_image_file","dataType":"file"},
         };
-        app.post('/api/teams',
+        app.post('/./teams',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             upload.fields([
                 {
                     name: "logo_image_file",
@@ -842,7 +880,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 country: {"in":"formData","name":"country","required":true,"dataType":"string"},
                 logo_image_file: {"in":"formData","name":"logo_image_file","dataType":"file"},
         };
-        app.put('/api/teams/:teamId',
+        app.put('/./teams/:teamId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             upload.fields([
                 {
                     name: "logo_image_file",
@@ -878,7 +917,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_deleteTeam: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.delete('/api/teams/:teamId',
+        app.delete('/./teams/:teamId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.deleteTeam)),
 
@@ -908,7 +948,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_getTeamPlayers: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.get('/api/teams/:teamId/players',
+        app.get('/./teams/:teamId/players',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeamPlayers)),
 
@@ -939,7 +980,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
                 round: {"in":"path","name":"round","required":true,"dataType":"double"},
         };
-        app.post('/api/games/:gameId/rounds/:round/play',
+        app.post('/./games/:gameId/rounds/:round/play',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.playRound)),
 
@@ -970,7 +1012,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
                 round: {"in":"path","name":"round","required":true,"dataType":"double"},
         };
-        app.post('/api/games/:gameId/rounds/:round/duel',
+        app.post('/./games/:gameId/rounds/:round/duel',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.playDuel)),
 
@@ -1000,7 +1043,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsRoundController_getLastDuel: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/api/games/:gameId/rounds/last/duel',
+        app.get('/./games/:gameId/rounds/last/duel',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.getLastDuel)),
 
@@ -1030,7 +1074,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsRoundController_getLastRound: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/api/games/:gameId/rounds/last',
+        app.get('/./games/:gameId/rounds/last',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.getLastRound)),
 
@@ -1061,7 +1106,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
                 round: {"in":"path","name":"round","required":true,"dataType":"double"},
         };
-        app.get('/api/games/:gameId/rounds/:round',
+        app.get('/./games/:gameId/rounds/:round',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.getRound)),
 
@@ -1093,7 +1139,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/players',
+        app.get('/./players',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayers)),
 
@@ -1124,7 +1171,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/players/stats',
+        app.get('/./players/stats',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayersStats)),
 
@@ -1154,7 +1202,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_getPlayer: Record<string, TsoaRoute.ParameterSchema> = {
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
         };
-        app.get('/api/players/:playerId',
+        app.get('/./players/:playerId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayer)),
 
@@ -1184,7 +1233,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_getPlayerStats: Record<string, TsoaRoute.ParameterSchema> = {
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
         };
-        app.get('/api/players/:playerId/stats',
+        app.get('/./players/:playerId/stats',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayerStats)),
 
@@ -1214,7 +1264,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_createPlayer: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"PlayerApiModel"},
         };
-        app.post('/api/players',
+        app.post('/./players',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.createPlayer)),
 
@@ -1244,7 +1295,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_createPlayersBulk: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"}},
         };
-        app.post('/api/players/bulk',
+        app.post('/./players/bulk',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.createPlayersBulk)),
 
@@ -1275,7 +1327,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"PlayerApiModel"},
         };
-        app.put('/api/players/:playerId',
+        app.put('/./players/:playerId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.updatePlayer)),
 
@@ -1305,7 +1358,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_deletePlayer: Record<string, TsoaRoute.ParameterSchema> = {
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
         };
-        app.delete('/api/players/:playerId',
+        app.delete('/./players/:playerId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.deletePlayer)),
 
@@ -1335,7 +1389,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsMatchController_getMatch: Record<string, TsoaRoute.ParameterSchema> = {
                 matchId: {"in":"path","name":"matchId","required":true,"dataType":"double"},
         };
-        app.get('/api/matches/:matchId',
+        app.get('/./matches/:matchId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(MatchController)),
             ...(fetchMiddlewares<RequestHandler>(MatchController.prototype.getMatch)),
 
@@ -1367,7 +1422,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/api/matches',
+        app.get('/./matches',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(MatchController)),
             ...(fetchMiddlewares<RequestHandler>(MatchController.prototype.getMatches)),
 
@@ -1397,7 +1453,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_getGame: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/api/games/:gameId',
+        app.get('/./games/:gameId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.getGame)),
 
@@ -1427,7 +1484,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_playGame: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.post('/api/games/:gameId/play',
+        app.post('/./games/:gameId/play',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.playGame)),
 
@@ -1457,7 +1515,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_getGamesByMatch: Record<string, TsoaRoute.ParameterSchema> = {
                 matchId: {"in":"path","name":"matchId","required":true,"dataType":"double"},
         };
-        app.get('/api/games/match/:matchId',
+        app.get('/./games/match/:matchId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.getGamesByMatch)),
 
@@ -1487,7 +1546,8 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_getGameStats: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/api/games/:gameId/stats',
+        app.get('/./games/:gameId/stats',
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.getGameStats)),
 
@@ -1517,6 +1577,76 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
+
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+    function authenticateMiddleware(security: TsoaRoute.Security[] = []) {
+        return async function runAuthenticationMiddleware(request: any, response: any, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            // keep track of failed auth attempts so we can hand back the most
+            // recent one.  This behavior was previously existing so preserving it
+            // here
+            const failedAttempts: any[] = [];
+            const pushAndRethrow = (error: any) => {
+                failedAttempts.push(error);
+                throw error;
+            };
+
+            const secMethodOrPromises: Promise<any>[] = [];
+            for (const secMethod of security) {
+                if (Object.keys(secMethod).length > 1) {
+                    const secMethodAndPromises: Promise<any>[] = [];
+
+                    for (const name in secMethod) {
+                        secMethodAndPromises.push(
+                            expressAuthenticationRecasted(request, name, secMethod[name], response)
+                                .catch(pushAndRethrow)
+                        );
+                    }
+
+                    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+                    secMethodOrPromises.push(Promise.all(secMethodAndPromises)
+                        .then(users => { return users[0]; }));
+                } else {
+                    for (const name in secMethod) {
+                        secMethodOrPromises.push(
+                            expressAuthenticationRecasted(request, name, secMethod[name], response)
+                                .catch(pushAndRethrow)
+                        );
+                    }
+                }
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            try {
+                request['user'] = await Promise.any(secMethodOrPromises);
+
+                // Response was sent in middleware, abort
+                if (response.writableEnded) {
+                    return;
+                }
+
+                next();
+            }
+            catch(err) {
+                // Show most recent error as response
+                const error = failedAttempts.pop();
+                error.status = error.status || 401;
+
+                // Response was sent in middleware, abort
+                if (response.writableEnded) {
+                    return;
+                }
+                next(error);
+            }
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        }
+    }
 
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 }

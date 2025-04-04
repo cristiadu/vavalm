@@ -1,6 +1,8 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import type { PlayerGameStats } from "@/models/PlayerGameStats"
+import { PlayerApiModel } from "./PlayerApiModel"
+import { GameStatsApiModel } from "./GameStatsApiModel"
 
 /**
  * @tsoaModel
@@ -13,7 +15,9 @@ export class PlayerGameStatsApiModel extends BaseEntityModel {
     public player_id: number,
     public game_stats_player1_id?: number,
     public game_stats_player2_id?: number,
-    public id?: number,
+    public game_stats_player1?: GameStatsApiModel,
+    public game_stats_player2?: GameStatsApiModel,
+    public player?: PlayerApiModel,
   ) {
     super()
   }
@@ -29,13 +33,15 @@ export class PlayerGameStatsApiModel extends BaseEntityModel {
     const { PlayerGameStats } = PlayerGameStatsModule
 
     return new PlayerGameStats({
-      id: this.id,
       kills: this.kills,
       deaths: this.deaths,
       assists: this.assists,
       player_id: this.player_id,
       game_stats_player1_id: this.game_stats_player1_id,
       game_stats_player2_id: this.game_stats_player2_id,
+      game_stats_player1: this.game_stats_player1?.toEntityModel(),
+      game_stats_player2: this.game_stats_player2?.toEntityModel(),
+      player: this.player?.toEntityModel(),
     })
   }
 }

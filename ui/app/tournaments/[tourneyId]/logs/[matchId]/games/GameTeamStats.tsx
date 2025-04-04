@@ -44,7 +44,7 @@ const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, co
           </tr>
         </thead>
         <tbody>
-          {playerStats.sort(sortPlayersByStats).map((playerStats, index) => (
+          {playerStats?.sort(sortPlayersByStats).map((playerStats, index) => (
             <tr key={`game-team-stats-${teamName}-player-${playerStats.player.id}-${index}`}>
               <td className="py-2 pl-4 border-b border-gray-200">
                 {playerStats.player.country && playerCountryToFlag(playerStats.player.country)}

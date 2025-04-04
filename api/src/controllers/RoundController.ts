@@ -64,8 +64,14 @@ export class RoundController extends Controller {
   @OperationId("getLastDuel")
   public async getLastDuel(
     @Path() gameId: number,
-  ): Promise<GameLogApiModel> {
+  ): Promise<GameLogApiModel | null> {
     const lastDuelLog = await DuelService.getLastDuel(gameId)
+    
+    if (!lastDuelLog) {
+      this.setStatus(404)
+      return null
+    }
+    
     return lastDuelLog.toApiModel()
   }
 

@@ -1,6 +1,8 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import type { Match } from "@/models/Match"
+import { TeamApiModel } from "./TeamApiModel"
+import { GameApiModel } from "./GameApiModel"
 
 /**
  * @tsoaModel
@@ -19,6 +21,9 @@ export class MatchApiModel extends BaseEntityModel {
     public finished: boolean,
     public winner_id?: number,
     public id?: number,
+    public team1?: TeamApiModel,
+    public team2?: TeamApiModel,
+    public games?: GameApiModel[],
   ) {
     super()
   }
@@ -46,6 +51,9 @@ export class MatchApiModel extends BaseEntityModel {
       included_on_standings: this.included_on_standings,
       started: this.started,
       finished: this.finished,
+      team1: this.team1?.toEntityModel(),
+      team2: this.team2?.toEntityModel(),
+      games: this.games?.map(game => game.toEntityModel()),
     })
   }
 } 

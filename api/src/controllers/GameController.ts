@@ -51,11 +51,11 @@ export class GameController extends Controller {
   @OperationId("getGameStats")
   public async getGameStats(@Path() gameId: number): Promise<GameStatsApiModel> {
     const stats = await GameService.getGameStats(gameId)
-    if (!stats || !stats.data) {
+    if (!stats) {
       this.setStatus(404)
       throw new Error("Game stats not found")
     }
     
-    return stats.data.toApiModel()
+    return stats.toApiModel()
   }
 }

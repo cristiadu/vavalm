@@ -16,7 +16,7 @@
     "clean": "rm -rf node_modules && rm -rf dist",
     "migrate": "cd src && pnpm sequelize-cli db:migrate",
     "upgrade:dependencies": "pnpm upgrade --latest",
-    "openapi": "pnpm tsoa spec --yaml",
+    "openapi": "pnpm tsoa spec",
     "generate:routes": "pnpm tsoa routes"
   },
   "dependencies": {

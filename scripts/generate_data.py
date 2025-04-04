@@ -597,19 +597,6 @@ def generate_player_attributes():
     
     return attributes
 
-def fetch_team_details(team_id):
-    """Fetch detailed information for a specific team"""
-    try:
-        response = requests.get(f"{API_BASE_URL}/teams/{team_id}")
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"Error fetching team {team_id}: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"Error fetching team details: {e}")
-        return None
-
 def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
     """
     Create a random tournament using the API
@@ -640,15 +627,18 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             
         selected_teams = random.sample(teams, num_teams)
         
-        # Get team IDs for the teams array
-        team_ids = []
+        # Create proper team objects for the API
+        valid_teams = []
         for team in selected_teams:
             team_id = team.get("id")
             if team_id is not None:
-                # Just use the ID number
-                team_ids.append(team_id)
+                # Create the full team object expected by the API
+                api_team = {
+                    "id": team_id,
+                }
+                valid_teams.append(api_team)
         
-        if not team_ids:
+        if not valid_teams:
             print("No valid team IDs found. Cannot create tournament.")
             continue
             
@@ -664,14 +654,14 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             "end_date": tournament_end_date,
             "started": False,
             "ended": False,
-            "teams": team_ids
+            "teams": valid_teams
         }
         
         # Print the full payload for debugging
         print(f"Tournament payload: {json.dumps(tournament_data, indent=2)}")
         
         try:
-            print(f"Creating tournament: {name} in {country} with {len(team_ids)} teams")
+            print(f"Creating tournament: {name} in {country} with {len(valid_teams)} teams")
             print(f"Start: {tournament_start_date}, End: {tournament_end_date}")
             response = requests.post(f"{API_BASE_URL}/tournaments", json=tournament_data)
             
@@ -680,13 +670,6 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             else:
                 print(f"❌ Failed to create tournament: {response.status_code}")
                 print(f"Response: {response.text}")
-                
-                # Try to get more detailed error information
-                try:
-                    error_text = response.text
-                    print(f"Error details: {error_text}")
-                except:
-                    pass
         except Exception as e:
             print(f"Error: {e}")
 

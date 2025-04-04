@@ -33,6 +33,9 @@ export class PlayerGameStats extends Model implements BaseEntityModel {
       this.player_id,
       this.game_stats_player1_id,
       this.game_stats_player2_id,
+      this.game_stats_player1?.toApiModel(),
+      this.game_stats_player2?.toApiModel(),
+      this.player?.toApiModel(),
     )
   }
 

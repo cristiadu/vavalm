@@ -10,9 +10,11 @@ interface GamePickerProps {
 }
 
 const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick, matchWinnerId }) => {
-  // We don't need this useEffect anymore as the parent component handles selection
-  
-  const sortedGames = React.useMemo(() => 
+  if (!games || games.length === 0) {
+    return null
+  }
+
+  const sortedGames = React.useMemo(() =>
     [...games].sort((a, b) => sortByDate(new Date(a.date), new Date(b.date))),
   [games],
   )
@@ -26,7 +28,7 @@ const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick,
           className={`px-4 py-2 m-1 rounded ${selectedGameId === game.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
           disabled={matchWinnerId !== null && game.stats?.winner_id === null}
         >
-          <strong>Game {index+1}: </strong>
+          <strong>Game {index + 1}: </strong>
           {game.map}
         </button>
       ))}

@@ -31,10 +31,7 @@ const MatchService = {
       offset,
     })
 
-    return {
-      items: tournamentMatches.rows,
-      total: tournamentMatches.count,
-    } as ItemsWithPagination<Match>
+    return new ItemsWithPagination<Match>(tournamentMatches.rows, tournamentMatches.count)
   },
 
   /**

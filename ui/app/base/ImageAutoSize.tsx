@@ -31,7 +31,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
   return (
     <Image
       {...rest}
-      alt={props.alt}
+      alt={props.alt || 'Image'}
       src={imageSrc}
       width={width}
       height={height}

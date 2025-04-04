@@ -54,7 +54,7 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
         matchCache.set(matchIdRequest, data)
         
         // If there are games, select the first one if none is selected
-        if (data?.games?.length && selectedGameId === 0) {
+        if (data?.games?.length > 0 && selectedGameId === 0) {
           setSelectedGameId(data.games[0].id)
         }
       }

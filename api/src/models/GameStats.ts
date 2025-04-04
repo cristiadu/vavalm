@@ -41,11 +41,19 @@ export class GameStats extends Model implements BaseEntityModel {
       this.team2_id,
       this.winner_id,
       this.id,
+      this.team1?.toApiModel(),
+      this.team2?.toApiModel(),
+      this.players_stats_team1?.map(player => player.toApiModel()),
+      this.players_stats_team2?.map(player => player.toApiModel()),
     )
   }
 
   toEntityModel(): GameStats {
     return this
+  }
+
+  clone(): GameStats {
+    return Object.assign(new GameStats(), this)
   }
 }
 

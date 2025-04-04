@@ -56,6 +56,7 @@ export class Tournament extends Model implements BaseEntityModel {
       this.ended,
       this.winner_id,
       this.teams?.map(team => team.toApiModel()),
+      this.id,
     )
   }
 

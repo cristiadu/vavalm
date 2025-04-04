@@ -88,11 +88,18 @@ const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/api/openapi
 // Convert YAML to JSON
 const openApiJsonDoc = yaml.parse(openApiYamlDoc)
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJsonDoc))
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJsonDoc, {
+  explorer: true,
+  customCssUrl: 'https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css',
+  customJs: [
+    'https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js',
+    'https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js',
+  ],
+}))
 
-// Serve swagger.json for tools that need it
-app.get('/swagger.json', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../docs/api/openapi.json'))
+// Serve swagger.yaml for tools that need it
+app.get('/swagger.yaml', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../docs/api/openapi.yaml'))
 })
 
 // Periodic database health checks

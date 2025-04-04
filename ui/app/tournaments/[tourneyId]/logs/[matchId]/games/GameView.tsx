@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Match, Game, GameLog } from "@/api/models/Tournament"
+import { Match, Game, GameLog, GameStats } from "@/api/models/Tournament"
 import { Country } from "@/api/models/Country"
-import { getGame, playFullGame, getMatch } from "@/api/GameApi"
+import { getGame, getGameStats, playFullGame, getMatch } from "@/api/GameApi"
 import { getLastDuel } from "@/api/DuelApi"
 import { playFullRound } from "@/api/RoundApi"
 import { playSingleDuel } from "@/api/DuelApi"
@@ -31,6 +31,7 @@ export enum AlertType {
 export default function GameView(props: GameViewProps): React.ReactNode {
   const { gameId, team1Country, team2Country, match, countries, updateMatchInfo } = props
   const [game, setGame] = useState<Game | null>(null)
+  const [gameStats, setGameStats] = useState<GameStats | null>(null)
   const [lastDuel, setLastDuel] = useState<GameLog | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
@@ -54,13 +55,14 @@ export default function GameView(props: GameViewProps): React.ReactNode {
       
       // Simple sequential fetching to avoid race conditions
       const gameData = await getGame(gameId, () => {})
-      
+      const gameStats = await getGameStats(gameId, () => {})
       // Only continue if component is still mounted
       if (!isMounted.current) return
       
-      if (gameData) {
+      if (gameData && gameStats) {
+        gameData.stats = gameStats
         setGame(gameData)
-        
+        setGameStats(gameStats)
         // After game data is fetched, get the last duel
         try {
           const duelData = await getLastDuel(gameId, () => {})
@@ -73,7 +75,7 @@ export default function GameView(props: GameViewProps): React.ReactNode {
           console.log('Failed to fetch duel data, but game data is available. Error: ', duelError)
         }
       } else {
-        setFetchError('Failed to load game data')
+        setFetchError('Failed to load game data or game stats')
       }
     } catch (error) {
       if (isMounted.current) {
@@ -200,7 +202,7 @@ export default function GameView(props: GameViewProps): React.ReactNode {
   }
 
   // Determine if buttons should be disabled
-  const buttonsDisabled = game?.stats.winner_id !== null || match.winner_id !== null || isFetching.current || !!gameBeingPlayedMessage
+  const buttonsDisabled = gameStats?.winner_id !== null || match?.winner_id !== null || isFetching.current || !!gameBeingPlayedMessage
 
   // Determine the last round from the game data
   const lastRound = lastDuel?.round_state?.round || 1
@@ -256,13 +258,13 @@ export default function GameView(props: GameViewProps): React.ReactNode {
         <hr className="mb-2" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <GameTeamStats
-            teamName={game.stats.team1.short_name}
-            playerStats={game.stats.players_stats_team1}
+            teamName={gameStats?.team1?.short_name || ''}
+            playerStats={gameStats?.players_stats_team1 || []}
             countries={countries}
           />
           <GameTeamStats
-            teamName={game.stats.team2.short_name}
-            playerStats={game.stats.players_stats_team2}
+            teamName={gameStats?.team2?.short_name || ''}
+            playerStats={gameStats?.players_stats_team2 || []}
             countries={countries}
           />
         </div>

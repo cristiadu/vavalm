@@ -79,10 +79,10 @@ export class TournamentController extends Controller {
   @OperationId("getTournamentSchedule")
   public async getTournamentSchedule(
     @Path() tournamentId: number,
-    @Query() limit?: number,
-    @Query() offset?: number,
+    @Query() limit: number = 10,
+    @Query() offset: number = 0,
   ): Promise<ItemsWithPagination<MatchApiModel>> {
-    const result = await MatchService.getMatchesFromTournament(tournamentId, limit || 10, offset || 0)
+    const result = await MatchService.getMatchesFromTournament(tournamentId, limit, offset)
     return result.toApiModel(new ItemsWithPagination<MatchApiModel>([], 0))
   }
 
@@ -190,7 +190,7 @@ export class TournamentController extends Controller {
     
     const removedTeamIds: number[] = tournament.teams
       .filter(team => team?.id !== null)
-      .filter(team => team?.id && !teams.map(t => t.id).includes(team.id))
+      .filter(team => team?.id && !teams.map(t => t instanceof TeamApiModel ? t.id : t).includes(team.id))
       .map(team => team.id) as number[]
     
     await tournament.update({
@@ -203,7 +203,7 @@ export class TournamentController extends Controller {
     })
     
     // Associate teams with the tournament
-    await tournament.setTeams(teams.map(team => team?.id) as number[])
+    await tournament.setTeams(teams.map(team => team instanceof TeamApiModel ? team.id : team) as number[])
     
     // Update standings and matches
     if (removedTeamIds && removedTeamIds.length > 0) {
@@ -213,7 +213,7 @@ export class TournamentController extends Controller {
     
     // Create new standings and matches for new teams
     const existingTeamIds = tournament.teams.map(team => team.id)
-    const newTeamIds = teams.filter(team => team.id && !existingTeamIds.includes(team.id)).map(team => team.id) as number[]
+    const newTeamIds = teams.filter(team => team instanceof TeamApiModel ? team.id : team && !existingTeamIds.includes(team)).map(team => team instanceof TeamApiModel ? team.id : team) as number[]
     
     if (newTeamIds.length > 0) {
       await TournamentService.createStandingsForTeamsIfNeeded(newTeamIds, tournamentId)

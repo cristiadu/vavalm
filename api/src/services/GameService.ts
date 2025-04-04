@@ -1,4 +1,5 @@
 import { getRandomTimeBetweenHourInterval } from "@/base/DateUtils"
+import { Op } from 'sequelize'
 
 import Team from "@/models/Team"
 import Player from "@/models/Player"
@@ -210,32 +211,19 @@ const GameService = {
    * Get a specific game's statistics with pagination support.
    * 
    * @param {number} game_id - The ID of the game to retrieve stats for.
-   * @param {number} page - The page number to retrieve (default: 1).
-   * @param {number} limit - The number of items per page (default: 10).
-   * @returns {Promise<{ data: GameStats | null, meta: { totalItems: number, totalPages: number, currentPage: number } }>} - Game statistics with pagination metadata.
+   * @returns {Promise<{ data: GameStats | null }>} - Game statistics.
    */
   getGameStats: async (
     game_id: number,
-    page: number = 1,
-    limit: number = 10,
-  ): Promise<{
-    data: GameStats | null,
-    meta: { totalItems: number, totalPages: number, currentPage: number }
-  }> => {
+  ): Promise<GameStats | null> => {
     // Try to get from cache first
-    const cacheKey = `game-stats-${game_id}-${page}-${limit}`
-    const cachedStats = CacheService.get<{
-      data: GameStats | null,
-      meta: { totalItems: number, totalPages: number, currentPage: number }
-    }>(cacheKey)
+    const cacheKey = `game-stats-${game_id}`
+    const cachedStats = CacheService.get<GameStats | null>(cacheKey)
     
     if (cachedStats) {
       return cachedStats
     }
-    
-    // Calculate offset for pagination
-    const offset = (page - 1) * limit
-    
+        
     // First, get the game stats without pagination
     const gameStats = await GameStats.findOne({
       where: { game_id: game_id },
@@ -243,69 +231,21 @@ const GameService = {
         { model: Team, as: 'team1' },
         { model: Team, as: 'team2' },
         { model: Team, as: 'winner' },
+        { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
+        { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
       ],
     })
     
     if (!gameStats) {
-      return {
-        data: null,
-        meta: {
-          totalItems: 0,
-          totalPages: 0,
-          currentPage: page,
-        },
-      }
+      return null
     }
     
-    // Then get paginated player stats separately
-    const playersStatsTeam1 = await PlayerGameStats.findAll({
-      where: { 
-        game_stats_id: gameStats.id,
-        team_id: gameStats.team1_id, 
-      },
-      include: [{ model: Player, as: 'player' }],
-      limit: limit,
-      offset: offset,
-    })
-    
-    const playersStatsTeam2 = await PlayerGameStats.findAll({
-      where: { 
-        game_stats_id: gameStats.id,
-        team_id: gameStats.team2_id, 
-      },
-      include: [{ model: Player, as: 'player' }],
-      limit: limit,
-      offset: offset,
-    })
-    
-    // Create a complete data object with player stats
-    // Explicitly set the player stats properties without using spread operator
-    const gameStatsJSON = gameStats.toJSON()
-    gameStatsJSON.players_stats_team1 = playersStatsTeam1
-    gameStatsJSON.players_stats_team2 = playersStatsTeam2
-    
-    // Get total items for pagination
-    const totalItems = await PlayerGameStats.count({
-      where: {
-        game_stats_id: gameStats.id,
-      },
-    })
-    
-    const totalPages = Math.ceil(totalItems / limit)
-    
-    const result = {
-      data: gameStatsJSON as GameStats,
-      meta: {
-        totalItems,
-        totalPages,
-        currentPage: page,
-      },
-    }
-    
+    const gameStatsWithTransformerMethods = gameStats.clone()
+
     // Cache the result
-    CacheService.set(cacheKey, result, CACHE_TTL.GAME_STATS)
+    CacheService.set(cacheKey, gameStatsWithTransformerMethods, CACHE_TTL.GAME_STATS)
     
-    return result
+    return gameStatsWithTransformerMethods
   },
 
   /**

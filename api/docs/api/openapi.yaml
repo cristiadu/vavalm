@@ -34,7 +34,7 @@ components:
         - country
         - role
       type: object
-      additionalProperties: false
+      additionalProperties: true
     VlrTeam:
       properties:
         id:
@@ -59,7 +59,7 @@ components:
         - logo_url
         - players
       type: object
-      additionalProperties: false
+      additionalProperties: true
     VlrImportResponse:
       properties:
         teamsData:
@@ -73,7 +73,7 @@ components:
       required:
         - teamsData
       type: object
-      additionalProperties: false
+      additionalProperties: true
     TournamentType:
       enum:
         - SINGLE_GROUP
@@ -93,13 +93,8 @@ components:
         id:
           type: number
           format: double
-      required:
-        - short_name
-        - full_name
-        - description
-        - country
       type: object
-      additionalProperties: false
+      additionalProperties: true
     TournamentApiModel:
       properties:
         name:
@@ -123,7 +118,10 @@ components:
           format: double
         teams:
           items:
-            $ref: "#/components/schemas/TeamApiModel"
+            anyOf:
+              - $ref: "#/components/schemas/TeamApiModel"
+              - type: number
+                format: double
           type: array
         id:
           type: number
@@ -138,7 +136,7 @@ components:
         - started
         - ended
       type: object
-      additionalProperties: false
+      additionalProperties: true
     ItemsWithPagination_TournamentApiModel_:
       properties:
         items:
@@ -152,7 +150,48 @@ components:
         - items
         - total
       type: object
-      additionalProperties: false
+      additionalProperties: true
+    GameMap:
+      enum:
+        - Bind
+        - Haven
+        - Split
+        - Ascent
+        - Fracture
+        - Icebox
+        - Breeze
+        - Sunset
+        - Abyss
+        - Lotus
+        - Pearl
+      type: string
+    GameApiModel:
+      properties:
+        date:
+          type: string
+        map:
+          $ref: "#/components/schemas/GameMap"
+        match_id:
+          type: number
+          format: double
+        included_on_standings:
+          type: boolean
+        started:
+          type: boolean
+        finished:
+          type: boolean
+        id:
+          type: number
+          format: double
+      required:
+        - date
+        - map
+        - match_id
+        - included_on_standings
+        - started
+        - finished
+      type: object
+      additionalProperties: true
     MatchApiModel:
       properties:
         date:
@@ -186,6 +225,14 @@ components:
         id:
           type: number
           format: double
+        team1:
+          $ref: "#/components/schemas/TeamApiModel"
+        team2:
+          $ref: "#/components/schemas/TeamApiModel"
+        games:
+          items:
+            $ref: "#/components/schemas/GameApiModel"
+          type: array
       required:
         - date
         - tournament_id
@@ -198,7 +245,7 @@ components:
         - started
         - finished
       type: object
-      additionalProperties: false
+      additionalProperties: true
     ItemsWithPagination_MatchApiModel_:
       properties:
         items:
@@ -212,7 +259,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: false
+      additionalProperties: true
     StandingsApiModel:
       properties:
         wins:
@@ -256,7 +303,7 @@ components:
         - team_id
         - position
       type: object
-      additionalProperties: false
+      additionalProperties: true
     ItemsWithPagination_TeamApiModel_:
       properties:
         items:
@@ -270,7 +317,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: false
+      additionalProperties: true
     TeamStats:
       properties:
         team:
@@ -318,7 +365,7 @@ components:
         - totalMapsWon
         - totalMapsLost
       type: object
-      additionalProperties: false
+      additionalProperties: true
     ItemsWithPagination_TeamStats_:
       properties:
         items:
@@ -332,7 +379,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: false
+      additionalProperties: true
     PlayerAttributesApiModel:
       properties:
         clutch:
@@ -401,7 +448,7 @@ components:
         - teamwork
         - utility_usage
       type: object
-      additionalProperties: false
+      additionalProperties: true
     PlayerApiModel:
       properties:
         nickname:
@@ -432,7 +479,7 @@ components:
         - role
         - player_attributes
       type: object
-      additionalProperties: false
+      additionalProperties: true
     PlayerDuelResults:
       properties:
         winner:
@@ -450,15 +497,13 @@ components:
         - loser
         - startedTradeDuel
       type: object
-      additionalProperties: false
+      additionalProperties: true
     RoundStateApiModel:
       properties:
         round:
           type: number
           format: double
         duel:
-          $ref: "#/components/schemas/PlayerDuelResults"
-        previous_duel:
           $ref: "#/components/schemas/PlayerDuelResults"
         team1_alive_players:
           items:
@@ -474,16 +519,17 @@ components:
           nullable: true
         finished:
           type: boolean
+        previous_duel:
+          $ref: "#/components/schemas/PlayerDuelResults"
       required:
         - round
         - duel
-        - previous_duel
         - team1_alive_players
         - team2_alive_players
         - team_won
         - finished
       type: object
-      additionalProperties: false
+      additionalProperties: true
     Weapon:
       enum:
         - Vandal
@@ -545,7 +591,7 @@ components:
         - included_on_player_stats
         - included_on_team_stats
       type: object
-      additionalProperties: false
+      additionalProperties: true
     ItemsWithPagination_PlayerApiModel_:
       properties:
         items:
@@ -559,7 +605,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: false
+      additionalProperties: true
     AllPlayerStats:
       properties:
         player:
@@ -615,7 +661,7 @@ components:
         - totalDeaths
         - totalAssists
       type: object
-      additionalProperties: false
+      additionalProperties: true
     ItemsWithPagination_AllPlayerStats_:
       properties:
         items:
@@ -629,48 +675,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: false
-    GameMap:
-      enum:
-        - Bind
-        - Haven
-        - Split
-        - Ascent
-        - Fracture
-        - Icebox
-        - Breeze
-        - Sunset
-        - Abyss
-        - Lotus
-        - Pearl
-      type: string
-    GameApiModel:
-      properties:
-        date:
-          type: string
-        map:
-          $ref: "#/components/schemas/GameMap"
-        match_id:
-          type: number
-          format: double
-        included_on_standings:
-          type: boolean
-        started:
-          type: boolean
-        finished:
-          type: boolean
-        id:
-          type: number
-          format: double
-      required:
-        - date
-        - map
-        - match_id
-        - included_on_standings
-        - started
-        - finished
-      type: object
-      additionalProperties: false
+      additionalProperties: true
     GameStatsApiModel:
       properties:
         team1_score:
@@ -694,6 +699,18 @@ components:
         id:
           type: number
           format: double
+        team1:
+          $ref: "#/components/schemas/TeamApiModel"
+        team2:
+          $ref: "#/components/schemas/TeamApiModel"
+        players_stats_team1:
+          items:
+            $ref: "#/components/schemas/PlayerGameStatsApiModel"
+          type: array
+        players_stats_team2:
+          items:
+            $ref: "#/components/schemas/PlayerGameStatsApiModel"
+          type: array
       required:
         - team1_score
         - team2_score
@@ -701,15 +718,55 @@ components:
         - team1_id
         - team2_id
       type: object
-      additionalProperties: false
+      additionalProperties: true
+    PlayerGameStatsApiModel:
+      properties:
+        kills:
+          type: number
+          format: double
+        deaths:
+          type: number
+          format: double
+        assists:
+          type: number
+          format: double
+        player_id:
+          type: number
+          format: double
+        game_stats_player1_id:
+          type: number
+          format: double
+        game_stats_player2_id:
+          type: number
+          format: double
+        game_stats_player1:
+          $ref: "#/components/schemas/GameStatsApiModel"
+        game_stats_player2:
+          $ref: "#/components/schemas/GameStatsApiModel"
+        player:
+          $ref: "#/components/schemas/PlayerApiModel"
+      required:
+        - kills
+        - deaths
+        - assists
+        - player_id
+      type: object
+      additionalProperties: true
   securitySchemes:
-    bearer:
+    BearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
 info:
-  title: backend
-  version: 0.1.0
-  contact: {}
+  title: VavalM API
+  version: 1.0.0
+  description: "Vavalm API: A Valorant Manager Game API"
+  license:
+    name: MIT
+  contact:
+    email: cristiadu@gmail.com
+    name: Cristiano Faustino
+    url: https://cristianofaustino.me
 paths:
   /vlr:
     post:
@@ -721,7 +778,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/VlrImportResponse"
-      security: []
+      security:
+        - BearerAuth: []
       parameters: []
   /tournaments:
     get:
@@ -734,7 +792,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_TournamentApiModel_"
       description: Retrieves all tournaments with optional pagination
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: Maximum number of tournaments to return
           in: query
@@ -762,7 +821,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TournamentApiModel"
       description: Creates a new tournament
-      security: []
+      security:
+        - BearerAuth: []
       parameters: []
       requestBody:
         description: The tournament data to create
@@ -783,7 +843,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TournamentApiModel"
       description: Retrieves a specific tournament by its ID
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the tournament to retrieve
           in: path
@@ -802,7 +863,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TournamentApiModel"
       description: Updates an existing tournament
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the tournament to update
           in: path
@@ -830,7 +892,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_MatchApiModel_"
       description: Retrieves the match schedule for a tournament
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the tournament to retrieve the schedule for
           in: path
@@ -844,6 +907,7 @@ paths:
           name: limit
           required: false
           schema:
+            default: 10
             format: double
             type: number
         - description: Number of matches to skip
@@ -851,6 +915,7 @@ paths:
           name: offset
           required: false
           schema:
+            default: 0
             format: double
             type: number
   /tournaments/{tournamentId}/standings:
@@ -866,7 +931,8 @@ paths:
                   $ref: "#/components/schemas/StandingsApiModel"
                 type: array
       description: Retrieves the standings for a tournament
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the tournament to retrieve standings for
           in: path
@@ -886,7 +952,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TournamentApiModel"
       description: Starts a tournament
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the tournament to start
           in: path
@@ -906,7 +973,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TournamentApiModel"
       description: Ends a tournament
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the tournament to end
           in: path
@@ -920,6 +988,7 @@ paths:
         content:
           application/json:
             schema:
+              title: EndTournamentRequestBody
               properties:
                 winner_id:
                   type: number
@@ -938,7 +1007,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_TeamApiModel_"
       description: Get all teams with optional filtering
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: Optional country filter
           in: query
@@ -972,7 +1042,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TeamApiModel"
       description: Creates a new team
-      security: []
+      security:
+        - BearerAuth: []
       parameters: []
       requestBody:
         required: true
@@ -1008,7 +1079,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_TeamStats_"
       description: Retrieves stats for all teams
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: Maximum number of teams to include
           in: query
@@ -1039,7 +1111,8 @@ paths:
                   $ref: "#/components/schemas/TeamApiModel"
                 type: array
       description: Creates multiple teams from a bulk upload
-      security: []
+      security:
+        - BearerAuth: []
       parameters: []
       requestBody:
         description: Array of team data to create
@@ -1062,7 +1135,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TeamApiModel"
       description: Get a specific team by ID
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the team to retrieve
           in: path
@@ -1081,7 +1155,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TeamApiModel"
       description: Updates an existing team
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the team to update
           in: path
@@ -1119,7 +1194,8 @@ paths:
         "204":
           description: No content
       description: Deletes a team
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the team to delete
           in: path
@@ -1139,7 +1215,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TeamStats"
       description: Retrieves stats for a specific team
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the team to retrieve stats for
           in: path
@@ -1161,7 +1238,8 @@ paths:
                   $ref: "#/components/schemas/PlayerApiModel"
                 type: array
       description: Retrieves all players for a specific team
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the team to retrieve players for
           in: path
@@ -1181,7 +1259,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/RoundStateApiModel"
       description: Play a full round in a game
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game
           in: path
@@ -1208,7 +1287,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/RoundStateApiModel"
       description: Play a single duel in a round
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game
           in: path
@@ -1233,9 +1313,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GameLogApiModel"
+                allOf:
+                  - $ref: "#/components/schemas/GameLogApiModel"
+                nullable: true
       description: Get the last duel in a game
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game
           in: path
@@ -1257,7 +1340,8 @@ paths:
                   $ref: "#/components/schemas/GameLogApiModel"
                 type: array
       description: Get logs for the last round in a game
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game
           in: path
@@ -1279,7 +1363,8 @@ paths:
                   $ref: "#/components/schemas/GameLogApiModel"
                 type: array
       description: Get logs for a specific round in a game
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game
           in: path
@@ -1306,7 +1391,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_PlayerApiModel_"
       description: Get all players with optional filtering
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: Optional team ID to filter by
           in: query
@@ -1341,7 +1427,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/PlayerApiModel"
       description: Creates a new player
-      security: []
+      security:
+        - BearerAuth: []
       parameters: []
       requestBody:
         description: The player data to create
@@ -1362,7 +1449,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_AllPlayerStats_"
       description: Retrieves stats for all players
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: Maximum number of players to include
           in: query
@@ -1391,7 +1479,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/PlayerApiModel"
       description: Get a specific player by ID
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the player to retrieve
           in: path
@@ -1410,7 +1499,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/PlayerApiModel"
       description: Updates an existing player
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the player to update
           in: path
@@ -1433,7 +1523,8 @@ paths:
         "204":
           description: No content
       description: Deletes a player
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the player to delete
           in: path
@@ -1453,7 +1544,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/AllPlayerStats"
       description: Retrieves stats for a specific player
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the player to retrieve stats for
           in: path
@@ -1475,7 +1567,8 @@ paths:
                   $ref: "#/components/schemas/PlayerApiModel"
                 type: array
       description: Creates multiple players from a bulk upload
-      security: []
+      security:
+        - BearerAuth: []
       parameters: []
       requestBody:
         description: Array of player data to create
@@ -1498,7 +1591,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/MatchApiModel"
       description: Retrieves a specific match by its ID
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the match to retrieve
           in: path
@@ -1518,7 +1612,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ItemsWithPagination_MatchApiModel_"
       description: Retrieves all matches with optional filtering
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: Filter matches by tournament ID
           in: query
@@ -1554,7 +1649,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/GameApiModel"
       description: Retrieves a specific game by its ID
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game to retrieve
           in: path
@@ -1570,7 +1666,8 @@ paths:
         "200":
           description: Game played successfully
       description: Plays a game and completes it with simulated results
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game to play
           in: path
@@ -1592,7 +1689,8 @@ paths:
                   $ref: "#/components/schemas/GameApiModel"
                 type: array
       description: Retrieves games for a specific match
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the match to retrieve games for
           in: path
@@ -1612,7 +1710,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/GameStatsApiModel"
       description: Retrieves the stats for a specific game
-      security: []
+      security:
+        - BearerAuth: []
       parameters:
         - description: The ID of the game to retrieve stats for
           in: path
@@ -1622,4 +1721,5 @@ paths:
             format: double
             type: number
 servers:
-  - url: /api
+  - url: http://localhost:3000/.
+tags: []

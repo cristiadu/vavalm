@@ -12,10 +12,9 @@ const DuelService = {
    * Retrieves the last duel played in a game.
    *  
    * @param {number} game_id - The ID of the game.
-   * @returns {Promise<GameLog>} - A promise that resolves to the game log for the last duel played.
-   * @throws {Error} - Throws an error if no game logs are found for the specified game.
+   * @returns {Promise<GameLog | null>} - A promise that resolves to the game log for the last duel played or null if none found.
    */
-  getLastDuel: async (game_id: number): Promise<GameLog> => {
+  getLastDuel: async (game_id: number): Promise<GameLog | null> => {
     const lastDuelLog = await GameLog.findOne({
       where: { game_id },
       order: [['id', 'DESC']],
@@ -23,9 +22,10 @@ const DuelService = {
 
     if (!lastDuelLog) {
       console.warn(`No game logs found for game_id: ${game_id}`)
+      return null
     }
 
-    return lastDuelLog as GameLog
+    return lastDuelLog
   },
 
   /**

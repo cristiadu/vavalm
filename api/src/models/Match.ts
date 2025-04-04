@@ -47,6 +47,9 @@ export class Match extends Model implements BaseEntityModel {
       this.finished,
       this.winner_id,
       this.id,
+      this.team1?.toApiModel(),
+      this.team2?.toApiModel(),
+      this.games?.map(game => game.toApiModel()),
     )
     return apiModel
   }
