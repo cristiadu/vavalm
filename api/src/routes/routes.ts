@@ -17,10 +17,13 @@ import { PlayersController } from './../controllers/PlayersController';
 import { MatchController } from './../controllers/MatchController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { GameController } from './../controllers/GameController';
+import { expressAuthentication } from './../middleware/authentication';
+// @ts-ignore - no great way to install types from subpackage
 import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';
 const multer = require('multer');
 
 
+const expressAuthenticationRecasted = expressAuthentication as (req: ExRequest, securityName: string, scopes?: string[], res?: ExResponse) => Promise<any>;
 
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -392,7 +395,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
     
         const argsVlrImportController_importTeamsAndPlayersFromVLR: Record<string, TsoaRoute.ParameterSchema> = {
         };
-        app.post('/./vlr',
+        app.post('/api/vlr',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(VlrImportController)),
             ...(fetchMiddlewares<RequestHandler>(VlrImportController.prototype.importTeamsAndPlayersFromVLR)),
@@ -424,7 +427,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./tournaments',
+        app.get('/api/tournaments',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournaments)),
@@ -455,7 +458,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_getTournament: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
         };
-        app.get('/./tournaments/:tournamentId',
+        app.get('/api/tournaments/:tournamentId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournament)),
@@ -488,7 +491,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./tournaments/:tournamentId/schedule',
+        app.get('/api/tournaments/:tournamentId/schedule',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournamentSchedule)),
@@ -519,7 +522,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_getTournamentStandings: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
         };
-        app.get('/./tournaments/:tournamentId/standings',
+        app.get('/api/tournaments/:tournamentId/standings',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.getTournamentStandings)),
@@ -550,7 +553,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_createTournament: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"TournamentApiModel"},
         };
-        app.post('/./tournaments',
+        app.post('/api/tournaments',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.createTournament)),
@@ -582,7 +585,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"TournamentApiModel"},
         };
-        app.put('/./tournaments/:tournamentId',
+        app.put('/api/tournaments/:tournamentId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.updateTournament)),
@@ -613,7 +616,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTournamentController_startTournament: Record<string, TsoaRoute.ParameterSchema> = {
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
         };
-        app.post('/./tournaments/:tournamentId/start',
+        app.post('/api/tournaments/:tournamentId/start',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.startTournament)),
@@ -645,7 +648,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"winner_id":{"dataType":"double","required":true}}},
         };
-        app.post('/./tournaments/:tournamentId/end',
+        app.post('/api/tournaments/:tournamentId/end',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TournamentController)),
             ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.endTournament)),
@@ -678,7 +681,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./teams',
+        app.get('/api/teams',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeams)),
@@ -710,7 +713,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./teams/stats',
+        app.get('/api/teams/stats',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeamsStats)),
@@ -741,7 +744,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_createTeamsBulk: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"TeamApiModel"}},
         };
-        app.post('/./teams/bulk',
+        app.post('/api/teams/bulk',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.createTeamsBulk)),
@@ -772,7 +775,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_getTeam: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.get('/./teams/:teamId',
+        app.get('/api/teams/:teamId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeam)),
@@ -803,7 +806,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_getTeamStats: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.get('/./teams/:teamId/stats',
+        app.get('/api/teams/:teamId/stats',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeamStats)),
@@ -838,7 +841,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 country: {"in":"formData","name":"country","required":true,"dataType":"string"},
                 logo_image_file: {"in":"formData","name":"logo_image_file","dataType":"file"},
         };
-        app.post('/./teams',
+        app.post('/api/teams',
             authenticateMiddleware([{"BearerAuth":[]}]),
             upload.fields([
                 {
@@ -880,7 +883,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 country: {"in":"formData","name":"country","required":true,"dataType":"string"},
                 logo_image_file: {"in":"formData","name":"logo_image_file","dataType":"file"},
         };
-        app.put('/./teams/:teamId',
+        app.put('/api/teams/:teamId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             upload.fields([
                 {
@@ -917,7 +920,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_deleteTeam: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.delete('/./teams/:teamId',
+        app.delete('/api/teams/:teamId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.deleteTeam)),
@@ -948,7 +951,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsTeamsController_getTeamPlayers: Record<string, TsoaRoute.ParameterSchema> = {
                 teamId: {"in":"path","name":"teamId","required":true,"dataType":"double"},
         };
-        app.get('/./teams/:teamId/players',
+        app.get('/api/teams/:teamId/players',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(TeamsController)),
             ...(fetchMiddlewares<RequestHandler>(TeamsController.prototype.getTeamPlayers)),
@@ -980,7 +983,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
                 round: {"in":"path","name":"round","required":true,"dataType":"double"},
         };
-        app.post('/./games/:gameId/rounds/:round/play',
+        app.post('/api/games/:gameId/rounds/:round/play',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.playRound)),
@@ -1012,7 +1015,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
                 round: {"in":"path","name":"round","required":true,"dataType":"double"},
         };
-        app.post('/./games/:gameId/rounds/:round/duel',
+        app.post('/api/games/:gameId/rounds/:round/duel',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.playDuel)),
@@ -1043,7 +1046,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsRoundController_getLastDuel: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/./games/:gameId/rounds/last/duel',
+        app.get('/api/games/:gameId/rounds/last/duel',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.getLastDuel)),
@@ -1074,7 +1077,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsRoundController_getLastRound: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/./games/:gameId/rounds/last',
+        app.get('/api/games/:gameId/rounds/last',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.getLastRound)),
@@ -1106,7 +1109,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
                 round: {"in":"path","name":"round","required":true,"dataType":"double"},
         };
-        app.get('/./games/:gameId/rounds/:round',
+        app.get('/api/games/:gameId/rounds/:round',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(RoundController)),
             ...(fetchMiddlewares<RequestHandler>(RoundController.prototype.getRound)),
@@ -1139,7 +1142,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./players',
+        app.get('/api/players',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayers)),
@@ -1171,7 +1174,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./players/stats',
+        app.get('/api/players/stats',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayersStats)),
@@ -1202,7 +1205,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_getPlayer: Record<string, TsoaRoute.ParameterSchema> = {
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
         };
-        app.get('/./players/:playerId',
+        app.get('/api/players/:playerId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayer)),
@@ -1233,7 +1236,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_getPlayerStats: Record<string, TsoaRoute.ParameterSchema> = {
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
         };
-        app.get('/./players/:playerId/stats',
+        app.get('/api/players/:playerId/stats',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.getPlayerStats)),
@@ -1264,7 +1267,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_createPlayer: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"PlayerApiModel"},
         };
-        app.post('/./players',
+        app.post('/api/players',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.createPlayer)),
@@ -1295,7 +1298,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_createPlayersBulk: Record<string, TsoaRoute.ParameterSchema> = {
                 requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"}},
         };
-        app.post('/./players/bulk',
+        app.post('/api/players/bulk',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.createPlayersBulk)),
@@ -1327,7 +1330,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
                 requestBody: {"in":"body","name":"requestBody","required":true,"ref":"PlayerApiModel"},
         };
-        app.put('/./players/:playerId',
+        app.put('/api/players/:playerId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.updatePlayer)),
@@ -1358,7 +1361,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsPlayersController_deletePlayer: Record<string, TsoaRoute.ParameterSchema> = {
                 playerId: {"in":"path","name":"playerId","required":true,"dataType":"double"},
         };
-        app.delete('/./players/:playerId',
+        app.delete('/api/players/:playerId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayersController)),
             ...(fetchMiddlewares<RequestHandler>(PlayersController.prototype.deletePlayer)),
@@ -1389,7 +1392,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsMatchController_getMatch: Record<string, TsoaRoute.ParameterSchema> = {
                 matchId: {"in":"path","name":"matchId","required":true,"dataType":"double"},
         };
-        app.get('/./matches/:matchId',
+        app.get('/api/matches/:matchId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(MatchController)),
             ...(fetchMiddlewares<RequestHandler>(MatchController.prototype.getMatch)),
@@ -1422,7 +1425,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 offset: {"default":0,"in":"query","name":"offset","dataType":"double"},
         };
-        app.get('/./matches',
+        app.get('/api/matches',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(MatchController)),
             ...(fetchMiddlewares<RequestHandler>(MatchController.prototype.getMatches)),
@@ -1453,7 +1456,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_getGame: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/./games/:gameId',
+        app.get('/api/games/:gameId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.getGame)),
@@ -1484,7 +1487,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_playGame: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.post('/./games/:gameId/play',
+        app.post('/api/games/:gameId/play',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.playGame)),
@@ -1515,7 +1518,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_getGamesByMatch: Record<string, TsoaRoute.ParameterSchema> = {
                 matchId: {"in":"path","name":"matchId","required":true,"dataType":"double"},
         };
-        app.get('/./games/match/:matchId',
+        app.get('/api/games/match/:matchId',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.getGamesByMatch)),
@@ -1546,7 +1549,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsGameController_getGameStats: Record<string, TsoaRoute.ParameterSchema> = {
                 gameId: {"in":"path","name":"gameId","required":true,"dataType":"double"},
         };
-        app.get('/./games/:gameId/stats',
+        app.get('/api/games/:gameId/stats',
             authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(GameController)),
             ...(fetchMiddlewares<RequestHandler>(GameController.prototype.getGameStats)),

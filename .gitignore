@@ -30,3 +30,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 dist
+
+# env
+.env
+
+# python
+venv

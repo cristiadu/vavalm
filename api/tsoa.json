@@ -39,8 +39,10 @@
     }
   },
   "routes": {
+    "authenticationModule": "./src/middleware/authentication.ts",
+    "authenticationMiddleware": "expressAuthentication",
     "routesDir": "src/routes",
-    "basePath": "."
+    "basePath": "api"
   },
   "compilerOptions": {
     "baseUrl": ".",

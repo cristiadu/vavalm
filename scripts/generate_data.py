@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
+import os
+import jwt
 import requests
 import random
 import json
 import sys
 import argparse
 from datetime import datetime, timedelta
-import base64
 import math
 import zlib
-import uuid
-import io
+import dotenv
 
-# Try to import cairosvg for SVG to PNG conversion
 try:
     import cairosvg
     CAIROSVG_AVAILABLE = True
@@ -22,6 +21,22 @@ except ImportError:
 
 # API base URL
 API_BASE_URL = "http://localhost:8000/api"
+
+# JWT token for authentication
+JWT_TOKEN = None
+
+# Function to set the JWT token
+def set_jwt_token(token):
+    global JWT_TOKEN
+    JWT_TOKEN = token
+    print(f"JWT token set successfully: {JWT_TOKEN}")
+
+# Function to get headers with Authorization
+def get_auth_headers():
+    headers = {}
+    if JWT_TOKEN:
+        headers["Authorization"] = f"Bearer {JWT_TOKEN}"
+    return headers
 
 # Tournament types from API
 TOURNAMENT_TYPE = ["SINGLE_GROUP"]
@@ -343,7 +358,7 @@ def generate_unique_short_name(base_name):
 def fetch_teams():
     """Fetch teams from the API"""
     try:
-        response = requests.get(f"{API_BASE_URL}/teams")
+        response = requests.get(f"{API_BASE_URL}/teams", headers=get_auth_headers())
         if response.status_code == 200:
             data = response.json()
             return data.get("items", [])
@@ -663,7 +678,7 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
         try:
             print(f"Creating tournament: {name} in {country} with {len(valid_teams)} teams")
             print(f"Start: {tournament_start_date}, End: {tournament_end_date}")
-            response = requests.post(f"{API_BASE_URL}/tournaments", json=tournament_data)
+            response = requests.post(f"{API_BASE_URL}/tournaments", json=tournament_data, headers=get_auth_headers())
             
             if response.status_code == 201:
                 print(f"✅ Tournament created successfully with ID: {response.json().get('id')}")
@@ -796,7 +811,7 @@ def svg_to_png(svg_bytes):
 def fetch_players():
     """Fetch all players from the API to check for existing nicknames"""
     try:
-        response = requests.get(f"{API_BASE_URL}/players")
+        response = requests.get(f"{API_BASE_URL}/players", headers=get_auth_headers())
         if response.status_code == 200:
             data = response.json()
             return data.get("items", [])
@@ -908,6 +923,10 @@ def create_team_with_players(count=1, players_per_team=5):
                 'Content-Type': f'multipart/form-data; boundary={boundary}'
             }
             
+            # Add authorization header
+            auth_headers = get_auth_headers()
+            headers.update(auth_headers)
+            
             # Send the request with binary data
             team_response = requests.post(
                 f"{API_BASE_URL}/teams", 
@@ -997,7 +1016,7 @@ def create_player(count=1, team_id=None, display_team_info=True, country=None, e
             else:
                 print(f"Creating player: {nickname} ({role}) from {player_country}")
                 
-            player_response = requests.post(f"{API_BASE_URL}/players", json=player_data)
+            player_response = requests.post(f"{API_BASE_URL}/players", json=player_data, headers=get_auth_headers())
             
             if player_response.status_code == 201:
                 player_data["id"] = player_response.json().get("id")
@@ -1040,7 +1059,20 @@ def main():
     parser.add_argument("--team", type=int, help="Team ID to assign players to (for player generation)")
     parser.add_argument("--country", type=str, help="Country for the player(s) (for player generation)")
     
+    # Authentication options
+    parser.add_argument("--token", type=str, help="JWT token for API authentication")
+    
     args = parser.parse_args()
+
+    dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), '../api/.env'))
+    
+    # Set JWT token if provided
+    if args.token:
+        set_jwt_token(args.token)
+    else:
+        print(f"JWT token not provided, creating one with secret: {os.getenv('JWT_SECRET')}")
+        token = jwt.encode({'username': 'admin'}, os.getenv('JWT_SECRET'), algorithm='HS256')
+        set_jwt_token(token)
     
     if args.type == "tournament":
         create_tournament(args.count, args.start_date, args.end_date, args.teams)
@@ -1065,6 +1097,8 @@ if __name__ == "__main__":
         print("  ./generate_data.py player 3 --team=1   # Generate 3 players assigned to team with ID 1")
         print("  ./generate_data.py player 2 --team=1 --country=\"South Korea\"")
         print("                                         # Generate 2 Korean players assigned to team with ID 1")
+        print("  ./generate_data.py tournament 1 --token=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"")
+        print("                                         # Generate a tournament with JWT authentication")
         sys.exit(1)
     
     main() 

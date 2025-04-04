@@ -1,5 +1,4 @@
 import { getRandomTimeBetweenHourInterval } from "@/base/DateUtils"
-import { Op } from 'sequelize'
 
 import Team from "@/models/Team"
 import Player from "@/models/Player"

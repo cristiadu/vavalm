@@ -8,11 +8,13 @@ import fs from 'fs'
 import path from 'path'
 import setupTestData from './bootstrap/Bootstrap'
 import db from './models/db'
-
+import dotenv from 'dotenv'
 import SchedulerService from '@/services/SchedulerService'
 
 const app = express()
 const port = process.env.PORT || 8000
+
+dotenv.config()
 
 // Database connection health tracking
 let dbConnectionHealthy = true
@@ -81,6 +83,7 @@ app.get('/health', async (_req, res) => {
 
 // Register routes using TSOA's RegisterRoutes function
 RegisterRoutes(app)
+
 
 // Serve swagger docs
 const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/api/openapi.yaml'), 'utf8')
