@@ -49,8 +49,7 @@ const monitorPool = (): void => {
     try {
       const connection = await pool.getConnection({ type: 'read' })
       console.log('Pool status - Connection available')
-      const connWithRelease = connection as { release: () => void }
-      connWithRelease.release()
+      pool.releaseConnection(connection)
     } catch {
       console.log('Pool status - No connection available')
     }

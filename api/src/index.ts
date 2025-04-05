@@ -155,12 +155,10 @@ const gracefulShutdown = (): void => {
 process.on('SIGTERM', gracefulShutdown)
 process.on('SIGINT', gracefulShutdown)
 
-// Initialize database and start server
 const initializeApp = async (): Promise<void> => {  
   try {
     const forceSync = process.env.FORCE_SYNC === 'true'
     
-    // Initialize database connection
     await db.initializeDatabase()
     
     // Sync database schema

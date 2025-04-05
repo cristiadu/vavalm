@@ -5,10 +5,10 @@ import { Match } from "@/api/models/Tournament"
 import { fetchCountries } from "@/api/CountryApi"
 import { Country } from "@/api/models/Country"
 import { getMatch } from "@/api/GameApi"
-import GamePicker from "@/tournaments/[tourneyId]/logs/[matchId]/games/GamePicker"
+import GamePicker from "@/components/games/GamePicker"
 import SectionHeader from "@/base/SectionHeader"
-import MatchHeader from "@/tournaments/[tourneyId]/logs/[matchId]/MatchHeader"
-import GameView from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameView"
+import MatchHeader from "@/components/MatchHeader"
+import GameView from "@/components/games/GameView"
 
 // Create a simple cache to store match data
 const matchCache = new Map<number, Match>()

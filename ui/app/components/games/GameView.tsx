@@ -7,9 +7,9 @@ import { getGame, getGameStats, playFullGame, getMatch } from "@/api/GameApi"
 import { getLastDuel } from "@/api/DuelApi"
 import { playFullRound } from "@/api/RoundApi"
 import { playSingleDuel } from "@/api/DuelApi"
-import GameHeader from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameHeader"
-import GameLogsTable from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameLogsTable"
-import GameTeamStats from "@/tournaments/[tourneyId]/logs/[matchId]/games/GameTeamStats"
+import GameHeader from "@/components/games/GameHeader"
+import GameLogsTable from "@/components/games/GameLogsTable"
+import GameTeamStats from "@/components/games/GameTeamStats"
 
 type GameViewProps = {
   gameId: number
