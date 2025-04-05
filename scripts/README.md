@@ -6,7 +6,7 @@ This directory contains utility scripts for the VAVALM application, designed to 
 
 1. Install dependencies:
    ```bash
-   pip install requests
+   pip install -r requirements.txt
    ```
 
 2. Make sure the VAVALM API is running on http://localhost:8000.
