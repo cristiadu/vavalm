@@ -12,7 +12,7 @@ export class TeamApiModel extends BaseEntityModel {
     public full_name?: string,
     public description?: string,
     public country?: string,
-    public logo_image_file?: string,
+    public logo_image_file?: Buffer | null,
     public id?: number,
   ) {
     super()
@@ -34,7 +34,7 @@ export class TeamApiModel extends BaseEntityModel {
       full_name: this.full_name || "",
       description: this.description || "",
       country: this.country || "",
-      logo_image_file: this.logo_image_file ? Buffer.from(this.logo_image_file, 'base64') : null,
+      logo_image_file: this.logo_image_file,
     })
   }
 

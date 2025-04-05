@@ -10,6 +10,7 @@ import { asWord } from '@/base/StringUtils'
 import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
 import SectionHeader from '@/base/SectionHeader'
 import ImageAutoSize from '@/base/ImageAutoSize'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 type Params = Promise<{ playerId: string }>
 
@@ -91,7 +92,7 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
               <span className="flex items-center ml-2">
                 <ImageAutoSize 
                   imageBlob={team.logo_image_file as Blob} 
-                  fallbackSrc="/images/nologo.svg" 
+                  fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH} 
                   alt={team.short_name} 
                   width={32} 
                   height={32} 

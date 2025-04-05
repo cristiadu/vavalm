@@ -1,19 +1,12 @@
 import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
 import { ItemsWithPagination } from "@/api/models/types"
-import { Team, TeamStats, TeamWithLogoImageData } from "@/api/models/Team"
+import { parseLogoImageFile, Team, TeamStats, TeamWithLogoImageData } from "@/api/models/Team"
 
 export const fetchAllTeams = async (closure: (_teamData: Team[]) => void): Promise<Team[]> => {
   const response = await fetch(`${getApiBaseUrl()}/teams`)
   const data = await response.json()
-  // Convert Buffer to Blob
   const teamsWithBlob = data.items.map((team: TeamWithLogoImageData) => {
-    if (team.logo_image_file) {
-      const blob = team.logo_image_file instanceof Blob 
-        ? team.logo_image_file 
-        : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-      return { ...team, logo_image_file: blob }
-    }
-    return team
+    return parseLogoImageFile<Team>(team)
   })
   closure(teamsWithBlob)
   return teamsWithBlob as Team[]
@@ -22,15 +15,8 @@ export const fetchAllTeams = async (closure: (_teamData: Team[]) => void): Promi
 export const fetchTeams = async (closure: (_teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Team>> => {
   const response = await fetch(`${getApiBaseUrl()}/teams?limit=${limit}&offset=${offset}`)
   const data = await response.json()
-  // Convert Buffer to Blob
   const teamsWithBlob = data.items.map((team: TeamWithLogoImageData) => {
-    if (team.logo_image_file) {
-      const blob = team.logo_image_file instanceof Blob 
-        ? team.logo_image_file 
-        : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-      return { ...team, logo_image_file: blob }
-    }
-    return team
+    return parseLogoImageFile<Team>(team)
   })
   const result = { total: data.total, items: teamsWithBlob }
   closure(result)
@@ -41,13 +27,7 @@ export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination<T
   const response = await fetch(`${getApiBaseUrl()}/teams/stats?limit=${limit}&offset=${offset}`)
   const data = await response.json()
   const teamsWithBlob = data.items.map((team: TeamWithLogoImageData) => {
-    if (team.logo_image_file) {
-      const blob = team.logo_image_file instanceof Blob 
-        ? team.logo_image_file 
-        : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-      return { ...team, logo_image_file: blob }
-    }
-    return team
+    return parseLogoImageFile<Team>(team)
   })
   const result = { total: data.total, items: teamsWithBlob }
   closure(result)
@@ -56,36 +36,19 @@ export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination<T
 
 export const fetchTeam = async (teamId: number, closure: (_teamData: Team) => void): Promise<Team | null> => {
   const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}`)
-  const data = await response.json()
-  // Convert Buffer to Blob
-  if (data.logo_image_file) {
-    const blob = data.logo_image_file instanceof Blob 
-      ? data.logo_image_file 
-      : new Blob([new Uint8Array(data.logo_image_file.data)], { type: 'image/png' })
-    const result = { ...data, logo_image_file: blob }
-    closure(result)
-    return result as Team
-  } else {
-    closure(data)
-    return data as Team
-  }
+  const data = await response.json() as TeamWithLogoImageData
+  const team = parseLogoImageFile<Team>(data)
+  closure(team)
+  return team as Team
 }
 
 export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamStats) => void): Promise<TeamStats | null> => {
   const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}/stats`)
-  const data = await response.json()
-  // Convert Buffer to Blob
-  if (data.team.logo_image_file) {
-    const blob = data.team.logo_image_file instanceof Blob 
-      ? data.team.logo_image_file 
-      : new Blob([new Uint8Array(data.team.logo_image_file.data)], { type: 'image/png' })
-    const result = { ...data, team: { ...data.team, logo_image_file: blob } }
-    closure(result)
-    return result as TeamStats
-  } else {
-    closure(data)
-    return data as TeamStats
-  }
+  const data = await response.json() as TeamStats
+  const teamWithLogoImageData = parseLogoImageFile<Team>(data.team)
+  const result = { ...data, team: teamWithLogoImageData }
+  closure(result)
+  return result as TeamStats
 }
   
 export const newTeam = async (team: Team, closure: (_teamData: Team) => void): Promise<Team | null> => {

@@ -26,7 +26,7 @@ export class Team extends Model {
       this.full_name,
       this.description,
       this.country,
-      this.logo_image_file ? this.logo_image_file.toString("base64") : undefined,
+      this.logo_image_file,
       this.id,
     )
   }

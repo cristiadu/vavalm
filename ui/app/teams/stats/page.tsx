@@ -7,9 +7,10 @@ import { ItemsWithPagination } from '@/api/models/types'
 import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
 import Pagination from '@/base/Pagination'
-import { TeamStats, TeamWithLogoImageData } from '@/api/models/Team'
+import { parseLogoImageFile, Team, TeamStats, TeamWithLogoImageData } from '@/api/models/Team'
 import SectionHeader from '@/base/SectionHeader'
 import ImageAutoSize from '@/base/ImageAutoSize'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 const thresholds = {
   tournamentsWon: { high: 1 },
@@ -47,15 +48,9 @@ const TeamsStatsPage = (): React.ReactNode => {
     if (data.total > 0) {
       setTotalItems(data.total)
       const items = data.items.map((item: TeamStats) => {
-        const team = item.team as TeamWithLogoImageData
-        if (team.logo_image_file && 'data' in team.logo_image_file) {
-          const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-          item.team.logo_image_file = blob
-        }
-        return item
+        return { ...item, team: parseLogoImageFile<Team>(item.team) }
       })
       setTeamsStats(items)
-      console.log(data.items[0].team.logo_image_file)
     }
   }
 
@@ -104,7 +99,7 @@ const TeamsStatsPage = (): React.ReactNode => {
                 <span className="flex items-center">
                   <ImageAutoSize
                     imageBlob={stats.team.logo_image_file as Blob}
-                    fallbackSrc="/images/nologo.svg"
+                    fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                     alt={stats.team.short_name}
                     width={32} height={32}
                     className="mr-2" />

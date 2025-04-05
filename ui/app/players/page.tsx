@@ -14,6 +14,7 @@ import Pagination from '@/base/Pagination'
 import { ItemsWithPagination } from '@/api/models/types'
 import SectionHeader from '@/base/SectionHeader'
 import ImageAutoSize from '@/base/ImageAutoSize'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 const DEFAULT_LIMIT_VALUE_PLAYER_LIST = 5 // Return to original value
 
@@ -189,7 +190,7 @@ export default function ListPlayers(): React.ReactNode {
                       <span className="flex items-center">
                         <ImageAutoSize 
                           imageBlob={playerToTeam[String(player.id)].logo_image_file as Blob}
-                          fallbackSrc="/images/nologo.svg"
+                          fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                           alt={playerToTeam[String(player.id)].short_name} 
                           width={32} 
                           height={32} 

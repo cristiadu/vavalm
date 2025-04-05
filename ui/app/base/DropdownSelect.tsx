@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import ImageAutoSize from '@/base/ImageAutoSize'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 interface DropdownSelectProps<T> {
   dropdownName: string
@@ -66,7 +67,7 @@ const DropdownSelect = <T,>({
                 {imageKey && (
                   <ImageAutoSize
                     imageBlob={selectedItem[imageKey] as Blob}
-                    fallbackSrc="/images/nologo.svg"
+                    fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                     src={selectedItem[imageKey] && !(selectedItem[imageKey] instanceof Blob) ? selectedItem[imageKey] as string: undefined}
                     alt={selectedItem[displayKey] as string}
                     width={imageDimensions.width}
@@ -101,7 +102,7 @@ const DropdownSelect = <T,>({
               {imageKey && (
                 <ImageAutoSize
                   imageBlob={item[imageKey] as Blob}
-                  fallbackSrc="/images/nologo.svg"
+                  fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                   src={item[imageKey] && !(item[imageKey] instanceof Blob) ? item[imageKey] as string: undefined}
                   alt={item[displayKey] as string}
                   width={imageDimensions.width}

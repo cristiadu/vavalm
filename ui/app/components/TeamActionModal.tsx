@@ -13,6 +13,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { quill_config } from '@/base/Configs'
 import DropdownSelect from '@/base/DropdownSelect'
 import ImageAutoSize from '@/base/ImageAutoSize'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
@@ -73,7 +74,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
   const closeModal = (): void => {
     onClose()
     setInitialValues(true)
-    setImageSrc('/images/nologo.svg')
+    setImageSrc(DEFAULT_TEAM_LOGO_IMAGE_PATH)
     setValidationError(null)
   }
 

@@ -10,7 +10,7 @@ import TournamentActionModal from '@/components/TournamentActionModal'
 import { asSafeHTML } from '@/base/StringUtils'
 import { ItemsWithPagination } from '@/api/models/types'
 import Pagination from '@/base/Pagination'
-import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import SectionHeader from '@/base/SectionHeader'
 import ImageAutoSize from '@/base/ImageAutoSize'
 
@@ -142,7 +142,7 @@ export default function ListTournaments(): React.ReactNode {
                       <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center mb-2">
                         <ImageAutoSize 
                           imageBlob={team.logo_image_file as Blob}
-                          fallbackSrc="/images/nologo.svg"
+                          fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                           alt={team.short_name} 
                           width={32} height={32} 
                           className="mr-2" />

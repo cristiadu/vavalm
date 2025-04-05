@@ -90,6 +90,8 @@ components:
           type: string
         logo_image_file:
           type: string
+          format: byte
+          nullable: true
         id:
           type: number
           format: double

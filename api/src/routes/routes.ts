@@ -81,7 +81,7 @@ const models: TsoaRoute.Models = {
             "full_name": {"dataType":"string"},
             "description": {"dataType":"string"},
             "country": {"dataType":"string"},
-            "logo_image_file": {"dataType":"string"},
+            "logo_image_file": {"dataType":"union","subSchemas":[{"dataType":"buffer"},{"dataType":"enum","enums":[null]}]},
             "id": {"dataType":"double"},
         },
         "additionalProperties": true,

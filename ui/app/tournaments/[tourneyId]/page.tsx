@@ -7,11 +7,11 @@ import { fetchTournamentMatchSchedule, getTournament } from '@/api/TournamentsAp
 import { Match, Tournament } from '@/api/models/Tournament'
 import 'react-quill-new/dist/quill.snow.css'
 import { asFormattedDate, asSafeHTML } from '@/base/StringUtils'
-import { getWinOrLossColor } from '@/api/models/Team'
+import { getWinOrLossColor, urlObjectLogoOrDefault } from '@/api/models/Team'
 import SectionHeader from '@/base/SectionHeader'
 import { sortByDate } from '@/base/UIUtils'
 import Pagination from '@/base/Pagination'
-import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import ImageAutoSize from '@/base/ImageAutoSize'
 import { Country } from '@/api/models/Country'
 
@@ -70,7 +70,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
     router.push(`/tournaments/${tournament.id}/logs/${matchId}`)
   }
 
-  const teamsToLogoSrc: Map<number, string> = new Map(tournament.teams.map(team => [team.id!, team.logo_image_file ? URL.createObjectURL(team.logo_image_file) : "/images/nologo.svg"]))
+  const teamsToLogoSrc: Map<number, string> = new Map(tournament.teams.map(team => [team.id!, urlObjectLogoOrDefault(team)]))
   const tournamentWinner = tournament.winner_id ? tournament.teams.find(team => team.id === tournament.winner_id) : null
 
   return (
@@ -100,7 +100,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
             {tournament.teams && tournament.teams.map(team => (
               <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center space-x-2">
                 <ImageAutoSize 
-                  src={team.id && teamsToLogoSrc.get(team.id) ? teamsToLogoSrc.get(team.id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
+                  src={team.id && teamsToLogoSrc.get(team.id) ? teamsToLogoSrc.get(team.id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
                   alt={team.short_name} 
                   width={32} 
                   height={32} 
@@ -117,7 +117,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <ImageAutoSize 
-                src={tournamentWinner?.id && tournament.ended ? teamsToLogoSrc.get(tournamentWinner.id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
+                src={tournamentWinner?.id && tournament.ended ? teamsToLogoSrc.get(tournamentWinner.id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
                 alt={tournamentWinner?.short_name || "No Team Yet"} 
                 width={32} 
                 height={32} 
@@ -150,7 +150,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
                     <td className="py-2 px-2 border-b text-center bg-gray-100">{standing.position}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">
                       <ImageAutoSize 
-                        src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? "/images/nologo.svg" : "/images/nologo.svg"} 
+                        src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
                         alt={standing.team?.short_name} 
                         width={32} 
                         height={32} 
@@ -195,7 +195,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
                       <td className="py-2 border-b items-center">
                         <div className="flex items-center space-x-2">
                           <ImageAutoSize 
-                            src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
+                            src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
                             alt={match.team1.short_name} 
                             width={32} 
                             height={32} 
@@ -207,7 +207,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
                       <td className="py-2 border-b items-center">
                         <div className="flex items-center space-x-2">
                           <ImageAutoSize 
-                            src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? "/images/nologo.svg" : "/images/nologo.svg"}
+                            src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
                             alt={match.team2.short_name} 
                             width={32} 
                             height={32} 

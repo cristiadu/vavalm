@@ -12,7 +12,7 @@ import { asSafeHTML } from '@/base/StringUtils'
 import { fetchPlayersByTeam } from '@/api/PlayersApi'
 import { getRoleBgColor, Player } from '@/api/models/Player'
 import Pagination from '@/base/Pagination'
-import { PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import SectionHeader from '@/base/SectionHeader'
 import ImageAutoSize from '@/base/ImageAutoSize'
 import { Country } from '@/api/models/Country'
@@ -154,7 +154,7 @@ export default function ListTeams(): React.ReactNode {
                     width={128}
                     height={128}
                     imageBlob={team.logo_image_file as Blob}
-                    fallbackSrc="/images/nologo.svg"
+                    fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                     alt={`${team.short_name} logo`}
                     className='rounded-lg w-24 h-24 shadow-lg'
                   />

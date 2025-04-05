@@ -1,5 +1,7 @@
 import { getApiBaseUrl } from "@/api/models/constants"
 import { Game, GameStats, Match } from "@/api/models/Tournament"
+import { Team, TeamWithLogoImageData } from "./models/Team"
+import { parseLogoImageFile } from "./models/Team"
 
 export const playFullGame = async (
   game_id: number,
@@ -46,21 +48,9 @@ export const getMatch = async (match_id: number, closure: (_response: Match) => 
       throw new Error(`Network response was not ok: ${response.statusText}`)
     }
 
-    const data = await response.json()
-    // Convert Buffer to Blob for team logos
-    if (data.team1?.logo_image_file) {
-      data.team1.logo_image_file = new Blob(
-        [new Uint8Array(data.team1.logo_image_file.data)],
-        { type: "image/png" },
-      )
-    }
-
-    if (data.team2?.logo_image_file) {
-      data.team2.logo_image_file = new Blob(
-        [new Uint8Array(data.team2.logo_image_file.data)],
-        { type: "image/png" },
-      )
-    }
+    const data = await response.json() as Match
+    data.team1 = parseLogoImageFile<Team>(data.team1 as TeamWithLogoImageData)
+    data.team2 = parseLogoImageFile<Team>(data.team2 as TeamWithLogoImageData)
 
     closure(data)
     console.debug("Success:", data)
@@ -118,22 +108,9 @@ export const getGameStats = async (game_id: number, closure: (_response: GameSta
       throw new Error(`Network response was not ok: ${response.statusText}`)
     }
 
-    const data = await response.json()
-
-    // Convert Buffer to Blob for team logos
-    if (data?.team1?.logo_image_file) {
-      data.team1.logo_image_file = new Blob(
-        [new Uint8Array(data.team1.logo_image_file.data)],
-        { type: "image/png" },
-      )
-    }
-
-    if (data?.team2?.logo_image_file) {
-      data.team2.logo_image_file = new Blob(
-        [new Uint8Array(data.team2.logo_image_file.data)],
-        { type: "image/png" },
-      )
-    }
+    const data = await response.json() as GameStats
+    data.team1 = parseLogoImageFile<Team>(data.team1 as TeamWithLogoImageData)
+    data.team2 = parseLogoImageFile<Team>(data.team2 as TeamWithLogoImageData)
 
     closure(data)
     console.debug("Success:", data)

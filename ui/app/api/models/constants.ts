@@ -9,3 +9,5 @@ export const getApiBaseUrl = (): string => {
 
 // Amount of time to wait for API responses before timing out
 export const API_TIMEOUT_MS: number = 8000 // 8 seconds
+
+export const DEFAULT_TEAM_LOGO_IMAGE_PATH: string = '/images/nologo.svg'

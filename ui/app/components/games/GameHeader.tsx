@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { getWinOrLossColor } from '@/api/models/Team'
+import { getWinOrLossColor, urlObjectLogoOrDefault } from '@/api/models/Team'
 import { Country } from '@/api/models/Country'
 import { Game } from '@/api/models/Tournament'
 import ImageAutoSize from '@/base/ImageAutoSize'
@@ -12,15 +12,11 @@ interface GameHeaderProps {
 
 const GameHeader: React.FC<GameHeaderProps> = ({ game, team1Country, team2Country }) => {
   const team1LogoUrl = useMemo(() => {
-    return game.stats?.team1?.logo_image_file
-      ? URL.createObjectURL(game.stats.team1.logo_image_file)
-      : "/images/nologo.svg"
+    return urlObjectLogoOrDefault(game.stats?.team1)
   }, [game.stats?.team1?.logo_image_file])
 
   const team2LogoUrl = useMemo(() => {
-    return game.stats?.team2?.logo_image_file
-      ? URL.createObjectURL(game.stats.team2.logo_image_file)
-      : "/images/nologo.svg"
+    return urlObjectLogoOrDefault(game.stats?.team2)
   }, [game.stats?.team2?.logo_image_file])
 
   return (

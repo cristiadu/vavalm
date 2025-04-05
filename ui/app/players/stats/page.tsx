@@ -12,6 +12,7 @@ import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
 import Pagination from '@/base/Pagination'
 import SectionHeader from '@/base/SectionHeader'
 import ImageAutoSize from '@/base/ImageAutoSize'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 const thresholds = {
   kda: { high: 1.8, medium: 0.9 },
@@ -124,7 +125,7 @@ const PlayersStatsPage = (): React.ReactNode => {
                   <span className="flex items-center">
                     <ImageAutoSize
                       imageBlob={playerToTeam[String(stats.player.id)].logo_image_file as Blob}
-                      fallbackSrc="/images/nologo.svg"
+                      fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                       alt={playerToTeam[String(stats.player.id)].short_name}
                       width={32}
                       height={32}

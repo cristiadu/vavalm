@@ -1,5 +1,6 @@
 import { PlayerWithFlag } from "@/api/models/Player"
 import { GameStats, Match } from "@/api/models/Tournament"
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from "@/api/models/constants"
 
 export interface Team {
   short_name: string
@@ -13,6 +14,22 @@ export interface Team {
 
 export interface TeamWithLogoImageData extends Omit<Team, 'logo_image_file'> {
   logo_image_file?: { data: number[] } | Blob | null
+}
+
+export const parseLogoImageFile = <T extends TeamWithLogoImageData>(team: TeamWithLogoImageData): T => {
+  if (team.logo_image_file && 'data' in team.logo_image_file) {
+    const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
+    team.logo_image_file = blob
+  }
+
+  return team as T
+}
+
+export const urlObjectLogoOrDefault = (team: Team): string => {
+  if (team.logo_image_file) {
+    return URL.createObjectURL(team.logo_image_file)
+  }
+  return DEFAULT_TEAM_LOGO_IMAGE_PATH
 }
 
 export interface TeamStats {

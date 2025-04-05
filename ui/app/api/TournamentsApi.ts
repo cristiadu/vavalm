@@ -1,21 +1,14 @@
 import { ItemsWithPagination } from "@/api/models/types"
 import { Match, Standing, Tournament } from "@/api/models/Tournament"
 import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
-import { Team, TeamWithLogoImageData } from "@/api/models/Team"
+import { parseLogoImageFile, Team, TeamWithLogoImageData } from "@/api/models/Team"
 
 export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Tournament>> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments?limit=${limit}&offset=${offset}`)
   const data = await response.json()
-  // Convert Buffer to Blob for team logos
   const tournamentwithBlob = data.items.map((tournament: Tournament) => {
     const teamsWithBlob = tournament.teams.map((team: TeamWithLogoImageData) => {
-      if (team.logo_image_file) {
-        const blob = team.logo_image_file instanceof Blob 
-          ? team.logo_image_file 
-          : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-        return { ...team, logo_image_file: blob }
-      }
-      return team
+      return parseLogoImageFile<Team>(team)
     })
     return { ...tournament, teams: teamsWithBlob }
   })
@@ -34,15 +27,8 @@ export const fetchTournamentMatchSchedule = async (tournamentId: number, closure
 export const getTournament = async (tournamentId: number, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
   const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
   const data = await response.json()
-  // Convert Buffer to Blob for team logos
   const teamsWithBlob = data.teams?.map((team: TeamWithLogoImageData) => {
-    if (team.logo_image_file) {
-      const blob = team.logo_image_file instanceof Blob 
-        ? team.logo_image_file 
-        : new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-      return { ...team, logo_image_file: blob }
-    }
-    return team
+    return parseLogoImageFile<Team>(team)
   })
 
   const standingsWithTeamsRef = data.standings?.map((standing: Standing) => {
