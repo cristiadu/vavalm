@@ -13,11 +13,7 @@ export class TeamApiModel extends BaseEntityModel {
     public full_name?: string,
     public description?: string,
     public country?: string,
-    /** 
-     * @tsoaProperty
-     * @tsoaFormat "binary"
-     */
-    public logo_image_file?: Blob | null,
+    public logo_image_file?: File | null,
     public id?: number,
     public players?: PlayerApiModel[],
   ) {

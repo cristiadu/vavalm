@@ -8,7 +8,7 @@ import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
 export class Team extends Model {
   declare id?: number
-  declare logo_image_file: Blob | null
+  declare logo_image_file: File | null
   declare short_name: string
   declare full_name: string
   declare description: string

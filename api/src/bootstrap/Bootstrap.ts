@@ -7,6 +7,7 @@ import { MatchType } from "@/models/enums"
 
 import TournamentService from "@/services/TournamentService"
 import MatchService from "@/services/MatchService"
+import { downloadImage } from "@/base/FileUtils"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' || false
 
@@ -17,13 +18,22 @@ const setupTestData = async (): Promise<void> => {
     const teamsData = await import('./json/bootstrap_teams.json', { assert: { type: 'json' } })
     for (const teamData of teamsData.default) {
       console.debug('Creating team with data:', teamData)
-  
+
       // Fetch the image from the URL and convert it to an ArrayBuffer
-      const response = await fetch(teamData.imageLogo)
-      const arrayBuffer = await response.arrayBuffer()
-  
-      // Convert the ArrayBuffer to a Blob
-      const logoImageBuffer = new Blob([arrayBuffer])
+      const file = await downloadImage(teamData.imageLogo)
+      const arrayBuffer = await file?.arrayBuffer()
+
+      if (!arrayBuffer) {
+        console.warn('Failed to download image for team:', teamData.short_name)
+        continue
+      }
+
+      const fileTypeBlob = file?.type || 'image/png'
+      const fileTypeFile = fileTypeBlob.split('/')[1]
+      const fileName = file?.name || `logo-team-${teamData.id}.${fileTypeFile}`
+
+      // Convert the ArrayBuffer to a File
+      const logoImageBuffer = new File([arrayBuffer], fileName, { type: fileTypeFile })
   
       // Create the team with the logo image file
       await Team.create({ ...teamData, logo_image_file: logoImageBuffer, id: undefined })

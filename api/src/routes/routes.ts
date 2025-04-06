@@ -74,7 +74,7 @@ const models: TsoaRoute.Models = {
         "enums": ["SINGLE_GROUP"],
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "buffer.Blob": {
+    "buffer.File": {
         "dataType": "refObject",
         "properties": {
         },
@@ -126,7 +126,7 @@ const models: TsoaRoute.Models = {
             "full_name": {"dataType":"string"},
             "description": {"dataType":"string"},
             "country": {"dataType":"string"},
-            "logo_image_file": {"dataType":"union","subSchemas":[{"ref":"buffer.Blob"},{"dataType":"enum","enums":[null]}]},
+            "logo_image_file": {"dataType":"union","subSchemas":[{"ref":"buffer.File"},{"dataType":"enum","enums":[null]}]},
             "id": {"dataType":"double"},
             "players": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"}},
         },

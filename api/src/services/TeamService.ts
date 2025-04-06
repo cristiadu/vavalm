@@ -17,13 +17,13 @@ import Team from '@/models/Team'
  */
 export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
   // Upsert a team entry
-  const logoBlob = await downloadImage(teamData.logo_url)
+  const logoFile = await downloadImage(teamData.logo_url)
 
   const [team, created] = await Team.upsert({
     short_name: teamData.short_name,
     full_name: teamData.full_name,
     country: teamData.country,
-    logo_image_file: logoBlob,
+    logo_image_file: logoFile,
   }, {
     returning: true,
     conflictFields: ['short_name'], // Ensure upsert is based on unique constraint

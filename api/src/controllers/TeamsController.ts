@@ -113,7 +113,7 @@ export class TeamsController extends Controller {
     @FormField() full_name: string,
     @FormField() description: string,
     @FormField() country: string,
-    @UploadedFile() logo_image_file?: Blob,
+    @UploadedFile() logo_image_file?: File,
   ): Promise<TeamApiModel> {
     if (!short_name || !full_name || !country) {
       this.setStatus(400)
@@ -144,7 +144,7 @@ export class TeamsController extends Controller {
     @FormField() full_name: string,
     @FormField() description: string,
     @FormField() country: string,
-    @UploadedFile() logo_image_file?: Blob,
+    @UploadedFile() logo_image_file?: File,
   ): Promise<TeamApiModel> {
     const team = await Team.findByPk(teamId)
     if (!team) {
@@ -157,7 +157,8 @@ export class TeamsController extends Controller {
     team.description = description
     team.country = country
     if (logo_image_file) {
-      team.logo_image_file = logo_image_file
+      const arrayBuffer = await logo_image_file.arrayBuffer()
+      team.logo_image_file = new Blob([arrayBuffer], { type: logo_image_file.type })
     }
     
     await team.save()

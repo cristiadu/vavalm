@@ -78,20 +78,18 @@ components:
       enum:
         - SINGLE_GROUP
       type: string
-    buffer.Blob:
+    buffer.File:
       description: >-
-        A file-like object of immutable, raw data. Blobs represent data that
-        isn't necessarily in a JavaScript-native format. The File interface is
-        based on Blob, inheriting blob functionality and expanding it to support
-        files on the user's system.
+        Provides information about files and allows JavaScript in a web page to
+        access their content.
 
 
-        [MDN Reference](https://developer.mozilla.org/docs/Web/API/Blob)
+        [MDN Reference](https://developer.mozilla.org/docs/Web/API/File)
 
-        `Blob` class is a global reference for `import { Blob } from
+        `File` class is a global reference for `import { File } from
         'node:buffer'`
 
-        https://nodejs.org/api/buffer.html#class-blob
+        https://nodejs.org/api/buffer.html#class-file
       properties: {}
       type: object
       additionalProperties: false
@@ -207,7 +205,7 @@ components:
           type: string
         logo_image_file:
           allOf:
-            - $ref: "#/components/schemas/buffer.Blob"
+            - $ref: "#/components/schemas/buffer.File"
           nullable: true
         id:
           type: number
