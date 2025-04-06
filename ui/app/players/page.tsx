@@ -189,7 +189,7 @@ export default function ListPlayers(): React.ReactNode {
                     {playerToTeam && playerToTeam[String(player.id)] ? (
                       <span className="flex items-center">
                         <ImageAutoSize 
-                          imageBlob={playerToTeam[String(player.id)].logo_image_file as unknown as Blob}
+                          imageFile={playerToTeam[String(player.id)].logo_image_file as File}
                           fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                           alt={playerToTeam[String(player.id)].short_name || ''} 
                           width={32} 

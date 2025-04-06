@@ -3,21 +3,20 @@ import Image, { ImageProps } from 'next/image'
 import { objectURLOrDefault } from '@/api/models/helpers';
 
 type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
-  imageBlob?: Blob | null;
+  imageFile?: File | null;
   fallbackSrc?: string;
   src?: string;
 }
 
 const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
-  const { imageBlob, fallbackSrc, src, width, height, style, ...rest } = props
+  const { imageFile: imageFile, fallbackSrc, src, width, height, style, ...rest } = props
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (imageBlob) {
-      const url = objectURLOrDefault(imageBlob, null)
+    if (imageFile) {
+      const url = objectURLOrDefault(imageFile, null)
       setObjectUrl(url)
 
-      // Clean up the object URL when the component unmounts or when imageBlob changes
       return (): void => {
         if (url) {
           URL.revokeObjectURL(url)
@@ -26,7 +25,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
     } else {
       setObjectUrl(null)
     }
-  }, [imageBlob])
+  }, [imageFile])
 
   // Memoize the image source to prevent unnecessary re-renders
   const imageSrc = useMemo(() => objectUrl || src || fallbackSrc || '', [objectUrl, src, fallbackSrc])

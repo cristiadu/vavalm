@@ -46,14 +46,14 @@ export const getRoleBgColor = (role: PlayerRole): string => {
 }
 
 /**
- * Parse to blob the logo image file for a team
+ * Parse to File the logo image file for a team
  * @param team - The team to parse the logo image file for
  * @returns The team with the parsed logo image file
  */
 export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
   if (team.logo_image_file && typeof team.logo_image_file === 'object' && 'data' in team.logo_image_file) {
-    const blob = new Blob([new Uint8Array(team.logo_image_file.data)], { type: 'image/png' })
-    team.logo_image_file = blob
+    const file = new File([new Uint8Array(team.logo_image_file.data)], `logo-team-${team.id}.${team.logo_image_file.type}`, { type: team.logo_image_file.type })
+    team.logo_image_file = file
   }
 
   return team as T
@@ -65,7 +65,7 @@ export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
  * @returns The URL of the logo image file for the team
  */
 export const teamLogoURLObjectOrDefault = (team: TeamApiModel | null): string => {
-  return objectURLOrDefault(team?.logo_image_file as Blob | File | null, DEFAULT_TEAM_LOGO_IMAGE_PATH) as string
+  return objectURLOrDefault(team?.logo_image_file as File | null, DEFAULT_TEAM_LOGO_IMAGE_PATH) as string
 }
 
 /**
@@ -74,7 +74,8 @@ export const teamLogoURLObjectOrDefault = (team: TeamApiModel | null): string =>
  * @param defaultPath - The default path to return if the image file is not found
  * @returns The URL of the image file
  */
-export const objectURLOrDefault = (image_file: Blob | File | null, defaultPath: string | null): string | null => {
+export const objectURLOrDefault = (image_file: File | null, defaultPath: string | null): string | null => {
+  console.log('image_file', image_file)
   if (image_file) {
     return URL.createObjectURL(image_file)
   }

@@ -52,9 +52,9 @@ export interface PlayerWithFlag extends PlayerApiModel {
 
 /**
  * A type that represents a team with a logo image file that contains the data field.
- * This is used to parse the logo image file to a blob
+ * This is used to parse the logo image file to a File
  * @param logo_image_file - The logo image file of the team
  */
 export interface TeamWithLogoImageData extends Omit<TeamApiModel, 'logo_image_file'> {
-  logo_image_file?: { data: number[] } | Blob | null | string
+  logo_image_file?: { data: number[], type: string } | File | null
 }

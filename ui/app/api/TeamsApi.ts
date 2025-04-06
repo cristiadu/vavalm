@@ -14,12 +14,12 @@ export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void
       return emptyResult
     }
     
-    const teamsWithBlob = response.items.map((team) => {
+    const teamsWithParsedLogos = response.items.map((team) => {
       return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
     })
     
-    closure(teamsWithBlob)
-    return teamsWithBlob
+    closure(teamsWithParsedLogos)
+    return teamsWithParsedLogos
   } catch (error) {
     console.error("Error fetching all teams:", error)
     const emptyResult: TeamApiModel[] = []
@@ -37,11 +37,11 @@ export const fetchTeams = async (closure: (_teamData: ItemsWithPagination_TeamAp
       throw new Error("No teams data received")
     }
     
-    const teamsWithBlob = response.items.map((team) => {
+    const teamsWithParsedLogos = response.items.map((team) => {
       return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
     })
     
-    const result = { total: response.total || 0, items: teamsWithBlob }
+    const result = { total: response.total || 0, items: teamsWithParsedLogos }
     closure(result)
     return result
   } catch (error) {
@@ -60,11 +60,11 @@ export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination_T
       throw new Error("No teams stats data received")
     }
     
-    const teamsWithBlob = response.items.map((item: TeamStats) => {
+    const teamsWithParsedLogos = response.items.map((item: TeamStats) => {
       return { ...item, team: parseLogoImageFile<TeamApiModel>(item.team as TeamWithLogoImageData) }
     })
     
-    const result = { total: response.total || 0, items: teamsWithBlob }
+    const result = { total: response.total || 0, items: teamsWithParsedLogos }
     closure(result)
     return result
   } catch (error) {
@@ -127,7 +127,7 @@ export const newTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiMo
       full_name: team.full_name,
       description: team.description || '',
       country: team.country,
-      logo_image_file: team.logo_image_file as Blob,
+      logo_image_file: team.logo_image_file as File,
     })
 
     closure(response)
@@ -153,7 +153,7 @@ export const editTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiM
       full_name: team.full_name,
       description: team.description || '',
       country: team.country,
-      logo_image_file: team.logo_image_file as Blob,
+      logo_image_file: team.logo_image_file as File,
     })
 
     closure(response)

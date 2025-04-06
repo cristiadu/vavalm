@@ -142,7 +142,7 @@ export default function ListTournaments(): React.ReactNode {
                       return (
                         <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center mb-2">
                           <ImageAutoSize
-                            imageBlob={team.logo_image_file as unknown as Blob}
+                            imageFile={team.logo_image_file as File}
                             fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                             alt={team.short_name || ""}
                             width={32} height={32}

@@ -124,7 +124,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 width={256}
                 height={256}
                 className="w-full h-auto max-w-screen-sm max-h-80"
-                imageBlob={teamState.logo_image_file as unknown as Blob}
+                imageFile={teamState.logo_image_file as File}
                 fallbackSrc={imageSrc}
                 alt="Team Logo"
               />

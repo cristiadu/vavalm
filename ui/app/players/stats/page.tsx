@@ -125,7 +125,7 @@ const PlayersStatsPage = (): React.ReactNode => {
                 {playerToTeam && playerToTeam[String(stats.player.id)] ? (
                   <span className="flex items-center">
                     <ImageAutoSize
-                      imageBlob={playerToTeam[String(stats.player.id)].logo_image_file as unknown as Blob}
+                      imageFile={playerToTeam[String(stats.player.id)].logo_image_file as File}
                       fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                       alt={playerToTeam[String(stats.player.id)].short_name || ''}
                       width={32}

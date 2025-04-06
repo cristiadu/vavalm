@@ -66,9 +66,9 @@ const DropdownSelect = <T,>({
               <div key={`selectedItem-${index}`}>
                 {imageKey && (
                   <ImageAutoSize
-                    imageBlob={selectedItem[imageKey] as Blob}
+                    imageFile={selectedItem[imageKey] as File}
                     fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                    src={selectedItem[imageKey] && !(selectedItem[imageKey] instanceof Blob) ? selectedItem[imageKey] as string: undefined}
+                    src={selectedItem[imageKey] && !(selectedItem[imageKey] instanceof File) ? selectedItem[imageKey] as string: undefined}
                     alt={selectedItem[displayKey] as string}
                     width={imageDimensions.width}
                     height={imageDimensions.height}
@@ -101,9 +101,9 @@ const DropdownSelect = <T,>({
               )}
               {imageKey && (
                 <ImageAutoSize
-                  imageBlob={item[imageKey] as Blob}
+                  imageFile={item[imageKey] as File}
                   fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                  src={item[imageKey] && !(item[imageKey] instanceof Blob) ? item[imageKey] as string: undefined}
+                  src={item[imageKey] && !(item[imageKey] instanceof File) ? item[imageKey] as string: undefined}
                   alt={item[displayKey] as string}
                   width={imageDimensions.width}
                   height={imageDimensions.height}

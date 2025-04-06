@@ -99,7 +99,7 @@ const TeamsStatsPage = (): React.ReactNode => {
 
                 <span className="flex items-center">
                   <ImageAutoSize
-                    imageBlob={stats.team.logo_image_file as unknown as Blob}
+                    imageFile={stats.team.logo_image_file as File}
                     fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                     alt={stats.team.short_name ?? ''}
                     width={32} height={32}

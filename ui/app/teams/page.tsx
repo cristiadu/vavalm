@@ -153,7 +153,7 @@ export default function ListTeams(): React.ReactNode {
                   <ImageAutoSize
                     width={128}
                     height={128}
-                    imageBlob={team.logo_image_file as unknown as Blob}
+                    imageFile={team.logo_image_file as File}
                     fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                     alt={`${team.short_name} logo`}
                     className='rounded-lg w-24 h-24 shadow-lg'

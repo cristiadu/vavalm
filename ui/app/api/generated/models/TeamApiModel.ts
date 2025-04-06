@@ -2,14 +2,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { buffer_Blob } from './buffer_Blob';
+import type { buffer_File } from './buffer_File';
 import type { PlayerApiModel } from './PlayerApiModel';
 export type TeamApiModel = {
   short_name?: string;
   full_name?: string;
   description?: string;
   country?: string;
-  logo_image_file?: buffer_Blob | null;
+  logo_image_file?: buffer_File | null;
   id?: number;
   players?: Array<PlayerApiModel>;
 };

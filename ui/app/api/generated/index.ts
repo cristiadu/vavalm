@@ -11,7 +11,7 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { AllPlayerStats } from './models/AllPlayerStats';
-export type { buffer_Blob } from './models/buffer_Blob';
+export type { buffer_File } from './models/buffer_File';
 export type { GameApiModel } from './models/GameApiModel';
 export type { GameLogApiModel } from './models/GameLogApiModel';
 export { GameMap } from './models/GameMap';

@@ -6,13 +6,13 @@ import { VavalMClient } from "@/api/generated/client"
 
 export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination_TournamentApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TournamentApiModel_> => {
   const response = await VavalMClient.default.getTournaments(limit, offset)
-  const tournamentwithBlob = response.items.map((tournament: TournamentApiModel) => {
-    const teamsWithBlob = tournament.teams?.map((team) => {
+  const tournamentwithParsedLogos = response.items.map((tournament: TournamentApiModel) => {
+    const teamsWithParsedLogos = tournament.teams?.map((team) => {
       return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
     })
-    return { ...tournament, teams: teamsWithBlob }
+    return { ...tournament, teams: teamsWithParsedLogos }
   })
-  const result = { total: response.total, items: tournamentwithBlob } as ItemsWithPagination_TournamentApiModel_
+  const result = { total: response.total, items: tournamentwithParsedLogos } as ItemsWithPagination_TournamentApiModel_
   closure(result)
   return result
 }
@@ -25,11 +25,11 @@ export const fetchTournamentMatchSchedule = async (tournamentId: number, closure
 
 export const getTournament = async (tournamentId: number, closure: (_tournamentData: TournamentApiModel) => void): Promise<TournamentApiModel | null> => {
   const response = await VavalMClient.default.getTournament(tournamentId)
-  const teamsWithBlob = response.teams?.map((team) => {
+  const teamsWithParsedLogos = response.teams?.map((team) => {
     return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
   })
 
-  const result = { ...response, teams: teamsWithBlob}
+  const result = { ...response, teams: teamsWithParsedLogos}
   closure(result)
   return result
 }
