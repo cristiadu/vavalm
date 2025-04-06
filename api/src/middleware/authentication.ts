@@ -24,9 +24,14 @@ export function expressAuthentication(
         return
       }
 
+      if (!process.env.JWT_SECRET) {
+        reject(new Error("JWT_SECRET is not defined"))
+        return Promise.reject(new Error("JWT_SECRET is not defined"))
+      }
+
       jwt.verify(
         token,
-        process.env.JWT_SECRET || "[secret]",
+        process.env.JWT_SECRET,
         { algorithms: ['HS256'] },
         (err: jwt.VerifyErrors | null, decoded: unknown) => {
           if (err) {

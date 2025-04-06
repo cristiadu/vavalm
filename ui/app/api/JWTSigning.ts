@@ -5,7 +5,10 @@ import { getApiBaseUrl } from '@/api/models/constants'
 import jwt from 'jsonwebtoken'
 
 export const generateJWTToken = async (username: string): Promise<string> => {
-  const secret = process.env.JWT_SECRET || 'default-secret-key'
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error('JWT_SECRET is not defined')
+  }
   
   // Create the payload exactly as the server expects it
   const payload = {
