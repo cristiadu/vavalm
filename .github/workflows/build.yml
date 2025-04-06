@@ -27,26 +27,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: pnpm
-        cache-dependency-path: "**/pnpm-lock.yaml"
+        cache-dependency-path: "pnpm-lock.yaml"
 
-    - name: Build Base Project
+    - name: Install Projects' Dependencies
       run: |
-        pnpm base:install
+        pnpm install
         
-    - name: Build Frontend
+    - name: Build Projects
       run: |
-        pnpm frontend:install
-        pnpm frontend:build
+        pnpm build
 
-    - name: Build Backend
+    - name: Lint Projects
       run: |
-        pnpm backend:install
-        pnpm backend:build
-
-    - name: Lint UI
-      run: |
-        pnpm frontend:lint
-
-    - name: Lint Backend
-      run: |
-        pnpm backend:lint
+        pnpm lint

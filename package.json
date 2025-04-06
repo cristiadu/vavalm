@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "npm-run-all backend:install frontend:install",
     "dev": "npm-run-all --parallel frontend:dev backend:dev",
     "build": "npm-run-all --parallel frontend:build backend:build",
     "start": "npm-run-all --parallel frontend:start backend:start",
     "lint": "npm-run-all --parallel frontend:lint backend:lint",
     "lint:fix": "npm-run-all --parallel frontend:lint:fix backend:lint:fix",
-    "clean": "npm-run-all --parallel base:clean base:install frontend:clean backend:clean",
+    "clean": "npm-run-all --parallel base:install frontend:clean backend:clean",
     "migrate": "pnpm backend:migrate",
     "localdb": "cd scripts && ./localdb.sh",
     "upgrade:dependencies": "npm-run-all --parallel base:upgrade:dependencies backend:upgrade:dependencies frontend:upgrade:dependencies",
@@ -17,7 +16,6 @@
 
     "base:audit": "pnpm audit fix",
     "base:install": "pnpm install --ignore-scripts",
-    "base:clean": "rm -rf node_modules && rm -rf node-compile-cache",
     "base:upgrade:dependencies": "pnpm upgrade --latest",
 
     "frontend:install": "pnpm -C ui install",
