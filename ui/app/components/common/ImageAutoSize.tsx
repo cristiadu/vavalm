@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import Image, { ImageProps } from 'next/image'
-import { objectURLOrDefault } from '@/api/models/helpers';
+import { objectURLOrDefault } from '@/api/models/helpers'
 
 type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
   imageFile?: File | null;
