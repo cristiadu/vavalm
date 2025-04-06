@@ -11,7 +11,7 @@
       "name": "Cristiano Faustino",
       "url": "https://cristianofaustino.me"
     },
-    "host": "localhost:3000",
+    "host": "localhost:8000",
     "license": "MIT",
     "name": "VavalM API",
     "rootSecurity": [
