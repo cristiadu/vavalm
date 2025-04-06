@@ -3,7 +3,7 @@
  * @param url url of the image
  * @returns File of the image
  */
-export const downloadImage =  async (url: string): Promise<File | null> => {
+export const downloadPNGImage =  async (url: string): Promise<File | null> => {
   try {
     const response = await fetch(url)
     if (!response.ok) {
@@ -11,7 +11,7 @@ export const downloadImage =  async (url: string): Promise<File | null> => {
     }
     
     const blob = await response.blob()
-    const file = new File([blob], url.split('/').pop() || `image.${blob.type.split('/')[1]}`, { type: blob.type })
+    const file = new File([blob], url.split('/').pop() || `image.png`, { type: 'image/png' })
     return file
   } catch (error) {
     console.warn('Error downloading image:', error)

@@ -1,6 +1,6 @@
 import { Op } from "sequelize"
 
-import { downloadImage } from '@/base/FileUtils'
+import { downloadPNGImage } from '@/base/FileUtils'
 
 import { ItemsWithPagination, TeamStats } from '@/base/types'
 import { VlrTeam } from '@/models/Vlr'
@@ -17,7 +17,7 @@ import Team from '@/models/Team'
  */
 export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
   // Upsert a team entry
-  const logoFile = await downloadImage(teamData.logo_url)
+  const logoFile = await downloadPNGImage(teamData.logo_url)
 
   const [team, created] = await Team.upsert({
     short_name: teamData.short_name,

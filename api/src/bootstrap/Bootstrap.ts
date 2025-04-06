@@ -7,7 +7,7 @@ import { MatchType } from "@/models/enums"
 
 import TournamentService from "@/services/TournamentService"
 import MatchService from "@/services/MatchService"
-import { downloadImage } from "@/base/FileUtils"
+import { downloadPNGImage } from "@/base/FileUtils"
 
 const forceBootstrap: boolean = env.FORCE_BOOTSTRAP === 'true' || false
 
@@ -20,7 +20,7 @@ const setupTestData = async (): Promise<void> => {
       console.debug('Creating team with data:', teamData)
 
       // Fetch the image from the URL and convert it to an ArrayBuffer
-      const file = await downloadImage(teamData.imageLogo)
+      const file = await downloadPNGImage(teamData.imageLogo)
       const arrayBuffer = await file?.arrayBuffer()
 
       if (!arrayBuffer) {

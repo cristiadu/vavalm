@@ -52,7 +52,7 @@ export const getRoleBgColor = (role: PlayerRole): string => {
  */
 export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
   if (team.logo_image_file && typeof team.logo_image_file === 'object' && 'data' in team.logo_image_file) {
-    const file = new File([new Uint8Array(team.logo_image_file.data)], `logo-team-${team.id}.${team.logo_image_file.type}`, { type: team.logo_image_file.type })
+    const file = new File([new Uint8Array(team.logo_image_file.data)], `logo-team-${team.id}.png`, { type: 'image/png' })
     team.logo_image_file = file
   }
 

@@ -158,7 +158,7 @@ export class TeamsController extends Controller {
     team.country = country
     if (logo_image_file) {
       const arrayBuffer = await logo_image_file.arrayBuffer()
-      team.logo_image_file = new Blob([arrayBuffer], { type: logo_image_file.type })
+      team.logo_image_file = new File([arrayBuffer], logo_image_file.name || `logo-team-${teamId}.png`, { type: 'image/png' })
     }
     
     await team.save()
