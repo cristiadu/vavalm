@@ -2,23 +2,24 @@
 
 import { use, useEffect, useState } from 'react'
 import { fetchPlayer, fetchPlayerStats } from '@/api/PlayersApi'
-import { AllPlayerStats, getAttributeBgColor, getRoleBgColor, Player } from '@/api/models/Player'
+import { getAttributeBgColor, getRoleBgColor } from '@/api/models/helpers'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchTeam } from '@/api/TeamsApi'
-import { Team } from '@/api/models/Team'
-import { asWord } from '@/base/StringUtils'
-import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { asWord } from '@/common/StringUtils'
+import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { AllPlayerStats, TeamApiModel, PlayerApiModel } from '@/api/generated'
+import { Threshold } from '@/common/CommonModels'
 
 type Params = Promise<{ playerId: string }>
 
 export default function ViewPlayer(props: { params: Params }): React.ReactNode {
   const params = use(props.params)
-  const [player, setPlayer] = useState<Player | null>(null)
+  const [player, setPlayer] = useState<PlayerApiModel | null>(null)
   const [playerStats, setPlayerStats] = useState<AllPlayerStats | null>(null)
-  const [team, setTeam] = useState<Team | null>(null)
+  const [team, setTeam] = useState<TeamApiModel | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
 
   const thresholds = {
@@ -34,7 +35,7 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
     totalKills: { high: 1.5, medium: 0.9, ratioCalculation: true },
     totalDeaths: { high: 1.0, medium: 0.5, ratioCalculation: true, higherIsWorse: true },
     totalAssists: { high: 0.8, medium: 0.4, ratioCalculation: true },
-  }
+  } as Record<string, Threshold>
 
   useEffect(() => {
     const fetchPlayerData = async (): Promise<void> => {
@@ -91,9 +92,9 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
             <strong>Team:</strong> {team ? (
               <span className="flex items-center ml-2">
                 <ImageAutoSize 
-                  imageBlob={team.logo_image_file as Blob} 
+                  imageBlob={team.logo_image_file as unknown as Blob} 
                   fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH} 
-                  alt={team.short_name} 
+                  alt={team.short_name || ''} 
                   width={32} 
                   height={32} 
                   className="mr-2" />

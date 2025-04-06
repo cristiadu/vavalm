@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react'
-import { Country } from '@/api/models/Country'
-import { PlayerGameStats } from '@/api/models/Tournament'
-import { getRoleBgColor } from '@/api/models/Player'
-import { ASSISTS_HALF_MULTIPLIER, sortPlayersByStats } from '@/api/models/Tournament'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { Country } from '@/api/models/types'
+import { getRoleBgColor } from '@/api/models/helpers'
+import { ASSISTS_HALF_MULTIPLIER } from '@/api/models/constants'
+import { sortPlayersByStats } from '@/api/models/helpers'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
+import { PlayerGameStatsApiModel } from '@/api/generated'
 
 interface GameTeamStatsProps {
   teamName: string
-  playerStats: PlayerGameStats[]
+  playerStats: PlayerGameStatsApiModel[]
   countries: Country[]
 }
 
@@ -45,12 +46,12 @@ const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, co
         </thead>
         <tbody>
           {playerStats?.sort(sortPlayersByStats).map((playerStats, index) => (
-            <tr key={`game-team-stats-${teamName}-player-${playerStats.player.id}-${index}`}>
+            <tr key={`game-team-stats-${teamName}-player-${playerStats?.player?.id}-${index}`}>
               <td className="py-2 pl-4 border-b border-gray-200">
-                {playerStats.player.country && playerCountryToFlag(playerStats.player.country)}
+                {playerStats?.player?.country && playerCountryToFlag(playerStats?.player?.country)}
               </td>
-              <td className="py-2 px-4 border-b border-gray-200">{playerStats.player.nickname}</td>
-              <td className="py-2 px-4 border-b border-gray-200"><span className={getRoleBgColor(playerStats.player.role)}>{playerStats.player.role}</span></td>
+              <td className="py-2 px-4 border-b border-gray-200">{playerStats?.player?.nickname}</td>
+              <td className="py-2 px-4 border-b border-gray-200"><span className={playerStats?.player?.role ? getRoleBgColor(playerStats?.player?.role) : ''}>{playerStats?.player?.role}</span></td>
               <td className="py-2 px-4 border-b border-gray-200">{((playerStats.kills + playerStats.assists * ASSISTS_HALF_MULTIPLIER) / playerStats.deaths).toFixed(2)}</td>
               <td className="py-2 px-4 border-b border-gray-200">{playerStats.kills}</td>
               <td className="py-2 px-4 border-b border-gray-200">{playerStats.deaths}</td>

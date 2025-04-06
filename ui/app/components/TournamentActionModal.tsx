@@ -1,41 +1,38 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import Modal from '@/base/Modal'
+import Modal from '@/components/common/Modal'
 import { fetchCountries } from '@/api/CountryApi'
-import { Country } from '@/api/models/Country'
+import { Country } from '@/api/models/types'
 import { fetchAllTeams } from '@/api/TeamsApi'
-import { Team } from '@/api/models/Team'
-import { ItemActionModalProps } from '@/base/CommonModels'
-import AlertMessage, { AlertType } from '@/base/AlertMessage'
-import { Tournament, TournamentType, Standing, Match } from '@/api/models/Tournament'
+import { ItemActionModalProps } from '@/common/CommonModels'
+import AlertMessage, { AlertType } from '@/components/common/AlertMessage'
 import { EnumWithFieldName } from '@/api/models/types'
 import { editTournament, newTournament } from '@/api/TournamentsApi'
-import { quill_config } from '@/base/Configs'
+import { quill_config } from '@/common/UIUtils'
 import 'react-quill-new/dist/quill.snow.css'
-import DropdownSelect from '@/base/DropdownSelect'
+import DropdownSelect from '@/components/common/DropdownSelect'
 import dynamic from 'next/dynamic'
+import { TeamApiModel, TournamentApiModel, TournamentType } from '@/api/generated'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
-const initialTournamentState = {
+const initialTournamentState: TournamentApiModel = {
   name: '',
   description: '',
   start_date: '',
   end_date: '',
   started: false,
   ended: false,
-  country: null as Country | null,
-  type: null as TournamentType | null,
-  teams: [] as Team[],
-  schedule: [] as Match[],
-  standings: [] as Standing[],
+  country: '',
+  type: TournamentType.SINGLE_GROUP,
+  teams: [],
 }
 
 const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
-  const tournament = object ? object as Tournament : null
+  const tournament = object ? object as TournamentApiModel : null
   const [tournamentState, setTournamentState] = useState(initialTournamentState)
-  const [teams, setTeams] = useState<Team[]>([])
+  const [teams, setTeams] = useState<TeamApiModel[]>([])
   const [countries, setCountries] = useState<Country[]>([])
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -48,11 +45,9 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
         end_date: tournament.end_date,
         started: tournament.started,
         ended: tournament.ended,
-        country: countries.find(country => country.name === tournament.country) || null,
+        country: tournament.country,
         type: tournament.type,
         teams: tournament.teams,
-        schedule: tournament.schedule,
-        standings: tournament.standings,
       })
     } else {
       setTournamentState(initialTournamentState)
@@ -73,19 +68,19 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
   }, [tournament, isEdit, setInitialValues])
 
   const handleCountrySelect = (country: Country): void => {
-    setTournamentState(prevState => ({ ...prevState, country }))
+    setTournamentState(prevState => ({ ...prevState, country: country.name }))
   }
 
   const handleTypeSelect = (tournament_type: EnumWithFieldName<TournamentType>): void => {
     setTournamentState(prevState => ({ ...prevState, type: tournament_type.value }))
   }
 
-  const handleTeamSelect = (team: Team): void => {
+  const handleTeamSelect = (team: TeamApiModel): void => {
     setTournamentState(prevState => {
-      const isSelected = prevState.teams.some(selectedTeam => selectedTeam.id === team.id)
+      const isSelected = prevState.teams?.some(selectedTeam => selectedTeam instanceof Number ? selectedTeam === team.id : (selectedTeam as TeamApiModel).id === team.id)
       const updatedTeams = isSelected
-        ? prevState.teams.filter(selectedTeam => selectedTeam.id !== team.id)
-        : [...prevState.teams, team]
+        ? prevState.teams?.filter(selectedTeam => selectedTeam instanceof Number ? selectedTeam !== team.id : (selectedTeam as TeamApiModel).id !== team.id)
+        : [...(prevState.teams || []), team]
       return { ...prevState, teams: updatedTeams }
     })
   }
@@ -100,12 +95,12 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     e.preventDefault()
     setValidationError(null)
 
-    if (!tournamentState.country || !tournamentState.type || tournamentState.teams.length === 0 || !tournamentState.name || !tournamentState.start_date || !tournamentState.end_date) {
+    if (!tournamentState.country || !tournamentState.type || tournamentState?.teams?.length === 0 || !tournamentState.name || !tournamentState.start_date || !tournamentState.end_date) {
       setValidationError("Please select values for name, country, type, start date, end_date, and add at least one team to tournament.")
       return
     }
 
-    const requestTournament: Tournament = {
+    const requestTournament: TournamentApiModel = {
       id: tournament?.id || 0,
       name: tournamentState.name,
       description: tournamentState.description,
@@ -113,11 +108,9 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
       end_date: tournamentState.end_date,
       started: tournamentState.started,
       ended: tournamentState.ended,
-      country: tournamentState.country?.name || '',
+      country: tournamentState.country,
       type: tournamentState.type,
       teams: tournamentState.teams,
-      schedule: tournamentState.schedule,
-      standings: tournamentState.standings,
     }
 
     if (isEdit) {
@@ -134,8 +127,8 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     })
   }
 
-  const selectedCountry = countries.find(country => country.name === tournamentState.country?.name) || null
-  const selectedTeams = teams.filter(team => tournamentState.teams.some(selectedTeam => selectedTeam.id === team.id)) || null
+  const selectedCountry = countries.find(country => country.name === tournamentState.country) || null
+  const selectedTeams = teams.filter(team => tournamentState?.teams?.some(selectedTeam => selectedTeam instanceof Number ? selectedTeam === team.id : (selectedTeam as TeamApiModel).id === team.id)) || null
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} title={isEdit ? "Edit Tournament" : "New Tournament"}>

@@ -3,38 +3,44 @@
 import { use, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchCountries } from '@/api/CountryApi'
-import { fetchTournamentMatchSchedule, getTournament } from '@/api/TournamentsApi'
-import { Match, Tournament } from '@/api/models/Tournament'
+import { fetchTournamentMatchSchedule, getTournament, getTournamentStandings } from '@/api/TournamentsApi'
 import 'react-quill-new/dist/quill.snow.css'
-import { asFormattedDate, asSafeHTML } from '@/base/StringUtils'
-import { getWinOrLossColor, urlObjectLogoOrDefault } from '@/api/models/Team'
-import SectionHeader from '@/base/SectionHeader'
-import { sortByDate } from '@/base/UIUtils'
-import Pagination from '@/base/Pagination'
+import { asFormattedDate, asSafeHTML } from '@/common/StringUtils'
+import { getWinOrLossColor, urlObjectLogoOrDefault } from '@/api/models/helpers'
+import SectionHeader from '@/components/common/SectionHeader'
+import { sortByDate } from '@/common/UIUtils'
+import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
-import ImageAutoSize from '@/base/ImageAutoSize'
-import { Country } from '@/api/models/Country'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
+import { Country } from '@/api/models/types'
+import { MatchApiModel, TournamentApiModel, TeamApiModel, StandingsApiModel } from '@/api/generated'
 
 type Params = Promise<{ tourneyId: string }>
 export default function ViewTournament(props: { params: Params }): React.ReactNode {
   const params = use(props.params)
-  const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [tournament, setTournament] = useState<TournamentApiModel | null>(null)
+  const [tournamentStandings, setTournamentStandings] = useState<StandingsApiModel[] | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
   const [totalMatches, setTotalMatches] = useState<number>(0)
-  const [matches, setMatches] = useState<Match[] | null>(null)
+  const [matches, setMatches] = useState<MatchApiModel[] | null>(null)
   const router = useRouter()
-
 
   const fetchTournamentMatches = useCallback(async (limit: number, offset: number) => {
     await fetchTournamentMatchSchedule(Number(params.tourneyId), (data) => {
       // Use the tournament data to set the teams objects
-      const dataWithTeams = data.items.map((match: Match) => {
-        const team1 = tournament?.teams.find(team => team.id === match.team1_id)
-        const team2 = tournament?.teams.find(team => team.id === match.team2_id)
+      const dataWithTeams = data.items.map((match: MatchApiModel) => {
+        const team1 = tournament?.teams?.find(team => 
+          team instanceof Number ? team === match.team1_id : (team as TeamApiModel).id === match.team1_id,
+        )
+        
+        const team2 = tournament?.teams?.find(team => 
+          team instanceof Number ? team === match.team2_id : (team as TeamApiModel).id === match.team2_id,
+        )
+        
         return { ...match, team1, team2 }
       })
 
-      setMatches(dataWithTeams)
+      setMatches(dataWithTeams as MatchApiModel[])
       setTotalMatches(data.total)
     }, limit, offset)
   }, [params.tourneyId, tournament?.teams])
@@ -42,6 +48,10 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
   const fetchTournamentData = useCallback(async () => {
     const tournamentData = await getTournament(Number(params.tourneyId), (data) => {
       setTournament(data)
+    })
+
+    await getTournamentStandings(Number(params.tourneyId), (data) => {
+      setTournamentStandings(data)
     })
 
     const countries = await fetchCountries(() => {})
@@ -70,8 +80,16 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
     router.push(`/tournaments/${tournament.id}/logs/${matchId}`)
   }
 
-  const teamsToLogoSrc: Map<number, string> = new Map(tournament.teams.map(team => [team.id!, urlObjectLogoOrDefault(team)]))
-  const tournamentWinner = tournament.winner_id ? tournament.teams.find(team => team.id === tournament.winner_id) : null
+  const teamsToLogoSrc: Map<number, string> = new Map(
+    tournament.teams?.filter(team => typeof team === 'object' && team !== null)
+      .map(team => [(team as TeamApiModel).id!, urlObjectLogoOrDefault(team as TeamApiModel)]) || [],
+  )
+
+  const tournamentWinner = tournament.winner_id ? 
+    tournament.teams?.find(team => 
+      typeof team === 'object' && team !== null && (team as TeamApiModel).id === tournament.winner_id,
+    ) || null : 
+    null
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">
@@ -97,18 +115,22 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <h3 className="text-xl font-bold mb-2">Teams</h3>
           <hr className="mb-2" />
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
-            {tournament.teams && tournament.teams.map(team => (
-              <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center space-x-2">
-                <ImageAutoSize 
-                  src={team.id && teamsToLogoSrc.get(team.id) ? teamsToLogoSrc.get(team.id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
-                  alt={team.short_name} 
-                  width={32} 
-                  height={32} 
-                  className="inline-block mr-2" 
-                />
-                <span className="text-lg">{team.short_name}</span>
-              </div>
-            ))}
+            {tournament.teams && tournament.teams.map(team => {
+              if (typeof team === 'number') return null
+              team = team as TeamApiModel
+              return (
+                <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center space-x-2">
+                  <ImageAutoSize 
+                    src={team.id && teamsToLogoSrc.get(team.id) ? teamsToLogoSrc.get(team.id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
+                    alt={team.short_name || ""} 
+                    width={32} 
+                    height={32} 
+                    className="inline-block mr-2" 
+                  />
+                  <span className="text-lg">{team.short_name}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
         <div className="mt-4">
@@ -117,13 +139,21 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <ImageAutoSize 
-                src={tournamentWinner?.id && tournament.ended ? teamsToLogoSrc.get(tournamentWinner.id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
-                alt={tournamentWinner?.short_name || "No Team Yet"} 
+                src={typeof tournamentWinner === 'number' ? DEFAULT_TEAM_LOGO_IMAGE_PATH :
+                  tournamentWinner && (tournamentWinner as TeamApiModel).id && tournament.ended ? 
+                    ((tournamentWinner as TeamApiModel).id && teamsToLogoSrc.get((tournamentWinner as TeamApiModel).id!) || DEFAULT_TEAM_LOGO_IMAGE_PATH) : 
+                    DEFAULT_TEAM_LOGO_IMAGE_PATH
+                } 
+                alt={tournamentWinner && typeof tournamentWinner === 'object' ? 
+                  (tournamentWinner as TeamApiModel).short_name || "No Team Yet" : "No Team Yet"} 
                 width={32} 
                 height={32} 
                 className="inline-block mr-2" 
               />
-              <span className="text-lg">{tournamentWinner?.short_name || "No Team Yet"}</span>
+              <span className="text-lg">
+                {tournamentWinner && typeof tournamentWinner === 'object' ? 
+                  (tournamentWinner as TeamApiModel).short_name || "No Team Yet" : "No Team Yet"}
+              </span>
             </div>
           </div>
         </div>
@@ -145,18 +175,18 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
                 </tr>
               </thead>
               <tbody>
-                {tournament.standings && tournament.standings.map((standing) => (
+                {tournamentStandings && tournamentStandings.map((standing: StandingsApiModel) => (
                   <tr key={`tournament-${tournament.id}-standing-${standing.id}`}>
                     <td className="py-2 px-2 border-b text-center bg-gray-100">{standing.position}</td>
                     <td className="py-2 px-2 border-b items-center bg-gray-100">
                       <ImageAutoSize 
                         src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
-                        alt={standing.team?.short_name} 
+                        alt={(tournament.teams?.find(team => team instanceof Number ? team === standing.team_id : (team as TeamApiModel).id === standing.team_id) as TeamApiModel)?.short_name || "No Team Yet"} 
                         width={32} 
                         height={32} 
                         className="inline-block mr-2" 
                       />
-                      <span>{standing.team?.short_name}</span>
+                      <span>{(tournament.teams?.find(team => team instanceof Number ? team === standing.team_id : (team as TeamApiModel).id === standing.team_id) as TeamApiModel)?.short_name || "No Team Yet"}</span>
                     </td>
                     <td className="py-2 border-b text-center bg-gray-100">{standing.wins}</td>
                     <td className="py-2 border-b text-center bg-gray-100">{standing.losses}</td>
@@ -187,33 +217,33 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
               <tbody>
                 {matches && matches.sort((a, b) => sortByDate(new Date(a.date), new Date(b.date))).map((match) => 
                   (match.team1 && match.team2) && (
-                    <tr key={`tournament-${tournament.id}-match-${match.id}`} onClick={() => showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
+                    <tr key={`tournament-${tournament.id}-match-${match.id || 0}`} onClick={() => match.id && showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
                       <td className="py-2 border-b text-center">
-                        {asFormattedDate(match.date)}
+                        {asFormattedDate(new Date(match.date))}
                       </td>
                       <td className="py-2 border-b text-center">{match.type}</td>
                       <td className="py-2 border-b items-center">
                         <div className="flex items-center space-x-2">
                           <ImageAutoSize 
                             src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                            alt={match.team1.short_name} 
+                            alt={match.team1?.short_name || ""} 
                             width={32} 
                             height={32} 
                             className="inline-block mr-2" 
                           />
-                          <span>{match.team1.short_name}</span>
+                          <span>{match.team1?.short_name}</span>
                         </div>
                       </td>
                       <td className="py-2 border-b items-center">
                         <div className="flex items-center space-x-2">
                           <ImageAutoSize 
                             src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                            alt={match.team2.short_name} 
+                            alt={match.team2?.short_name || ""} 
                             width={32} 
                             height={32} 
                             className="inline-block mr-2" 
                           />
-                          <span>{match.team2.short_name}</span>
+                          <span>{match.team2?.short_name}</span>
                         </div>
                       </td>
                       <td className="py-2 border-b text-center">

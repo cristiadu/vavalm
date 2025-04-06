@@ -1,9 +1,9 @@
 import React from 'react'
-import { Game } from '@/api/models/Tournament'
-import { sortByDate } from '@/base/UIUtils'
+import { sortByDate } from '@/common/UIUtils'
+import { GameApiModel } from '@/api/generated'
 
 interface GamePickerProps {
-  games: Game[]
+  games: GameApiModel[]
   selectedGameId: number
   onClick: (_id: number) => void
   matchWinnerId: number | null
@@ -24,7 +24,7 @@ const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick,
       {sortedGames.map((game, index) => (
         <button
           key={`picker-game-${game.id}`}
-          onClick={() => onClick(game.id)}
+          onClick={() => onClick(game.id || 0)}
           className={`px-4 py-2 m-1 rounded ${selectedGameId === game.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
           disabled={matchWinnerId !== null && game.stats?.winner_id === null}
         >

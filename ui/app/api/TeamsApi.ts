@@ -1,139 +1,178 @@
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
-import { ItemsWithPagination } from "@/api/models/types"
-import { parseLogoImageFile, Team, TeamStats, TeamWithLogoImageData } from "@/api/models/Team"
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
+import { parseLogoImageFile } from "@/api/models/helpers"
+import { TeamWithLogoImageData } from "@/api/models/types"
+import { ItemsWithPagination_TeamApiModel_, ItemsWithPagination_TeamStats_, TeamApiModel, TeamStats } from "@/api/generated"
+import { VavalMClient } from "@/api/generated/client"
 
-export const fetchAllTeams = async (closure: (_teamData: Team[]) => void): Promise<Team[]> => {
-  const response = await fetch(`${getApiBaseUrl()}/teams`)
-  const data = await response.json()
-  const teamsWithBlob = data.items.map((team: TeamWithLogoImageData) => {
-    return parseLogoImageFile<Team>(team)
-  })
-  closure(teamsWithBlob)
-  return teamsWithBlob as Team[]
+export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void): Promise<TeamApiModel[]> => {
+  try {
+    const response = await VavalMClient.default.getTeams(undefined, undefined, undefined)
+    
+    if (!response || !response.items) {
+      const emptyResult: TeamApiModel[] = []
+      closure(emptyResult)
+      return emptyResult
+    }
+    
+    const teamsWithBlob = response.items.map((team) => {
+      return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
+    })
+    
+    closure(teamsWithBlob)
+    return teamsWithBlob
+  } catch (error) {
+    console.error("Error fetching all teams:", error)
+    const emptyResult: TeamApiModel[] = []
+    closure(emptyResult)
+    return emptyResult
+  }
 }
 
-export const fetchTeams = async (closure: (_teamData: ItemsWithPagination<Team>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Team>> => {
-  const response = await fetch(`${getApiBaseUrl()}/teams?limit=${limit}&offset=${offset}`)
-  const data = await response.json()
-  const teamsWithBlob = data.items.map((team: TeamWithLogoImageData) => {
-    return parseLogoImageFile<Team>(team)
-  })
-  const result = { total: data.total, items: teamsWithBlob }
-  closure(result)
-  return result as ItemsWithPagination<Team>
+
+export const fetchTeams = async (closure: (_teamData: ItemsWithPagination_TeamApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TeamApiModel_> => {
+  try {
+    const response = await VavalMClient.default.getTeams(undefined, limit, offset)
+    
+    if (!response || !response.items) {
+      throw new Error("No teams data received")
+    }
+    
+    const teamsWithBlob = response.items.map((team) => {
+      return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
+    })
+    
+    const result = { total: response.total || 0, items: teamsWithBlob }
+    closure(result)
+    return result
+  } catch (error) {
+    console.error("Error fetching teams:", error)
+    const emptyResult = { total: 0, items: [] }
+    closure(emptyResult)
+    return emptyResult
+  }
 }
 
-export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination<TeamStats>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<TeamStats>> => {
-  const response = await fetch(`${getApiBaseUrl()}/teams/stats?limit=${limit}&offset=${offset}`)
-  const data = await response.json()
-  const teamsWithBlob = data.items.map((team: TeamWithLogoImageData) => {
-    return parseLogoImageFile<Team>(team)
-  })
-  const result = { total: data.total, items: teamsWithBlob }
-  closure(result)
-  return result as ItemsWithPagination<TeamStats>
+export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination_TeamStats_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TeamStats_> => {
+  try {
+    const response = await VavalMClient.default.getTeamsStats(limit, offset)
+    
+    if (!response || !response.items) {
+      throw new Error("No teams stats data received")
+    }
+    
+    const teamsWithBlob = response.items.map((item: TeamStats) => {
+      return { ...item, team: parseLogoImageFile<TeamApiModel>(item.team as TeamWithLogoImageData) }
+    })
+    
+    const result = { total: response.total || 0, items: teamsWithBlob }
+    closure(result)
+    return result
+  } catch (error) {
+    console.error("Error fetching teams stats:", error)
+    const emptyResult = { total: 0, items: [] }
+    closure(emptyResult)
+    return emptyResult
+  }
 }
 
-export const fetchTeam = async (teamId: number, closure: (_teamData: Team) => void): Promise<Team | null> => {
-  const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}`)
-  const data = await response.json() as TeamWithLogoImageData
-  const team = parseLogoImageFile<Team>(data)
-  closure(team)
-  return team as Team
+export const fetchTeam = async (teamId: number, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
+  try {
+    const response = await VavalMClient.default.getTeam(teamId)
+    
+    if (!response) {
+      console.error("No team data received")
+      closure({} as TeamApiModel)
+      return null
+    }
+    
+    const team = parseLogoImageFile<TeamApiModel>(response as TeamWithLogoImageData)
+    closure(team)
+    return team
+  } catch (error) {
+    console.error(`Error fetching team with id ${teamId}:`, error)
+    closure({} as TeamApiModel)
+    return null
+  }
 }
 
 export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamStats) => void): Promise<TeamStats | null> => {
-  const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}/stats`)
-  const data = await response.json() as TeamStats
-  const teamWithLogoImageData = parseLogoImageFile<Team>(data.team)
-  const result = { ...data, team: teamWithLogoImageData }
-  closure(result)
-  return result as TeamStats
-}
-  
-export const newTeam = async (team: Team, closure: (_teamData: Team) => void): Promise<Team | null> => {
-  const formData = new FormData()
-  if(team.logo_image_file) {
-    formData.append('logo_image_file', team.logo_image_file)
-  }
-
-  formData.append('full_name', team.full_name)
-  formData.append('short_name', team.short_name)
-  formData.append('country', team.country)
-  formData.append('description', team.description || '')
-
   try {
-    const response = await fetch(`${getApiBaseUrl()}/teams`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      console.error("Network response was not ok: ", formData)
+    const response = await VavalMClient.default.getTeamStats(teamId)
+    
+    if (!response || !response.team) {
+      console.error("No team stats data received")
+      closure({} as TeamStats)
       return null
     }
-
-    const result = await response.json()
+    
+    const teamWithLogoImageData = parseLogoImageFile<TeamApiModel>(response.team as TeamWithLogoImageData)
+    const result = { ...response, team: teamWithLogoImageData }
     closure(result)
-    console.debug('Success:', result)
-    return result as Team
+    return result
   } catch (error) {
-    console.error('Error:', error)
+    console.error(`Error fetching team stats for team ${teamId}:`, error)
+    closure({} as TeamStats)
     return null
   }
 }
   
-export const editTeam = async (team: Team, closure: (_teamData: Team) => void): Promise<Team | null> => {
-  const formData = new FormData()
-  if(team.logo_image_file) {
-    formData.append('logo_image_file', team.logo_image_file)
-  }
-
-  formData.append('full_name', team.full_name)
-  formData.append('short_name', team.short_name)
-  formData.append('country', team.country)
-  formData.append('description', team.description || '')
-
+export const newTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/teams/${team.id}`, {
-      method: 'PUT',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      console.error("Network response was not ok: ", formData)
-      return null
+    if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
+      throw new Error('Missing required fields')
     }
 
-    const result = await response.json()
-    closure(result)
-    console.debug('Success:', result)
-    return result as Team
+    const response = await VavalMClient.default.createTeam({
+      short_name: team.short_name,
+      full_name: team.full_name,
+      description: team.description || '',
+      country: team.country,
+      logo_image_file: team.logo_image_file as Blob,
+    })
+
+    closure(response)
+    return response
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error creating team:', error)
+    return null
+  }
+}
+  
+export const editTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
+  if (!team.id) {
+    throw new Error('Team ID is required')
+  }
+
+  if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
+    throw new Error('Missing required fields')
+  }
+
+  try {
+    const response = await VavalMClient.default.updateTeam(team.id, {
+      short_name: team.short_name,
+      full_name: team.full_name,
+      description: team.description || '',
+      country: team.country,
+      logo_image_file: team.logo_image_file as Blob,
+    })
+
+    closure(response)
+    return response
+  } catch (error) {
+    console.error('Error updating team:', error)
     return null
   }
 }
 
-export const deleteTeam = async (team: Team, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
+export const deleteTeam = async (team: TeamApiModel, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/teams/${team.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(team),
-    })
-
-    if (!response.ok) {
-      console.error("Network response was not ok: ", team)
-      return null
+    if (!team.id) {
+      throw new Error('Team ID is required')
     }
 
-    const result = await response.json()
-    closure(result)
-    console.debug('Success:', result)
-    return result as {message: string}
+    await VavalMClient.default.deleteTeam(team.id)
+    closure({message: 'Team deleted successfully'})
+    return {message: 'Team deleted successfully'}
   } catch (error) {
     console.error('Error:', error)
     return null

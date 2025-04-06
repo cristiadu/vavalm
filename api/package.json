@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "pnpm generate:routes",
+    "postinstall": "pnpm generate:spec && pnpm generate:routes",
     "dev": "npm-run-all --parallel watch server",
     "watch": "webpack --watch --config webpack.config.js --mode development",
     "server": "nodemon --watch dist/bundle.js dist/bundle.js",
@@ -16,7 +16,7 @@
     "clean": "rm -rf node_modules && rm -rf dist",
     "migrate": "cd src && pnpm sequelize-cli db:migrate",
     "upgrade:dependencies": "pnpm upgrade --latest",
-    "openapi": "pnpm tsoa spec",
+    "generate:spec": "pnpm tsoa spec",
     "generate:routes": "pnpm tsoa routes"
   },
   "dependencies": {

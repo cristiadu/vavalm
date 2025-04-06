@@ -22,8 +22,8 @@ const setupTestData = async (): Promise<void> => {
       const response = await fetch(teamData.imageLogo)
       const arrayBuffer = await response.arrayBuffer()
   
-      // Convert the ArrayBuffer to a Buffer
-      const logoImageBuffer = Buffer.from(arrayBuffer)
+      // Convert the ArrayBuffer to a Blob
+      const logoImageBuffer = new Blob([arrayBuffer])
   
       // Create the team with the logo image file
       await Team.create({ ...teamData, logo_image_file: logoImageBuffer, id: undefined })

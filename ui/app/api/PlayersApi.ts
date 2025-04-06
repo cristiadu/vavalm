@@ -1,6 +1,6 @@
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
-import { AllPlayerStats, Player } from "@/api/models/Player"
-import { ItemsWithPagination } from "@/api/models/types"
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
+import { AllPlayerStats, ItemsWithPagination_AllPlayerStats_, ItemsWithPagination_PlayerApiModel_, PlayerApiModel } from "@/api/generated"
+import { VavalMClient } from "@/api/generated/client"
 
 // Cache for API responses to reduce network requests
 const playerCache: Record<string, { data: object, timestamp: number }> = {}
@@ -28,26 +28,26 @@ const withCache = async <T>(
   return data
 }
 
+// Invalidate cache when modifying data
+const invalidatePlayerCache = (): void => {
+  Object.keys(playerCache).forEach(key => {
+    if (key.startsWith('player') || key.startsWith('team')) {
+      delete playerCache[key]
+    }
+  })
+}
+
 export const fetchPlayersStats = async (
-  closure: (_playerData: ItemsWithPagination<AllPlayerStats>) => void, 
+  closure: (_playerData: ItemsWithPagination_AllPlayerStats_) => void, 
   limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, 
   offset: number = PAGE_OFFSET_INITIAL_VALUE,
-): Promise<ItemsWithPagination<AllPlayerStats>> => {
+): Promise<ItemsWithPagination_AllPlayerStats_> => {
   const cacheKey = `playersStats:${limit}:${offset}`
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await fetch(`${getApiBaseUrl()}/players/stats?limit=${limit}&offset=${offset}`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch players stats: ${response.status}`)
-      }
-      
-      return await response.json()
+      const response = await VavalMClient.default.getPlayersStats(limit, offset)
+      return response
     })
     
     closure(data)
@@ -55,7 +55,7 @@ export const fetchPlayersStats = async (
   } catch (error) {
     console.error('Error fetching players stats:', error)
     // Return empty result on error
-    const emptyResult = { items: [], total: 0 } as ItemsWithPagination<AllPlayerStats>
+    const emptyResult = { items: [], total: 0 } as ItemsWithPagination_AllPlayerStats_
     closure(emptyResult)
     return emptyResult
   }
@@ -63,23 +63,14 @@ export const fetchPlayersStats = async (
 
 export const fetchPlayersByTeam = async (
   teamId: number, 
-  closure: (_playerData: Player[]) => void,
-): Promise<Player[]> => {
+  closure: (_playerData: PlayerApiModel[]) => void,
+): Promise<PlayerApiModel[]> => {
   const cacheKey = `playersByTeam:${teamId}`
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await fetch(`${getApiBaseUrl()}/teams/${teamId}/players`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch players by team: ${response.status}`)
-      }
-      
-      return await response.json()
+      const response = await VavalMClient.default.getTeamPlayers(teamId)
+      return response
     })
     
     closure(data)
@@ -92,32 +83,23 @@ export const fetchPlayersByTeam = async (
 }
 
 export const fetchPlayers = async (
-  closure: (_playerData: ItemsWithPagination<Player>) => void, 
+  closure: (_playerData: ItemsWithPagination_PlayerApiModel_) => void, 
   limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, 
   offset: number = PAGE_OFFSET_INITIAL_VALUE,
-): Promise<ItemsWithPagination<Player>> => {
+): Promise<ItemsWithPagination_PlayerApiModel_> => {
   const cacheKey = `players:${limit}:${offset}`
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await fetch(`${getApiBaseUrl()}/players?limit=${limit}&offset=${offset}`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch players: ${response.status}`)
-      }
-      
-      return await response.json()
+      const response = await VavalMClient.default.getPlayers(undefined, limit, offset)
+      return response
     })
     
     closure(data)
     return data
   } catch (error) {
     console.error('Error fetching players:', error)
-    const emptyResult = { items: [], total: 0 } as ItemsWithPagination<Player>
+    const emptyResult = { items: [], total: 0 } as ItemsWithPagination_PlayerApiModel_
     closure(emptyResult)
     return emptyResult
   }
@@ -125,23 +107,14 @@ export const fetchPlayers = async (
 
 export const fetchPlayer = async (
   playerId: number, 
-  closure: (_playerData: Player) => void,
-): Promise<Player> => {
+  closure: (_playerData: PlayerApiModel) => void,
+): Promise<PlayerApiModel> => {
   const cacheKey = `player:${playerId}`
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await fetch(`${getApiBaseUrl()}/players/${playerId}`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch player ${playerId}: ${response.status}`)
-      }
-      
-      return await response.json()
+      const response = await VavalMClient.default.getPlayer(playerId)
+      return response
     })
     
     closure(data)
@@ -161,17 +134,8 @@ export const fetchPlayerStats = async (
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await fetch(`${getApiBaseUrl()}/players/${playerId}/stats`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch player stats ${playerId}: ${response.status}`)
-      }
-      
-      return await response.json()
+      const response = await VavalMClient.default.getPlayerStats(playerId)
+      return response
     })
     
     closure(data)
@@ -182,89 +146,47 @@ export const fetchPlayerStats = async (
   }
 }
 
-// Invalidate cache when modifying data
-const invalidatePlayerCache = (): void => {
-  Object.keys(playerCache).forEach(key => {
-    if (key.startsWith('player') || key.startsWith('team')) {
-      delete playerCache[key]
-    }
-  })
-}
-
-export const newPlayer = async (player: Player, closure: (_playerData: Player) => void): Promise<Player | null> => {
+export const newPlayer = async (player: PlayerApiModel, closure: (_playerData: PlayerApiModel) => void): Promise<PlayerApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/players`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(player),
-    })
-  
-    if (!response.ok) {
-      console.error("Network response was not ok: ", player)
-      return null
-    }
-  
-    const result = await response.json()
+    const response = await VavalMClient.default.createPlayer(player)
     invalidatePlayerCache() // Clear cache after modifications
-    closure(result)
-    console.debug('Success:', result)
-    return result
+    closure(response)
+    console.debug('Success:', response)
+    return response
   } catch (error) {
     console.error('Error:', error)
     return null
   }
 }
 
-export const editPlayer = async (player: Player, closure: (_playerData: Player) => void): Promise<Player | null> => {
+export const editPlayer = async (player: PlayerApiModel, closure: (_playerData: PlayerApiModel) => void): Promise<PlayerApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/players/${player.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(player),
-    })
-  
-    if (!response.ok) {
-      console.error("Network response was not ok: ", player)
-      return null
+    if (!player.id) {
+      throw new Error('Player ID is required')
     }
-  
-    const result = await response.json()
+
+    const response = await VavalMClient.default.updatePlayer(player.id, player)
     invalidatePlayerCache() // Clear cache after modifications
-    closure(result)
-    console.debug('Success:', result)
-    return result as Player
+    closure(response)
+    console.debug('Success:', response)
+    return response
   } catch (error) {
     console.error('Error:', error)
     return null
   }
 }
 
-export const deletePlayer = async (player: Player, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
+export const deletePlayer = async (player: PlayerApiModel, closure: () => void): Promise<void> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/players/${player.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(player),
-    })
-  
-    if (!response.ok) {
-      console.error("Network response was not ok: ", player)
-      return null
+    if (!player.id) {
+      throw new Error('Player ID is required')
     }
-  
-    const result = await response.json()
+
+    await VavalMClient.default.deletePlayer(player.id)
     invalidatePlayerCache() // Clear cache after modifications
-    closure(result)
-    console.debug('Success:', result)
-    return result as {message: string}
+    closure()
   } catch (error) {
     console.error('Error:', error)
-    return null
+    throw error
   }
 }

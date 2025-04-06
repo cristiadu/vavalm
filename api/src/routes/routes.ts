@@ -43,7 +43,7 @@ const models: TsoaRoute.Models = {
             "country": {"dataType":"string","required":true},
             "role": {"ref":"PlayerRole","required":true},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "VlrTeam": {
@@ -56,7 +56,7 @@ const models: TsoaRoute.Models = {
             "logo_url": {"dataType":"string","required":true},
             "players": {"dataType":"array","array":{"dataType":"refObject","ref":"VlrPlayer"},"required":true},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "VlrImportResponse": {
@@ -66,7 +66,7 @@ const models: TsoaRoute.Models = {
             "message": {"dataType":"string"},
             "error": {"dataType":"string"},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "TournamentType": {
@@ -74,147 +74,11 @@ const models: TsoaRoute.Models = {
         "enums": ["SINGLE_GROUP"],
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "TeamApiModel": {
+    "buffer.Blob": {
         "dataType": "refObject",
         "properties": {
-            "short_name": {"dataType":"string"},
-            "full_name": {"dataType":"string"},
-            "description": {"dataType":"string"},
-            "country": {"dataType":"string"},
-            "logo_image_file": {"dataType":"union","subSchemas":[{"dataType":"buffer"},{"dataType":"enum","enums":[null]}]},
-            "id": {"dataType":"double"},
         },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "TournamentApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "name": {"dataType":"string","required":true},
-            "description": {"dataType":"string","required":true},
-            "country": {"dataType":"string","required":true},
-            "type": {"ref":"TournamentType","required":true},
-            "start_date": {"dataType":"string","required":true},
-            "end_date": {"dataType":"string","required":true},
-            "started": {"dataType":"boolean","required":true},
-            "ended": {"dataType":"boolean","required":true},
-            "winner_id": {"dataType":"double"},
-            "teams": {"dataType":"array","array":{"dataType":"union","subSchemas":[{"ref":"TeamApiModel"},{"dataType":"double"}]}},
-            "id": {"dataType":"double"},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ItemsWithPagination_TournamentApiModel_": {
-        "dataType": "refObject",
-        "properties": {
-            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TournamentApiModel"},"required":true},
-            "total": {"dataType":"double","required":true},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GameMap": {
-        "dataType": "refEnum",
-        "enums": ["Bind","Haven","Split","Ascent","Fracture","Icebox","Breeze","Sunset","Abyss","Lotus","Pearl"],
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GameApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "date": {"dataType":"string","required":true},
-            "map": {"ref":"GameMap","required":true},
-            "match_id": {"dataType":"double","required":true},
-            "included_on_standings": {"dataType":"boolean","required":true},
-            "started": {"dataType":"boolean","required":true},
-            "finished": {"dataType":"boolean","required":true},
-            "id": {"dataType":"double"},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "MatchApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "date": {"dataType":"string","required":true},
-            "tournament_id": {"dataType":"double","required":true},
-            "team1_id": {"dataType":"double","required":true},
-            "team2_id": {"dataType":"double","required":true},
-            "type": {"dataType":"string","required":true},
-            "team1_score": {"dataType":"double","required":true},
-            "team2_score": {"dataType":"double","required":true},
-            "included_on_standings": {"dataType":"boolean","required":true},
-            "started": {"dataType":"boolean","required":true},
-            "finished": {"dataType":"boolean","required":true},
-            "winner_id": {"dataType":"double"},
-            "id": {"dataType":"double"},
-            "team1": {"ref":"TeamApiModel"},
-            "team2": {"ref":"TeamApiModel"},
-            "games": {"dataType":"array","array":{"dataType":"refObject","ref":"GameApiModel"}},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ItemsWithPagination_MatchApiModel_": {
-        "dataType": "refObject",
-        "properties": {
-            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"MatchApiModel"},"required":true},
-            "total": {"dataType":"double","required":true},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "StandingsApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "wins": {"dataType":"double","required":true},
-            "losses": {"dataType":"double","required":true},
-            "maps_won": {"dataType":"double","required":true},
-            "maps_lost": {"dataType":"double","required":true},
-            "rounds_won": {"dataType":"double","required":true},
-            "rounds_lost": {"dataType":"double","required":true},
-            "tournament_id": {"dataType":"double","required":true},
-            "team_id": {"dataType":"double","required":true},
-            "position": {"dataType":"double","required":true},
-            "id": {"dataType":"double"},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ItemsWithPagination_TeamApiModel_": {
-        "dataType": "refObject",
-        "properties": {
-            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TeamApiModel"},"required":true},
-            "total": {"dataType":"double","required":true},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "TeamStats": {
-        "dataType": "refObject",
-        "properties": {
-            "team": {"ref":"TeamApiModel","required":true},
-            "tournamentsWon": {"dataType":"double","required":true},
-            "tournamentsParticipated": {"dataType":"double","required":true},
-            "winrate": {"dataType":"double","required":true},
-            "totalMatchesPlayed": {"dataType":"double","required":true},
-            "totalMatchesWon": {"dataType":"double","required":true},
-            "totalMatchesLost": {"dataType":"double","required":true},
-            "mapWinrate": {"dataType":"double","required":true},
-            "totalMapsPlayed": {"dataType":"double","required":true},
-            "totalMapsWon": {"dataType":"double","required":true},
-            "totalMapsLost": {"dataType":"double","required":true},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ItemsWithPagination_TeamStats_": {
-        "dataType": "refObject",
-        "properties": {
-            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TeamStats"},"required":true},
-            "total": {"dataType":"double","required":true},
-        },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "PlayerAttributesApiModel": {
@@ -237,7 +101,7 @@ const models: TsoaRoute.Models = {
             "teamwork": {"dataType":"double","required":true},
             "utility_usage": {"dataType":"double","required":true},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "PlayerApiModel": {
@@ -252,7 +116,191 @@ const models: TsoaRoute.Models = {
             "player_attributes": {"ref":"PlayerAttributesApiModel","required":true},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "TeamApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "short_name": {"dataType":"string"},
+            "full_name": {"dataType":"string"},
+            "description": {"dataType":"string"},
+            "country": {"dataType":"string"},
+            "logo_image_file": {"dataType":"union","subSchemas":[{"ref":"buffer.Blob"},{"dataType":"enum","enums":[null]}]},
+            "id": {"dataType":"double"},
+            "players": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "TournamentApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "name": {"dataType":"string","required":true},
+            "description": {"dataType":"string","required":true},
+            "country": {"dataType":"string","required":true},
+            "type": {"ref":"TournamentType","required":true},
+            "start_date": {"dataType":"string","required":true},
+            "end_date": {"dataType":"string","required":true},
+            "started": {"dataType":"boolean","required":true},
+            "ended": {"dataType":"boolean","required":true},
+            "winner_id": {"dataType":"double"},
+            "teams": {"dataType":"array","array":{"dataType":"union","subSchemas":[{"ref":"TeamApiModel"},{"dataType":"double"}]}},
+            "id": {"dataType":"double"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ItemsWithPagination_TournamentApiModel_": {
+        "dataType": "refObject",
+        "properties": {
+            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TournamentApiModel"},"required":true},
+            "total": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "MatchType": {
+        "dataType": "refEnum",
+        "enums": ["BO1","BO3","BO5","FRIENDLY","SHOWMATCH"],
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GameMap": {
+        "dataType": "refEnum",
+        "enums": ["Bind","Haven","Split","Ascent","Fracture","Icebox","Breeze","Sunset","Abyss","Lotus","Pearl"],
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GameStatsApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "team1_score": {"dataType":"double","required":true},
+            "team2_score": {"dataType":"double","required":true},
+            "game_id": {"dataType":"double","required":true},
+            "team1_id": {"dataType":"double","required":true},
+            "team2_id": {"dataType":"double","required":true},
+            "winner_id": {"dataType":"double"},
+            "id": {"dataType":"double"},
+            "team1": {"ref":"TeamApiModel"},
+            "team2": {"ref":"TeamApiModel"},
+            "players_stats_team1": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerGameStatsApiModel"}},
+            "players_stats_team2": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerGameStatsApiModel"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "PlayerGameStatsApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "kills": {"dataType":"double","required":true},
+            "deaths": {"dataType":"double","required":true},
+            "assists": {"dataType":"double","required":true},
+            "player_id": {"dataType":"double","required":true},
+            "game_stats_player1_id": {"dataType":"double"},
+            "game_stats_player2_id": {"dataType":"double"},
+            "game_stats_player1": {"ref":"GameStatsApiModel"},
+            "game_stats_player2": {"ref":"GameStatsApiModel"},
+            "player": {"ref":"PlayerApiModel"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "GameApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "date": {"dataType":"string","required":true},
+            "map": {"ref":"GameMap","required":true},
+            "match_id": {"dataType":"double","required":true},
+            "included_on_standings": {"dataType":"boolean","required":true},
+            "started": {"dataType":"boolean","required":true},
+            "finished": {"dataType":"boolean","required":true},
+            "id": {"dataType":"double"},
+            "stats": {"ref":"GameStatsApiModel"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "MatchApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "date": {"dataType":"string","required":true},
+            "tournament_id": {"dataType":"double","required":true},
+            "team1_id": {"dataType":"double","required":true},
+            "team2_id": {"dataType":"double","required":true},
+            "type": {"ref":"MatchType","required":true},
+            "team1_score": {"dataType":"double","required":true},
+            "team2_score": {"dataType":"double","required":true},
+            "included_on_standings": {"dataType":"boolean","required":true},
+            "started": {"dataType":"boolean","required":true},
+            "finished": {"dataType":"boolean","required":true},
+            "winner_id": {"dataType":"double"},
+            "id": {"dataType":"double"},
+            "team1": {"ref":"TeamApiModel"},
+            "team2": {"ref":"TeamApiModel"},
+            "games": {"dataType":"array","array":{"dataType":"refObject","ref":"GameApiModel"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ItemsWithPagination_MatchApiModel_": {
+        "dataType": "refObject",
+        "properties": {
+            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"MatchApiModel"},"required":true},
+            "total": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "StandingsApiModel": {
+        "dataType": "refObject",
+        "properties": {
+            "wins": {"dataType":"double","required":true},
+            "losses": {"dataType":"double","required":true},
+            "maps_won": {"dataType":"double","required":true},
+            "maps_lost": {"dataType":"double","required":true},
+            "rounds_won": {"dataType":"double","required":true},
+            "rounds_lost": {"dataType":"double","required":true},
+            "tournament_id": {"dataType":"double","required":true},
+            "team_id": {"dataType":"double","required":true},
+            "position": {"dataType":"double","required":true},
+            "id": {"dataType":"double"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ItemsWithPagination_TeamApiModel_": {
+        "dataType": "refObject",
+        "properties": {
+            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TeamApiModel"},"required":true},
+            "total": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "TeamStats": {
+        "dataType": "refObject",
+        "properties": {
+            "team": {"ref":"TeamApiModel","required":true},
+            "tournamentsWon": {"dataType":"double","required":true},
+            "tournamentsParticipated": {"dataType":"double","required":true},
+            "winrate": {"dataType":"double","required":true},
+            "totalMatchesPlayed": {"dataType":"double","required":true},
+            "totalMatchesWon": {"dataType":"double","required":true},
+            "totalMatchesLost": {"dataType":"double","required":true},
+            "mapWinrate": {"dataType":"double","required":true},
+            "totalMapsPlayed": {"dataType":"double","required":true},
+            "totalMapsWon": {"dataType":"double","required":true},
+            "totalMapsLost": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ItemsWithPagination_TeamStats_": {
+        "dataType": "refObject",
+        "properties": {
+            "items": {"dataType":"array","array":{"dataType":"refObject","ref":"TeamStats"},"required":true},
+            "total": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "PlayerDuelResults": {
@@ -262,7 +310,7 @@ const models: TsoaRoute.Models = {
             "loser": {"dataType":"union","subSchemas":[{"ref":"PlayerApiModel"},{"dataType":"enum","enums":[null]}],"required":true},
             "startedTradeDuel": {"dataType":"boolean","required":true},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RoundStateApiModel": {
@@ -276,7 +324,7 @@ const models: TsoaRoute.Models = {
             "finished": {"dataType":"boolean","required":true},
             "previous_duel": {"ref":"PlayerDuelResults"},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Weapon": {
@@ -300,7 +348,7 @@ const models: TsoaRoute.Models = {
             "included_on_team_stats": {"dataType":"boolean","required":true},
             "id": {"dataType":"double"},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_PlayerApiModel_": {
@@ -309,7 +357,7 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "AllPlayerStats": {
@@ -329,7 +377,7 @@ const models: TsoaRoute.Models = {
             "totalDeaths": {"dataType":"double","required":true},
             "totalAssists": {"dataType":"double","required":true},
         },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ItemsWithPagination_AllPlayerStats_": {
@@ -338,45 +386,11 @@ const models: TsoaRoute.Models = {
             "items": {"dataType":"array","array":{"dataType":"refObject","ref":"AllPlayerStats"},"required":true},
             "total": {"dataType":"double","required":true},
         },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "GameStatsApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "team1_score": {"dataType":"double","required":true},
-            "team2_score": {"dataType":"double","required":true},
-            "game_id": {"dataType":"double","required":true},
-            "team1_id": {"dataType":"double","required":true},
-            "team2_id": {"dataType":"double","required":true},
-            "winner_id": {"dataType":"double"},
-            "id": {"dataType":"double"},
-            "team1": {"ref":"TeamApiModel"},
-            "team2": {"ref":"TeamApiModel"},
-            "players_stats_team1": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerGameStatsApiModel"}},
-            "players_stats_team2": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerGameStatsApiModel"}},
-        },
-        "additionalProperties": true,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "PlayerGameStatsApiModel": {
-        "dataType": "refObject",
-        "properties": {
-            "kills": {"dataType":"double","required":true},
-            "deaths": {"dataType":"double","required":true},
-            "assists": {"dataType":"double","required":true},
-            "player_id": {"dataType":"double","required":true},
-            "game_stats_player1_id": {"dataType":"double"},
-            "game_stats_player2_id": {"dataType":"double"},
-            "game_stats_player1": {"ref":"GameStatsApiModel"},
-            "game_stats_player2": {"ref":"GameStatsApiModel"},
-            "player": {"ref":"PlayerApiModel"},
-        },
-        "additionalProperties": true,
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
-const templateService = new ExpressTemplateService(models, {"noImplicitAdditionalProperties":"ignore","bodyCoercion":true});
+const templateService = new ExpressTemplateService(models, {"noImplicitAdditionalProperties":"silently-remove-extras","bodyCoercion":true});
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -665,6 +679,37 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'endTournament',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsTournamentController_deleteTournament: Record<string, TsoaRoute.ParameterSchema> = {
+                tournamentId: {"in":"path","name":"tournamentId","required":true,"dataType":"double"},
+        };
+        app.delete('/api/tournaments/:tournamentId',
+            authenticateMiddleware([{"BearerAuth":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(TournamentController)),
+            ...(fetchMiddlewares<RequestHandler>(TournamentController.prototype.deleteTournament)),
+
+            async function TournamentController_deleteTournament(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsTournamentController_deleteTournament, request, response });
+
+                const controller = new TournamentController();
+
+              await templateService.apiHandler({
+                methodName: 'deleteTournament',
                 controller,
                 response,
                 next,

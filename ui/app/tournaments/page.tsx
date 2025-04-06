@@ -4,23 +4,22 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { fetchTournaments, deleteTournament } from '@/api/TournamentsApi'
 import { fetchCountries } from '@/api/CountryApi'
-import { Tournament } from '@/api/models/Tournament'
-import { Team } from '@/api/models/Team'
 import TournamentActionModal from '@/components/TournamentActionModal'
-import { asSafeHTML } from '@/base/StringUtils'
+import { asSafeHTML } from '@/common/StringUtils'
 import { ItemsWithPagination } from '@/api/models/types'
-import Pagination from '@/base/Pagination'
+import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
+import { TeamApiModel, TournamentApiModel } from '@/api/generated'
 
 export default function ListTournaments(): React.ReactNode {
   const router = useRouter()
-  const [tournaments, setTournaments] = useState<ItemsWithPagination<Tournament> | null>(null)
+  const [tournaments, setTournaments] = useState<ItemsWithPagination<TournamentApiModel> | null>(null)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [tournamentActionModalOpened, setTournamentActionModalOpened] = useState<boolean>(false)
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
-  const [tournamentToEdit, setTournamentToEdit] = useState<Tournament | null>(null)
+  const [tournamentToEdit, setTournamentToEdit] = useState<TournamentApiModel | null>(null)
   const [totalItems, setTotalItems] = useState(0)
 
   const fetchCountriesAndTournaments = useCallback((offset: number, limit: number) => {
@@ -31,7 +30,7 @@ export default function ListTournaments(): React.ReactNode {
       })
       setCountriesToFlagMap(countriesToFlagMap)
     })
-    
+
     fetchTournaments((data) => {
       setTournaments(data)
       setTotalItems(data.total)
@@ -56,18 +55,18 @@ export default function ListTournaments(): React.ReactNode {
     fetchCountriesAndTournaments(PAGE_OFFSET_INITIAL_VALUE, LIMIT_PER_PAGE_INITIAL_VALUE)
   }
 
-  const handleView = (tournament: Tournament): void => {
+  const handleView = (tournament: TournamentApiModel): void => {
     router.push(`/tournaments/${tournament.id}`)
   }
 
-  const handleEdit = (tournament: Tournament): void => {
+  const handleEdit = (tournament: TournamentApiModel): void => {
     console.debug('Editing tournament:', tournament)
     setIsEditActionOpened(true)
     setTournamentToEdit(tournament)
     setTournamentActionModalOpened(true)
   }
 
-  const handleDelete = (tournament: Tournament): void => {
+  const handleDelete = (tournament: TournamentApiModel): void => {
     const confirmed = confirm(`Are you sure you want to delete tournament '${tournament.name}'?`)
     if (!confirmed) return
 
@@ -83,7 +82,7 @@ export default function ListTournaments(): React.ReactNode {
   const handlePageChange = (limit: number, offset: number): void => {
     fetchCountriesAndTournaments(offset, limit)
   }
-  
+
   return (
     <>
       <TournamentActionModal isOpen={tournamentActionModalOpened} onClose={closeTournamentActionModal} isEdit={isEditActionOpened} object={tournamentToEdit} />
@@ -93,28 +92,28 @@ export default function ListTournaments(): React.ReactNode {
           <thead>
             <tr>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              ID
+                ID
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
+                Name
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Type
+                Type
               </th>
               <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Description
+                Description
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Country
+                Country
               </th>
               <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Start Date
+                Start Date
               </th>
               <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Teams
+                Teams
               </th>
               <th className="py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase w-auto">
-              Actions
+                Actions
               </th>
             </tr>
           </thead>
@@ -134,21 +133,24 @@ export default function ListTournaments(): React.ReactNode {
                     <ImageAutoSize src={countriesToFlagMap[tournament.country]} alt={tournament.country} width={32} height={16} className="mr-2" />
                     {tournament.country}
                   </span>)}
-                </td>              
+                </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{new Date(tournament.start_date).toLocaleDateString()}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <div className="grid grid-cols-3">
-                    {tournament.teams?.map((team: Team) => (
-                      <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center mb-2">
-                        <ImageAutoSize 
-                          imageBlob={team.logo_image_file as Blob}
-                          fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                          alt={team.short_name} 
-                          width={32} height={32} 
-                          className="mr-2" />
-                        {team.short_name}
-                      </div>
-                    ))}
+                    {tournament.teams?.map((team: TeamApiModel | number) => {
+                      if (typeof team === 'number') return null
+                      return (
+                        <div key={`tournament-${tournament.id}-team-${team.id}`} className="flex items-center mb-2">
+                          <ImageAutoSize
+                            imageBlob={team.logo_image_file as unknown as Blob}
+                            fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
+                            alt={team.short_name || ""}
+                            width={32} height={32}
+                            className="mr-2" />
+                          {team.short_name}
+                        </div>
+                      )
+                    })}
                   </div>
                 </td>
                 <td className="py-4 whitespace-nowrap text-sm text-left text-gray-900 w-auto">

@@ -2,6 +2,7 @@ import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import type { Game } from "@/models/Game"
 import { GameMap } from "@/models/enums"
+import { GameStatsApiModel } from "./GameStatsApiModel"
 
 /**
  * @tsoaModel
@@ -15,6 +16,7 @@ export class GameApiModel extends BaseEntityModel {
     public started: boolean,
     public finished: boolean,
     public id?: number,
+    public stats?: GameStatsApiModel,
   ) {
     super()
   }
@@ -37,6 +39,7 @@ export class GameApiModel extends BaseEntityModel {
       included_on_standings: this.included_on_standings,
       started: this.started,
       finished: this.finished,
+      stats: this.stats,
     })
   }
 }

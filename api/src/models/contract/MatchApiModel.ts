@@ -3,7 +3,7 @@ import { Hidden } from "tsoa"
 import type { Match } from "@/models/Match"
 import { TeamApiModel } from "./TeamApiModel"
 import { GameApiModel } from "./GameApiModel"
-
+import { MatchType } from "@/models/enums"
 /**
  * @tsoaModel
  */
@@ -13,7 +13,7 @@ export class MatchApiModel extends BaseEntityModel {
     public tournament_id: number,
     public team1_id: number,
     public team2_id: number,
-    public type: string,
+    public type: MatchType,
     public team1_score: number,
     public team2_score: number,
     public included_on_standings: boolean,

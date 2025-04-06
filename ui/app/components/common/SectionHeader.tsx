@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { handleBackClick } from '@/base/LinkUtils'
+import { handleBackClick } from '@/common/LinkUtils'
 
 interface SectionHeaderProps {
   title: string

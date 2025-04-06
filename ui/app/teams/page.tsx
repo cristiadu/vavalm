@@ -5,26 +5,26 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchTeams, deleteTeam } from '@/api/TeamsApi'
-import { Team } from '@/api/models/Team'
 import TeamActionModal from '@/components/TeamActionModal'
 import 'react-quill-new/dist/quill.snow.css'
-import { asSafeHTML } from '@/base/StringUtils'
+import { asSafeHTML } from '@/common/StringUtils'
 import { fetchPlayersByTeam } from '@/api/PlayersApi'
-import { getRoleBgColor, Player } from '@/api/models/Player'
-import Pagination from '@/base/Pagination'
+import { getRoleBgColor } from '@/api/models/helpers'
+import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
-import { Country } from '@/api/models/Country'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
+import { Country, PlayerWithFlag } from '@/api/models/types'
+import { PlayerApiModel, TeamApiModel } from '@/api/generated'
 
 export default function ListTeams(): React.ReactNode {
   const LIMIT_VALUE_TEAM_LIST = 5
 
   const router = useRouter()
-  const [teams, setTeams] = useState<Team[]>([])
+  const [teams, setTeams] = useState<TeamApiModel[]>([])
   const [teamActionModalOpened, setTeamActionModalOpened] = useState<boolean>(false)
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
-  const [teamToEdit, setTeamToEdit] = useState<Team | null>(null)
+  const [teamToEdit, setTeamToEdit] = useState<TeamApiModel | null>(null)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [totalItems, setTotalItems] = useState(0)
 
@@ -51,14 +51,14 @@ export default function ListTeams(): React.ReactNode {
       setTotalItems(teamsData.total)
 
       const teamsWithPlayersFlags = await Promise.all(
-        teamsData.items.map(async (team: Team) => {
+        teamsData.items.map(async (team: TeamApiModel) => {
           const players = await fetchPlayersByTeam(Number(team.id), () => {
             // handle player data
           })
-          const playersWithFlags = players.map((player: Player) => ({
+          const playersWithFlags = players.map((player: PlayerApiModel) => ({
             ...player,
             countryFlag: countriesToFlagMap[player.country] || null,
-          }))
+          } as PlayerWithFlag))
           return { ...team, players: playersWithFlags }
         }),
       )
@@ -82,12 +82,12 @@ export default function ListTeams(): React.ReactNode {
     fetchCountriesAndTeams()
   }
 
-  const handleView = (team: Team): void => {
+  const handleView = (team: TeamApiModel): void => {
     // Send user to player details page
     router.push(`/teams/${team.id}`)
   }
 
-  const handleEdit = (team: Team): void => {
+  const handleEdit = (team: TeamApiModel): void => {
     // Use same modal as NewPlayerModal but with prefilled data'
     console.debug('Editing team:', team)
     setIsEditActionOpened(true)
@@ -95,7 +95,7 @@ export default function ListTeams(): React.ReactNode {
     setTeamActionModalOpened(true)
   }
 
-  const handleDelete = (team: Team): void => {
+  const handleDelete = (team: TeamApiModel): void => {
     // Show confirm dialog and if confirmed delete player
     const confirmed = confirm(`Are you sure you want to delete team '${team.short_name}'?`)
     if(!confirmed) return
@@ -153,7 +153,7 @@ export default function ListTeams(): React.ReactNode {
                   <ImageAutoSize
                     width={128}
                     height={128}
-                    imageBlob={team.logo_image_file as Blob}
+                    imageBlob={team.logo_image_file as unknown as Blob}
                     fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                     alt={`${team.short_name} logo`}
                     className='rounded-lg w-24 h-24 shadow-lg'
@@ -168,7 +168,7 @@ export default function ListTeams(): React.ReactNode {
                   </span>)}
                 </td>
                 <td className="py-4 text-sm font-medium text-gray-900 grid grid-cols-2">
-                  {team.players && team.players.map(player => (
+                  {team.players && team.players.map((player: PlayerWithFlag) => (
                     <div key={`team-${team.id}-player-${player.id}`} className="flex items-center space-x-2 mb-2">
                       <span className={getRoleBgColor(player.role)}>
                         {player.role}

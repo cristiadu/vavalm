@@ -1,115 +1,80 @@
-import { ItemsWithPagination } from "@/api/models/types"
-import { Match, Standing, Tournament } from "@/api/models/Tournament"
-import { getApiBaseUrl, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
-import { parseLogoImageFile, Team, TeamWithLogoImageData } from "@/api/models/Team"
+import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
+import { parseLogoImageFile } from "@/api/models/helpers"
+import { TeamWithLogoImageData } from '@/api/models/types'
+import { ItemsWithPagination_MatchApiModel_, ItemsWithPagination_TournamentApiModel_, StandingsApiModel, TeamApiModel, TournamentApiModel } from "@/api/generated"
+import { VavalMClient } from "@/api/generated/client"
 
-export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination<Tournament>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Tournament>> => {
-  const response = await fetch(`${getApiBaseUrl()}/tournaments?limit=${limit}&offset=${offset}`)
-  const data = await response.json()
-  const tournamentwithBlob = data.items.map((tournament: Tournament) => {
-    const teamsWithBlob = tournament.teams.map((team: TeamWithLogoImageData) => {
-      return parseLogoImageFile<Team>(team)
+export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination_TournamentApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TournamentApiModel_> => {
+  const response = await VavalMClient.default.getTournaments(limit, offset)
+  const tournamentwithBlob = response.items.map((tournament: TournamentApiModel) => {
+    const teamsWithBlob = tournament.teams?.map((team) => {
+      return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
     })
     return { ...tournament, teams: teamsWithBlob }
   })
-  const result = { total: data.total, items: tournamentwithBlob }
-  closure(result)
-  return result as ItemsWithPagination<Tournament>
-}
-
-export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (_matchData: ItemsWithPagination<Match>) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination<Match>> => {
-  const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/schedule?limit=${limit}&offset=${offset}`)
-  const data = await response.json()
-  closure(data)
-  return data as ItemsWithPagination<Match>
-}
-
-export const getTournament = async (tournamentId: number, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
-  const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
-  const data = await response.json()
-  const teamsWithBlob = data.teams?.map((team: TeamWithLogoImageData) => {
-    return parseLogoImageFile<Team>(team)
-  })
-
-  const standingsWithTeamsRef = data.standings?.map((standing: Standing) => {
-    const standingsTeam = teamsWithBlob.find((team: Team) => team.id === standing.team_id)
-    return { ...standing, team: standingsTeam }
-  })
-
-  const result = { ...data, teams: teamsWithBlob, standings: standingsWithTeamsRef }
+  const result = { total: response.total, items: tournamentwithBlob } as ItemsWithPagination_TournamentApiModel_
   closure(result)
   return result
 }
 
-export const newTournament = async (tournament: Tournament, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
+export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (_matchData: ItemsWithPagination_MatchApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_MatchApiModel_> => {
+  const response = await VavalMClient.default.getTournamentSchedule(tournamentId, limit, offset)
+  closure(response)
+  return response
+}
+
+export const getTournament = async (tournamentId: number, closure: (_tournamentData: TournamentApiModel) => void): Promise<TournamentApiModel | null> => {
+  const response = await VavalMClient.default.getTournament(tournamentId)
+  const teamsWithBlob = response.teams?.map((team) => {
+    return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
+  })
+
+  const result = { ...response, teams: teamsWithBlob}
+  closure(result)
+  return result
+}
+
+export const getTournamentStandings = async (tournamentId: number, closure: (_tournamentData: StandingsApiModel[]) => void): Promise<StandingsApiModel[] | null> => {
+  const response = await VavalMClient.default.getTournamentStandings(tournamentId)
+  closure(response)
+  return response
+}
+
+export const newTournament = async (tournament: TournamentApiModel, closure: (_tournamentData: TournamentApiModel) => void): Promise<TournamentApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/tournaments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tournament),
-    })
-
-    if (!response.ok) {
-      console.error("Network response was not ok: ", tournament)
-      return null
-    }
-
-    const data = await response.json()
-    closure(data)
-    console.debug('Success:', data)
-    return data
+    const response = await VavalMClient.default.createTournament(tournament)
+    closure(response)
+    return response
   } catch (error) {
     console.error('Error creating tournament:', error)
     return null
   }
 }
 
-export const editTournament = async (tournament: Tournament, closure: (_tournamentData: Tournament) => void): Promise<Tournament | null> => {
+export const editTournament = async (tournament: TournamentApiModel, closure: (_tournamentData: TournamentApiModel) => void): Promise<TournamentApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tournament),
-    })
-
-    if (!response.ok) {
-      console.error("Network response was not ok: ", tournament)
-      return null
+    if (!tournament.id) {
+      throw new Error('Tournament ID is required')
     }
 
-    const data = await response.json()
-    closure(data)
-    console.debug('Success:', data)
-    return data as Tournament
+    const response = await VavalMClient.default.updateTournament(tournament.id, tournament)
+    closure(response)
+    return response
   } catch (error) {
     console.error('Error updating tournament:', error)
     return null
   }
 }
 
-export const deleteTournament = async (tournament: Tournament, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
+export const deleteTournament = async (tournament: TournamentApiModel, closure: (_result: {message: string}) => void): Promise<{message: string} | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tournament),
-    })
-
-    if (!response.ok) {
-      console.error("Network response was not ok: ", tournament)
-      return null
+    if (!tournament.id) {
+      throw new Error('Tournament ID is required')
     }
 
-    const data = await response.json()
-    closure(data)
-    console.debug('Success:', data)
-    return data as {message: string}
+    await VavalMClient.default.deleteTournament(tournament.id)
+    closure({message: 'Tournament deleted successfully'})
+    return {message: 'Tournament deleted successfully'}
   } catch (error) {
     console.error('Error deleting tournament:', error)
     return null

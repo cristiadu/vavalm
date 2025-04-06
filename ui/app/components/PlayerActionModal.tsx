@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import { editPlayer, newPlayer } from '@/api/PlayersApi'
-import { getRoleBgColor, Player, PlayerAttributes, PlayerRole } from '@/api/models/Player'
-import Modal from '@/base/Modal'
+import { getRoleBgColor } from '@/api/models/helpers'
+import Modal from '@/components/common/Modal'
 import { fetchCountries } from '@/api/CountryApi'
-import {Country} from '@/api/models/Country'
+import {Country} from '@/api/models/types'
 import { fetchAllTeams } from '@/api/TeamsApi'
-import { Team } from '@/api/models/Team'
-import { ItemActionModalProps } from '@/base/CommonModels'
-import AlertMessage, { AlertType } from '@/base/AlertMessage'
-import DropdownSelect from '@/base/DropdownSelect'
+import { ItemActionModalProps } from '@/common/CommonModels'
+import AlertMessage, { AlertType } from '@/components/common/AlertMessage'
+import DropdownSelect from '@/components/common/DropdownSelect'
 import { EnumWithFieldName } from '@/api/models/types'
+import { PlayerApiModel, TeamApiModel, PlayerRole, PlayerAttributesApiModel } from '@/api/generated'
 
-const defaultPlayerAttributes: PlayerAttributes = {
+const defaultPlayerAttributes: PlayerAttributesApiModel = {
   clutch: 0,
   awareness: 0,
   aim: 0,
@@ -41,9 +41,9 @@ const initialPlayerState = {
 }
 
 const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
-  const player = object ? object as Player: null
+  const player = object ? object as PlayerApiModel: null
   const [playerState, setPlayerState] = useState(initialPlayerState)
-  const [teams, setTeams] = useState<Team[]>([])
+  const [teams, setTeams] = useState<TeamApiModel[]>([])
   const [countries, setCountries] = useState<Country[]>([])
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -76,7 +76,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
     }
   }, [player, isEdit, setInitialValues])
 
-  const handleTeamSelect = (team: Team): void => {
+  const handleTeamSelect = (team: TeamApiModel): void => {
     setPlayerState(prevState => ({ ...prevState, teamId: team.id ?? null }))
   }
 
@@ -106,7 +106,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
       return
     }
 
-    const requestPlayer: Player = {
+    const requestPlayer: PlayerApiModel = {
       id: player?.id,
       nickname: playerState.nickname,
       full_name: playerState.fullName,
@@ -230,7 +230,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
                   min={0}
                   max={3}
                   name={attribute}
-                  value={playerState.playerAttributes[attribute as keyof PlayerAttributes]}
+                  value={playerState.playerAttributes[attribute as keyof PlayerAttributesApiModel]}
                   onChange={(e) =>
                     setPlayerState({
                       ...playerState,

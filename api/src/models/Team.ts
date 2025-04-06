@@ -8,7 +8,7 @@ import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
 export class Team extends Model {
   declare id?: number
-  declare logo_image_file: Buffer | null
+  declare logo_image_file: Blob | null
   declare short_name: string
   declare full_name: string
   declare description: string
@@ -28,6 +28,7 @@ export class Team extends Model {
       this.country,
       this.logo_image_file,
       this.id,
+      this.players?.map(player => player.toApiModel()),
     )
   }
 

@@ -3,14 +3,15 @@
 import React, { useEffect, useState } from 'react'
 import { fetchTeamsStats } from '@/api/TeamsApi'
 import { fetchCountries } from '@/api/CountryApi'
-import { ItemsWithPagination } from '@/api/models/types'
 import { useRouter } from 'next/navigation'
-import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
-import Pagination from '@/base/Pagination'
-import { parseLogoImageFile, Team, TeamStats, TeamWithLogoImageData } from '@/api/models/Team'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
+import Pagination from '@/components/common/Pagination'
+import { parseLogoImageFile } from '@/api/models/helpers'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { ItemsWithPagination_TeamStats_, TeamApiModel, TeamStats} from '@/api/generated'
+import { TeamWithLogoImageData } from '@/api/models/types'
 
 const thresholds = {
   tournamentsWon: { high: 1 },
@@ -44,11 +45,11 @@ const TeamsStatsPage = (): React.ReactNode => {
     fetchTeamsStats(refreshListData, LIMIT_VALUE_TEAM_LIST)
   }, [])
 
-  const refreshListData = async (data: ItemsWithPagination<TeamStats>): Promise<void> => {
+  const refreshListData = async (data: ItemsWithPagination_TeamStats_): Promise<void> => {
     if (data.total > 0) {
       setTotalItems(data.total)
       const items = data.items.map((item: TeamStats) => {
-        return { ...item, team: parseLogoImageFile<Team>(item.team) }
+        return { ...item, team: parseLogoImageFile<TeamApiModel>(item.team as TeamWithLogoImageData) }
       })
       setTeamsStats(items)
     }
@@ -98,9 +99,9 @@ const TeamsStatsPage = (): React.ReactNode => {
 
                 <span className="flex items-center">
                   <ImageAutoSize
-                    imageBlob={stats.team.logo_image_file as Blob}
+                    imageBlob={stats.team.logo_image_file as unknown as Blob}
                     fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                    alt={stats.team.short_name}
+                    alt={stats.team.short_name ?? ''}
                     width={32} height={32}
                     className="mr-2" />
                   {stats.team.short_name}

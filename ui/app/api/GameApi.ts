@@ -1,60 +1,28 @@
-import { getApiBaseUrl } from "@/api/models/constants"
-import { Game, GameStats, Match } from "@/api/models/Tournament"
-import { Team, TeamWithLogoImageData } from "./models/Team"
-import { parseLogoImageFile } from "./models/Team"
-
+import { parseLogoImageFile } from "@/api/models/helpers"
+import { TeamWithLogoImageData } from "@/api/models/types"
+import { GameApiModel, GameStatsApiModel, MatchApiModel, TeamApiModel } from "@/api/generated"
+import { VavalMClient } from "@/api/generated/client"
 export const playFullGame = async (
   game_id: number,
   closure: (_response: { message: string }) => void,
 ): Promise<void> => {
   try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/games/${game_id}/play`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    )
-
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-    closure(data)
-    console.debug("Success:", data)
-    return data
+    const response = await VavalMClient.default.playGame(game_id)
+    closure(response)
+    return response
   } catch (error) {
     console.error("Error:", error)
     throw error
   }
 }
 
-export const getMatch = async (match_id: number, closure: (_response: Match) => void): Promise<Match | null> => {
+export const getMatch = async (match_id: number, closure: (_response: MatchApiModel) => void): Promise<MatchApiModel | null> => {
   try {
-    const response = await fetch(
-      `${getApiBaseUrl()}/matches/${match_id}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    )
-
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`)
-    }
-
-    const data = await response.json() as Match
-    data.team1 = parseLogoImageFile<Team>(data.team1 as TeamWithLogoImageData)
-    data.team2 = parseLogoImageFile<Team>(data.team2 as TeamWithLogoImageData)
-
-    closure(data)
-    console.debug("Success:", data)
-    return data as Match
+    const response = await VavalMClient.default.getMatch(match_id)
+    response.team1 = parseLogoImageFile<TeamApiModel>(response.team1 as TeamWithLogoImageData)
+    response.team2 = parseLogoImageFile<TeamApiModel>(response.team2 as TeamWithLogoImageData)
+    closure(response)
+    return response
   } catch (error) {
     console.error("Error:", error)
     throw error
@@ -63,58 +31,25 @@ export const getMatch = async (match_id: number, closure: (_response: Match) => 
 
 export const getGame = async (
   game_id: number,
-  closure: (_response: Game) => void,
-  options?: { signal?: AbortSignal },
-): Promise<Game | null> => {
+  closure: (_response: GameApiModel) => void,
+): Promise<GameApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      signal: options?.signal,
-    })
-
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    closure(data)
-    console.debug("Success:", data)
-    return data as Game | null
+    const response = await VavalMClient.default.getGame(game_id)
+    closure(response)
+    return response
   } catch (error) {
-    // Don't log aborted requests as errors
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      console.log('Fetch aborted')
-      return null
-    }
     console.error("Error:", error)
     throw error
   }
 }
 
-export const getGameStats = async (game_id: number, closure: (_response: GameStats) => void): Promise<GameStats | null> => {
+export const getGameStats = async (game_id: number, closure: (_response: GameStatsApiModel) => void): Promise<GameStatsApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/stats`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`)
-    }
-
-    const data = await response.json() as GameStats
-    data.team1 = parseLogoImageFile<Team>(data.team1 as TeamWithLogoImageData)
-    data.team2 = parseLogoImageFile<Team>(data.team2 as TeamWithLogoImageData)
-
-    closure(data)
-    console.debug("Success:", data)
-    return data as GameStats | null
+    const response = await VavalMClient.default.getGameStats(game_id)
+    response.team1 = parseLogoImageFile<TeamApiModel>(response.team1 as TeamWithLogoImageData)
+    response.team2 = parseLogoImageFile<TeamApiModel>(response.team2 as TeamWithLogoImageData)
+    closure(response)
+    return response
   } catch (error) {
     console.error("Error:", error)
     throw error

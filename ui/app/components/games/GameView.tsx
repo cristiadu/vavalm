@@ -1,8 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Match, Game, GameLog, GameStats } from "@/api/models/Tournament"
-import { Country } from "@/api/models/Country"
+import { Country } from "@/api/models/types"
 import { getGame, getGameStats, playFullGame, getMatch } from "@/api/GameApi"
 import { getLastDuel } from "@/api/DuelApi"
 import { playFullRound } from "@/api/RoundApi"
@@ -10,14 +9,15 @@ import { playSingleDuel } from "@/api/DuelApi"
 import GameHeader from "@/components/games/GameHeader"
 import GameLogsTable from "@/components/games/GameLogsTable"
 import GameTeamStats from "@/components/games/GameTeamStats"
+import { GameApiModel, GameLogApiModel, GameStatsApiModel, MatchApiModel } from "@/api/generated"
 
 type GameViewProps = {
   gameId: number
   team1Country?: Country
   team2Country?: Country
-  match: Match
+  match: MatchApiModel
   countries: Country[]
-  updateMatchInfo: (_match: Match) => void
+  updateMatchInfo: (_match: MatchApiModel) => void
   refreshMatchData: () => Promise<void>
 }
 
@@ -30,9 +30,9 @@ export enum AlertType {
 
 export default function GameView(props: GameViewProps): React.ReactNode {
   const { gameId, team1Country, team2Country, match, countries, updateMatchInfo } = props
-  const [game, setGame] = useState<Game | null>(null)
-  const [gameStats, setGameStats] = useState<GameStats | null>(null)
-  const [lastDuel, setLastDuel] = useState<GameLog | null>(null)
+  const [game, setGame] = useState<GameApiModel | null>(null)
+  const [gameStats, setGameStats] = useState<GameStatsApiModel | null>(null)
+  const [lastDuel, setLastDuel] = useState<GameLogApiModel | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
@@ -60,7 +60,6 @@ export default function GameView(props: GameViewProps): React.ReactNode {
       if (!isMounted.current) return
       
       if (gameData && gameStats) {
-        gameData.stats = gameStats
         setGame(gameData)
         setGameStats(gameStats)
         // After game data is fetched, get the last duel
@@ -110,7 +109,7 @@ export default function GameView(props: GameViewProps): React.ReactNode {
     playFullRound(gameId, lastRoundPlayed + 1, async () => {
       await fetchGameData()
       // Get the fresh match data from the server
-      const freshMatch = await getMatch(match.id, () => {})
+      const freshMatch = await getMatch(match.id || 0, () => {})
       if (freshMatch) {
         updateMatchInfo(freshMatch)
       }
@@ -125,7 +124,7 @@ export default function GameView(props: GameViewProps): React.ReactNode {
     playSingleDuel(gameId, round, async () => {
       await fetchGameData()
       // Get the fresh match data from the server
-      const freshMatch = await getMatch(match.id, () => {})
+      const freshMatch = await getMatch(match.id || 0, () => {})
       if (freshMatch) {
         updateMatchInfo(freshMatch)
       }
@@ -139,7 +138,7 @@ export default function GameView(props: GameViewProps): React.ReactNode {
     playFullGame(gameId, async () => {
       await fetchGameData()
       // Get the fresh match data from the server
-      const freshMatch = await getMatch(match.id, () => {})
+      const freshMatch = await getMatch(match.id || 0, () => {})
       if (freshMatch) {
         updateMatchInfo(freshMatch)
       }
@@ -211,7 +210,7 @@ export default function GameView(props: GameViewProps): React.ReactNode {
   return (
     <div className="py-4">
       <GameHeader 
-        game={game}
+        stats={gameStats as GameStatsApiModel}
         team1Country={team1Country}
         team2Country={team2Country}
       />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from 'react'
 import { getRound } from '@/api/RoundApi'
-import { GameLog } from '@/api/models/Tournament'
+import { GameLogWithPlayers } from '@/api/models/types'
 
 type GameLogsTableProps = {
   gameId: number
@@ -9,17 +9,17 @@ type GameLogsTableProps = {
 }
 
 // Memoize individual table rows to reduce rendering
-const GameLogRow = memo(({ log }: { log: GameLog }) => (
+const GameLogRow = memo(({ log }: { log: GameLogWithPlayers }) => (
   <tr className="border-b border-gray-200 hover:bg-gray-100">
     <td className="py-2 px-4">{log.round_state.round}</td>
     <td className="py-2 px-4">
-      {log.player_killed_id === log.team1_player.id ? (
+      {log.player_killed_id === log.team1_player_id ? (
         <>
-          <span className="font-semibold text-red-500">{log.team2_player.nickname}</span> <em>{log.trade ? 'traded' : 'killed'}</em> <span className="font-semibold text-blue-500">{log.team1_player.nickname}</span>
+          <span className="font-semibold text-red-500">{log.player2.nickname}</span> <em>{log.trade ? 'traded' : 'killed'}</em> <span className="font-semibold text-blue-500">{log.player1.nickname}</span>
         </>
       ) : (
         <>
-          <span className="font-semibold text-blue-500">{log.team1_player.nickname}</span> <em>{log.trade ? 'traded' : 'killed'}</em> <span className="font-semibold text-red-500">{log.team2_player.nickname}</span>
+          <span className="font-semibold text-blue-500">{log.player1.nickname}</span> <em>{log.trade ? 'traded' : 'killed'}</em> <span className="font-semibold text-red-500">{log.player2.nickname}</span>
         </>
       )}
       &nbsp;with a {log.weapon}
@@ -36,7 +36,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTablePr
   const [state, setState] = useState({
     currentRound: initialRound,
     maxRound: maxRoundNumber,
-    logs: [] as GameLog[],
+    logs: [] as GameLogWithPlayers[],
     loading: true,
     error: null as string | null,
   })

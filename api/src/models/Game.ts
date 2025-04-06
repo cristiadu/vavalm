@@ -35,6 +35,7 @@ export class Game extends Model implements BaseEntityModel {
       this.started,
       this.finished,
       this.id,
+      this.stats?.toApiModel(),
     )
   }
 

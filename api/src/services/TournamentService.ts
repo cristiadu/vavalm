@@ -159,7 +159,7 @@ const TournamentService = {
         }
 
         // Check if the match has a winner
-        const matchWinner = await MatchService.getWinnerForMatchType(match)
+        const matchWinner = MatchService.getWinnerForMatchType(match)
         if (matchWinner != null) {
           if (matchWinner === team1Id) {
             team1Standings.wins += 1

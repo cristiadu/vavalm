@@ -1,18 +1,19 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { AllPlayerStats, getRoleBgColor, Player } from '@/api/models/Player'
+import { getRoleBgColor } from '@/api/models/helpers'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchPlayersStats } from '@/api/PlayersApi'
-import { Team } from '@/api/models/Team'
 import { fetchTeam } from '@/api/TeamsApi'
 import { ItemsWithPagination } from '@/api/models/types'
 import { useRouter } from 'next/navigation'
-import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
-import Pagination from '@/base/Pagination'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
+import Pagination from '@/components/common/Pagination'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { AllPlayerStats, PlayerApiModel, TeamApiModel } from '@/api/generated'
+import { Threshold } from '@/common/CommonModels'
 
 const thresholds = {
   kda: { high: 1.8, medium: 0.9 },
@@ -27,12 +28,12 @@ const thresholds = {
   totalKills: { high: 1.0, medium: 0.7, ratioCalculation: true },
   totalDeaths: { high: 0.8, medium: 0.7, ratioCalculation: true, higherIsWorse: true },
   totalAssists: { high: 0.5, medium: 0.3, ratioCalculation: true },
-}
+} as Record<string, Threshold>
 
 const PlayersStatsPage = (): React.ReactNode => {
   const router = useRouter()
   const [playersStats, setPlayersStats] = useState<AllPlayerStats[]>([])
-  const [playerToTeam, setPlayerToTeam] = useState<Record<string, Team>>({})
+  const [playerToTeam, setPlayerToTeam] = useState<Record<string, TeamApiModel>>({})
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [totalItems, setTotalItems] = useState(0)
   const LIMIT_VALUE_PLAYER_LIST = 15
@@ -51,7 +52,7 @@ const PlayersStatsPage = (): React.ReactNode => {
 
   const refreshListData = async (data: ItemsWithPagination<AllPlayerStats>): Promise<void> => {
     if (data.total > 0) {
-      const playerToTeam: Record<number, Team> = {}
+      const playerToTeam: Record<number, TeamApiModel> = {}
 
       const teamFetchPromises = data.items.map((stats: AllPlayerStats) =>
         fetchTeam(stats.player.team_id, team => {
@@ -69,7 +70,7 @@ const PlayersStatsPage = (): React.ReactNode => {
     }
   }
 
-  const handleView = (player: Player): void => {
+  const handleView = (player: PlayerApiModel): void => {
     // Send user to player details page
     router.push(`/players/${player.id}`)
   }
@@ -124,9 +125,9 @@ const PlayersStatsPage = (): React.ReactNode => {
                 {playerToTeam && playerToTeam[String(stats.player.id)] ? (
                   <span className="flex items-center">
                     <ImageAutoSize
-                      imageBlob={playerToTeam[String(stats.player.id)].logo_image_file as Blob}
+                      imageBlob={playerToTeam[String(stats.player.id)].logo_image_file as unknown as Blob}
                       fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                      alt={playerToTeam[String(stats.player.id)].short_name}
+                      alt={playerToTeam[String(stats.player.id)].short_name || ''}
                       width={32}
                       height={32}
                       className="mr-2" />

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 
 interface DropdownSelectProps<T> {

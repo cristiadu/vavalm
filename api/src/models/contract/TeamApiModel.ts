@@ -2,6 +2,7 @@ import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import type {Team} from "@/models/Team"
 import type { Optional } from "sequelize"
+import { PlayerApiModel } from "./PlayerApiModel"
 
 /**
  * @tsoaModel
@@ -12,8 +13,13 @@ export class TeamApiModel extends BaseEntityModel {
     public full_name?: string,
     public description?: string,
     public country?: string,
-    public logo_image_file?: Buffer | null,
+    /** 
+     * @tsoaProperty
+     * @tsoaFormat "binary"
+     */
+    public logo_image_file?: Blob | null,
     public id?: number,
+    public players?: PlayerApiModel[],
   ) {
     super()
   }
@@ -35,6 +41,7 @@ export class TeamApiModel extends BaseEntityModel {
       description: this.description || "",
       country: this.country || "",
       logo_image_file: this.logo_image_file,
+      players: this.players?.map(player => player.toEntityModel()),
     })
   }
 

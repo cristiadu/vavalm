@@ -34,7 +34,7 @@ components:
         - country
         - role
       type: object
-      additionalProperties: true
+      additionalProperties: false
     VlrTeam:
       properties:
         id:
@@ -59,7 +59,7 @@ components:
         - logo_url
         - players
       type: object
-      additionalProperties: true
+      additionalProperties: false
     VlrImportResponse:
       properties:
         teamsData:
@@ -73,315 +73,28 @@ components:
       required:
         - teamsData
       type: object
-      additionalProperties: true
+      additionalProperties: false
     TournamentType:
       enum:
         - SINGLE_GROUP
       type: string
-    TeamApiModel:
-      properties:
-        short_name:
-          type: string
-        full_name:
-          type: string
-        description:
-          type: string
-        country:
-          type: string
-        logo_image_file:
-          type: string
-          format: byte
-          nullable: true
-        id:
-          type: number
-          format: double
+    buffer.Blob:
+      description: >-
+        A file-like object of immutable, raw data. Blobs represent data that
+        isn't necessarily in a JavaScript-native format. The File interface is
+        based on Blob, inheriting blob functionality and expanding it to support
+        files on the user's system.
+
+
+        [MDN Reference](https://developer.mozilla.org/docs/Web/API/Blob)
+
+        `Blob` class is a global reference for `import { Blob } from
+        'node:buffer'`
+
+        https://nodejs.org/api/buffer.html#class-blob
+      properties: {}
       type: object
-      additionalProperties: true
-    TournamentApiModel:
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        country:
-          type: string
-        type:
-          $ref: "#/components/schemas/TournamentType"
-        start_date:
-          type: string
-        end_date:
-          type: string
-        started:
-          type: boolean
-        ended:
-          type: boolean
-        winner_id:
-          type: number
-          format: double
-        teams:
-          items:
-            anyOf:
-              - $ref: "#/components/schemas/TeamApiModel"
-              - type: number
-                format: double
-          type: array
-        id:
-          type: number
-          format: double
-      required:
-        - name
-        - description
-        - country
-        - type
-        - start_date
-        - end_date
-        - started
-        - ended
-      type: object
-      additionalProperties: true
-    ItemsWithPagination_TournamentApiModel_:
-      properties:
-        items:
-          items:
-            $ref: "#/components/schemas/TournamentApiModel"
-          type: array
-        total:
-          type: number
-          format: double
-      required:
-        - items
-        - total
-      type: object
-      additionalProperties: true
-    GameMap:
-      enum:
-        - Bind
-        - Haven
-        - Split
-        - Ascent
-        - Fracture
-        - Icebox
-        - Breeze
-        - Sunset
-        - Abyss
-        - Lotus
-        - Pearl
-      type: string
-    GameApiModel:
-      properties:
-        date:
-          type: string
-        map:
-          $ref: "#/components/schemas/GameMap"
-        match_id:
-          type: number
-          format: double
-        included_on_standings:
-          type: boolean
-        started:
-          type: boolean
-        finished:
-          type: boolean
-        id:
-          type: number
-          format: double
-      required:
-        - date
-        - map
-        - match_id
-        - included_on_standings
-        - started
-        - finished
-      type: object
-      additionalProperties: true
-    MatchApiModel:
-      properties:
-        date:
-          type: string
-        tournament_id:
-          type: number
-          format: double
-        team1_id:
-          type: number
-          format: double
-        team2_id:
-          type: number
-          format: double
-        type:
-          type: string
-        team1_score:
-          type: number
-          format: double
-        team2_score:
-          type: number
-          format: double
-        included_on_standings:
-          type: boolean
-        started:
-          type: boolean
-        finished:
-          type: boolean
-        winner_id:
-          type: number
-          format: double
-        id:
-          type: number
-          format: double
-        team1:
-          $ref: "#/components/schemas/TeamApiModel"
-        team2:
-          $ref: "#/components/schemas/TeamApiModel"
-        games:
-          items:
-            $ref: "#/components/schemas/GameApiModel"
-          type: array
-      required:
-        - date
-        - tournament_id
-        - team1_id
-        - team2_id
-        - type
-        - team1_score
-        - team2_score
-        - included_on_standings
-        - started
-        - finished
-      type: object
-      additionalProperties: true
-    ItemsWithPagination_MatchApiModel_:
-      properties:
-        items:
-          items:
-            $ref: "#/components/schemas/MatchApiModel"
-          type: array
-        total:
-          type: number
-          format: double
-      required:
-        - items
-        - total
-      type: object
-      additionalProperties: true
-    StandingsApiModel:
-      properties:
-        wins:
-          type: number
-          format: double
-        losses:
-          type: number
-          format: double
-        maps_won:
-          type: number
-          format: double
-        maps_lost:
-          type: number
-          format: double
-        rounds_won:
-          type: number
-          format: double
-        rounds_lost:
-          type: number
-          format: double
-        tournament_id:
-          type: number
-          format: double
-        team_id:
-          type: number
-          format: double
-        position:
-          type: number
-          format: double
-        id:
-          type: number
-          format: double
-      required:
-        - wins
-        - losses
-        - maps_won
-        - maps_lost
-        - rounds_won
-        - rounds_lost
-        - tournament_id
-        - team_id
-        - position
-      type: object
-      additionalProperties: true
-    ItemsWithPagination_TeamApiModel_:
-      properties:
-        items:
-          items:
-            $ref: "#/components/schemas/TeamApiModel"
-          type: array
-        total:
-          type: number
-          format: double
-      required:
-        - items
-        - total
-      type: object
-      additionalProperties: true
-    TeamStats:
-      properties:
-        team:
-          $ref: "#/components/schemas/TeamApiModel"
-        tournamentsWon:
-          type: number
-          format: double
-        tournamentsParticipated:
-          type: number
-          format: double
-        winrate:
-          type: number
-          format: double
-        totalMatchesPlayed:
-          type: number
-          format: double
-        totalMatchesWon:
-          type: number
-          format: double
-        totalMatchesLost:
-          type: number
-          format: double
-        mapWinrate:
-          type: number
-          format: double
-        totalMapsPlayed:
-          type: number
-          format: double
-        totalMapsWon:
-          type: number
-          format: double
-        totalMapsLost:
-          type: number
-          format: double
-      required:
-        - team
-        - tournamentsWon
-        - tournamentsParticipated
-        - winrate
-        - totalMatchesPlayed
-        - totalMatchesWon
-        - totalMatchesLost
-        - mapWinrate
-        - totalMapsPlayed
-        - totalMapsWon
-        - totalMapsLost
-      type: object
-      additionalProperties: true
-    ItemsWithPagination_TeamStats_:
-      properties:
-        items:
-          items:
-            $ref: "#/components/schemas/TeamStats"
-          type: array
-        total:
-          type: number
-          format: double
-      required:
-        - items
-        - total
-      type: object
-      additionalProperties: true
+      additionalProperties: false
     PlayerAttributesApiModel:
       properties:
         clutch:
@@ -450,7 +163,7 @@ components:
         - teamwork
         - utility_usage
       type: object
-      additionalProperties: true
+      additionalProperties: false
     PlayerApiModel:
       properties:
         nickname:
@@ -481,7 +194,401 @@ components:
         - role
         - player_attributes
       type: object
-      additionalProperties: true
+      additionalProperties: false
+    TeamApiModel:
+      properties:
+        short_name:
+          type: string
+        full_name:
+          type: string
+        description:
+          type: string
+        country:
+          type: string
+        logo_image_file:
+          allOf:
+            - $ref: "#/components/schemas/buffer.Blob"
+          nullable: true
+        id:
+          type: number
+          format: double
+        players:
+          items:
+            $ref: "#/components/schemas/PlayerApiModel"
+          type: array
+      type: object
+      additionalProperties: false
+    TournamentApiModel:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        country:
+          type: string
+        type:
+          $ref: "#/components/schemas/TournamentType"
+        start_date:
+          type: string
+        end_date:
+          type: string
+        started:
+          type: boolean
+        ended:
+          type: boolean
+        winner_id:
+          type: number
+          format: double
+        teams:
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/TeamApiModel"
+              - type: number
+                format: double
+          type: array
+        id:
+          type: number
+          format: double
+      required:
+        - name
+        - description
+        - country
+        - type
+        - start_date
+        - end_date
+        - started
+        - ended
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_TournamentApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TournamentApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    MatchType:
+      enum:
+        - BO1
+        - BO3
+        - BO5
+        - FRIENDLY
+        - SHOWMATCH
+      type: string
+    GameMap:
+      enum:
+        - Bind
+        - Haven
+        - Split
+        - Ascent
+        - Fracture
+        - Icebox
+        - Breeze
+        - Sunset
+        - Abyss
+        - Lotus
+        - Pearl
+      type: string
+    GameStatsApiModel:
+      properties:
+        team1_score:
+          type: number
+          format: double
+        team2_score:
+          type: number
+          format: double
+        game_id:
+          type: number
+          format: double
+        team1_id:
+          type: number
+          format: double
+        team2_id:
+          type: number
+          format: double
+        winner_id:
+          type: number
+          format: double
+        id:
+          type: number
+          format: double
+        team1:
+          $ref: "#/components/schemas/TeamApiModel"
+        team2:
+          $ref: "#/components/schemas/TeamApiModel"
+        players_stats_team1:
+          items:
+            $ref: "#/components/schemas/PlayerGameStatsApiModel"
+          type: array
+        players_stats_team2:
+          items:
+            $ref: "#/components/schemas/PlayerGameStatsApiModel"
+          type: array
+      required:
+        - team1_score
+        - team2_score
+        - game_id
+        - team1_id
+        - team2_id
+      type: object
+      additionalProperties: false
+    PlayerGameStatsApiModel:
+      properties:
+        kills:
+          type: number
+          format: double
+        deaths:
+          type: number
+          format: double
+        assists:
+          type: number
+          format: double
+        player_id:
+          type: number
+          format: double
+        game_stats_player1_id:
+          type: number
+          format: double
+        game_stats_player2_id:
+          type: number
+          format: double
+        game_stats_player1:
+          $ref: "#/components/schemas/GameStatsApiModel"
+        game_stats_player2:
+          $ref: "#/components/schemas/GameStatsApiModel"
+        player:
+          $ref: "#/components/schemas/PlayerApiModel"
+      required:
+        - kills
+        - deaths
+        - assists
+        - player_id
+      type: object
+      additionalProperties: false
+    GameApiModel:
+      properties:
+        date:
+          type: string
+        map:
+          $ref: "#/components/schemas/GameMap"
+        match_id:
+          type: number
+          format: double
+        included_on_standings:
+          type: boolean
+        started:
+          type: boolean
+        finished:
+          type: boolean
+        id:
+          type: number
+          format: double
+        stats:
+          $ref: "#/components/schemas/GameStatsApiModel"
+      required:
+        - date
+        - map
+        - match_id
+        - included_on_standings
+        - started
+        - finished
+      type: object
+      additionalProperties: false
+    MatchApiModel:
+      properties:
+        date:
+          type: string
+        tournament_id:
+          type: number
+          format: double
+        team1_id:
+          type: number
+          format: double
+        team2_id:
+          type: number
+          format: double
+        type:
+          $ref: "#/components/schemas/MatchType"
+        team1_score:
+          type: number
+          format: double
+        team2_score:
+          type: number
+          format: double
+        included_on_standings:
+          type: boolean
+        started:
+          type: boolean
+        finished:
+          type: boolean
+        winner_id:
+          type: number
+          format: double
+        id:
+          type: number
+          format: double
+        team1:
+          $ref: "#/components/schemas/TeamApiModel"
+        team2:
+          $ref: "#/components/schemas/TeamApiModel"
+        games:
+          items:
+            $ref: "#/components/schemas/GameApiModel"
+          type: array
+      required:
+        - date
+        - tournament_id
+        - team1_id
+        - team2_id
+        - type
+        - team1_score
+        - team2_score
+        - included_on_standings
+        - started
+        - finished
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_MatchApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/MatchApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    StandingsApiModel:
+      properties:
+        wins:
+          type: number
+          format: double
+        losses:
+          type: number
+          format: double
+        maps_won:
+          type: number
+          format: double
+        maps_lost:
+          type: number
+          format: double
+        rounds_won:
+          type: number
+          format: double
+        rounds_lost:
+          type: number
+          format: double
+        tournament_id:
+          type: number
+          format: double
+        team_id:
+          type: number
+          format: double
+        position:
+          type: number
+          format: double
+        id:
+          type: number
+          format: double
+      required:
+        - wins
+        - losses
+        - maps_won
+        - maps_lost
+        - rounds_won
+        - rounds_lost
+        - tournament_id
+        - team_id
+        - position
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_TeamApiModel_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TeamApiModel"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
+    TeamStats:
+      properties:
+        team:
+          $ref: "#/components/schemas/TeamApiModel"
+        tournamentsWon:
+          type: number
+          format: double
+        tournamentsParticipated:
+          type: number
+          format: double
+        winrate:
+          type: number
+          format: double
+        totalMatchesPlayed:
+          type: number
+          format: double
+        totalMatchesWon:
+          type: number
+          format: double
+        totalMatchesLost:
+          type: number
+          format: double
+        mapWinrate:
+          type: number
+          format: double
+        totalMapsPlayed:
+          type: number
+          format: double
+        totalMapsWon:
+          type: number
+          format: double
+        totalMapsLost:
+          type: number
+          format: double
+      required:
+        - team
+        - tournamentsWon
+        - tournamentsParticipated
+        - winrate
+        - totalMatchesPlayed
+        - totalMatchesWon
+        - totalMatchesLost
+        - mapWinrate
+        - totalMapsPlayed
+        - totalMapsWon
+        - totalMapsLost
+      type: object
+      additionalProperties: false
+    ItemsWithPagination_TeamStats_:
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/TeamStats"
+          type: array
+        total:
+          type: number
+          format: double
+      required:
+        - items
+        - total
+      type: object
+      additionalProperties: false
     PlayerDuelResults:
       properties:
         winner:
@@ -499,7 +606,7 @@ components:
         - loser
         - startedTradeDuel
       type: object
-      additionalProperties: true
+      additionalProperties: false
     RoundStateApiModel:
       properties:
         round:
@@ -531,7 +638,7 @@ components:
         - team_won
         - finished
       type: object
-      additionalProperties: true
+      additionalProperties: false
     Weapon:
       enum:
         - Vandal
@@ -593,7 +700,7 @@ components:
         - included_on_player_stats
         - included_on_team_stats
       type: object
-      additionalProperties: true
+      additionalProperties: false
     ItemsWithPagination_PlayerApiModel_:
       properties:
         items:
@@ -607,7 +714,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: true
+      additionalProperties: false
     AllPlayerStats:
       properties:
         player:
@@ -663,7 +770,7 @@ components:
         - totalDeaths
         - totalAssists
       type: object
-      additionalProperties: true
+      additionalProperties: false
     ItemsWithPagination_AllPlayerStats_:
       properties:
         items:
@@ -677,83 +784,7 @@ components:
         - items
         - total
       type: object
-      additionalProperties: true
-    GameStatsApiModel:
-      properties:
-        team1_score:
-          type: number
-          format: double
-        team2_score:
-          type: number
-          format: double
-        game_id:
-          type: number
-          format: double
-        team1_id:
-          type: number
-          format: double
-        team2_id:
-          type: number
-          format: double
-        winner_id:
-          type: number
-          format: double
-        id:
-          type: number
-          format: double
-        team1:
-          $ref: "#/components/schemas/TeamApiModel"
-        team2:
-          $ref: "#/components/schemas/TeamApiModel"
-        players_stats_team1:
-          items:
-            $ref: "#/components/schemas/PlayerGameStatsApiModel"
-          type: array
-        players_stats_team2:
-          items:
-            $ref: "#/components/schemas/PlayerGameStatsApiModel"
-          type: array
-      required:
-        - team1_score
-        - team2_score
-        - game_id
-        - team1_id
-        - team2_id
-      type: object
-      additionalProperties: true
-    PlayerGameStatsApiModel:
-      properties:
-        kills:
-          type: number
-          format: double
-        deaths:
-          type: number
-          format: double
-        assists:
-          type: number
-          format: double
-        player_id:
-          type: number
-          format: double
-        game_stats_player1_id:
-          type: number
-          format: double
-        game_stats_player2_id:
-          type: number
-          format: double
-        game_stats_player1:
-          $ref: "#/components/schemas/GameStatsApiModel"
-        game_stats_player2:
-          $ref: "#/components/schemas/GameStatsApiModel"
-        player:
-          $ref: "#/components/schemas/PlayerApiModel"
-      required:
-        - kills
-        - deaths
-        - assists
-        - player_id
-      type: object
-      additionalProperties: true
+      additionalProperties: false
   securitySchemes:
     BearerAuth:
       type: http
@@ -883,6 +914,22 @@ paths:
             schema:
               $ref: "#/components/schemas/TournamentApiModel"
               description: The tournament data to update
+    delete:
+      operationId: deleteTournament
+      responses:
+        "204":
+          description: No content
+      description: Deletes a tournament
+      security:
+        - BearerAuth: []
+      parameters:
+        - description: The ID of the tournament to delete
+          in: path
+          name: tournamentId
+          required: true
+          schema:
+            format: double
+            type: number
   /tournaments/{tournamentId}/schedule:
     get:
       operationId: getTournamentSchedule

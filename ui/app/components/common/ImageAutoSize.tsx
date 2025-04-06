@@ -36,7 +36,6 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
       width={width}
       height={height}
       style={{ maxWidth: width, maxHeight: height, width: width, height: height, ...style }}
-      // Remove lazy loading and priority attributes as they may be causing issues
     />
   )
 }

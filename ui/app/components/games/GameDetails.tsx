@@ -1,12 +1,12 @@
 import React from 'react'
-import { Game, Tournament } from '@/api/models/Tournament'
-import { Country } from '@/api/models/Country'
-import { asFormattedDate } from '@/base/StringUtils'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { Country } from '@/api/models/types'
+import { asFormattedDate } from '@/common/StringUtils'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
+import { GameApiModel, TournamentApiModel } from '@/api/generated'
 
 interface GameDetailsProps {
-    game: Game
-    tournament: Tournament
+    game: GameApiModel
+    tournament: TournamentApiModel
     tournamentCountry: Country
 }
 
@@ -17,7 +17,7 @@ const GameDetails: React.FC<GameDetailsProps> = ({game, tournament, tournamentCo
         <strong>Game ID:</strong> {game.id}
       </div>
       <div className="text-lg">
-        <strong>Date:</strong> {asFormattedDate(game.date)}
+        <strong>Date:</strong> {asFormattedDate(new Date(game.date))}
       </div>
       <div className="text-lg">
         <strong>Map:</strong> {game.map}

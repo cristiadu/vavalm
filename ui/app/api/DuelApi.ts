@@ -1,23 +1,11 @@
-import { getApiBaseUrl } from "@/api/models/constants"
-import { GameLog, RoundState } from "@/api/models/Tournament"
+import { GameLogApiModel, RoundStateApiModel } from "@/api/generated"
+import { VavalMClient } from "@/api/generated/client"
 
-export const playSingleDuel = async (game_id: number, round: number, closure: (_roundState: RoundState) => void): Promise<void> => {
+export const playSingleDuel = async (game_id: number, round: number, closure: (_roundState: RoundStateApiModel) => void): Promise<RoundStateApiModel> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/${round}/duel`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    closure(data)
-    console.debug('Success:', data)
-    return data
+    const response = await VavalMClient.default.playDuel(game_id, round)
+    closure(response)
+    return response
   } catch (error) {
     console.error('Error:', error)
     throw error
@@ -26,32 +14,13 @@ export const playSingleDuel = async (game_id: number, round: number, closure: (_
 
 export const getLastDuel = async (
   game_id: number, 
-  closure: (_lastDuelLog: GameLog) => void,
-  options?: { signal?: AbortSignal },
-): Promise<GameLog | null> => {
+  closure: (_lastDuelLog: GameLogApiModel | null) => void,
+): Promise<GameLogApiModel | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/games/${game_id}/rounds/last/duel`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      signal: options?.signal,
-    })
-    
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`)
-    }
-    
-    const data = await response.json()
-    closure(data)
-    console.debug('Success:', data)
-    return data
+    const response = await VavalMClient.default.getLastDuel(game_id)
+    closure(response)
+    return response
   } catch (error) {
-    // Don't log aborted requests as errors
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      console.log('Fetch aborted')
-      return null
-    }
     console.error('Error:', error)
     throw error
   }

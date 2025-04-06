@@ -2,21 +2,23 @@
 
 import { use, useEffect, useState } from 'react'
 import { fetchPlayersByTeam } from '@/api/PlayersApi'
-import { getRoleBgColor, PlayerWithFlag } from '@/api/models/Player'
+import { getRoleBgColor } from '@/api/models/helpers'
+import { PlayerWithFlag } from '@/api/models/types'
 import { fetchCountries } from '@/api/CountryApi'
-import { Country } from '@/api/models/Country'
+import { Country } from '@/api/models/types'
 import { fetchTeam, fetchTeamStats } from '@/api/TeamsApi'
-import { Team, TeamStats, urlObjectLogoOrDefault } from '@/api/models/Team'
+import { urlObjectLogoOrDefault } from '@/api/models/helpers'
 import 'react-quill-new/dist/quill.snow.css'
-import { asSafeHTML } from '@/base/StringUtils'
-import { getBgColorBasedOnThreshold } from '@/base/UIUtils'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { asSafeHTML } from '@/common/StringUtils'
+import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
+import { TeamApiModel, TeamStats } from '@/api/generated'
 
 type Params = Promise<{ teamId: string }>
 export default function ViewTeam(props: { params: Params }): React.ReactNode {
   const params = use(props.params)
-  const [team, setTeam] = useState<Team | null>(null)
+  const [team, setTeam] = useState<TeamApiModel | null>(null)
   const [players, setPlayers] = useState<PlayerWithFlag[]>([])
   const [teamStats, setTeamStats] = useState<TeamStats | null>(null)
   const [countryFlag, setCountryFlag] = useState<string | null>(null)
@@ -78,7 +80,7 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-lg">
             <strong>Country:</strong> 
-            {countryFlag && <ImageAutoSize src={countryFlag} alt={team.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
+            {countryFlag && <ImageAutoSize src={countryFlag} alt={team.country || ''} width={32} height={16} className="inline-block ml-2 mr-2" />}
             {team.country}
           </div>
           <div className="text-lg">

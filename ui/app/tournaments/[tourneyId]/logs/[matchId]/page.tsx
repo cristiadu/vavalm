@@ -1,17 +1,17 @@
 "use client"
 
 import { use, useCallback, useEffect, useMemo, useState } from "react"
-import { Match } from "@/api/models/Tournament"
 import { fetchCountries } from "@/api/CountryApi"
-import { Country } from "@/api/models/Country"
+import { Country } from "@/api/models/types"
 import { getMatch } from "@/api/GameApi"
 import GamePicker from "@/components/games/GamePicker"
-import SectionHeader from "@/base/SectionHeader"
+import SectionHeader from "@/components/common/SectionHeader"
 import MatchHeader from "@/components/MatchHeader"
 import GameView from "@/components/games/GameView"
+import { MatchApiModel } from "@/api/generated"
 
 // Create a simple cache to store match data
-const matchCache = new Map<number, Match>()
+const matchCache = new Map<number, MatchApiModel>()
 
 type ViewMatchParams = Promise<{
   tourneyId: string
@@ -21,7 +21,7 @@ type ViewMatchParams = Promise<{
 export default function ViewMatch(props: { params: ViewMatchParams }): React.ReactNode {
   const params = use(props.params)
   const matchId = Number(params.matchId)
-  const [match, setMatch] = useState<Match | null>(null)
+  const [match, setMatch] = useState<MatchApiModel | null>(null)
   const [countries, setCountries] = useState<Country[]>([])
   const [selectedGameId, setSelectedGameId] = useState<number>(0)
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -54,8 +54,8 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
         matchCache.set(matchIdRequest, data)
         
         // If there are games, select the first one if none is selected
-        if (data?.games?.length > 0 && selectedGameId === 0) {
-          setSelectedGameId(data.games[0].id)
+        if (data?.games?.length && data.games.length > 0 && selectedGameId === 0) {
+          setSelectedGameId(data.games[0].id || 0)
         }
       }
     } catch (error) {
@@ -79,11 +79,11 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
     setSelectedGameId(gameId)
   }, [selectedGameId])
 
-  const updateMatchInfo = useCallback((newMatchData: Match) => {
+  const updateMatchInfo = useCallback((newMatchData: MatchApiModel) => {
     setMatch(newMatchData)
     
     // Update the cache
-    matchCache.set(newMatchData.id, newMatchData)
+    matchCache.set(newMatchData.id || 0, newMatchData)
   }, [])
 
   // Function to force refresh match data from server
@@ -123,10 +123,10 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
       <SectionHeader title="Match Logs" />
       <div className="bg-white p-8 rounded shadow w-full max-w-6xl">
         <MatchHeader match={match} team1Country={team1Country} team2Country={team2Country} />
-        <GamePicker games={match.games} selectedGameId={selectedGameId} onClick={handleGameSelection} matchWinnerId={match.winner_id} />
+        <GamePicker games={match.games || []} selectedGameId={selectedGameId} onClick={handleGameSelection} matchWinnerId={match.winner_id || null} />
         {selectedGameId > 0 ? (
           <GameView 
-            key={`tournament-${match.tournament_id}-match-${match.id}-game-${selectedGameId}`} // Key helps with proper component recreation
+            key={`tournament-${match.tournament_id}-match-${match.id}-game-${selectedGameId}`}
             gameId={selectedGameId} 
             team1Country={team1Country} 
             team2Country={team2Country} 

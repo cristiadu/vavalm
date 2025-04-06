@@ -3,21 +3,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { fetchCountries } from '@/api/CountryApi'
-import { Country } from '@/api/models/Country'
+import { Country } from '@/api/models/types'
 import { editTeam, newTeam } from '@/api/TeamsApi'
-import { Team } from '@/api/models/Team'
-import Modal from '@/base/Modal'
-import { ItemActionModalProps } from '@/base/CommonModels'
-import AlertMessage, { AlertType } from '@/base/AlertMessage'
+import Modal from '@/components/common/Modal'
+import { ItemActionModalProps } from '@/common/CommonModels'
+import AlertMessage, { AlertType } from '@/components/common/AlertMessage'
 import 'react-quill-new/dist/quill.snow.css'
-import { quill_config } from '@/base/Configs'
-import DropdownSelect from '@/base/DropdownSelect'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import { quill_config } from '@/common/UIUtils'
+import DropdownSelect from '@/components/common/DropdownSelect'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { TeamApiModel } from '@/api/generated'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
-const initialState : Team = {
+const initialState : TeamApiModel = {
   short_name: '',
   logo_image_file: null,
   full_name: '',
@@ -26,9 +26,9 @@ const initialState : Team = {
 }
 
 const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
-  const team = object as Team
+  const team = object as TeamApiModel
   const [validationError, setValidationError] = useState<string | null>(null)
-  const [teamState, setTeamState] = useState<Team>(initialState)
+  const [teamState, setTeamState] = useState<TeamApiModel>(initialState)
   const [imageSrc, setImageSrc] = useState('images/nologo.svg')
   const [countries, setCountries] = useState<Country[]>([])
   const selectedCountry = countries.find(country => country.name === teamState.country) || null
@@ -85,10 +85,10 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
 
-    const requestTeam: Team = {
+    const requestTeam: TeamApiModel = {
       id: team?.id,
       short_name: teamState.short_name,
-      logo_image_file: teamState.logo_image_file,
+      logo_image_file: teamState.logo_image_file as unknown as string,
       full_name: teamState.full_name,
       description: teamState.description,
       country: selectedCountry?.name || '',
@@ -100,14 +100,14 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     }
 
     if (isEdit) {
-      await editTeam(requestTeam, (editedTeam: Team) => {
+      await editTeam(requestTeam, (editedTeam: TeamApiModel) => {
         console.debug('Team edited', editedTeam)
         closeModal()
       })
       return
     }
 
-    await newTeam(requestTeam, (newTeam: Team) => {
+    await newTeam(requestTeam, (newTeam: TeamApiModel) => {
       console.debug('Team created', newTeam)
       closeModal()
     })
@@ -124,7 +124,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 width={256}
                 height={256}
                 className="w-full h-auto max-w-screen-sm max-h-80"
-                imageBlob={teamState.logo_image_file as Blob}
+                imageBlob={teamState.logo_image_file as unknown as Blob}
                 fallbackSrc={imageSrc}
                 alt="Team Logo"
               />

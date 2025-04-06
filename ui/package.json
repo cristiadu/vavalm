@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "pnpm generate:client",
     "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm next dev",
     "build": "pnpm next build",
     "clean": "rm -rf node_modules && rm -rf .next",
     "start": "pnpm next start",
     "lint": "pnpm dlx eslint . && pnpm next lint",
     "lint:fix": "pnpm dlx eslint . --fix && pnpm next lint --fix",
-    "upgrade:dependencies": "pnpm upgrade --latest"
+    "upgrade:dependencies": "pnpm upgrade --latest",
+    "generate:client": "pnpm openapi --input ../api/docs/api/openapi.yaml --output ./app/api/generated --client fetch --name VavalMApi --indent 2"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.1",
@@ -43,6 +45,7 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
     "style-loader": "^4.0.0",
-    "typescript-eslint": "^8.29.0"
+    "typescript-eslint": "^8.29.0",
+    "openapi-typescript-codegen": "^0.29.0"
   }
 }

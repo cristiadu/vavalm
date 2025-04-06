@@ -26,7 +26,8 @@ export default defineConfig([
       "out/**", 
       "dist/**", 
       "*.config.js",
-      "next-env.d.ts"
+      "next-env.d.ts",
+      "./**/generated/**"
     ]
   }
 ]);

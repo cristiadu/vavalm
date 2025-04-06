@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "npm-run-all frontend:install backend:install",
+    "postinstall": "npm-run-all backend:install frontend:install",
     "dev": "npm-run-all --parallel frontend:dev backend:dev",
     "build": "npm-run-all --parallel frontend:build backend:build",
     "start": "npm-run-all --parallel frontend:start backend:start",

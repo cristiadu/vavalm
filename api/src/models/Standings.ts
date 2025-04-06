@@ -17,6 +17,7 @@ export class Standings extends Model implements BaseEntityModel {
   declare tournament_id: number
   declare team_id: number
   declare position: number
+  declare id?: number
 
   static associations: {
     team: Association<Standings, Team>
@@ -33,6 +34,7 @@ export class Standings extends Model implements BaseEntityModel {
       this.tournament_id,
       this.team_id,
       this.position,
+      this.id,
     )
   }
 

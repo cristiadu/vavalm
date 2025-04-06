@@ -4,25 +4,25 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchPlayers, deletePlayer } from '@/api/PlayersApi'
-import { getAttributeBgColor, getRoleBgColor, Player } from '@/api/models/Player'
+import { getAttributeBgColor, getRoleBgColor } from '@/api/models/helpers'
 import 'react-quill-new/dist/quill.snow.css'
 import PlayerActionModal from '@/components/PlayerActionModal'
 import { fetchTeam } from '@/api/TeamsApi'
-import { Team } from '@/api/models/Team'
-import { asWord } from '@/base/StringUtils'
-import Pagination from '@/base/Pagination'
+import { asWord } from '@/common/StringUtils'
+import Pagination from '@/components/common/Pagination'
 import { ItemsWithPagination } from '@/api/models/types'
-import SectionHeader from '@/base/SectionHeader'
-import ImageAutoSize from '@/base/ImageAutoSize'
+import SectionHeader from '@/components/common/SectionHeader'
+import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { PlayerApiModel, TeamApiModel } from '@/api/generated'
 
 const DEFAULT_LIMIT_VALUE_PLAYER_LIST = 5 // Return to original value
 
 export default function ListPlayers(): React.ReactNode {
   const router = useRouter()
-  const [players, setPlayers] = useState<Player[]>([])
-  const [playerToEdit, setPlayerToEdit] = useState<Player | null>(null)
-  const [playerToTeam, setPlayerToTeam] = useState<Record<string, Team>>({})
+  const [players, setPlayers] = useState<PlayerApiModel[]>([])
+  const [playerToEdit, setPlayerToEdit] = useState<PlayerApiModel | null>(null)
+  const [playerToTeam, setPlayerToTeam] = useState<Record<string, TeamApiModel>>({})
   const [actionPlayerModalOpened, setActionPlayerModalOpened] = useState<boolean>(false)
   const [isEditActionOpened, setIsEditActionOpened] = useState<boolean>(false)
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
@@ -31,11 +31,11 @@ export default function ListPlayers(): React.ReactNode {
   const [limitValue, setLimitValue] = useState(DEFAULT_LIMIT_VALUE_PLAYER_LIST)
 
   // Simplify the refreshListData function
-  const refreshListData = useCallback(async (data: ItemsWithPagination<Player>) => {
+  const refreshListData = useCallback(async (data: ItemsWithPagination<PlayerApiModel>) => {
     setIsLoading(true)
     
     try {
-      const playerToTeam: Record<string, Team> = {}
+      const playerToTeam: Record<string, TeamApiModel> = {}
       
       const teamFetchPromises = data.items.map((player) =>
         fetchTeam(player.team_id, team => {
@@ -81,17 +81,17 @@ export default function ListPlayers(): React.ReactNode {
     fetchPlayers(refreshListData, limitValue)
   }, [refreshListData, limitValue])
 
-  const handleView = useCallback((player: Player) => {
+  const handleView = useCallback((player: PlayerApiModel) => {
     router.push(`/players/${player.id}`)
   }, [router])
 
-  const handleEdit = useCallback((player: Player) => {
+  const handleEdit = useCallback((player: PlayerApiModel) => {
     setPlayerToEdit(player)
     setIsEditActionOpened(true)
     setActionPlayerModalOpened(true)
   }, [])
 
-  const handleDelete = useCallback((player: Player) => {
+  const handleDelete = useCallback((player: PlayerApiModel) => {
     const confirmed = confirm(`Are you sure you want to delete player '${player.nickname}'?`)
     if(!confirmed) return
 
@@ -189,9 +189,9 @@ export default function ListPlayers(): React.ReactNode {
                     {playerToTeam && playerToTeam[String(player.id)] ? (
                       <span className="flex items-center">
                         <ImageAutoSize 
-                          imageBlob={playerToTeam[String(player.id)].logo_image_file as Blob}
+                          imageBlob={playerToTeam[String(player.id)].logo_image_file as unknown as Blob}
                           fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                          alt={playerToTeam[String(player.id)].short_name} 
+                          alt={playerToTeam[String(player.id)].short_name || ''} 
                           width={32} 
                           height={32} 
                           className="mr-2" />
