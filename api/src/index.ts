@@ -86,7 +86,7 @@ RegisterRoutes(app)
 
 
 // Serve swagger docs
-const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/api/openapi.yaml'), 'utf8')
+const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/openapi.yaml'), 'utf8')
 
 // Convert YAML to JSON
 const openApiJsonDoc = yaml.parse(openApiYamlDoc)
@@ -102,7 +102,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJsonDoc, {
 
 // Serve swagger.yaml for tools that need it
 app.get('/swagger.yaml', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../docs/api/openapi.yaml'))
+  res.sendFile(path.join(__dirname, '../docs/openapi.yaml'))
 })
 
 // Periodic database health checks

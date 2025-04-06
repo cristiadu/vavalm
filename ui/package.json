@@ -12,7 +12,7 @@
     "lint": "pnpm dlx eslint . && pnpm next lint",
     "lint:fix": "pnpm dlx eslint . --fix && pnpm next lint --fix",
     "upgrade:dependencies": "pnpm upgrade --latest",
-    "generate:client": "pnpm openapi --input ../api/docs/api/openapi.yaml --output ./app/api/generated --client fetch --name VavalMApi --indent 2"
+    "generate:client": "pnpm openapi --input ../api/docs/openapi.yaml --output ./app/api/generated --client fetch --name VavalMApi --indent 2"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.1",
