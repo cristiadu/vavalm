@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { MatchApiModel, TeamApiModel } from '@/api/generated'
 import { Country } from '@/api/models/types'
-import { getWinOrLossColor, urlObjectLogoOrDefault } from '@/api/models/helpers'
+import { getWinOrLossColor, teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 
 interface MatchHeaderProps {
@@ -12,11 +12,11 @@ interface MatchHeaderProps {
 
 const MatchHeader: React.FC<MatchHeaderProps> = ({ match, team1Country, team2Country }) => {
   const team1LogoUrl = useMemo(() => {
-    return urlObjectLogoOrDefault(match.team1 as TeamApiModel)
+    return teamLogoURLObjectOrDefault(match.team1 as TeamApiModel)
   }, [match.team1?.logo_image_file])
 
   const team2LogoUrl = useMemo(() => {
-    return urlObjectLogoOrDefault(match.team2 as TeamApiModel)
+    return teamLogoURLObjectOrDefault(match.team2 as TeamApiModel)
   }, [match.team2?.logo_image_file])
 
   return (

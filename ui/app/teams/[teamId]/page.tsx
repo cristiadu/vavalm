@@ -7,7 +7,7 @@ import { PlayerWithFlag } from '@/api/models/types'
 import { fetchCountries } from '@/api/CountryApi'
 import { Country } from '@/api/models/types'
 import { fetchTeam, fetchTeamStats } from '@/api/TeamsApi'
-import { urlObjectLogoOrDefault } from '@/api/models/helpers'
+import { teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import 'react-quill-new/dist/quill.snow.css'
 import { asSafeHTML } from '@/common/StringUtils'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
@@ -67,7 +67,7 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
     return <div>Loading...</div>
   }
 
-  const logoSrc = urlObjectLogoOrDefault(team)
+  const logoSrc = teamLogoURLObjectOrDefault(team)
 
   return (
     <div className="flex min-h-screen flex-col items-center p-24">

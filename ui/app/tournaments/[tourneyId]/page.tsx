@@ -6,7 +6,7 @@ import { fetchCountries } from '@/api/CountryApi'
 import { fetchTournamentMatchSchedule, getTournament, getTournamentStandings } from '@/api/TournamentsApi'
 import 'react-quill-new/dist/quill.snow.css'
 import { asFormattedDate, asSafeHTML } from '@/common/StringUtils'
-import { getWinOrLossColor, urlObjectLogoOrDefault } from '@/api/models/helpers'
+import { getWinOrLossColor, teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import SectionHeader from '@/components/common/SectionHeader'
 import { sortByDate } from '@/common/UIUtils'
 import Pagination from '@/components/common/Pagination'
@@ -82,7 +82,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
 
   const teamsToLogoSrc: Map<number, string> = new Map(
     tournament.teams?.filter(team => typeof team === 'object' && team !== null)
-      .map(team => [(team as TeamApiModel).id!, urlObjectLogoOrDefault(team as TeamApiModel)]) || [],
+      .map(team => [(team as TeamApiModel).id!, teamLogoURLObjectOrDefault(team as TeamApiModel)]) || [],
   )
 
   const tournamentWinner = tournament.winner_id ? 

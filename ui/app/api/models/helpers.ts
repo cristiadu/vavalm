@@ -64,11 +64,21 @@ export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
  * @param team - The team to get the URL of the logo image file for
  * @returns The URL of the logo image file for the team
  */
-export const urlObjectLogoOrDefault = (team: TeamApiModel | null): string => {
-  if (team?.logo_image_file) {
-    return URL.createObjectURL(team.logo_image_file as unknown as Blob)
+export const teamLogoURLObjectOrDefault = (team: TeamApiModel | null): string => {
+  return objectURLOrDefault(team?.logo_image_file as Blob | File | null, DEFAULT_TEAM_LOGO_IMAGE_PATH) as string
+}
+
+/**
+ * Get a local client URL of an image file
+ * @param image_file - The image file to get the URL of
+ * @param defaultPath - The default path to return if the image file is not found
+ * @returns The URL of the image file
+ */
+export const objectURLOrDefault = (image_file: Blob | File | null, defaultPath: string | null): string | null => {
+  if (image_file) {
+    return URL.createObjectURL(image_file)
   }
-  return DEFAULT_TEAM_LOGO_IMAGE_PATH
+  return defaultPath
 }
 
 /**
