@@ -16,6 +16,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
+    "release-packages": "pnpm publish -r --access restricted --no-git-checks",
 
     "base:audit": "pnpm audit fix",
     "base:install": "pnpm install --ignore-scripts",
