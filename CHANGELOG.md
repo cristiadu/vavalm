@@ -1,4 +1,4 @@
-# @cristiadu/vavalm-api
+# @cristiadu/vavalm
 
 ## 2.0.0
 
@@ -9,9 +9,3 @@
 ### Minor Changes
 
 - b88f1ca: Many changes were made here
-
-## 1.1.0
-
-### Minor Changes
-
-- 20e318b: Testing Changesets
