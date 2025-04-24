@@ -36,3 +36,6 @@ dist
 
 # python
 venv
+
+# NPM configuration with auth tokens
+.npmrc
