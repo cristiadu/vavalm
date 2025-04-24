@@ -13,6 +13,7 @@
     "localdb": "cd scripts && ./localdb.sh",
     "upgrade:dependencies": "npm-run-all --parallel base:upgrade:dependencies backend:upgrade:dependencies frontend:upgrade:dependencies",
     "audit": "npm-run-all --parallel base:audit backend:audit frontend:audit",
+    
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
@@ -49,6 +50,7 @@
   },
   "workspaces": [
     "api",
-    "ui"
+    "ui",
+    "."
   ]
 }
