@@ -1,8 +1,15 @@
 {
-  "name": "frontend",
+  "name": "@vavalm/ui",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vavalm/vavalm.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "postinstall": "pnpm generate:client",
     "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm next dev",

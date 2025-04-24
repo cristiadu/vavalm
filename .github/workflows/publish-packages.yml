@@ -1,0 +1,121 @@
+name: Publish Packages to GitHub Packages
+
+on:
+  push:
+    tags:
+      - 'v*'  # Run when a version tag is pushed
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.7.1
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@vavalm'
+          cache: 'pnpm'
+          cache-dependency-path: "pnpm-lock.yaml"
+      
+      - name: Install Dependencies
+        run: pnpm install
+      
+      - name: Build All
+        run: pnpm build
+        
+      # Cache the build artifacts for subsequent jobs
+      - name: Cache Build Output
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            vavalm/api/dist
+            vavalm/ui/.next
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+  publish-api:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.7.1
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@vavalm'
+      
+      # Restore the cached build artifacts
+      - name: Restore Build Output
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            vavalm/api/dist
+            vavalm/ui/.next
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          
+      - name: Publish API to GitHub Packages
+        run: |
+          cd api
+          # Create .npmrc file to ensure publish goes to the correct registry
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          # Use pnpm publish command
+          pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-ui:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.7.1
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@vavalm'
+      
+      # Restore the cached build artifacts
+      - name: Restore Build Output
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            vavalm/api/dist
+            vavalm/ui/.next
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          
+      - name: Publish UI to GitHub Packages
+        run: |
+          cd ui
+          # Create .npmrc file to ensure publish goes to the correct registry
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          # Use pnpm publish command
+          pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
