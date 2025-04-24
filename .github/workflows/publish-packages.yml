@@ -16,11 +16,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Setup Git User
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
         
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -55,15 +50,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      # Only run this step if changesets published versions
-      - name: Setup .npmrc and publish packages if versions were bumped
-        if: steps.changesets.outputs.published == 'true'
-        run: |
-          # Create .npmrc file but don't commit it
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" >> .npmrc
-          
-          # The actual publish happens elsewhere, this is just for any follow-up tasks
-          echo "Packages were published successfully!"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
