@@ -2,12 +2,15 @@ name: Publish Packages to GitHub Packages
 
 on:
   push:
-    tags:
-      - 'v*'  # Run when a version tag is pushed
+    branches:
+      - main
 
 jobs:
   setup:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,9 +26,17 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@vavalm'
+          # Use the GitHub repo owner as the scope
+          scope: '@${{ github.repository_owner }}'
           cache: 'pnpm'
           cache-dependency-path: "pnpm-lock.yaml"
+      
+      - name: Debug GitHub context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Repository Owner: ${{ github.repository_owner }}"
+          echo "Repository Name: ${{ github.event.repository.name }}"
+          echo "Actor: ${{ github.actor }}"
       
       - name: Install Dependencies
         run: pnpm install
@@ -38,8 +49,8 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            vavalm/api/dist
-            vavalm/ui/.next
+            api/dist
+            ui/.next
           key: ${{ runner.os }}-build-${{ github.sha }}
 
   publish-api:
@@ -63,22 +74,30 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@vavalm'
+          scope: '@${{ github.repository_owner }}'
       
       # Restore the cached build artifacts
       - name: Restore Build Output
         uses: actions/cache/restore@v4
         with:
           path: |
-            vavalm/api/dist
-            vavalm/ui/.next
+            api/dist
+            ui/.next
           key: ${{ runner.os }}-build-${{ github.sha }}
+      
+      - name: Update API package.json with dynamic owner
+        run: |
+          # Dynamically set the correct organization name from repo
+          cd api
+          jq '.name = "@${{ github.repository_owner }}/api" | .repository.url = "git+https://github.com/${{ github.repository }}.git" | .publishConfig.registry = "https://npm.pkg.github.com/"' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          cat package.json
       
       - name: Setup .npmrc for API
         run: |
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > api/.npmrc
-          echo "registry=https://npm.pkg.github.com" >> api/.npmrc
-          echo "@vavalm:registry=https://npm.pkg.github.com" >> api/.npmrc
+          echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" >> api/.npmrc
+          cat api/.npmrc
           
       - name: Publish API to GitHub Packages
         run: |
@@ -86,6 +105,7 @@ jobs:
           pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-ui:
     needs: setup
@@ -108,26 +128,35 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@vavalm'
+          scope: '@${{ github.repository_owner }}'
       
       # Restore the cached build artifacts
       - name: Restore Build Output
         uses: actions/cache/restore@v4
         with:
           path: |
-            vavalm/api/dist
-            vavalm/ui/.next
+            api/dist
+            ui/.next
           key: ${{ runner.os }}-build-${{ github.sha }}
+      
+      - name: Update UI package.json with dynamic owner
+        run: |
+          # Dynamically set the correct organization name from repo
+          cd ui
+          jq '.name = "@${{ github.repository_owner }}/ui" | .repository.url = "git+https://github.com/${{ github.repository }}.git" | .publishConfig.registry = "https://npm.pkg.github.com/"' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          cat package.json
       
       - name: Setup .npmrc for UI
         run: |
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ui/.npmrc
-          echo "registry=https://npm.pkg.github.com" >> ui/.npmrc
-          echo "@vavalm:registry=https://npm.pkg.github.com" >> ui/.npmrc
+          echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com" >> ui/.npmrc
+          cat ui/.npmrc
           
       - name: Publish UI to GitHub Packages
         run: |
           cd ui
           pnpm publish --no-git-checks --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
