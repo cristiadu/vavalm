@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
         
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -48,6 +50,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -69,14 +73,17 @@ jobs:
             vavalm/api/dist
             vavalm/ui/.next
           key: ${{ runner.os }}-build-${{ github.sha }}
+      
+      - name: Setup .npmrc for API
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > api/.npmrc
+          echo "registry=https://npm.pkg.github.com" >> api/.npmrc
+          echo "@vavalm:registry=https://npm.pkg.github.com" >> api/.npmrc
           
       - name: Publish API to GitHub Packages
         run: |
           cd api
-          # Create .npmrc file to ensure publish goes to the correct registry
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          # Use pnpm publish command
-          pnpm publish --no-git-checks
+          pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -88,6 +95,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -109,13 +118,16 @@ jobs:
             vavalm/api/dist
             vavalm/ui/.next
           key: ${{ runner.os }}-build-${{ github.sha }}
+      
+      - name: Setup .npmrc for UI
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ui/.npmrc
+          echo "registry=https://npm.pkg.github.com" >> ui/.npmrc
+          echo "@vavalm:registry=https://npm.pkg.github.com" >> ui/.npmrc
           
       - name: Publish UI to GitHub Packages
         run: |
           cd ui
-          # Create .npmrc file to ensure publish goes to the correct registry
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
-          # Use pnpm publish command
-          pnpm publish --no-git-checks
+          pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
