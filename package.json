@@ -1,6 +1,6 @@
 {
   "name": "@cristiadu/vavalm",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "npm-run-all --parallel frontend:dev backend:dev",
@@ -13,15 +13,12 @@
     "localdb": "cd scripts && ./localdb.sh",
     "upgrade:dependencies": "npm-run-all --parallel base:upgrade:dependencies backend:upgrade:dependencies frontend:upgrade:dependencies",
     "audit": "npm-run-all --parallel base:audit backend:audit frontend:audit",
-    
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
-
     "base:audit": "pnpm audit fix",
     "base:install": "pnpm install --ignore-scripts",
     "base:upgrade:dependencies": "pnpm upgrade --latest",
-
     "frontend:install": "pnpm -C ui install",
     "frontend:dev": "pnpm -C ui dev",
     "frontend:build": "pnpm -C ui build",
@@ -31,7 +28,6 @@
     "frontend:clean": "pnpm -C ui clean",
     "frontend:audit": "pnpm -C ui audit fix",
     "frontend:upgrade:dependencies": "pnpm -C ui upgrade:dependencies",
-
     "backend:install": "pnpm -C api install",
     "backend:dev": "pnpm -C api dev",
     "backend:build": "pnpm -C api build",
