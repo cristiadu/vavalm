@@ -8,7 +8,7 @@ import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
 export class Team extends Model {
   declare id?: number
-  declare logo_image_file: File | null
+  declare logo_image_file: Buffer | null
   declare short_name: string
   declare full_name: string
   declare description: string
@@ -21,12 +21,16 @@ export class Team extends Model {
   }
 
   toApiModel(): TeamApiModel {
+    const logoBase64 = this.logo_image_file 
+      ? `data:image/png;base64,${Buffer.from(this.logo_image_file).toString('base64')}` 
+      : null;
+      
     return new TeamApiModel(
       this.short_name,
       this.full_name,
       this.description,
       this.country,
-      this.logo_image_file,
+      logoBase64,
       this.id,
       this.players?.map(player => player.toApiModel()),
     )

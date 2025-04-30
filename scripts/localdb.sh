@@ -8,14 +8,13 @@ stop_postgresql() {
         if command -v pg_ctl >/dev/null 2>&1; then
             pg_ctl -D /usr/local/var/postgres stop
         else
-            echo "pg_ctl command not found. Ensure PostgreSQL is installed and in your PATH."
-            exit 1
+            echo "pg_ctl command not found. Skipping PostgreSQL stop."
         fi
     elif [ "$platform" = "Linux" ]; then
         if systemctl is-active --quiet postgresql; then
             sudo service postgresql stop
         else
-            echo "PostgreSQL service is not running."
+            echo "PostgreSQL service is not running. Skipping stop."
         fi
     elif echo "$platform" | grep -q "MINGW"; then
         net stop postgresql

@@ -51,10 +51,12 @@ export interface PlayerWithFlag extends PlayerApiModel {
 }
 
 /**
- * A type that represents a team with a logo image file that contains the data field.
- * This is used to parse the logo image file to a File
- * @param logo_image_file - The logo image file of the team
+ * A type that represents a team with a logo image file
+ * The logo_image_file can be:
+ * - string: base64-encoded image data (from API)
+ * - File: when uploaded by user
+ * - null: when no image exists
  */
 export interface TeamWithLogoImageData extends Omit<TeamApiModel, 'logo_image_file'> {
-  logo_image_file?: { data: number[], type: string } | File | null
+  logo_image_file?: string | File | null
 }

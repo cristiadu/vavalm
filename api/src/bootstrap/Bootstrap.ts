@@ -19,24 +19,20 @@ const setupTestData = async (): Promise<void> => {
     for (const teamData of teamsData.default) {
       console.debug('Creating team with data:', teamData)
 
-      // Fetch the image from the URL and convert it to an ArrayBuffer
-      const file = await downloadPNGImage(teamData.imageLogo)
-      const arrayBuffer = await file?.arrayBuffer()
+      // Fetch the image from the URL as a Buffer
+      const logoBuffer = await downloadPNGImage(teamData.imageLogo)
 
-      if (!arrayBuffer) {
+      if (!logoBuffer) {
         console.warn('Failed to download image for team:', teamData.short_name)
         continue
       }
-
-      const fileTypeBlob = file?.type || 'image/png'
-      const fileTypeFile = fileTypeBlob.split('/')[1]
-      const fileName = file?.name || `logo-team-${teamData.id}.${fileTypeFile}`
-
-      // Convert the ArrayBuffer to a File
-      const logoImageBuffer = new File([arrayBuffer], fileName, { type: fileTypeFile })
   
-      // Create the team with the logo image file
-      await Team.create({ ...teamData, logo_image_file: logoImageBuffer, id: undefined })
+      // Create the team with the logo image buffer
+      await Team.create({ 
+        ...teamData, 
+        logo_image_file: logoBuffer, 
+        id: undefined 
+      })
     }
   } else {
     console.warn('Initial teams data already exists')

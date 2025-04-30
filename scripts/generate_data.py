@@ -10,14 +10,20 @@ from datetime import datetime, timedelta
 import math
 import zlib
 import dotenv
+from io import BytesIO
+import re
 
+# Import cairosvg for SVG to PNG conversion
 try:
     import cairosvg
     CAIROSVG_AVAILABLE = True
 except ImportError:
     CAIROSVG_AVAILABLE = False
     print("Warning: cairosvg library not available. Using fallback PNG generation.")
-    print("For best results, install cairosvg: pip install cairosvg")
+    print("Note: cairosvg requires the Cairo graphics library.")
+    print("- For macOS: brew install cairo")
+    print("- For Ubuntu/Debian: apt-get install libcairo2-dev")
+    print("- For Windows: pip install cairosvg")
 
 # API base URL
 API_BASE_URL = "http://localhost:8000/api"
@@ -689,56 +695,51 @@ def create_tournament(count=1, start_date=None, end_date=None, team_count=None):
             print(f"Error: {e}")
 
 def svg_to_png(svg_bytes):
-    """Convert SVG to PNG, preserving the original design
-
-    Attempts to use cairosvg if available, with a fallback to a simple
-    circular logo if the library isn't installed.
+    """Convert SVG to PNG
+    
+    Uses cairosvg for high-quality SVG rendering.
+    Falls back to a basic circular logo if cairosvg is not available.
+    
+    Note: cairosvg requires the Cairo graphics library to be installed on your system.
     """
-    # Try to use cairosvg if available
+    # Try to use cairosvg
     if CAIROSVG_AVAILABLE:
         try:
-            # Convert SVG to PNG using cairosvg (preserves the original design)
-            png_bytes = cairosvg.svg2png(bytestring=svg_bytes, output_width=64, output_height=64)
+            # Render at 2x size for better quality then scale down if needed
+            png_bytes = cairosvg.svg2png(bytestring=svg_bytes, output_width=128, output_height=128, scale=2.0)
             return png_bytes
         except Exception as e:
             print(f"Error using cairosvg: {e}, falling back to simple PNG generation")
-            # Fall through to the fallback method
     
-    # Fallback method - create a simple PNG if cairosvg is not available
+    # If cairosvg is not available or fails, use a simple fallback
     try:
         # Parse SVG to extract colors
         svg_string = svg_bytes.decode('utf-8')
         
-        # Extract the primary and secondary colors
-        import re
+        # Extract colors
+        color_matches = re.findall(r'fill="(#[0-9A-Fa-f]{6})"', svg_string)
         primary_color = "#FF0000"  # Default red
         secondary_color = "#0000FF"  # Default blue
         
-        # Search for hex colors in the SVG
-        color_matches = re.findall(r'fill="(#[0-9A-Fa-f]{6})"', svg_string)
         if len(color_matches) >= 2:
             primary_color = color_matches[0]
             secondary_color = color_matches[1]
         elif len(color_matches) == 1:
             primary_color = color_matches[0]
+            
+        # Create a simple PNG with concentric circles
+        width, height = 128, 128
+        center_x, center_y = width // 2, height // 2
+        outer_radius = min(width, height) // 2 - 2
+        inner_radius = outer_radius * 0.7
         
         # Convert hex colors to RGB
         def hex_to_rgb(hex_color):
             h = hex_color.lstrip('#')
             return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-        
-        try:
-            primary_rgb = hex_to_rgb(primary_color)
-            secondary_rgb = hex_to_rgb(secondary_color)
-        except:
-            primary_rgb = (255, 0, 0)  # Default red
-            secondary_rgb = (0, 0, 255)  # Default blue
-        
-        # Create a PNG with a circle using these colors
-        width, height = 64, 64
-        center_x, center_y = width // 2, height // 2
-        outer_radius = min(width, height) // 2 - 2
-        inner_radius = outer_radius * 0.7
+            
+        primary_rgb = hex_to_rgb(primary_color)
+        secondary_rgb = hex_to_rgb(secondary_color)
         
         # PNG header
         png_data = bytearray([
@@ -801,11 +802,11 @@ def svg_to_png(svg_bytes):
             0xAE, 0x42, 0x60, 0x82   # CRC
         ])
         
-        return png_data
+        return bytes(png_data)
         
     except Exception as e:
-        print(f"Error converting SVG to PNG: {e}")
-        # Return minimal 1×1 transparent PNG as fallback
+        print(f"Error in PNG fallback: {e}")
+        # Return minimal 1×1 transparent PNG as last resort
         return b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x00\x00\x02\x00\x01\xe5\'\xde\xfc\x00\x00\x00\x00IEND\xaeB`\x82'
 
 def fetch_players():
@@ -882,7 +883,7 @@ def create_team_with_players(count=1, players_per_team=5):
         # Generate a team logo as SVG
         svg_logo_bytes = generate_team_logo()
         
-        # Convert SVG to PNG
+        # Convert SVG to PNG (for backward compatibility)
         logo_bytes = svg_to_png(svg_logo_bytes)
         
         try:

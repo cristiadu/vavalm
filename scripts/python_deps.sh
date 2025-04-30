@@ -11,6 +11,6 @@ fi
 source venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r ./scripts/requirements.txt
 
 echo "Dependencies installed successfully!"
