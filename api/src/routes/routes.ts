@@ -126,7 +126,7 @@ const models: TsoaRoute.Models = {
             "full_name": {"dataType":"string"},
             "description": {"dataType":"string"},
             "country": {"dataType":"string"},
-            "logo_image_file": {"dataType":"union","subSchemas":[{"ref":"buffer.File"},{"dataType":"enum","enums":[null]}]},
+            "logo_image_file": {"dataType":"union","subSchemas":[{"dataType":"string"},{"ref":"buffer.File"},{"dataType":"enum","enums":[null]}]},
             "id": {"dataType":"double"},
             "players": {"dataType":"array","array":{"dataType":"refObject","ref":"PlayerApiModel"}},
         },

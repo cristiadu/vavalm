@@ -1,8 +1,20 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
+    "target": "esnext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
     "paths": {
       "@/*": ["./src/*"]
     },
@@ -15,4 +27,5 @@
     "src/*.js",
     "src/**/*.js",
   ],
+  "exclude": ["node_modules"]
 }

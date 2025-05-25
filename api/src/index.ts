@@ -84,7 +84,6 @@ app.get('/health', async (_req, res) => {
 // Register routes using TSOA's RegisterRoutes function
 RegisterRoutes(app)
 
-
 // Serve swagger docs
 const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/openapi.yaml'), 'utf8')
 

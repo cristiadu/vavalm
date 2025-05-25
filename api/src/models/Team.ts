@@ -23,7 +23,7 @@ export class Team extends Model {
   toApiModel(): TeamApiModel {
     const logoBase64 = this.logo_image_file 
       ? `data:image/png;base64,${Buffer.from(this.logo_image_file).toString('base64')}` 
-      : null;
+      : null
       
     return new TeamApiModel(
       this.short_name,
