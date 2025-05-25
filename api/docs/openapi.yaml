@@ -204,7 +204,8 @@ components:
         country:
           type: string
         logo_image_file:
-          allOf:
+          anyOf:
+            - type: string
             - $ref: "#/components/schemas/buffer.File"
           nullable: true
         id:

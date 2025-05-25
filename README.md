@@ -44,8 +44,8 @@ chmod +x ./scripts/localdb.sh
 ## Run Project
 
 ```bash
-npm run clean && npm install
-npm run localdb && npm run dev
+pnpm clean install
+pnpm localdb dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) on your browser.

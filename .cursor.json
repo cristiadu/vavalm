@@ -1,0 +1,19 @@
+{
+  "eslint": {
+    "enabled": true,
+    "workspaceRules": [
+      {
+        "directory": "ui",
+        "configFile": "ui/eslint.config.js"
+      },
+      {
+        "directory": "api",
+        "configFile": "api/eslint.config.js"
+      }
+    ]
+  },
+  "editor": {
+    "formatOnSave": true,
+    "lintOnSave": true
+  }
+} 

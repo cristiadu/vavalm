@@ -53,38 +53,38 @@ export const getRoleBgColor = (role: PlayerRole): string => {
 export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
   // Skip processing if no logo or already a File
   if (!team.logo_image_file || team.logo_image_file instanceof File) {
-    return team as T;
+    return team as T
   }
 
   // Handle base64 string format (from API)
   if (typeof team.logo_image_file === 'string' && team.logo_image_file.startsWith('data:')) {
     try {
       // Convert base64 to blob then to File
-      const parts = team.logo_image_file.split(';base64,');
-      const contentType = parts[0].replace('data:', '') || 'image/png';
-      const base64 = parts[1];
-      const byteCharacters = atob(base64);
-      const byteArrays = [];
-      
+      const parts = team.logo_image_file.split(';base64,')
+      const contentType = parts[0].replace('data:', '') || 'image/png'
+      const base64 = parts[1]
+      const byteCharacters = atob(base64)
+      const byteArrays = []
+
       for (let i = 0; i < byteCharacters.length; i += 1024) {
-        const slice = byteCharacters.slice(i, i + 1024);
-        const byteNumbers = new Array(slice.length);
-        
+        const slice = byteCharacters.slice(i, i + 1024)
+        const byteNumbers = new Array(slice.length)
+
         for (let j = 0; j < slice.length; j++) {
-          byteNumbers[j] = slice.charCodeAt(j);
+          byteNumbers[j] = slice.charCodeAt(j)
         }
-        
-        byteArrays.push(new Uint8Array(byteNumbers));
+
+        byteArrays.push(new Uint8Array(byteNumbers))
       }
-      
-      const blob = new Blob(byteArrays, { type: contentType });
-      team.logo_image_file = new File([blob], `logo-team-${team.id}.png`, { type: contentType });
+
+      const blob = new Blob(byteArrays, { type: contentType })
+      team.logo_image_file = new File([blob], `logo-team-${team.id}.png`, { type: contentType })
     } catch (e) {
-      console.error('Error converting base64 to File:', e);
+      console.error('Error converting base64 to File:', e)
     }
   }
 
-  return team as T;
+  return team as T
 }
 
 /**
@@ -104,14 +104,14 @@ export const teamLogoURLObjectOrDefault = (team: TeamApiModel | null): string =>
  */
 export const objectURLOrDefault = (image_file: File | null, defaultPath: string | null): string | null => {
   if (!image_file) {
-    return defaultPath;
+    return defaultPath
   }
 
   if (image_file instanceof File) {
-    return URL.createObjectURL(image_file);
+    return URL.createObjectURL(image_file)
   }
-  
-  return defaultPath;
+
+  return defaultPath
 }
 
 /**

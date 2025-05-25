@@ -3,23 +3,22 @@ FROM node:lts AS builder
 # set the working directory
 WORKDIR /app
 
-# copy the package.json and package-lock.json
-COPY package*.json /app
-
-COPY tsconfig.json /app
-COPY --from=parent_dir ./tsconfig.json /tsconfig.json
+# Copy all files but adjust to have pnpm-lock properly with workspace.
+COPY ./ /app
+COPY ./src /app/src
+COPY ./docs /app/docs
+COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
 
 # install the dependencies
-RUN npm install
-
-# copy the source code
-COPY ./src /app/src
-COPY webpack.config.js /app
-COPY eslint.config.mjs /app
-COPY .babelrc /app
+RUN npm install -g pnpm
+RUN pnpm clean 
+RUN pnpm install
 
 # build the application
-RUN npm run build
+RUN pnpm build
+
+# Verify the bundle exists
+RUN ls -la dist/ && test -f dist/bundle.js
 
 # Use Alpine for smaller image size
 FROM node:lts-alpine AS runner
@@ -30,18 +29,19 @@ WORKDIR /app
 # Set environment variables
 ENV PORT=8000
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=4096 --optimize-for-size"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# copy built files
+# copy built files and node_modules
 COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/docs/openapi.yaml /app/docs/openapi.yaml
+COPY --from=builder /app/node_modules /app/node_modules
 
-# copy package.json and package-lock.json
-COPY package*.json /app
-COPY webpack.config.js /app
+# copy config files root api folder.
+COPY package.json /app/
+COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
 
-# install production dependencies only
-RUN npm ci --only=production --no-audit --production && \
-    npm cache clean --force
+# install pnpm globally
+RUN npm install -g pnpm
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -59,5 +59,6 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD wget -q -O - http://localhost:$PORT/health || exit 1
 
-# start the application with optimized flags
-CMD ["node", "--trace-warnings", "dist/bundle.js"]
+# start the application with the original start script
+# the bundle.js should already exist, so wait-on should pass immediately
+CMD ["pnpm", "start"]

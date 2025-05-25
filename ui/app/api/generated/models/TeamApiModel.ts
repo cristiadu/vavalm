@@ -9,7 +9,7 @@ export type TeamApiModel = {
   full_name?: string;
   description?: string;
   country?: string;
-  logo_image_file?: buffer_File | null;
+  logo_image_file?: (string | buffer_File) | null;
   id?: number;
   players?: Array<PlayerApiModel>;
 };

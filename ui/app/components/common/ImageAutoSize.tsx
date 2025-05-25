@@ -38,7 +38,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
   )
 
   // Memoize the image source to prevent unnecessary re-renders
-  const imageSrc = useMemo(() => objectUrl || src || fallbackSrc || '', [objectUrl, src, fallbackSrc])
+  const imageSrc = useMemo(() => src || objectUrl || fallbackSrc || '', [src, objectUrl, fallbackSrc])
 
   return (imageSrc ? (
     <Image

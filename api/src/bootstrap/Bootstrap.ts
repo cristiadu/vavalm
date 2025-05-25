@@ -31,7 +31,7 @@ const setupTestData = async (): Promise<void> => {
       await Team.create({ 
         ...teamData, 
         logo_image_file: logoBuffer, 
-        id: undefined 
+        id: undefined, 
       })
     }
   } else {

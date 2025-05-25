@@ -1,4 +1,6 @@
+import { Cheerio, CheerioAPI } from 'cheerio'
 import * as cheerio from 'cheerio'
+import { Element } from 'domhandler'
 import { VLR_URL, VlrPlayer, VlrTeam } from '@/models/Vlr'
 import { countryCodeToCountryName } from '@/base/StringUtils'
 import { PlayerRole } from '@/models/enums'
@@ -159,14 +161,14 @@ export const fetchPlayerDataFromVLRPlayerPage = async (playerId: string): Promis
  * @param agentsPlayedHTML - The tr lines of the HTML that shows the agents the player plays.
  * @returns {PlayerRole} - The role of the player.
  */
-const getPlayerRoleBasedOnVlrStats = async ($: ReturnType<typeof cheerio.load>, agentsPlayedHTML: cheerio.Cheerio): Promise<PlayerRole> => {
+const getPlayerRoleBasedOnVlrStats = async ($: CheerioAPI, agentsPlayedHTML: Cheerio<Element>): Promise<PlayerRole> => {
   type AgentData = { name: string | undefined; rounds: number };
   
   const agentsPlayed: AgentData[] = []
   
-  agentsPlayedHTML.each(function(_: number, element: cheerio.Element) {
-    const imgAlt = $(element).find('img').first().attr('alt')
-    const roundsText = $(element).find('td').eq(2).text()
+  agentsPlayedHTML.each((): void => {
+    const imgAlt = $(this).find('img').first().attr('alt')
+    const roundsText = $(this).find('td').eq(2).text()
     const rounds = roundsText ? parseInt(roundsText) || 0 : 0
     
     agentsPlayed.push({

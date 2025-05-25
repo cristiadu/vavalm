@@ -3,26 +3,20 @@ FROM node:lts AS builder
 # set the working directory
 WORKDIR /app
 
-# copy the package.json and package-lock.json
-COPY package*.json /app
-
-COPY tsconfig.json /app
-COPY --from=parent_dir ./tsconfig.json /tsconfig.json
-
-# install the dependencies
-RUN npm install
-
-# copy the source code
+# Copy all files but adjust to have pnpm-lock properly with workspace.
+COPY ./ /app
 COPY ./app /app/app
 COPY ./public /app/public
-COPY next.config.js /app
-COPY next-env.d.ts /app
-COPY eslint.config.mjs /app
-COPY postcss.config.mjs /app
-COPY tailwind.config.js /app
+COPY --from=parent_dir ./api/docs/openapi.yaml /api/docs/openapi.yaml
+COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
+
+# install the dependencies
+RUN npm install -g pnpm
+RUN pnpm clean 
+RUN pnpm install
 
 # build the application
-RUN npm run build
+RUN pnpm build
 
 # Use another container to run the application
 FROM node:lts AS runner
@@ -36,18 +30,20 @@ ENV NODE_ENV=production
 # copy built files
 COPY --from=builder /app/.next /app/.next
 COPY --from=builder /app/public /app/public
+COPY --from=builder /app/node_modules /app/node_modules
 
-# copy package.json and package-lock.json
-COPY package*.json /app
-COPY next.config.js /app
-COPY next-env.d.ts /app
-COPY postcss.config.mjs /app
-COPY tailwind.config.js /app
+# copy config files root ui folder.
+COPY package.json /app/package.json
+COPY next.config.js /app/next.config.js
+COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
 
-# install production dependencies only
-RUN npm ci --only=production
+# install pnpm globally
+RUN npm install -g pnpm
 
 EXPOSE $PORT
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD wget -q -O - http://localhost:$PORT || exit 1
+
 # start the application
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "start"]
