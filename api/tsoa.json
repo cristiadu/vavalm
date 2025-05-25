@@ -1,6 +1,7 @@
 {
   "entryFile": "src/index.ts",
   "noImplicitAdditionalProperties": "silently-remove-extras",
+  "defaultNumberType": "long",
   "controllerPathGlobs": [
     "src/controllers/*.ts"
   ],
@@ -36,10 +37,125 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
+    },
+    "components": {
+      "responses": {
+        "BadRequest": {
+          "description": "Bad request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiErrorModel"
+              }
+            }
+          }
+        },
+        "Unauthorized": {
+          "description": "Unauthorized",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiErrorModel"
+              }
+            }
+          }
+        },
+        "Forbidden": {
+          "description": "Forbidden",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiErrorModel"
+              }
+            }
+          }
+        },
+        "NotFound": {
+          "description": "Not found",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiErrorModel"
+              }
+            }
+          }
+        },
+        "TooManyRequests": {
+          "description": "Too many requests, rate limit exceeded",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiErrorModel"
+              }
+            }
+          }
+        },
+        "InternalServerError": {
+          "description": "Internal server error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiErrorModel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "*": {
+        "parameters": [
+          {
+            "name": "RateLimit-Limit",
+            "in": "header",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The maximum number of requests that the client is allowed to make in the window."
+          },
+          {
+            "name": "RateLimit-Remaining",
+            "in": "header",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The number of requests remaining in the current rate limit window."
+          },
+          {
+            "name": "RateLimit-Reset",
+            "in": "header",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The time at which the current rate limit window resets in UTC epoch seconds."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
     }
   },
   "routes": {
     "authenticationModule": "./src/middleware/authentication.ts",
+    "middleware": "express",
     "authenticationMiddleware": "expressAuthentication",
     "routesDir": "src/routes",
     "basePath": "api"

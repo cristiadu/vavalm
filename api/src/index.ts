@@ -10,6 +10,9 @@ import setupTestData from './bootstrap/Bootstrap'
 import db from './models/db'
 import dotenv from 'dotenv'
 import SchedulerService from '@/services/SchedulerService'
+import rateLimit from 'express-rate-limit'
+import { ApiErrorModel } from '@/models/contract/ApiErrorModel'
+import { errorHandler } from '@/middleware/errorHandler'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -22,6 +25,27 @@ const DB_HEALTH_CHECK_INTERVAL = 30000 // 30 seconds
 
 app.use(bodyParser.json())
 app.use(cors())
+
+// Apply rate limiting to all requests
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    handler: (req: express.Request, res: express.Response): void => {
+      const error = new ApiErrorModel(
+        429,
+        'Too many requests from this IP, please try again later',
+        'RATE_LIMIT_EXCEEDED',
+        {
+          retryAfter: String(res.getHeader('Retry-After') || '900'),
+        },
+      )
+      res.status(429).json(error)
+    },
+  }),
+)
 
 // Add request logging middleware
 app.use((req, res, next) => {
@@ -83,6 +107,9 @@ app.get('/health', async (_req, res) => {
 
 // Register routes using TSOA's RegisterRoutes function
 RegisterRoutes(app)
+
+// Add error handler middleware
+app.use(errorHandler)
 
 // Serve swagger docs
 const openApiYamlDoc = fs.readFileSync(path.join(__dirname, '../docs/openapi.yaml'), 'utf8')
