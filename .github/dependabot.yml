@@ -12,7 +12,7 @@ updates:
       - cristiadu
 
   # Maintain dependencies for pnpm workspaces
-  - package-ecosystem: "pnpm"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "monthly"
