@@ -1,8 +1,3 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
 version: 2
 updates:
   # Maintain dependencies for GitHub Actions
@@ -10,44 +5,19 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    # Specify labels for npm pull requests
     labels:
       - "gh-actions"
       - "dependencies"
-     # Add reviewers
     reviewers:
       - cristiadu
 
-  # Maintain dependencies for npm UI
-  - package-ecosystem: "npm"
+  # Maintain dependencies for pnpm workspaces
+  - package-ecosystem: "pnpm"
     directory: "/"
     schedule:
       interval: "monthly"
-    # Specify labels for npm pull requests
     labels:
       - "npm"
-      - "dependencies"
-    reviewers:
-      - cristiadu
-  - package-ecosystem: "npm"
-    directory: "/ui"
-    schedule:
-      interval: "monthly"
-    # Specify labels for npm pull requests
-    labels:
-      - "npm"
-      - "ui"
-      - "dependencies"
-    reviewers:
-      - cristiadu
-  - package-ecosystem: "npm"
-    directory: "/api"
-    schedule:
-      interval: "monthly"
-    # Specify labels for npm pull requests
-    labels:
-      - "npm"
-      - "api"
       - "dependencies"
     reviewers:
       - cristiadu
