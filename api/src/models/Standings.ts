@@ -6,7 +6,7 @@ import Team from '@/models/Team'
 import { BaseEntityModel } from '@/base/types'
 import { StandingsApiModel } from '@/models/contract/StandingsApiModel'
 
-export class Standings extends Model implements BaseEntityModel {
+class Standings extends Model implements BaseEntityModel {
   declare team: Team
   declare wins: number
   declare losses: number

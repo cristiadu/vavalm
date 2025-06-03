@@ -9,7 +9,7 @@ import Game from '@/models/Game'
 import { MatchApiModel } from '@/models/contract/MatchApiModel'
 import { BaseEntityModel } from '@/base/types'
 
-export class Match extends Model implements BaseEntityModel {
+class Match extends Model implements BaseEntityModel {
   declare id?: number
   declare date: Date
   declare type: MatchType

@@ -14,7 +14,7 @@ import PlayerGameStats from '@/models/PlayerGameStats'
 import { BaseEntityModel } from '@/base/types'
 import { TournamentApiModel } from '@/models/contract/TournamentApiModel'
 
-export class Tournament extends Model implements BaseEntityModel {
+class Tournament extends Model implements BaseEntityModel {
   /** @format int64 */
   declare id?: number
   declare type: TournamentType

@@ -6,7 +6,7 @@ import Player from '@/models/Player'
 import Tournament from '@/models/Tournament'
 import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
-export class Team extends Model {
+class Team extends Model {
   declare id?: number
   declare logo_image_file: Buffer | null
   declare short_name: string

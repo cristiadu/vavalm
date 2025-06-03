@@ -8,7 +8,7 @@ import Game from '@/models/Game'
 import { BaseEntityModel } from '@/base/types'
 import { GameStatsApiModel } from '@/models/contract/GameStatsApiModel'
 
-export class GameStats extends Model implements BaseEntityModel {
+class GameStats extends Model implements BaseEntityModel {
   declare id?: number
   declare team1: Team
   declare team2: Team

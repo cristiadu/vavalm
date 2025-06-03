@@ -6,9 +6,11 @@ const config = {
   workspaces: {
     'api': {
       project: ['**/*.{ts,js}'],
+      entry: ['src/index.ts', 'src/workers/*.{ts,js}'],
     },
     'ui': {
       project: ['**/*.{ts,js,tsx,jsx}'],
+      ignore: ['./app/components/games/GameDetails.tsx'],
     },
     '.': {
       project: ['scripts/*.{ts,js}'],

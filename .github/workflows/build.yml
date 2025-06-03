@@ -12,23 +12,18 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-
     steps:
     - uses: actions/checkout@v4
 
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 10.7.1
-
-    - name: Use Node.js ${{ matrix.node-version }}
+        package_json_file: package.json
+        run_install: false
+    - name: Use Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: '.nvmrc'
         cache: pnpm
         cache-dependency-path: "pnpm-lock.yaml"
 
@@ -43,3 +38,11 @@ jobs:
     - name: Lint Projects
       run: |
         pnpm lint
+
+    - name: Test Projects
+      run: |
+        pnpm test
+
+    - name: Checking for unused code and dependencies
+      run: |
+        pnpm knip

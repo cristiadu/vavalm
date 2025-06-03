@@ -95,7 +95,7 @@ export class PlayerAttributes extends BaseEntityModel implements PlayerAttribute
   }
 }
 
-export class Player extends Model implements BaseEntityModel {
+class Player extends Model implements BaseEntityModel {
   declare id: number
   declare nickname: string
   declare full_name: string

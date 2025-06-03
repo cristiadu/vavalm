@@ -10,7 +10,7 @@ import { BaseEntityModel } from '@/base/types'
 /**
  * @tsoaModel
  */
-export class PlayerGameStats extends Model implements BaseEntityModel {
+class PlayerGameStats extends Model implements BaseEntityModel {
   declare player: Player
   declare kills: number
   declare deaths: number

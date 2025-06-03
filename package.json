@@ -18,12 +18,13 @@
     "base:clean": "rm -rf node_modules && rm -rf dist",
     "base:upgrade:dependencies": "pnpm upgrade --latest",
     "base:audit": "pnpm audit fix",
-    "knip": "knip"
+    "knip": "knip -c knip.config.ts",
+    "knip:fix": "knip -c knip.config.ts --fix"
   },
+  "packageManager": "pnpm@10.11.1",
   "devDependencies": {
     "@types/node": "^22.15.29",
     "knip": "^5.59.1",
-    "npm-run-all": "^4.1.5",
     "typescript": "^5.8.3"
   },
   "workspaces": [

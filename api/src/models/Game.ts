@@ -9,7 +9,7 @@ import GameStats from '@/models/GameStats'
 import { BaseEntityModel } from '@/base/types'
 import { GameApiModel } from '@/models/contract/GameApiModel'
 
-export class Game extends Model implements BaseEntityModel {
+class Game extends Model implements BaseEntityModel {
   declare id: number
   declare date: Date
   declare map: GameMap

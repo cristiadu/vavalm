@@ -13,43 +13,33 @@
     "build": "pnpm next build",
     "clean": "rm -rf node_modules && rm -rf .next",
     "start": "pnpm next start",
-    "lint": "pnpm dlx eslint . && pnpm next lint",
-    "lint:fix": "pnpm dlx eslint . --fix && pnpm next lint --fix",
+    "lint": "pnpm eslint . --config ./eslint.config.js",
+    "lint:fix": "pnpm eslint . --config ./eslint.config.js --fix",
     "upgrade:dependencies": "pnpm upgrade --latest",
     "generate:client": "pnpm openapi --input ../api/docs/openapi.yaml --output ./app/api/generated --client fetch --name VavalMApi --indent 2"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.4",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/postcss": "^4.1.7",
+    "@tailwindcss/postcss": "^4.1.8",
     "@types/react": "19.1.6",
     "@types/react-dom": "19.1.5",
     "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
     "jsonwebtoken": "^9.0.2",
-    "next": "^15.3.2",
-    "pnpm": "^10.11.0",
-    "postcss": "^8.5.3",
+    "next": "^15.3.3",
+    "postcss": "^8.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-quill-new": "^3.4.6",
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
-    "@eslint/compat": "^1.2.9",
-    "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
-    "@next/eslint-plugin-next": "^15.3.2",
+    "@next/eslint-plugin-next": "^15.3.3",
     "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^22.15.21",
-    "@typescript-eslint/parser": "8.33.0",
-    "css-loader": "^7.1.2",
-    "eslint": "^9.27.0",
-    "eslint-config-next": "15.4.0-canary.60",
+    "@types/node": "^22.15.29",
+    "eslint": "^9.28.0",
     "eslint-plugin-react": "^7.37.5",
-    "globals": "^16.2.0",
     "openapi-typescript-codegen": "^0.29.0",
-    "style-loader": "^4.0.0",
-    "typescript-eslint": "^8.32.1"
+    "typescript-eslint": "^8.33.1"
   }
 }
