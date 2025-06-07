@@ -31,7 +31,7 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
-    "multer": "2.0.0",
+    "multer": "2.0.1",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
     "swagger-ui-express": "^5.0.1",
