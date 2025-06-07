@@ -1,6 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
-import type { Match } from "@/models/Match"
+import Match from "@/models/Match"
 import { TeamApiModel } from "./TeamApiModel"
 import { GameApiModel } from "./GameApiModel"
 import { MatchType } from "@/models/enums"
@@ -35,9 +35,6 @@ export class MatchApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Match> {
-    const MatchModule = await import('@/models/Match')
-    const { Match } = MatchModule
-
     return new Match({
       id: this.id,
       date: new Date(this.date),

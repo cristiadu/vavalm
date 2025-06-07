@@ -1,6 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
-import type { GameLog, RoundState } from "@/models/GameLog"
+import GameLog, { RoundState } from "@/models/GameLog"
 import { Weapon } from "@/models/enums"
 import type { PlayerDuelResults } from "@/models/Player"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
@@ -70,9 +70,6 @@ export class GameLogApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<GameLog> {
-    const GameLogModule = await import('@/models/GameLog')
-    const { GameLog } = GameLogModule
-
     return new GameLog({
       id: this.id,
       round_state: await this.round_state.toEntityModel(),

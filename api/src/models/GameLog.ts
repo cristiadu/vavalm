@@ -8,7 +8,7 @@ import { Weapon } from '@/models/enums'
 import { BaseEntityModel } from '@/base/types'
 import { GameLogApiModel, RoundStateApiModel } from '@/models/contract/GameLogApiModel'
 
-class RoundState extends BaseEntityModel {
+export class RoundState extends BaseEntityModel {
   constructor(
     public round: number,
     public duel: PlayerDuelResults,

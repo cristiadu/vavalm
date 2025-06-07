@@ -1,6 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
-import type { Team } from "@/models/Team"
+import Team from "@/models/Team"
 import type { Optional } from "sequelize"
 import { PlayerApiModel } from "./PlayerApiModel"
 
@@ -27,9 +27,6 @@ export class TeamApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Team> {
-    const TeamModule = await import('@/models/Team')
-    const { Team } = TeamModule
-
     // Convert image data to Buffer if needed
     let logoBuffer = null
     if (this.logo_image_file) {

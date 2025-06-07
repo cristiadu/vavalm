@@ -1,6 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
-import type { Game } from "@/models/Game"
+import Game from "@/models/Game"
 import { GameMap } from "@/models/enums"
 import { GameStatsApiModel } from "./GameStatsApiModel"
 
@@ -28,9 +28,6 @@ export class GameApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Game> {
-    const GameModule = await import('@/models/Game')
-    const { Game } = GameModule
-
     return new Game({
       id: this.id,
       date: new Date(this.date),

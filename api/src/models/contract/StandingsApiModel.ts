@@ -1,6 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
-import type { Standings } from "@/models/Standings"
+import Standings from "@/models/Standings"
 
 /**
  * @tsoaModel
@@ -28,9 +28,6 @@ export class StandingsApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Standings> {
-    const StandingsModule = await import('@/models/Standings')
-    const { Standings } = StandingsModule
-
     return new Standings({
       id: this.id,
       wins: this.wins,

@@ -1,6 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
-import type { Tournament } from "@/models/Tournament"
+import Tournament from "@/models/Tournament"
 import { TournamentType } from "@/models/enums"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
 
@@ -31,9 +31,6 @@ export class TournamentApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Tournament> {
-    const TournamentModule = await import('@/models/Tournament')
-    const { Tournament } = TournamentModule
-
     // Process teams - convert numbers to simple objects with id only
     const processedTeams = this.teams?.map(team => {
       if (typeof team === 'number') {

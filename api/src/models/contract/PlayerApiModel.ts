@@ -2,7 +2,7 @@ import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import { PlayerRole } from "@/models/enums"
 import type { Optional } from "sequelize"
-import type { Player, PlayerAttributes } from "@/models/Player"
+import Player, { PlayerAttributes } from "@/models/Player"
 
 export class PlayerAttributesApiModel extends BaseEntityModel {
   constructor(
@@ -79,8 +79,6 @@ export class PlayerApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Player> {
-    const { default: Player } = await import('@/models/Player')
-    
     const attributes = await this.player_attributes.toEntityModel()
     
     return new Player({
