@@ -6,6 +6,7 @@
     "dev": "pnpm --parallel -r dev",
     "build": "pnpm --parallel -r build",
     "start": "pnpm --parallel -r start",
+    "test": "pnpm --parallel -r test",
     "lint": "pnpm --parallel -r lint",
     "lint:fix": "pnpm --parallel -r lint:fix",
     "clean": "pnpm base:clean && pnpm --parallel -r clean",

@@ -13,6 +13,7 @@
     "build": "pnpm next build",
     "clean": "rm -rf node_modules && rm -rf .next",
     "start": "pnpm next start",
+    "test": "echo 'No tests for ui yet'",
     "lint": "pnpm eslint . --config ./eslint.config.js",
     "lint:fix": "pnpm eslint . --config ./eslint.config.js --fix",
     "upgrade:dependencies": "pnpm upgrade --latest",

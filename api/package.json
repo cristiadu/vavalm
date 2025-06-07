@@ -15,6 +15,7 @@
     "dev:built": "npm-run-all --parallel build start",
     "build": "NODE_ENV=production pnpm generate:routes && pnpm webpack --config webpack.config.js --mode production",
     "start": "wait-on dist/bundle.js && node --max-old-space-size=4096 dist/bundle.js",
+    "test": "echo 'No tests for api yet'",
     "lint": "pnpm eslint . --config  ./eslint.config.js",
     "lint:fix": "pnpm eslint . --config  ./eslint.config.js --fix",
     "clean": "rm -rf node_modules && rm -rf dist",
