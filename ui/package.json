@@ -9,6 +9,7 @@
   },
   "scripts": {
     "postinstall": "pnpm generate:client",
+    "create-env-file": "cp .env.template .env",
     "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm next dev",
     "build": "pnpm next build",
     "clean": "rm -rf node_modules && rm -rf .next && rm -rf .turbo",

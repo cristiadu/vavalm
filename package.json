@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "create-env-file": "turbo create-env-file",
     "start": "pnpm --parallel -r start",
     "dev:docker:build": "docker compose build",
     "dev:docker:up": "./scripts/docker-init.sh",

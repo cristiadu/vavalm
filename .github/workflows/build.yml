@@ -41,6 +41,7 @@ jobs:
 
     - name: Test Projects
       run: |
+        pnpm create-env-file
         pnpm test
 
     - name: Checking for unused code and dependencies
