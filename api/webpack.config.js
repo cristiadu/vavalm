@@ -26,12 +26,12 @@ export default (_env, argv) => {
         {
           test: /\.ts?$/,
           use: 'ts-loader',
-          exclude: /node_modules/,
+          exclude: [/node_modules/],
         },
         {
           test: /\.js$/,
           use: 'babel-loader',
-          exclude: /node_modules/,
+          exclude: [/node_modules/],
         },
       ],
     },
@@ -39,6 +39,7 @@ export default (_env, argv) => {
       extensions: ['.ts', '.js'],
       alias: {
         '@': path.resolve(__dirname, 'src'),
+        '@tests': path.resolve(__dirname, 'tests'),
       },
     },
     output: {
@@ -64,7 +65,7 @@ export default (_env, argv) => {
     devtool: isProduction ? false : 'source-map',
     watch: !isProduction,
     watchOptions: {
-      ignored: /node_modules|dist/,
+      ignored: /node_modules|dist|tests/,
       aggregateTimeout: 300,
       poll: 1000,
     },

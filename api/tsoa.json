@@ -157,7 +157,7 @@
     "authenticationModule": "./src/middleware/authentication.ts",
     "middleware": "express",
     "authenticationMiddleware": "expressAuthentication",
-    "routesDir": "src/routes",
+    "routesDir": "src/routes/generated",
     "basePath": "api"
   },
   "compilerOptions": {

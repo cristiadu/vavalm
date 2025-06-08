@@ -33,6 +33,12 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8000
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - vavalm-network
     depends_on:

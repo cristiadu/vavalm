@@ -1,7 +1,7 @@
 /**
  * @tsoaModel
  */
-export class ApiErrorModel {
+export class ErrorApiModel {
   public status: number
   public message: string
   public code?: string

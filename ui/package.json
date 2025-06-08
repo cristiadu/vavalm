@@ -11,7 +11,7 @@
     "postinstall": "pnpm generate:client",
     "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm next dev",
     "build": "pnpm next build",
-    "clean": "rm -rf node_modules && rm -rf .next",
+    "clean": "rm -rf node_modules && rm -rf .next && rm -rf .turbo",
     "start": "pnpm next start",
     "test": "echo 'No tests for ui yet'",
     "lint": "pnpm eslint . --config ./eslint.config.js",

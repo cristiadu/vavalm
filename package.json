@@ -3,11 +3,14 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel -r dev",
-    "build": "pnpm --parallel -r build",
+    "dev": "turbo dev",
+    "build": "turbo build",
     "start": "pnpm --parallel -r start",
-    "test": "pnpm --parallel -r test",
-    "lint": "pnpm --parallel -r lint",
+    "dev:docker:build": "docker compose build",
+    "dev:docker:up": "./scripts/docker-init.sh",
+    "dev:docker:down": "docker compose down --volumes",
+    "test": "pnpm dev:docker:up && turbo test && pnpm dev:docker:down",
+    "lint": "turbo lint",
     "lint:fix": "pnpm --parallel -r lint:fix",
     "clean": "pnpm base:clean && pnpm --parallel -r clean",
     "migrate": "pnpm --filter api migrate",
@@ -16,7 +19,7 @@
     "audit": "pnpm base:audit && pnpm --parallel -r audit fix",
     "generate:routes": "pnpm --filter api generate:routes",
     "generate:spec": "pnpm --filter api generate:spec",
-    "base:clean": "rm -rf node_modules && rm -rf dist",
+    "base:clean": "rm -rf node_modules && rm -rf dist && rm -rf .turbo && find . -type d -name 'generated' -exec rm -rf {} +",
     "base:upgrade:dependencies": "pnpm upgrade --latest",
     "base:audit": "pnpm audit fix",
     "knip": "knip -c knip.config.ts",
@@ -26,7 +29,8 @@
   "devDependencies": {
     "@types/node": "^22.15.30",
     "knip": "^5.60.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "turbo": "latest"
   },
   "workspaces": [
     "api",

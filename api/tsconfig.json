@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "target": "esnext",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -16,7 +16,8 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"]
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
@@ -26,6 +27,8 @@
     "src/**/*.ts",
     "src/*.js",
     "src/**/*.js",
+    "tests/*.ts",
+    "tests/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

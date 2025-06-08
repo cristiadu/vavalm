@@ -784,6 +784,50 @@ components:
         - total
       type: object
       additionalProperties: false
+    HealthStatus:
+      description: Possible health status values
+      enum:
+        - OK
+        - DEGRADED
+        - OFFLINE
+      type: string
+    HealthIndicator:
+      description: Available health indicators
+      enum:
+        - database
+      type: string
+    Record_string.string_:
+      properties: {}
+      additionalProperties:
+        type: string
+      type: object
+      description: Construct a type with a set of properties K of type T
+    HealthIndicatorApiModel:
+      properties:
+        name:
+          $ref: "#/components/schemas/HealthIndicator"
+        status:
+          $ref: "#/components/schemas/HealthStatus"
+        details:
+          $ref: "#/components/schemas/Record_string.string_"
+      required:
+        - name
+        - status
+      type: object
+      additionalProperties: false
+    HealthApiModel:
+      properties:
+        status:
+          $ref: "#/components/schemas/HealthStatus"
+        indicators:
+          items:
+            $ref: "#/components/schemas/HealthIndicatorApiModel"
+          type: array
+      required:
+        - status
+        - indicators
+      type: object
+      additionalProperties: false
   securitySchemes:
     BearerAuth:
       type: http
@@ -1686,6 +1730,19 @@ paths:
             default: 0
             format: double
             type: number
+  /health:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthApiModel"
+      description: Get API health status
+      security: []
+      parameters: []
   /games/{gameId}:
     get:
       operationId: getGame

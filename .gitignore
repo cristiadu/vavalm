@@ -3,6 +3,7 @@ node_modules
 node-compile-cache
 /.pnp
 .pnp.js
+.turbo
 
 # testing
 /coverage
@@ -39,3 +40,7 @@ venv
 
 # NPM configuration with auth tokens
 .npmrc
+
+# Removing generated files
+**/generated/**
+**/generated/**/*

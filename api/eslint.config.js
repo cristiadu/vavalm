@@ -22,6 +22,13 @@ const tsRules = {
         "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }], // Allow unused vars with underscore
 }
 
+// Test-specific rules - more relaxed
+const testRules = {
+  "@typescript-eslint/no-explicit-any": "warn", // Allow 'any' type in tests but warn
+  "node/no-unpublished-import": "off", // Allow importing test libraries
+  "@typescript-eslint/explicit-function-return-type": "off", // Don't require return types in tests
+}
+
 export default defineConfig([
   { ignores: ["dist/**", "node_modules/**", "./**/generated/**"] },
   js.configs.recommended,
@@ -49,6 +56,35 @@ export default defineConfig([
     rules: {
       ...nodeRules,
       ...tsRules,
+      // Style rules
+      "indent": ["error", 2],
+      "semi": ["error", "never"],
+      "comma-dangle": ["error", "always-multiline"]
+    }
+  },
+  // Special rules for test files
+  {
+    files: ["tests/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        vi: "readonly"
+      }
+    },
+    plugins: {
+      node: nodePlugin
+    },
+    rules: {
+      ...nodeRules,
+      ...tsRules,
+      ...testRules,
       // Style rules
       "indent": ["error", 2],
       "semi": ["error", "never"],

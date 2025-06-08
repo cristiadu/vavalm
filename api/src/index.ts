@@ -3,7 +3,7 @@ import cors from 'cors'
 import bodyParser from 'body-parser'
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yaml'
-import { RegisterRoutes } from './routes/routes'
+import { RegisterRoutes } from './routes/generated/routes'
 import fs from 'fs'
 import path from 'path'
 import setupTestData from './bootstrap/Bootstrap'
@@ -11,17 +11,13 @@ import db from './models/db'
 import dotenv from 'dotenv'
 import SchedulerService from '@/services/SchedulerService'
 import rateLimit from 'express-rate-limit'
-import { ApiErrorModel } from '@/models/contract/ApiErrorModel'
+import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
 import { errorHandler } from '@/middleware/errorHandler'
 
 const app = express()
 const port = process.env.PORT || 8000
 
 dotenv.config()
-
-// Database connection health tracking
-let dbConnectionHealthy = true
-const DB_HEALTH_CHECK_INTERVAL = 30000 // 30 seconds
 
 app.use(bodyParser.json())
 app.use(cors())
@@ -34,7 +30,7 @@ app.use(
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     handler: (req: express.Request, res: express.Response): void => {
-      const error = new ApiErrorModel(
+      const error = new ErrorApiModel(
         429,
         'Too many requests from this IP, please try again later',
         'RATE_LIMIT_EXCEEDED',
@@ -58,51 +54,6 @@ app.use((req, res, next) => {
   })
   
   next()
-})
-
-// Add database connection check middleware
-app.use((req, _res, next) => {
-  // Skip health check endpoint to avoid recursion
-  if (req.path === '/health') {
-    return next()
-  }
-  
-  // If database is known to be unhealthy, pause worker processing
-  if (!dbConnectionHealthy) {
-    SchedulerService.pauseWorker()
-  }
-  
-  next()
-})
-
-// Add health check endpoint
-app.get('/health', async (_req, res) => {
-  try {
-    // Check database connection
-    await db.sequelize.authenticate()
-    
-    // If we get here, the database is healthy
-    if (!dbConnectionHealthy) {
-      console.log('Database connection restored. Resuming background workers.')
-      dbConnectionHealthy = true
-      SchedulerService.resumeWorker()
-    }
-    
-    res.status(200).json({ 
-      status: 'ok',
-      database: dbConnectionHealthy ? 'connected' : 'issues detected',
-      workers: SchedulerService.getWorkerStatus(),
-    })
-  } catch (error) {
-    console.error('Health check failed:', error)
-    dbConnectionHealthy = false
-    
-    res.status(503).json({
-      status: 'degraded',
-      database: 'connection issues',
-      error: error instanceof Error ? error.message : String(error),
-    })
-  }
 })
 
 // Register routes using TSOA's RegisterRoutes function
@@ -130,27 +81,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJsonDoc, {
 app.get('/swagger.yaml', (_req, res) => {
   res.sendFile(path.join(__dirname, '../docs/openapi.yaml'))
 })
-
-// Periodic database health checks
-setInterval(async () => {
-  try {
-    await db.sequelize.authenticate()
-    
-    if (!dbConnectionHealthy) {
-      console.log('Database connection restored. Resuming background workers.')
-      dbConnectionHealthy = true
-      SchedulerService.resumeWorker()
-    }
-  } catch (error) {
-    console.error('Database health check failed:', error)
-    
-    if (dbConnectionHealthy) {
-      console.error('Database connection issues detected. Pausing background workers.')
-      dbConnectionHealthy = false
-      SchedulerService.pauseWorker()
-    }
-  }
-}, DB_HEALTH_CHECK_INTERVAL)
 
 // Graceful shutdown
 const gracefulShutdown = (): void => {

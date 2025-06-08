@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express'
-import { ApiErrorModel } from '@/models/contract/ApiErrorModel'
+import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
 import { ValidateError } from 'tsoa'
 
 /**
  * Error handler middleware
- * Converts all errors to ApiErrorModel format
+ * Converts all errors to ErrorApiModel format
  */
 export const errorHandler: ErrorRequestHandler = (
   err: Error,
@@ -14,7 +14,7 @@ export const errorHandler: ErrorRequestHandler = (
 ): void => {
   if (err instanceof ValidateError) {
     // Handle validation errors from TSOA
-    const apiError = new ApiErrorModel(
+    const apiError = new ErrorApiModel(
       400,
       'Validation Failed',
       'VALIDATION_ERROR',
@@ -52,7 +52,7 @@ export const errorHandler: ErrorRequestHandler = (
       } 
       : undefined
 
-    const apiError = new ApiErrorModel(
+    const apiError = new ErrorApiModel(
       status,
       err.message,
       code,
@@ -64,7 +64,7 @@ export const errorHandler: ErrorRequestHandler = (
   }
 
   // Unknown error
-  const apiError = new ApiErrorModel(
+  const apiError = new ErrorApiModel(
     500,
     'An unexpected error occurred',
     'INTERNAL_SERVER_ERROR',
