@@ -38,7 +38,7 @@ Valorant e-sports manager game which some set of rules I invented in my head.
 5. Give execution permissions for `/scripts/localdb.sh` file:
 
 ```bash
-chmod +x ./scripts/localdb.sh
+chmod +x ./scripts/*.sh
 ```
 
 ## Run Project

@@ -1,8 +1,8 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import Match from "@/models/Match"
-import { TeamApiModel } from "./TeamApiModel"
-import { GameApiModel } from "./GameApiModel"
+import { TeamApiModel } from "@/models/contract/TeamApiModel"
+import { GameApiModel } from "@/models/contract/GameApiModel"
 import { MatchType } from "@/models/enums"
 /**
  * @tsoaModel

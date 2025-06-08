@@ -1,8 +1,8 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import GameStats from "@/models/GameStats"
-import { TeamApiModel } from "./TeamApiModel"
-import { PlayerGameStatsApiModel } from "./PlayerGameStatsApiModel"
+import { TeamApiModel } from "@/models/contract/TeamApiModel"
+import { PlayerGameStatsApiModel } from "@/models/contract/PlayerGameStatsApiModel"
 /**
  * @tsoaModel
  */

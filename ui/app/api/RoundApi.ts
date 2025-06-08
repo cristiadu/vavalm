@@ -1,5 +1,5 @@
 import { GameLogApiModel, RoundStateApiModel } from "@/api/generated"
-import { GameLogWithPlayers } from "./models/types"
+import { GameLogWithPlayers } from "@/api/models/types"
 import { VavalMApiClient } from "@/api/client"
 
 // Simple cache implementation to store round data

@@ -2,7 +2,7 @@ import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import Game from "@/models/Game"
 import { GameMap } from "@/models/enums"
-import { GameStatsApiModel } from "./GameStatsApiModel"
+import { GameStatsApiModel } from "@/models/contract/GameStatsApiModel"
 
 /**
  * @tsoaModel

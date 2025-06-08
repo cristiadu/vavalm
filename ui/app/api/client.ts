@@ -1,4 +1,4 @@
-import { VavalMApi } from "./generated/VavalMApi"
+import { VavalMApi } from "@/api/generated/VavalMApi"
 
 // Create an API client for tests
 export const VavalMApiClient = new VavalMApi({

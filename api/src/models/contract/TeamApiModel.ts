@@ -2,7 +2,7 @@ import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import Team from "@/models/Team"
 import type { Optional } from "sequelize"
-import { PlayerApiModel } from "./PlayerApiModel"
+import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 
 /**
  * @tsoaModel
