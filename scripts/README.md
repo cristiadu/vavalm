@@ -1,17 +1,29 @@
-# VAVALM Scripts
+# VaValM Scripts
 
-This directory contains utility scripts for the VAVALM application, designed to work with the actual API models and endpoints.
+This directory contains utility scripts for the VaValM (Valorant Manager) application, designed to work with the actual API models and endpoints.
 
-## Setup
+## Scripts Overview
 
-1. Install dependencies:
+- `localdb.sh` - Manages the local PostgreSQL database for development
+- `docker-init.sh` - Initializes Docker containers for development
+- `generate_data.py` - Generates sample data for testing and development
+- `python_deps.sh` - Installs Python dependencies for scripts
+
+## Data Generation Setup
+
+1. Install Python dependencies:
+   ```bash
+   ./python_deps.sh
+   ```
+   
+   Or manually:
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Make sure the VAVALM API is running on http://localhost:8000.
+2. Make sure the VaValM API is running on http://localhost:8000.
 
-## Usage
+## Data Generation Usage
 
 The `generate_data.py` script can generate tournaments, teams with players, and individual players. It's a simple, executable Python script that properly interacts with the API.
 
@@ -57,7 +69,16 @@ The `generate_data.py` script can generate tournaments, teams with players, and 
 ./generate_data.py player 3 --team=1
 ```
 
-## Features
+## Docker Management
+
+The `docker-init.sh` script manages Docker containers for the application:
+
+```bash
+# Initialize Docker containers
+./docker-init.sh
+```
+
+## Data Generator Features
 
 ### Tournament Generator
 
@@ -84,28 +105,15 @@ The `generate_data.py` script can generate tournaments, teams with players, and 
 - Assigns players to existing teams (either randomly or specified)
 - Supports multiple roles including specialized ones like Entry Fragger, Lurker, etc.
 
-## Implementation Details
+## Extending the Scripts
 
-The Python script is built to work with the VAVALM API models:
+To extend these scripts:
 
-- Uses appropriate data structures for Team, Player, Tournament entities
-- Matches the API endpoint requirements and payloads
-- Handles API responses correctly with proper error handling
-- Generates realistic random data for all entities
-- Expanded data options with a wide variety of names, countries, and roles
-- Provides flexible command-line arguments for customizing generated data
-- Supports ISO-format date inputs for precise tournament scheduling
-- Incorporates validation and error handling for all input parameters
-
-## Extending the Script
-
-To extend this script:
-
-1. Edit the `generate_data.py` file
+1. Edit the desired script file
 2. Add new functions or modify existing ones
 3. Ensure the script remains executable:
    ```bash
-   chmod +x generate_data.py
+   chmod +x script_name.sh
    ```
 
 4. Test your changes by running the script 
