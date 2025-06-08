@@ -5,15 +5,13 @@ const config = {
   tags: ['knipignore'],
   workspaces: {
     'api': {
-      project: ['**/*.{ts,js}'],
-      entry: ['src/index.ts', 'src/workers/*.{ts,js}'],
+      project: ['src/**/*.{ts,js}', 'tests/**/*.{ts,js,tsx,jsx}'],
+      entry: ['src/workers/*.{ts,js}'],
+      ignoreDependencies: ['pg'],
     },
     'ui': {
       project: ['**/*.{ts,js,tsx,jsx}'],
       ignore: ['./app/components/games/GameDetails.tsx'],
-    },
-    '.': {
-      project: ['scripts/*.{ts,js}'],
     },
   },
   ignore: [
