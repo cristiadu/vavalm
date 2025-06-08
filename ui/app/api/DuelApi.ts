@@ -1,9 +1,9 @@
 import { GameLogApiModel, RoundStateApiModel } from "@/api/generated"
-import { VavalMClient } from "@/api/generated/client"
+import { VavalMApiClient } from "@/api/client"
 
 export const playSingleDuel = async (game_id: number, round: number, closure: (_roundState: RoundStateApiModel) => void): Promise<RoundStateApiModel> => {
   try {
-    const response = await VavalMClient.default.playDuel(game_id, round)
+    const response = await VavalMApiClient.default.playDuel(game_id, round)
     closure(response)
     return response
   } catch (error) {
@@ -17,7 +17,7 @@ export const getLastDuel = async (
   closure: (_lastDuelLog: GameLogApiModel | null) => void,
 ): Promise<GameLogApiModel | null> => {
   try {
-    const response = await VavalMClient.default.getLastDuel(game_id)
+    const response = await VavalMApiClient.default.getLastDuel(game_id)
     closure(response)
     return response
   } catch (error) {

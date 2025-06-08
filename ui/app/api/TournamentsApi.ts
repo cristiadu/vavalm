@@ -2,10 +2,10 @@ import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/m
 import { parseLogoImageFile } from "@/api/models/helpers"
 import { TeamWithLogoImageData } from '@/api/models/types'
 import { ItemsWithPagination_MatchApiModel_, ItemsWithPagination_TournamentApiModel_, StandingsApiModel, TeamApiModel, TournamentApiModel } from "@/api/generated"
-import { VavalMClient } from "@/api/generated/client"
+import { VavalMApiClient } from "@/api/client"
 
 export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagination_TournamentApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TournamentApiModel_> => {
-  const response = await VavalMClient.default.getTournaments(limit, offset)
+  const response = await VavalMApiClient.default.getTournaments(limit, offset)
   const tournamentwithParsedLogos = response.items.map((tournament: TournamentApiModel) => {
     const teamsWithParsedLogos = tournament.teams?.map((team) => {
       return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
@@ -18,13 +18,13 @@ export const fetchTournaments = async (closure: (_tournamentData: ItemsWithPagin
 }
 
 export const fetchTournamentMatchSchedule = async (tournamentId: number, closure: (_matchData: ItemsWithPagination_MatchApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_MatchApiModel_> => {
-  const response = await VavalMClient.default.getTournamentSchedule(tournamentId, limit, offset)
+  const response = await VavalMApiClient.default.getTournamentSchedule(tournamentId, limit, offset)
   closure(response)
   return response
 }
 
 export const getTournament = async (tournamentId: number, closure: (_tournamentData: TournamentApiModel) => void): Promise<TournamentApiModel | null> => {
-  const response = await VavalMClient.default.getTournament(tournamentId)
+  const response = await VavalMApiClient.default.getTournament(tournamentId)
   const teamsWithParsedLogos = response.teams?.map((team) => {
     return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
   })
@@ -35,14 +35,14 @@ export const getTournament = async (tournamentId: number, closure: (_tournamentD
 }
 
 export const getTournamentStandings = async (tournamentId: number, closure: (_tournamentData: StandingsApiModel[]) => void): Promise<StandingsApiModel[] | null> => {
-  const response = await VavalMClient.default.getTournamentStandings(tournamentId)
+  const response = await VavalMApiClient.default.getTournamentStandings(tournamentId)
   closure(response)
   return response
 }
 
 export const newTournament = async (tournament: TournamentApiModel, closure: (_tournamentData: TournamentApiModel) => void): Promise<TournamentApiModel | null> => {
   try {
-    const response = await VavalMClient.default.createTournament(tournament)
+    const response = await VavalMApiClient.default.createTournament(tournament)
     closure(response)
     return response
   } catch (error) {
@@ -57,7 +57,7 @@ export const editTournament = async (tournament: TournamentApiModel, closure: (_
       throw new Error('Tournament ID is required')
     }
 
-    const response = await VavalMClient.default.updateTournament(tournament.id, tournament)
+    const response = await VavalMApiClient.default.updateTournament(tournament.id, tournament)
     closure(response)
     return response
   } catch (error) {
@@ -72,7 +72,7 @@ export const deleteTournament = async (tournament: TournamentApiModel, closure: 
       throw new Error('Tournament ID is required')
     }
 
-    await VavalMClient.default.deleteTournament(tournament.id)
+    await VavalMApiClient.default.deleteTournament(tournament.id)
     closure({message: 'Tournament deleted successfully'})
     return {message: 'Tournament deleted successfully'}
   } catch (error) {

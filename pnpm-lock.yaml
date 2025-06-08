@@ -42,7 +42,7 @@ importers:
         specifier: ^9.0.2
         version: 9.0.2
       multer:
-        specifier: 2.0.1
+        specifier: ^2.0.1
         version: 2.0.1
       pg:
         specifier: ^8.16.0

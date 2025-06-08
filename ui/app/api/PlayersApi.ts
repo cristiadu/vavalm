@@ -1,6 +1,6 @@
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
 import { AllPlayerStats, ItemsWithPagination_AllPlayerStats_, ItemsWithPagination_PlayerApiModel_, PlayerApiModel } from "@/api/generated"
-import { VavalMClient } from "@/api/generated/client"
+import { VavalMApiClient } from "@/api/client"
 
 // Cache for API responses to reduce network requests
 const playerCache: Record<string, { data: object, timestamp: number }> = {}
@@ -46,7 +46,7 @@ export const fetchPlayersStats = async (
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await VavalMClient.default.getPlayersStats(limit, offset)
+      const response = await VavalMApiClient.default.getPlayersStats(limit, offset)
       return response
     })
     
@@ -69,7 +69,7 @@ export const fetchPlayersByTeam = async (
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await VavalMClient.default.getTeamPlayers(teamId)
+      const response = await VavalMApiClient.default.getTeamPlayers(teamId)
       return response
     })
     
@@ -91,7 +91,7 @@ export const fetchPlayers = async (
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await VavalMClient.default.getPlayers(undefined, limit, offset)
+      const response = await VavalMApiClient.default.getPlayers(undefined, limit, offset)
       return response
     })
     
@@ -113,7 +113,7 @@ export const fetchPlayer = async (
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await VavalMClient.default.getPlayer(playerId)
+      const response = await VavalMApiClient.default.getPlayer(playerId)
       return response
     })
     
@@ -134,7 +134,7 @@ export const fetchPlayerStats = async (
   
   try {
     const data = await withCache(cacheKey, async () => {
-      const response = await VavalMClient.default.getPlayerStats(playerId)
+      const response = await VavalMApiClient.default.getPlayerStats(playerId)
       return response
     })
     
@@ -148,7 +148,7 @@ export const fetchPlayerStats = async (
 
 export const newPlayer = async (player: PlayerApiModel, closure: (_playerData: PlayerApiModel) => void): Promise<PlayerApiModel | null> => {
   try {
-    const response = await VavalMClient.default.createPlayer(player)
+    const response = await VavalMApiClient.default.createPlayer(player)
     invalidatePlayerCache() // Clear cache after modifications
     closure(response)
     console.debug('Success:', response)
@@ -165,7 +165,7 @@ export const editPlayer = async (player: PlayerApiModel, closure: (_playerData: 
       throw new Error('Player ID is required')
     }
 
-    const response = await VavalMClient.default.updatePlayer(player.id, player)
+    const response = await VavalMApiClient.default.updatePlayer(player.id, player)
     invalidatePlayerCache() // Clear cache after modifications
     closure(response)
     console.debug('Success:', response)
@@ -182,7 +182,7 @@ export const deletePlayer = async (player: PlayerApiModel, closure: () => void):
       throw new Error('Player ID is required')
     }
 
-    await VavalMClient.default.deletePlayer(player.id)
+    await VavalMApiClient.default.deletePlayer(player.id)
     invalidatePlayerCache() // Clear cache after modifications
     closure()
   } catch (error) {

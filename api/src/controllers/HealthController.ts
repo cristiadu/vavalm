@@ -1,6 +1,6 @@
 import { HealthApiModel, HealthIndicator, HealthIndicatorApiModel, HealthStatus } from '@/models/contract/HealthApiModel'
 import db from '@/models/db'
-import { Controller, Get, NoSecurity, OperationId, Route, Tags } from '@tsoa/runtime'
+import { Controller, Get, NoSecurity, OperationId, Route } from '@tsoa/runtime'
 
 /**
  * Health controller to check API status

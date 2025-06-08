@@ -1,6 +1,6 @@
 import { GameLogApiModel, RoundStateApiModel } from "@/api/generated"
-import { VavalMClient } from "@/api/generated/client"
 import { GameLogWithPlayers } from "./models/types"
+import { VavalMApiClient } from "@/api/client"
 
 // Simple cache implementation to store round data
 const roundCache = new Map<string, { data: GameLogWithPlayers[], timestamp: number }>()
@@ -8,7 +8,7 @@ const CACHE_TTL = 60000 // 1 minute cache
 
 export const playFullRound = async (game_id: number, round: number, closure: (_roundState: RoundStateApiModel) => void): Promise<RoundStateApiModel | null> => {
   try {
-    const response = await VavalMClient.default.playRound(game_id, round)
+    const response = await VavalMApiClient.default.playRound(game_id, round)
     closure(response)
     return response
   } catch (error) {
@@ -28,11 +28,11 @@ export const getLastRound = async (game_id: number, closure: (_lastRoundLogs: Ga
       return cachedData.data
     }
     
-    const response = await VavalMClient.default.getLastRound(game_id)
+    const response = await VavalMApiClient.default.getLastRound(game_id)
     const data = await Promise.all(response.map(async (log: GameLogApiModel) => ({
       ...log,
-      player1: await VavalMClient.default.getPlayer(log.team1_player_id),
-      player2: await VavalMClient.default.getPlayer(log.team2_player_id),
+      player1: await VavalMApiClient.default.getPlayer(log.team1_player_id),
+      player2: await VavalMApiClient.default.getPlayer(log.team2_player_id),
     } as GameLogWithPlayers)))
     
     roundCache.set(cacheKey, { data: data, timestamp: Date.now() })
@@ -55,11 +55,11 @@ export const getRound = async (game_id: number, round: number, closure: (_roundL
       return cachedData.data
     }
     
-    const response = await VavalMClient.default.getRound(game_id, round)
+    const response = await VavalMApiClient.default.getRound(game_id, round)
     const data = await Promise.all(response.map(async (log: GameLogApiModel) => ({
       ...log,
-      player1: await VavalMClient.default.getPlayer(log.team1_player_id),
-      player2: await VavalMClient.default.getPlayer(log.team2_player_id),
+      player1: await VavalMApiClient.default.getPlayer(log.team1_player_id),
+      player2: await VavalMApiClient.default.getPlayer(log.team2_player_id),
     } as GameLogWithPlayers)))
   
     // Cache the response

@@ -2,11 +2,11 @@ import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/m
 import { parseLogoImageFile } from "@/api/models/helpers"
 import { TeamWithLogoImageData } from "@/api/models/types"
 import { ItemsWithPagination_TeamApiModel_, ItemsWithPagination_TeamStats_, TeamApiModel, TeamStats } from "@/api/generated"
-import { VavalMClient } from "@/api/generated/client"
+import { VavalMApiClient } from "@/api/client"
 
 export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void): Promise<TeamApiModel[]> => {
   try {
-    const response = await VavalMClient.default.getTeams(undefined, undefined, undefined)
+    const response = await VavalMApiClient.default.getTeams(undefined, undefined, undefined)
     
     if (!response || !response.items) {
       const emptyResult: TeamApiModel[] = []
@@ -31,7 +31,7 @@ export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void
 
 export const fetchTeams = async (closure: (_teamData: ItemsWithPagination_TeamApiModel_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TeamApiModel_> => {
   try {
-    const response = await VavalMClient.default.getTeams(undefined, limit, offset)
+    const response = await VavalMApiClient.default.getTeams(undefined, limit, offset)
     
     if (!response || !response.items) {
       throw new Error("No teams data received")
@@ -54,7 +54,7 @@ export const fetchTeams = async (closure: (_teamData: ItemsWithPagination_TeamAp
 
 export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination_TeamStats_) => void, limit: number = LIMIT_PER_PAGE_INITIAL_VALUE, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<ItemsWithPagination_TeamStats_> => {
   try {
-    const response = await VavalMClient.default.getTeamsStats(limit, offset)
+    const response = await VavalMApiClient.default.getTeamsStats(limit, offset)
     
     if (!response || !response.items) {
       throw new Error("No teams stats data received")
@@ -77,7 +77,7 @@ export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination_T
 
 export const fetchTeam = async (teamId: number, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
   try {
-    const response = await VavalMClient.default.getTeam(teamId)
+    const response = await VavalMApiClient.default.getTeam(teamId)
     
     if (!response) {
       console.error("No team data received")
@@ -97,7 +97,7 @@ export const fetchTeam = async (teamId: number, closure: (_teamData: TeamApiMode
 
 export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamStats) => void): Promise<TeamStats | null> => {
   try {
-    const response = await VavalMClient.default.getTeamStats(teamId)
+    const response = await VavalMApiClient.default.getTeamStats(teamId)
     
     if (!response || !response.team) {
       console.error("No team stats data received")
@@ -122,7 +122,7 @@ export const newTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiMo
       throw new Error('Missing required fields')
     }
 
-    const response = await VavalMClient.default.createTeam({
+    const response = await VavalMApiClient.default.createTeam({
       short_name: team.short_name,
       full_name: team.full_name,
       description: team.description || '',
@@ -148,7 +148,7 @@ export const editTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiM
   }
 
   try {
-    const response = await VavalMClient.default.updateTeam(team.id, {
+    const response = await VavalMApiClient.default.updateTeam(team.id, {
       short_name: team.short_name,
       full_name: team.full_name,
       description: team.description || '',
@@ -170,7 +170,7 @@ export const deleteTeam = async (team: TeamApiModel, closure: (_result: {message
       throw new Error('Team ID is required')
     }
 
-    await VavalMClient.default.deleteTeam(team.id)
+    await VavalMApiClient.default.deleteTeam(team.id)
     closure({message: 'Team deleted successfully'})
     return {message: 'Team deleted successfully'}
   } catch (error) {
