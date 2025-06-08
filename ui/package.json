@@ -15,6 +15,7 @@
     "clean": "rm -rf node_modules && rm -rf .next && rm -rf .turbo",
     "start": "pnpm next start",
     "test": "echo 'No tests for ui yet'",
+    "test:coverage": "echo 'No tests for ui yet'",
     "lint": "pnpm eslint . --config ./eslint.config.js",
     "lint:fix": "pnpm eslint . --config ./eslint.config.js --fix",
     "upgrade:dependencies": "pnpm upgrade --latest",

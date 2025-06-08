@@ -44,3 +44,6 @@ venv
 # Removing generated files
 **/generated/**
 **/generated/**/*
+
+# coverage
+**/tests/coverage

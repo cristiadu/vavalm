@@ -11,6 +11,7 @@
     "dev:docker:up": "./scripts/docker-init.sh",
     "dev:docker:down": "docker compose down --volumes",
     "test": "pnpm dev:docker:up && turbo test && pnpm dev:docker:down",
+    "test:coverage": "pnpm dev:docker:up && turbo test:coverage && pnpm dev:docker:down",
     "lint": "turbo lint",
     "lint:fix": "pnpm --parallel -r lint:fix",
     "clean": "pnpm base:clean && pnpm --parallel -r clean",

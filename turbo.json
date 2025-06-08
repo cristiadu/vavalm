@@ -5,19 +5,26 @@
       "cache": false
     },
     "build": {
+      "cache": false,
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "lint": {
-      "outputs": []
+      "cache": false
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "test": {
+      "cache": false,
       "dependsOn": ["build"],
-      "outputs": ["coverage/**"],
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
+    },
+    "test:coverage": {
+      "cache": false,
+      "dependsOn": ["build"],
+      "outputs": ["tests/coverage/**"],
       "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
     },
     "clean": {
