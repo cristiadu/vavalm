@@ -68,7 +68,7 @@
     "ts-loader": "^9.5.2",
     "tsoa": "^6.6.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1",
+    "typescript-eslint": "^8.38.0",
     "vitest": "^3.2.2",
     "wait-on": "^8.0.3",
     "webpack": "^5.99.9",
