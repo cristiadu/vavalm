@@ -2,6 +2,8 @@
 
 VaValM is a Valorant e-sports manager simulation game where you can manage teams, players, and tournaments in the Valorant competitive scene.
 
+[![Build Project](https://github.com/cristiadu/vavalm/actions/workflows/build.yml/badge.svg)](https://github.com/cristiadu/vavalm/actions/workflows/build.yml)
+
 ## Project Structure
 
 This is a monorepo project with the following main components:
