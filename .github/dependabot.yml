@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Maintain dependencies for GitHub Actions
+  # 🧩 Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -8,16 +8,20 @@ updates:
     labels:
       - "gh-actions"
       - "dependencies"
-    reviewers:
-      - cristiadu
+    groups:
+      all-github-actions:
+        patterns:
+          - "*"
 
-  # Maintain dependencies for pnpm workspaces
-  - package-ecosystem: "npm"
-    directory: "/"
+  # 🪄 Maintain dependencies for pnpm workspaces (API + UI + root)
+  - package-ecosystem: "npm" # Dependabot uses npm for pnpm projects
+    directory: "/"           # Root where pnpm-lock.yaml lives
     schedule:
       interval: "monthly"
     labels:
       - "npm"
       - "dependencies"
-    reviewers:
-      - cristiadu
+    groups:
+      all-pnpm-dependencies:
+        patterns:
+          - "*"
