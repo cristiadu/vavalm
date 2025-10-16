@@ -29,9 +29,9 @@
   },
   "packageManager": "pnpm@10.11.1",
   "devDependencies": {
-    "@types/node": "^24.0.14",
-    "knip": "^5.61.3",
-    "typescript": "^5.8.3",
+    "@types/node": "^24.8.0",
+    "knip": "^5.66.0",
+    "typescript": "^5.9.3",
     "turbo": "latest"
   },
   "workspaces": [
