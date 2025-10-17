@@ -22,27 +22,27 @@
     "generate:client": "pnpm openapi --input ../api/docs/openapi.yaml --output ./app/api/generated --client fetch --name VavalMApi --indent 2"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.8",
-    "@types/react": "19.1.6",
-    "@types/react-dom": "19.1.6",
-    "dompurify": "^3.2.6",
-    "dotenv": "^16.5.0",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "dompurify": "^3.3.0",
+    "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2",
     "next": "^15.5.5",
     "postcss": "^8.5.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-quill-new": "^3.4.6",
-    "tailwindcss": "^4.1.8"
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-quill-new": "^3.6.0",
+    "tailwindcss": "^4.1.14"
   },
   "devDependencies": {
-    "@eslint/js": "^9.28.0",
-    "@next/eslint-plugin-next": "^15.4.5",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^24.0.14",
-    "eslint": "^9.28.0",
+    "@eslint/js": "^9.37.0",
+    "@next/eslint-plugin-next": "^15.5.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.8.0",
+    "eslint": "^9.37.0",
     "eslint-plugin-react": "^7.37.5",
     "openapi-typescript-codegen": "^0.29.0",
-    "typescript-eslint": "^8.38.0"
+    "typescript-eslint": "^8.46.1"
   }
 }
