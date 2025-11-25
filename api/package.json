@@ -29,7 +29,7 @@
     "generate:client": "pnpm openapi --input ./docs/openapi.yaml --output ./tests/generated/api --client fetch --name VavalMApi --indent 2"
   },
   "dependencies": {
-    "body-parser": "^2.2.0",
+    "body-parser": "^2.2.1",
     "cheerio": "^1.1.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
