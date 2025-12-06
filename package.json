@@ -27,7 +27,7 @@
     "knip": "knip -c knip.config.ts",
     "knip:fix": "knip -c knip.config.ts --fix"
   },
-  "packageManager": "pnpm@10.11.1",
+  "packageManager": "pnpm@10.24.0",
   "devDependencies": {
     "@types/node": "^24.10.1",
     "knip": "^5.71.0",
