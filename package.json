@@ -10,6 +10,7 @@
     "dev:docker:build": "docker compose build",
     "dev:docker:up": "./scripts/docker-init.sh",
     "dev:docker:down": "docker compose down --volumes",
+    "dev:docker:logs": "./scripts/docker-logs-zip.sh",
     "test": "pnpm dev:docker:up && turbo test && pnpm dev:docker:down",
     "test:coverage": "pnpm dev:docker:up && turbo test:coverage && pnpm dev:docker:down",
     "lint": "turbo lint",
@@ -29,10 +30,10 @@
   },
   "packageManager": "pnpm@10.24.0",
   "devDependencies": {
-    "@types/node": "^25.0.3",
-    "knip": "^5.78.0",
-    "typescript": "^5.9.3",
-    "turbo": "latest"
+    "@types/node": "^25.5.0",
+    "knip": "^5.88.0",
+    "turbo": "latest",
+    "typescript": "^5.9.3"
   },
   "workspaces": [
     "api",

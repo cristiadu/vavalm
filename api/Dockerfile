@@ -56,8 +56,8 @@ USER nodejs
 EXPOSE $PORT
 
 # Set healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget -q -O - http://localhost:$PORT/health || exit 1
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=10 \
+    CMD wget -q -O - http://localhost:$PORT/api/health || exit 1
 
 # start the application with the original start script
 # the bundle.js should already exist, so wait-on should pass immediately

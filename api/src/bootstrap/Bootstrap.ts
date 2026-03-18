@@ -24,14 +24,12 @@ const setupTestData = async (): Promise<void> => {
 
       if (!logoBuffer) {
         console.warn('Failed to download image for team:', teamData.short_name)
-        continue
       }
   
       // Create the team with the logo image buffer
       await Team.create({ 
         ...teamData, 
         logo_image_file: logoBuffer, 
-        id: undefined, 
       })
     }
   } else {
