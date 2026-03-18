@@ -2,19 +2,17 @@ import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 import js from '@eslint/js';
 import nextPlugin from '@next/eslint-plugin-next';
-import reactPlugin from 'eslint-plugin-react';
+import eslintReact from '@eslint-react/eslint-plugin';
 
 export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    plugins: {
-      react: reactPlugin,
-      '@next/next': nextPlugin
-    },
-  },
-  {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
+    plugins: {
+      '@eslint-react': eslintReact,
+      '@next/next': nextPlugin,
+    },
     rules: {
       // TypeScript specific rules
       "@typescript-eslint/no-explicit-any": "warn",

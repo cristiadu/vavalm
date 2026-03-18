@@ -49,9 +49,8 @@ const DuelService = {
       team2Player = currentRound.team2_alive_players.find(player => player.id === duelWinner?.id)
     }
 
-    let team1PlayerAliveChances = []
     if (!team1Player) {
-      team1PlayerAliveChances = currentRound.team1_alive_players.map(player => {
+      const team1PlayerAliveChances = currentRound.team1_alive_players.map(player => {
         const selectBuff = (currentDuel?.startedTradeDuel
           ? ChanceService.getTradeSelectBuffByPlayerRole(player)
           : ChanceService.getDuelSelectBuffByPlayerRole(player))
@@ -62,9 +61,8 @@ const DuelService = {
       team1Player = team1PlayerAliveChances[team1PlayerIndex]
     }
 
-    let team2PlayerAliveChances = []
     if(!team2Player) {
-      team2PlayerAliveChances = currentRound.team2_alive_players.map(player => {
+      const team2PlayerAliveChances = currentRound.team2_alive_players.map(player => {
         const selectBuff = (currentDuel?.startedTradeDuel
           ? ChanceService.getTradeSelectBuffByPlayerRole(player)
           : ChanceService.getDuelSelectBuffByPlayerRole(player))

@@ -124,13 +124,10 @@ const TournamentService = {
       const team1Id = match.team1_id
       const team2Id = match.team2_id
 
-      let team1Standings: Standings | null = null
-      let team2Standings: Standings | null = null
-      
-      team1Standings = await Standings.findOne({
+      const team1Standings = await Standings.findOne({
         where: { tournament_id: tournamentId, team_id: team1Id },
       })
-      team2Standings = await Standings.findOne({
+      const team2Standings = await Standings.findOne({
         where: { tournament_id: tournamentId, team_id: team2Id },
       })
 

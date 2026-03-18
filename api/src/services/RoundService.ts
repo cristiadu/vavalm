@@ -67,7 +67,7 @@ const RoundService = {
     let round = 1
     let team1_rounds = 0
     let team2_rounds = 0
-    let currentRound = null
+    let currentRound: RoundState
 
     while ((team1_rounds < 13 && team2_rounds < 13) || (Math.abs(team1_rounds - team2_rounds) < 2)) {
       currentRound = await RoundService.playFullRound(game_id, round)
