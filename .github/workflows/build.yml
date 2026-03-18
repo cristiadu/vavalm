@@ -52,7 +52,7 @@ jobs:
       if: ${{ failure() }}
       continue-on-error: true
       run: |
-        pnpm dev:docker:logs:zip
+        pnpm dev:docker:logs
 
     - name: Upload Docker logs artifact on failure
       if: ${{ failure() }}
