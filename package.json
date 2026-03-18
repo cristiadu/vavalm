@@ -10,6 +10,7 @@
     "dev:docker:build": "docker compose build",
     "dev:docker:up": "./scripts/docker-init.sh",
     "dev:docker:down": "docker compose down --volumes",
+    "dev:docker:logs:zip": "./scripts/docker-logs-zip.sh",
     "test": "pnpm dev:docker:up && turbo test && pnpm dev:docker:down",
     "test:coverage": "pnpm dev:docker:up && turbo test:coverage && pnpm dev:docker:down",
     "lint": "turbo lint",
