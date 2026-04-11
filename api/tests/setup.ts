@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, vi } from 'vitest'
 import path from 'path'
 import dotenv from 'dotenv'
+import jwt from 'jsonwebtoken'
 import { VavalMApi } from '@tests/generated/api'
 
 // Load environment variables
@@ -9,11 +10,14 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') })
 // Set default timeout for all tests
 vi.setConfig({ testTimeout: 30000 })
 
+// Generate a valid JWT signed with the same secret the server uses
+const jwtSecret = process.env.JWT_SECRET || 'my-secret-key'
+const testToken = jwt.sign({ scopes: ['admin'] }, jwtSecret, { algorithm: 'HS256' })
+
 // Create an API client for tests
 export const apiClient = new VavalMApi({
   BASE: process.env.API_BASE_URL || 'http://localhost:8000/api',
-  // For tests, we can add a dummy token or set up JWT as needed
-  TOKEN: process.env.TEST_API_TOKEN || 'test-token',
+  TOKEN: testToken,
 })
 
 // Setup before all tests
