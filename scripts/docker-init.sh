@@ -1,21 +1,14 @@
 #!/bin/bash
+set -e
 
-# Check if any containers for this project are running
-CONTAINERS=$(docker compose ps -q)
+# Check if containers are already running — skip rebuild for speed
+CONTAINERS=$(docker compose ps -q 2>/dev/null)
 
-if [ -z "$CONTAINERS" ]; then
-  # No containers found, check if the images exist by trying to inspect them
-  if ! docker compose config --images > /dev/null 2>&1; then
-    # Images not found, need to build
-    echo "No containers running and images may not exist. Building..."
-    docker compose build
-  else
-    echo "Images may exist but no containers running. Starting containers."
-  fi
-  
-  # Start containers and wait for all health checks to pass
-  echo "Starting containers..."
-  docker compose up -d --wait
-else
+if [ -n "$CONTAINERS" ]; then
   echo "Containers already running."
+  exit 0
 fi
+
+# Build images if missing or outdated, then start and wait for health checks
+echo "Starting containers (building if needed)..."
+docker compose up -d --wait --build
