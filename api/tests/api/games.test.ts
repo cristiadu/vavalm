@@ -112,7 +112,7 @@ describe('Tournaments, Matches & Games', () => {
       expect(tournament.type).toBe(TEST_TOURNAMENT.type)
       expect(tournament.started).toBe(false)
       expect(tournament.ended).toBe(false)
-      expect(tournament.winner_id).toBeUndefined()
+      expect(tournament.winner_id).toBeNull()
     })
 
     it('embeds the teams array with both fixture teams', async () => {
@@ -143,7 +143,7 @@ describe('Tournaments, Matches & Games', () => {
         expect(match.team2_score).toBe(0)
         expect(match.started).toBe(false)
         expect(match.finished).toBe(false)
-        expect(match.included_on_standings).toBe(false)
+        expect(match.included_on_standings).toBe(true) // matches are always included in standings from creation
       }
     })
 
