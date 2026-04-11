@@ -207,9 +207,9 @@ describe('Tournaments, Matches & Games', () => {
     it('embeds team1 and team2 objects with correct IDs', async () => {
       const match = await apiClient.default.getMatch(matchId) as MatchApiModel
       expect(match.team1?.id).toBe(match.team1_id)
-      expect(match.team1?.short_name.length).toBeGreaterThan(0)
+      expect(match.team1?.short_name?.length).toBeGreaterThan(0)
       expect(match.team2?.id).toBe(match.team2_id)
-      expect(match.team2?.short_name.length).toBeGreaterThan(0)
+      expect(match.team2?.short_name?.length).toBeGreaterThan(0)
     })
 
     it('embeds games array with at least 1 game', async () => {
@@ -361,9 +361,9 @@ describe('Tournaments, Matches & Games', () => {
         expect([team1Id, team2Id]).toContain(stats.team1_id)
         expect([team1Id, team2Id]).toContain(stats.team2_id)
         expect(stats.team1?.id).toBe(stats.team1_id)
-        expect(stats.team1?.short_name.length).toBeGreaterThan(0)
+        expect(stats.team1?.short_name?.length).toBeGreaterThan(0)
         expect(stats.team2?.id).toBe(stats.team2_id)
-        expect(stats.team2?.short_name.length).toBeGreaterThan(0)
+        expect(stats.team2?.short_name?.length).toBeGreaterThan(0)
       })
 
       it('embeds exactly 5 player stat entries per team', async () => {

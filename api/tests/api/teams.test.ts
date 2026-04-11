@@ -185,7 +185,7 @@ describe('Teams', () => {
       const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_
       for (const item of stats.items) {
         expect(item.team.id).toBeGreaterThan(0)
-        expect(item.team.short_name.length).toBeGreaterThan(0)
+        expect(item.team.short_name?.length).toBeGreaterThan(0)
         expect(item.winrate).toBeGreaterThanOrEqual(0)
         expect(item.mapWinrate).toBeGreaterThanOrEqual(0)
         expect(item.totalMatchesPlayed).toBeGreaterThanOrEqual(0)
