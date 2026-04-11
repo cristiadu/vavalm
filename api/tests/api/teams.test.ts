@@ -16,7 +16,7 @@ describe('Teams', () => {
   beforeAll(async () => {
     const team = await givenTeamExists()
     teamId = team.id!
-    const player = await givenPlayerExists(teamId)
+    const player = await givenPlayerExists(teamId, { nickname: 'fixture_player_teams' })
     playerId = player.id!
   })
 
