@@ -1,7 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import { PlayerRole } from "@/models/enums"
-import type { Optional } from "sequelize"
 import Player, { PlayerAttributes } from "@/models/Player"
 
 export class PlayerAttributesApiModel extends BaseEntityModel {
@@ -94,7 +93,7 @@ export class PlayerApiModel extends BaseEntityModel {
   }
 
   @Hidden()
-  async toEntityModelBulk(): Promise<Optional<object, never>> {
+  async toEntityModelBulk(): Promise<Record<string, unknown>> {
     const entity = await this.toEntityModel()
     return entity.toJSON()
   }

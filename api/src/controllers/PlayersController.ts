@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Rou
 import { ItemsWithPagination } from "@/base/types"
 import { PlayerApiModel, PlayerAttributesApiModel } from "@/models/contract/PlayerApiModel"
 import { AllPlayerStats } from "@/base/types"
-import Player, { PlayerAttributes } from "@/models/Player"
+import Player from "@/models/Player"
 import { getAllStatsForPlayer } from "@/services/PlayerService"
 import { getAllStatsForAllPlayers } from "@/services/PlayerService"
 
@@ -160,13 +160,21 @@ export class PlayersController extends Controller {
       throw new Error("Player not found")
     }
 
+    const a = player_attributes
+    const attrsModel = new PlayerAttributesApiModel(
+      a.clutch, a.awareness, a.aim, a.positioning,
+      a.game_reading, a.resilience, a.confidence, a.strategy,
+      a.adaptability, a.communication, a.unpredictability,
+      a.game_sense, a.decision_making, a.rage_fuel, a.teamwork, a.utility_usage,
+    )
+
     player.nickname = nickname
     player.full_name = full_name
     player.age = age
     player.role = role
     player.country = country
     player.team_id = team_id
-    player.player_attributes = player_attributes as unknown as PlayerAttributes
+    player.player_attributes = await attrsModel.toEntityModel()
 
     await player.save()
     

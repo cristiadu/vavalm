@@ -1,7 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import Team from "@/models/Team"
-import type { Optional } from "sequelize"
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 
 /**
@@ -57,7 +56,7 @@ export class TeamApiModel extends BaseEntityModel {
   }
 
   @Hidden()
-  async toEntityModelBulk(): Promise<Optional<object, never>> {
+  async toEntityModelBulk(): Promise<Record<string, unknown>> {
     const entity = await this.toEntityModel()
     return entity.toJSON()
   }
