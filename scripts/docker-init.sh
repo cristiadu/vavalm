@@ -13,9 +13,9 @@ if [ -z "$CONTAINERS" ]; then
     echo "Images may exist but no containers running. Starting containers."
   fi
   
-  # Start containers
+  # Start containers and wait for all health checks to pass
   echo "Starting containers..."
-  docker compose up -d
+  docker compose up -d --wait
 else
   echo "Containers already running."
 fi
