@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "tsoa"
 import { ItemsWithPagination } from "@/base/types"
-import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
+import { PlayerApiModel, PlayerAttributesApiModel } from "@/models/contract/PlayerApiModel"
 import { AllPlayerStats } from "@/base/types"
 import Player, { PlayerAttributes } from "@/models/Player"
 import { getAllStatsForPlayer } from "@/services/PlayerService"
@@ -119,14 +119,16 @@ export class PlayersController extends Controller {
     @Body() requestBody: PlayerApiModel[],
   ): Promise<PlayerApiModel[]> {
     const newPlayers = await Player.bulkCreate(
-      requestBody.map(p => ({
-        nickname: p.nickname,
-        full_name: p.full_name,
-        age: p.age,
-        country: p.country,
-        role: p.role,
-        team_id: p.team_id,
-        player_attributes: p.player_attributes,
+      await Promise.all(requestBody.map(p => {
+        const a = p.player_attributes
+        const attrs = new PlayerAttributesApiModel(
+          a.clutch, a.awareness, a.aim, a.positioning,
+          a.game_reading, a.resilience, a.confidence, a.strategy,
+          a.adaptability, a.communication, a.unpredictability,
+          a.game_sense, a.decision_making, a.rage_fuel, a.teamwork, a.utility_usage,
+        )
+        return new PlayerApiModel(p.nickname, p.full_name, p.age, p.country, p.team_id, p.role, attrs, p.id)
+          .toEntityModelBulk()
       })),
     )
     

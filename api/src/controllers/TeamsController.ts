@@ -66,13 +66,7 @@ export class TeamsController extends Controller {
     @Body() requestBody: TeamApiModel[],
   ): Promise<TeamApiModel[]> {
     const newTeams = await Team.bulkCreate(
-      requestBody.map(t => ({
-        short_name: t.short_name || "",
-        full_name: t.full_name || "",
-        description: t.description || "",
-        country: t.country || "",
-        logo_image_file: null,
-      })),
+      await Promise.all(requestBody.map(t => Object.assign(new TeamApiModel(), t).toEntityModelBulk())),
     )
     
     this.setStatus(201)
