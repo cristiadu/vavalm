@@ -134,27 +134,25 @@ describe('Players', () => {
   // ── GET /players/:id/stats ────────────────────────────────────────────────
 
   describe('GET /players/:id/stats', () => {
-    it('returns a correctly shaped stats object with all numeric fields', async () => {
+    it('returns all stats as 0 for a player with no games played', async () => {
       const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
-      expect(stats.player).toBeDefined()
       expect(stats.player.id).toBe(playerId)
-      expect(typeof stats.kda).toBe('number')
-      expect(typeof stats.winrate).toBe('number')
-      expect(typeof stats.mapWinrate).toBe('number')
-      expect(typeof stats.totalKills).toBe('number')
-      expect(typeof stats.totalDeaths).toBe('number')
-      expect(typeof stats.totalAssists).toBe('number')
-      expect(typeof stats.totalMatchesPlayed).toBe('number')
-      expect(typeof stats.totalMatchesWon).toBe('number')
-      expect(typeof stats.totalMatchesLost).toBe('number')
-      expect(typeof stats.totalMapsPlayed).toBe('number')
-      expect(typeof stats.totalMapsWon).toBe('number')
-      expect(typeof stats.totalMapsLost).toBe('number')
+      expect(stats.kda).toBe(0)
+      expect(stats.winrate).toBe(0)
+      expect(stats.mapWinrate).toBe(0)
+      expect(stats.totalKills).toBe(0)
+      expect(stats.totalDeaths).toBe(0)
+      expect(stats.totalAssists).toBe(0)
+      expect(stats.totalMatchesPlayed).toBe(0)
+      expect(stats.totalMatchesWon).toBe(0)
+      expect(stats.totalMatchesLost).toBe(0)
+      expect(stats.totalMapsPlayed).toBe(0)
+      expect(stats.totalMapsWon).toBe(0)
+      expect(stats.totalMapsLost).toBe(0)
     })
 
-    it('embeds team data in the response', async () => {
+    it('embeds the correct team in the response', async () => {
       const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
-      expect(stats.team).toBeDefined()
       expect(stats.team?.id).toBe(teamId)
       expect(stats.team?.short_name).toBe('PLFIX')
       expect(stats.team?.country).toBe('Portugal')
@@ -181,33 +179,45 @@ describe('Players', () => {
       expect(stats.total).toBeGreaterThanOrEqual(1)
     })
 
-    it('each stats item has all required fields', async () => {
+    it('fixture player appears with zero stats and correct team embedded', async () => {
       const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
-      for (const item of stats.items) {
-        expect(item.player).toBeDefined()
-        expect(item.player.id).toBeDefined()
-        expect(typeof item.kda).toBe('number')
-        expect(typeof item.winrate).toBe('number')
-        expect(typeof item.mapWinrate).toBe('number')
-        expect(typeof item.totalKills).toBe('number')
-        expect(typeof item.totalDeaths).toBe('number')
-        expect(typeof item.totalAssists).toBe('number')
-        expect(typeof item.totalMatchesPlayed).toBe('number')
-        expect(typeof item.totalMatchesWon).toBe('number')
-        expect(typeof item.totalMatchesLost).toBe('number')
-        expect(typeof item.totalMapsPlayed).toBe('number')
-        expect(typeof item.totalMapsWon).toBe('number')
-        expect(typeof item.totalMapsLost).toBe('number')
-      }
+      const entry = stats.items.find((s: AllPlayerStats) => s.player.id === playerId)!
+      expect(entry).toBeDefined()
+      expect(entry.kda).toBe(0)
+      expect(entry.winrate).toBe(0)
+      expect(entry.mapWinrate).toBe(0)
+      expect(entry.totalKills).toBe(0)
+      expect(entry.totalDeaths).toBe(0)
+      expect(entry.totalAssists).toBe(0)
+      expect(entry.totalMatchesPlayed).toBe(0)
+      expect(entry.totalMatchesWon).toBe(0)
+      expect(entry.totalMatchesLost).toBe(0)
+      expect(entry.totalMapsPlayed).toBe(0)
+      expect(entry.totalMapsWon).toBe(0)
+      expect(entry.totalMapsLost).toBe(0)
+      expect(entry.team?.id).toBe(teamId)
+      expect(entry.team?.short_name).toBe('PLFIX')
     })
 
-    it('embeds team data in each stats item', async () => {
+    it('all items have non-negative stats and embedded player + team', async () => {
       const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
-      const entry = stats.items.find((s: AllPlayerStats) => s.player.id === playerId)
-      expect(entry).toBeDefined()
-      expect(entry?.team).toBeDefined()
-      expect(entry?.team?.id).toBe(teamId)
-      expect(entry?.team?.short_name).toBeDefined()
+      for (const item of stats.items) {
+        expect(item.player.id).toBeGreaterThan(0)
+        expect(item.kda).toBeGreaterThanOrEqual(0)
+        expect(item.winrate).toBeGreaterThanOrEqual(0)
+        expect(item.mapWinrate).toBeGreaterThanOrEqual(0)
+        expect(item.totalKills).toBeGreaterThanOrEqual(0)
+        expect(item.totalDeaths).toBeGreaterThanOrEqual(0)
+        expect(item.totalAssists).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesPlayed).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesWon).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesLost).toBeGreaterThanOrEqual(0)
+        expect(item.totalMapsPlayed).toBeGreaterThanOrEqual(0)
+        expect(item.totalMapsWon).toBeGreaterThanOrEqual(0)
+        expect(item.totalMapsLost).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesWon + item.totalMatchesLost).toBe(item.totalMatchesPlayed)
+        expect(item.totalMapsWon + item.totalMapsLost).toBe(item.totalMapsPlayed)
+      }
     })
 
     it('respects limit — page size does not exceed requested limit', async () => {

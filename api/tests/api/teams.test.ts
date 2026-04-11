@@ -122,21 +122,20 @@ describe('Teams', () => {
   // ── GET /teams/:id/stats ──────────────────────────────────────────────────
 
   describe('GET /teams/:id/stats', () => {
-    it('returns a correctly shaped stats object with all numeric fields', async () => {
+    it('returns all stats as 0 for a team with no games played', async () => {
       const stats = await apiClient.default.getTeamStats(teamId) as TeamStats
-      expect(stats.team).toBeDefined()
       expect(stats.team.id).toBe(teamId)
       expect(stats.team.short_name).toBe(TEST_TEAM.short_name)
-      expect(typeof stats.winrate).toBe('number')
-      expect(typeof stats.mapWinrate).toBe('number')
-      expect(typeof stats.totalMatchesPlayed).toBe('number')
-      expect(typeof stats.totalMatchesWon).toBe('number')
-      expect(typeof stats.totalMatchesLost).toBe('number')
-      expect(typeof stats.totalMapsPlayed).toBe('number')
-      expect(typeof stats.totalMapsWon).toBe('number')
-      expect(typeof stats.totalMapsLost).toBe('number')
-      expect(typeof stats.tournamentsWon).toBe('number')
-      expect(typeof stats.tournamentsParticipated).toBe('number')
+      expect(stats.winrate).toBe(0)
+      expect(stats.mapWinrate).toBe(0)
+      expect(stats.totalMatchesPlayed).toBe(0)
+      expect(stats.totalMatchesWon).toBe(0)
+      expect(stats.totalMatchesLost).toBe(0)
+      expect(stats.totalMapsPlayed).toBe(0)
+      expect(stats.totalMapsWon).toBe(0)
+      expect(stats.totalMapsLost).toBe(0)
+      expect(stats.tournamentsWon).toBe(0)
+      expect(stats.tournamentsParticipated).toBe(0)
     })
 
     it('totalMatchesWon + totalMatchesLost equals totalMatchesPlayed', async () => {
@@ -165,29 +164,48 @@ describe('Teams', () => {
       expect(stats.total).toBeGreaterThanOrEqual(1)
     })
 
-    it('each stats item has all required fields', async () => {
+    it('fixture team appears with zero stats', async () => {
+      const stats = await apiClient.default.getTeamsStats(100, 0) as ItemsWithPagination_TeamStats_
+      const entry = stats.items.find((s: TeamStats) => s.team.id === teamId)!
+      expect(entry).toBeDefined()
+      expect(entry.team.short_name).toBe(TEST_TEAM.short_name)
+      expect(entry.winrate).toBe(0)
+      expect(entry.mapWinrate).toBe(0)
+      expect(entry.totalMatchesPlayed).toBe(0)
+      expect(entry.totalMatchesWon).toBe(0)
+      expect(entry.totalMatchesLost).toBe(0)
+      expect(entry.totalMapsPlayed).toBe(0)
+      expect(entry.totalMapsWon).toBe(0)
+      expect(entry.totalMapsLost).toBe(0)
+      expect(entry.tournamentsWon).toBe(0)
+      expect(entry.tournamentsParticipated).toBe(0)
+    })
+
+    it('all items have non-negative stats and satisfy win+loss invariants', async () => {
       const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_
       for (const item of stats.items) {
-        expect(item.team).toBeDefined()
-        expect(item.team.id).toBeDefined()
-        expect(item.team.short_name).toBeDefined()
-        expect(typeof item.winrate).toBe('number')
-        expect(typeof item.mapWinrate).toBe('number')
-        expect(typeof item.totalMatchesPlayed).toBe('number')
-        expect(typeof item.totalMatchesWon).toBe('number')
-        expect(typeof item.totalMatchesLost).toBe('number')
-        expect(typeof item.totalMapsPlayed).toBe('number')
-        expect(typeof item.totalMapsWon).toBe('number')
-        expect(typeof item.totalMapsLost).toBe('number')
-        expect(typeof item.tournamentsWon).toBe('number')
-        expect(typeof item.tournamentsParticipated).toBe('number')
+        expect(item.team.id).toBeGreaterThan(0)
+        expect(item.team.short_name.length).toBeGreaterThan(0)
+        expect(item.winrate).toBeGreaterThanOrEqual(0)
+        expect(item.mapWinrate).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesPlayed).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesWon).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesLost).toBeGreaterThanOrEqual(0)
+        expect(item.totalMapsPlayed).toBeGreaterThanOrEqual(0)
+        expect(item.totalMapsWon).toBeGreaterThanOrEqual(0)
+        expect(item.totalMapsLost).toBeGreaterThanOrEqual(0)
+        expect(item.tournamentsWon).toBeGreaterThanOrEqual(0)
+        expect(item.tournamentsParticipated).toBeGreaterThanOrEqual(0)
+        expect(item.totalMatchesWon + item.totalMatchesLost).toBe(item.totalMatchesPlayed)
+        expect(item.totalMapsWon + item.totalMapsLost).toBe(item.totalMapsPlayed)
+        expect(item.tournamentsWon).toBeLessThanOrEqual(item.tournamentsParticipated)
       }
     })
 
     it('respects limit — page size does not exceed requested limit', async () => {
       const page = await apiClient.default.getTeamsStats(1, 0) as ItemsWithPagination_TeamStats_
       expect(page.items.length).toBeLessThanOrEqual(1)
-      expect(typeof page.total).toBe('number')
+      expect(page.total).toBeGreaterThanOrEqual(1)
     })
 
     it('pagination offset returns different teams with same total', async () => {

@@ -12,15 +12,15 @@ import {
 } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
-import { givenTeamExists, cleanupTeam, TEST_TEAM } from './common-teams'
+import { givenTeamExists, cleanupTeam } from './common-teams'
 import { givenPlayerExists, cleanupPlayer, TEST_PLAYER_ATTRIBUTES } from './common-players'
 import { givenTournamentExists, cleanupTournament, TEST_TOURNAMENT } from './common-tournaments'
 
 describe('Tournaments, Matches & Games', () => {
   let team1Id: number
   let team2Id: number
-  let team1PlayerIds: number[] = []
-  let team2PlayerIds: number[] = []
+  const team1PlayerIds: number[] = []
+  const team2PlayerIds: number[] = []
   let tournamentId: number
   let matchId: number
   let gameId: number
@@ -31,7 +31,6 @@ describe('Tournaments, Matches & Games', () => {
     team1Id = team1.id!
     team2Id = team2.id!
 
-    // Each team needs players for game simulation
     for (let i = 1; i <= 5; i++) {
       const p1 = await givenPlayerExists(team1Id, { nickname: `gt1_player${i}`, player_attributes: TEST_PLAYER_ATTRIBUTES })
       const p2 = await givenPlayerExists(team2Id, { nickname: `gt2_player${i}`, player_attributes: TEST_PLAYER_ATTRIBUTES })
@@ -64,23 +63,25 @@ describe('Tournaments, Matches & Games', () => {
     it('returns a paginated list with correct shape', async () => {
       const response = await apiClient.default.getTournaments(50, 0) as ItemsWithPagination_TournamentApiModel_
       expect(Array.isArray(response.items)).toBe(true)
-      expect(typeof response.total).toBe('number')
       expect(response.total).toBeGreaterThanOrEqual(1)
     })
 
-    it('includes the fixture tournament in the list', async () => {
+    it('includes the fixture tournament with correct field values', async () => {
       const response = await apiClient.default.getTournaments(50, 0) as ItemsWithPagination_TournamentApiModel_
-      const found = response.items.find((t: TournamentApiModel) => t.id === tournamentId)
+      const found = response.items.find((t: TournamentApiModel) => t.id === tournamentId)!
       expect(found).toBeDefined()
-      expect(found?.name).toBe(TEST_TOURNAMENT.name)
-      expect(found?.country).toBe(TEST_TOURNAMENT.country)
-      expect(found?.type).toBe(TEST_TOURNAMENT.type)
+      expect(found.id).toBe(tournamentId)
+      expect(found.name).toBe(TEST_TOURNAMENT.name)
+      expect(found.description).toBe(TEST_TOURNAMENT.description)
+      expect(found.country).toBe(TEST_TOURNAMENT.country)
+      expect(found.type).toBe(TEST_TOURNAMENT.type)
+      expect(found.started).toBe(false)
+      expect(found.ended).toBe(false)
     })
 
-    it('embeds teams array in each tournament', async () => {
+    it('embeds teams array containing both fixture teams', async () => {
       const response = await apiClient.default.getTournaments(50, 0) as ItemsWithPagination_TournamentApiModel_
       const fixture = response.items.find((t: TournamentApiModel) => t.id === tournamentId)!
-      expect(Array.isArray(fixture.teams)).toBe(true)
       const teamIds = (fixture.teams as Array<{ id?: number }>).map(t => t.id)
       expect(teamIds).toContain(team1Id)
       expect(teamIds).toContain(team2Id)
@@ -102,7 +103,7 @@ describe('Tournaments, Matches & Games', () => {
   // ── GET /tournaments/:id ──────────────────────────────────────────────────
 
   describe('GET /tournaments/:id', () => {
-    it('returns the correct tournament with all required fields', async () => {
+    it('returns the correct tournament with all field values', async () => {
       const tournament = await apiClient.default.getTournament(tournamentId) as TournamentApiModel
       expect(tournament.id).toBe(tournamentId)
       expect(tournament.name).toBe(TEST_TOURNAMENT.name)
@@ -111,14 +112,12 @@ describe('Tournaments, Matches & Games', () => {
       expect(tournament.type).toBe(TEST_TOURNAMENT.type)
       expect(tournament.started).toBe(false)
       expect(tournament.ended).toBe(false)
-      expect(typeof tournament.start_date).toBe('string')
-      expect(typeof tournament.end_date).toBe('string')
+      expect(tournament.winner_id).toBeUndefined()
     })
 
     it('embeds the teams array with both fixture teams', async () => {
       const tournament = await apiClient.default.getTournament(tournamentId) as TournamentApiModel
-      expect(Array.isArray(tournament.teams)).toBe(true)
-      expect((tournament.teams as Array<{ id?: number }>).length).toBe(2)
+      expect((tournament.teams as Array<unknown>).length).toBe(2)
       const teamIds = (tournament.teams as Array<{ id?: number }>).map(t => t.id)
       expect(teamIds).toContain(team1Id)
       expect(teamIds).toContain(team2Id)
@@ -128,59 +127,57 @@ describe('Tournaments, Matches & Games', () => {
   // ── GET /tournaments/:id/schedule ─────────────────────────────────────────
 
   describe('GET /tournaments/:id/schedule', () => {
-    it('returns a paginated match list with correct shape', async () => {
+    it('returns a paginated match list', async () => {
       const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
-      expect(Array.isArray(schedule.items)).toBe(true)
-      expect(typeof schedule.total).toBe('number')
       expect(schedule.total).toBeGreaterThanOrEqual(1)
+      expect(schedule.items.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('each match has all required fields', async () => {
+    it('each match has correct field values for a not-yet-played match', async () => {
       const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
       for (const match of schedule.items) {
-        expect(match.id).toBeDefined()
+        expect(match.id).toBeGreaterThan(0)
         expect(match.tournament_id).toBe(tournamentId)
-        expect(typeof match.team1_id).toBe('number')
-        expect(typeof match.team2_id).toBe('number')
-        expect(typeof match.type).toBe('string')
-        expect(typeof match.team1_score).toBe('number')
-        expect(typeof match.team2_score).toBe('number')
-        expect(typeof match.started).toBe('boolean')
-        expect(typeof match.finished).toBe('boolean')
+        expect(match.type).toBe(MatchType.BO3)
+        expect(match.team1_score).toBe(0)
+        expect(match.team2_score).toBe(0)
+        expect(match.started).toBe(false)
+        expect(match.finished).toBe(false)
+        expect(match.included_on_standings).toBe(false)
       }
     })
 
-    it('match involves both fixture teams', async () => {
+    it('the match involves both fixture teams', async () => {
       const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
       const match = schedule.items.find(m =>
         (m.team1_id === team1Id && m.team2_id === team2Id) ||
-        (m.team1_id === team2Id && m.team2_id === team1Id)
+        (m.team1_id === team2Id && m.team2_id === team1Id),
       )
       expect(match).toBeDefined()
+      expect(match!.id).toBe(matchId)
     })
   })
 
   // ── GET /tournaments/:id/standings ────────────────────────────────────────
 
   describe('GET /tournaments/:id/standings', () => {
-    it('returns standings array for all teams', async () => {
+    it('returns exactly 2 standings entries (one per team)', async () => {
       const standings = await apiClient.default.getTournamentStandings(tournamentId) as StandingsApiModel[]
-      expect(Array.isArray(standings)).toBe(true)
-      expect(standings.length).toBe(2)
+      expect(standings).toHaveLength(2)
     })
 
-    it('each standing has all required numeric fields', async () => {
+    it('each standing starts at zero with correct tournament and team IDs', async () => {
       const standings = await apiClient.default.getTournamentStandings(tournamentId) as StandingsApiModel[]
       for (const s of standings) {
-        expect(typeof s.wins).toBe('number')
-        expect(typeof s.losses).toBe('number')
-        expect(typeof s.maps_won).toBe('number')
-        expect(typeof s.maps_lost).toBe('number')
-        expect(typeof s.rounds_won).toBe('number')
-        expect(typeof s.rounds_lost).toBe('number')
         expect(s.tournament_id).toBe(tournamentId)
-        expect(typeof s.team_id).toBe('number')
-        expect(typeof s.position).toBe('number')
+        expect(s.team_id).toBeGreaterThan(0)
+        expect(s.wins).toBe(0)
+        expect(s.losses).toBe(0)
+        expect(s.maps_won).toBe(0)
+        expect(s.maps_lost).toBe(0)
+        expect(s.rounds_won).toBe(0)
+        expect(s.rounds_lost).toBe(0)
+        expect(s.position).toBeGreaterThan(0)
       }
     })
 
@@ -195,32 +192,30 @@ describe('Tournaments, Matches & Games', () => {
   // ── GET /matches/:id ──────────────────────────────────────────────────────
 
   describe('GET /matches/:id', () => {
-    it('returns the correct match with all required fields', async () => {
+    it('returns the correct match with all field values', async () => {
       const match = await apiClient.default.getMatch(matchId) as MatchApiModel
       expect(match.id).toBe(matchId)
       expect(match.tournament_id).toBe(tournamentId)
-      expect(typeof match.team1_id).toBe('number')
-      expect(typeof match.team2_id).toBe('number')
-      expect(typeof match.type).toBe('string')
-      expect(typeof match.team1_score).toBe('number')
-      expect(typeof match.team2_score).toBe('number')
-      expect(typeof match.included_on_standings).toBe('boolean')
-      expect(typeof match.started).toBe('boolean')
-      expect(typeof match.finished).toBe('boolean')
+      expect(match.type).toBe(MatchType.BO3)
+      expect(match.team1_score).toBe(0)
+      expect(match.team2_score).toBe(0)
+      expect(match.started).toBe(false)
+      expect(match.finished).toBe(false)
+      expect(match.included_on_standings).toBe(false)
     })
 
-    it('embeds team1 and team2 objects', async () => {
+    it('embeds team1 and team2 objects with correct IDs', async () => {
       const match = await apiClient.default.getMatch(matchId) as MatchApiModel
-      expect(match.team1).toBeDefined()
       expect(match.team1?.id).toBe(match.team1_id)
-      expect(match.team2).toBeDefined()
+      expect(match.team1?.short_name.length).toBeGreaterThan(0)
       expect(match.team2?.id).toBe(match.team2_id)
+      expect(match.team2?.short_name.length).toBeGreaterThan(0)
     })
 
-    it('embeds games array', async () => {
+    it('embeds games array with at least 1 game', async () => {
       const match = await apiClient.default.getMatch(matchId) as MatchApiModel
-      expect(Array.isArray(match.games)).toBe(true)
       expect(match.games!.length).toBeGreaterThanOrEqual(1)
+      expect(match.games![0].id).toBe(gameId)
     })
   })
 
@@ -229,20 +224,19 @@ describe('Tournaments, Matches & Games', () => {
   describe('GET /games/match/:matchId', () => {
     it('returns all games for the match', async () => {
       const games = await apiClient.default.getGamesByMatch(matchId) as GameApiModel[]
-      expect(Array.isArray(games)).toBe(true)
       expect(games.length).toBeGreaterThanOrEqual(1)
+      for (const game of games) {
+        expect(game.match_id).toBe(matchId)
+      }
     })
 
-    it('each game has all required fields', async () => {
+    it('each unplayed game has correct initial field values', async () => {
       const games = await apiClient.default.getGamesByMatch(matchId) as GameApiModel[]
       for (const game of games) {
-        expect(game.id).toBeDefined()
-        expect(game.match_id).toBe(matchId)
-        expect(typeof game.map).toBe('string')
-        expect(typeof game.started).toBe('boolean')
-        expect(typeof game.finished).toBe('boolean')
-        expect(typeof game.included_on_standings).toBe('boolean')
-        expect(typeof game.date).toBe('string')
+        expect(game.id).toBeGreaterThan(0)
+        expect(game.started).toBe(false)
+        expect(game.finished).toBe(false)
+        expect(game.included_on_standings).toBe(false)
       }
     })
   })
@@ -250,120 +244,151 @@ describe('Tournaments, Matches & Games', () => {
   // ── GET /games/:id ────────────────────────────────────────────────────────
 
   describe('GET /games/:id', () => {
-    it('returns the correct game with all required fields', async () => {
+    it('returns the correct unplayed game with all field values', async () => {
       const game = await apiClient.default.getGame(gameId) as GameApiModel
       expect(game.id).toBe(gameId)
       expect(game.match_id).toBe(matchId)
-      expect(typeof game.map).toBe('string')
-      expect(typeof game.started).toBe('boolean')
-      expect(typeof game.finished).toBe('boolean')
-      expect(typeof game.included_on_standings).toBe('boolean')
-      expect(typeof game.date).toBe('string')
+      expect(game.started).toBe(false)
+      expect(game.finished).toBe(false)
+      expect(game.included_on_standings).toBe(false)
     })
   })
 
   // ── Round simulation ──────────────────────────────────────────────────────
-  // These tests mutate state by playing a round; they run last and sequentially.
 
   describe('Round simulation', () => {
     let roundState: RoundStateApiModel
+    const allPlayerIds = [...([] as number[])]
 
     beforeAll(async () => {
+      allPlayerIds.push(...team1PlayerIds, ...team2PlayerIds)
       roundState = await apiClient.default.playRound(gameId, 1) as RoundStateApiModel
     })
 
     describe('POST /games/:id/rounds/:n/play', () => {
-      it('returns a valid round state after playing round 1', () => {
-        expect(typeof roundState.round).toBe('number')
+      it('returns round 1 as the played round number', () => {
         expect(roundState.round).toBe(1)
-        expect(roundState.duel).toBeDefined()
-        expect(Array.isArray(roundState.team1_alive_players)).toBe(true)
-        expect(Array.isArray(roundState.team2_alive_players)).toBe(true)
-        expect(typeof roundState.finished).toBe('boolean')
       })
 
-      it('duel result contains player references', () => {
-        expect(roundState.duel).toBeDefined()
+      it('returns alive players summing to less than the starting 10', () => {
+        const aliveCount = roundState.team1_alive_players.length + roundState.team2_alive_players.length
+        // One team is eliminated: total alive is at most 9 (winning team lost 0 players)
+        expect(aliveCount).toBeGreaterThanOrEqual(1)
+        expect(aliveCount).toBeLessThanOrEqual(9)
+      })
+
+      it('finished is true when one team is fully eliminated', () => {
+        // A round ends when one side reaches 0 — team_won is set
+        if (roundState.team1_alive_players.length === 0 || roundState.team2_alive_players.length === 0) {
+          expect(roundState.finished).toBe(true)
+          expect(roundState.team_won).not.toBeNull()
+        }
+      })
+
+      it('team_won belongs to the fixture teams', () => {
+        if (roundState.team_won) {
+          expect([team1Id, team2Id]).toContain(roundState.team_won.id)
+        }
       })
     })
 
     describe('GET /games/:id/rounds/:n', () => {
-      it('returns game logs for the played round', async () => {
+      it('returns at least 5 and at most 9 game logs for a 5v5 round', async () => {
         const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
-        expect(Array.isArray(logs)).toBe(true)
-        expect(logs.length).toBeGreaterThanOrEqual(1)
+        // Each duel kills one player; 5v5 round ends after 5–9 deaths
+        expect(logs.length).toBeGreaterThanOrEqual(5)
+        expect(logs.length).toBeLessThanOrEqual(9)
       })
 
-      it('each log has all required fields', async () => {
+      it('every log references the correct game and round', async () => {
         const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
-        for (const log of logs) {
-          expect(log.game_id).toBe(gameId)
-          expect(typeof log.team1_player_id).toBe('number')
-          expect(typeof log.team2_player_id).toBe('number')
-          expect(typeof log.player_killed_id).toBe('number')
-          expect(typeof log.duel_buff).toBe('number')
-          expect(typeof log.trade_buff).toBe('number')
-          expect(typeof log.trade).toBe('boolean')
-          expect(typeof log.weapon).toBe('string')
-          expect(typeof log.included_on_player_stats).toBe('boolean')
-          expect(typeof log.included_on_team_stats).toBe('boolean')
-          expect(log.round_state).toBeDefined()
-        }
-      })
-
-      it('each log embeds team1_player and team2_player (no extra API calls needed)', async () => {
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
-        for (const log of logs) {
-          expect(log.team1_player).toBeDefined()
-          expect(log.team1_player?.id).toBe(log.team1_player_id)
-          expect(log.team2_player).toBeDefined()
-          expect(log.team2_player?.id).toBe(log.team2_player_id)
-        }
-      })
-    })
-
-    describe('GET /games/:id/rounds/last', () => {
-      it('returns logs for the most recently played round', async () => {
-        const logs = await apiClient.default.getLastRound(gameId) as GameLogApiModel[]
-        expect(Array.isArray(logs)).toBe(true)
-        expect(logs.length).toBeGreaterThanOrEqual(1)
         for (const log of logs) {
           expect(log.game_id).toBe(gameId)
           expect(log.round_state.round).toBe(1)
         }
       })
+
+      it('every log has player IDs belonging to the fixture teams', async () => {
+        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        for (const log of logs) {
+          expect(allPlayerIds).toContain(log.team1_player_id)
+          expect(allPlayerIds).toContain(log.team2_player_id)
+          expect(allPlayerIds).toContain(log.player_killed_id)
+        }
+      })
+
+      it('every log embeds team1_player and team2_player matching the IDs (no extra API calls needed)', async () => {
+        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        for (const log of logs) {
+          expect(log.team1_player?.id).toBe(log.team1_player_id)
+          expect(log.team1_player?.nickname.length).toBeGreaterThan(0)
+          expect(log.team2_player?.id).toBe(log.team2_player_id)
+          expect(log.team2_player?.nickname.length).toBeGreaterThan(0)
+        }
+      })
+
+      it('duel buffs are finite numbers and trade is a boolean', async () => {
+        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        for (const log of logs) {
+          expect(Number.isFinite(log.duel_buff)).toBe(true)
+          expect(Number.isFinite(log.trade_buff)).toBe(true)
+          expect(typeof log.trade).toBe('boolean')
+        }
+      })
+    })
+
+    describe('GET /games/:id/rounds/last', () => {
+      it('returns the same logs as getRound(gameId, 1) after only one round played', async () => {
+        const lastLogs = await apiClient.default.getLastRound(gameId) as GameLogApiModel[]
+        const roundLogs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        expect(lastLogs.length).toBe(roundLogs.length)
+        expect(lastLogs.every(l => l.round_state.round === 1)).toBe(true)
+      })
     })
 
     describe('GET /games/:id/stats', () => {
-      it('returns game stats with all required fields', async () => {
+      it('returns game stats with one team having scored a round', async () => {
         const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
         expect(stats.game_id).toBe(gameId)
-        expect(typeof stats.team1_score).toBe('number')
-        expect(typeof stats.team2_score).toBe('number')
-        expect(typeof stats.team1_id).toBe('number')
-        expect(typeof stats.team2_id).toBe('number')
-        const fixtureTeamIds = [team1Id, team2Id]
-        expect(fixtureTeamIds).toContain(stats.team1_id)
-        expect(fixtureTeamIds).toContain(stats.team2_id)
+        // After one round, exactly one team scored
+        expect(stats.team1_score + stats.team2_score).toBe(1)
+        expect(stats.team1_score).toBeGreaterThanOrEqual(0)
+        expect(stats.team2_score).toBeGreaterThanOrEqual(0)
       })
 
-      it('embeds team1 and team2 objects', async () => {
+      it('embeds team1 and team2 objects matching the fixture teams', async () => {
         const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
-        expect(stats.team1).toBeDefined()
+        expect([team1Id, team2Id]).toContain(stats.team1_id)
+        expect([team1Id, team2Id]).toContain(stats.team2_id)
         expect(stats.team1?.id).toBe(stats.team1_id)
-        expect(stats.team2).toBeDefined()
+        expect(stats.team1?.short_name.length).toBeGreaterThan(0)
         expect(stats.team2?.id).toBe(stats.team2_id)
+        expect(stats.team2?.short_name.length).toBeGreaterThan(0)
       })
 
-      it('embeds player stats arrays for both teams', async () => {
+      it('embeds exactly 5 player stat entries per team', async () => {
         const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
-        expect(Array.isArray(stats.players_stats_team1)).toBe(true)
-        expect(Array.isArray(stats.players_stats_team2)).toBe(true)
+        expect(stats.players_stats_team1).toHaveLength(5)
+        expect(stats.players_stats_team2).toHaveLength(5)
+      })
+
+      it('total kills across all players equals the number of game log entries', async () => {
+        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
+        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const totalKills = [
+          ...stats.players_stats_team1!,
+          ...stats.players_stats_team2!,
+        ].reduce((sum, ps) => sum + ps.kills, 0)
+        expect(totalKills).toBe(logs.length)
+      })
+
+      it('each player stat has non-negative kills, deaths, and assists', async () => {
+        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
         for (const ps of [...stats.players_stats_team1!, ...stats.players_stats_team2!]) {
-          expect(typeof ps.kills).toBe('number')
-          expect(typeof ps.deaths).toBe('number')
-          expect(typeof ps.assists).toBe('number')
-          expect(typeof ps.player_id).toBe('number')
+          expect(ps.kills).toBeGreaterThanOrEqual(0)
+          expect(ps.deaths).toBeGreaterThanOrEqual(0)
+          expect(ps.assists).toBeGreaterThanOrEqual(0)
+          expect(allPlayerIds).toContain(ps.player_id)
         }
       })
     })
