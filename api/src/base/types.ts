@@ -54,6 +54,7 @@ export class AllPlayerStats extends BaseEntityModel {
     public totalKills: number,
     public totalDeaths: number,
     public totalAssists: number,
+    public team?: TeamApiModel,
   ) {
     super()
   }

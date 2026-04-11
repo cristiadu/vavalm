@@ -8,7 +8,6 @@ import { fetchTeams, deleteTeam } from '@/api/TeamsApi'
 import TeamActionModal from '@/components/TeamActionModal'
 import 'react-quill-new/dist/quill.snow.css'
 import { asSafeHTML } from '@/common/StringUtils'
-import { fetchPlayersByTeam } from '@/api/PlayersApi'
 import { getRoleBgColor } from '@/api/models/helpers'
 import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
@@ -50,18 +49,14 @@ export default function ListTeams(): React.ReactNode {
 
       setTotalItems(teamsData.total)
 
-      const teamsWithPlayersFlags = await Promise.all(
-        teamsData.items.map(async (team: TeamApiModel) => {
-          const players = await fetchPlayersByTeam(Number(team.id), () => {
-            // handle player data
-          })
-          const playersWithFlags = players.map((player: PlayerApiModel) => ({
-            ...player,
-            countryFlag: countriesToFlagMap[player.country] || null,
-          } as PlayerWithFlag))
-          return { ...team, players: playersWithFlags }
-        }),
-      )
+      // Players are now embedded in each team via the getTeams endpoint
+      const teamsWithPlayersFlags = teamsData.items.map((team: TeamApiModel) => {
+        const playersWithFlags = (team.players || []).map((player: PlayerApiModel) => ({
+          ...player,
+          countryFlag: countriesToFlagMap[player.country] || null,
+        } as PlayerWithFlag))
+        return { ...team, players: playersWithFlags }
+      })
 
       setTeams(teamsWithPlayersFlags)
     } catch (error) {

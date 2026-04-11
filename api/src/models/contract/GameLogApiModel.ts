@@ -58,6 +58,8 @@ export class GameLogApiModel extends BaseEntityModel {
     public player_killed_id: number,
     public included_on_player_stats: boolean,
     public included_on_team_stats: boolean,
+    public team1_player?: PlayerApiModel,
+    public team2_player?: PlayerApiModel,
     public id?: number,
   ) {
     super()

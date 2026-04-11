@@ -9,6 +9,9 @@ import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 import Team from '@/models/Team'
+import CacheService from '@/services/CacheService'
+
+const STATS_CACHE_TTL = 120 // 2 minutes
 
 /**
  * Upserts a team entry based on the team data.
@@ -35,12 +38,18 @@ export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
 
 
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
-  const teams = await Team.findAll()
+  const cacheKey = 'allTeamStats'
+  let allSorted = CacheService.get<TeamStats[]>(cacheKey)
 
-  const teamsStats = (await Promise.all(teams.map(team => getAllStatsForTeam(team.id as number)))).sort(sortTeamsByStats)
-  const paginatedTeamsStats = teamsStats.slice(offset, offset + limit)
+  if (!allSorted) {
+    const teams = await Team.findAll()
+    allSorted = (await Promise.all(teams.map(team => getAllStatsForTeam(team.id as number)))).sort(sortTeamsByStats)
+    CacheService.set(cacheKey, allSorted, STATS_CACHE_TTL)
+  }
 
-  return new ItemsWithPagination<TeamStats>(paginatedTeamsStats, teams.length)
+  const paginatedTeamsStats = allSorted.slice(offset, offset + limit)
+
+  return new ItemsWithPagination<TeamStats>(paginatedTeamsStats, allSorted.length)
 }
 
 /**

@@ -6,6 +6,9 @@ import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
+import CacheService from '@/services/CacheService'
+
+const STATS_CACHE_TTL = 120 // 2 minutes
 
 /**
  * Updates or creates a player based on the player data and team.
@@ -59,6 +62,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
       {
         model: Player,
         as: 'player',
+        include: [{ model: Team, as: 'team' }],
       },
       {
         model: GameStats,
@@ -88,8 +92,11 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   })
 
   if (playerStats.length === 0) {
+    const playerWithTeam = await Player.findByPk(playerId, {
+      include: [{ model: Team, as: 'team' }],
+    }) as Player
     return new AllPlayerStats(
-      (await Player.findByPk(playerId) as Player).toApiModel(),
+      playerWithTeam.toApiModel(),
       parseFloat(0.00.toFixed(2)),
       parseFloat(0.00.toFixed(2)),
       parseFloat(0.00.toFixed(2)),
@@ -102,6 +109,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
       0,
       0,
       0,
+      playerWithTeam.team?.toApiModel(),
     )
   }
 
@@ -150,6 +158,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
     totalKills,
     totalDeaths,
     totalAssists,
+    playerStats[0].player.team?.toApiModel(),
   )
 }
 
@@ -161,15 +170,20 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
  * 
 **/
 export const getAllStatsForAllPlayers = async (limit: number, offset: number): Promise<ItemsWithPagination<AllPlayerStats>> => {
-  const players = await Player.findAll()
-  const playerStats = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
+  const cacheKey = 'allPlayerStats'
+  let allSorted = CacheService.get<AllPlayerStats[]>(cacheKey)
 
-  // Apply limit and offset
-  const paginatedPlayerStats = playerStats.slice(offset, offset + limit)
+  if (!allSorted) {
+    const players = await Player.findAll()
+    allSorted = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
+    CacheService.set(cacheKey, allSorted, STATS_CACHE_TTL)
+  }
+
+  const paginatedPlayerStats = allSorted.slice(offset, offset + limit)
 
   return new ItemsWithPagination<AllPlayerStats>(
     paginatedPlayerStats,
-    players.length,
+    allSorted.length,
   )
 }
 

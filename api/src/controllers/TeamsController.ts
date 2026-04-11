@@ -33,6 +33,7 @@ export class TeamsController extends Controller {
       limit: Math.min(limit, 100),
       offset,
       order: [["id", "ASC"]],
+      include: [{ model: Player, as: 'players' }],
     })
     
     const result = new ItemsWithPagination(teams.rows, teams.count)

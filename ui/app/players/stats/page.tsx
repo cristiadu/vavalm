@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { getRoleBgColor } from '@/api/models/helpers'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchPlayersStats } from '@/api/PlayersApi'
-import { fetchTeam } from '@/api/TeamsApi'
 import { ItemsWithPagination } from '@/api/models/types'
 import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
@@ -12,7 +11,7 @@ import Pagination from '@/components/common/Pagination'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
-import { AllPlayerStats, PlayerApiModel, TeamApiModel } from '@/api/generated'
+import { AllPlayerStats, PlayerApiModel } from '@/api/generated'
 import { Threshold } from '@/common/CommonModels'
 
 const thresholds = {
@@ -33,7 +32,6 @@ const thresholds = {
 const PlayersStatsPage = (): React.ReactNode => {
   const router = useRouter()
   const [playersStats, setPlayersStats] = useState<AllPlayerStats[]>([])
-  const [playerToTeam, setPlayerToTeam] = useState<Record<string, TeamApiModel>>({})
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [totalItems, setTotalItems] = useState(0)
   const LIMIT_VALUE_PLAYER_LIST = 15
@@ -50,21 +48,8 @@ const PlayersStatsPage = (): React.ReactNode => {
     fetchPlayersStats(refreshListData, LIMIT_VALUE_PLAYER_LIST)
   }, [])
 
-  const refreshListData = async (data: ItemsWithPagination<AllPlayerStats>): Promise<void> => {
+  const refreshListData = (data: ItemsWithPagination<AllPlayerStats>): void => {
     if (data.total > 0) {
-      const playerToTeam: Record<number, TeamApiModel> = {}
-
-      const teamFetchPromises = data.items.map((stats: AllPlayerStats) =>
-        fetchTeam(stats.player.team_id, team => {
-          if (stats.player.id) {
-            playerToTeam[stats.player.id] = team
-          }
-        }),
-      )
-
-      await Promise.all(teamFetchPromises)
-
-      setPlayerToTeam(playerToTeam)
       setTotalItems(data.total)
       setPlayersStats(data.items)
     }
@@ -122,16 +107,16 @@ const PlayersStatsPage = (): React.ReactNode => {
               </td>
               <td className="py-2 px-4 border-b border-gray-200">{stats.player.nickname}</td>
               <td className="py-2 px-4 border-b border-gray-200">
-                {playerToTeam && playerToTeam[String(stats.player.id)] ? (
+                {stats.team ? (
                   <span className="flex items-center">
                     <ImageAutoSize
-                      imageFile={playerToTeam[String(stats.player.id)].logo_image_file as File}
+                      imageFile={stats.team.logo_image_file as File}
                       fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                      alt={playerToTeam[String(stats.player.id)].short_name || ''}
+                      alt={stats.team.short_name || ''}
                       width={32}
                       height={32}
                       className="mr-2" />
-                    {playerToTeam[String(stats.player.id)].short_name}
+                    {stats.team.short_name}
                   </span>
                 ) : (
                   'No Team'

@@ -169,9 +169,11 @@ const GameService = {
     // Update tournament standings if the game is finished
     await TournamentService.updateStandingsAndWinner(game.match.tournament_id)
 
-    // Invalidate caches for this game
+    // Invalidate caches for this game and stats
     CacheService.delete(`game-${game_id}`)
     CacheService.delete(`game-stats-${game_id}`)
+    CacheService.delete('allPlayerStats')
+    CacheService.delete('allTeamStats')
 
     return { team1_rounds, team2_rounds }
   },

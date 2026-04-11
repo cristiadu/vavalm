@@ -24,7 +24,7 @@ This is a monorepo project with the following main components:
 
 ### Frontend (UI)
 
-- Next.js 15+
+- Next.js 16+
 - React 19
 - TypeScript
 - TailwindCSS 4
@@ -85,6 +85,7 @@ pnpm localdb dev
 - `pnpm localdb` - Manage local database (use with `dev` or `down` arguments)
 - `pnpm generate:routes` - Generate API routes using tsoa
 - `pnpm generate:spec` - Generate OpenAPI specification
+- `pnpm generate:client` - Regenerate TypeScript clients from OpenAPI spec (run after schema changes)
 
 ## Docker Deployment
 
@@ -105,3 +106,4 @@ pnpm dev:docker:down
 
 - [API Documentation](./api/README.md)
 - [UI Documentation](./ui/README.md)
+- [Agent Guide](./agent.md)
