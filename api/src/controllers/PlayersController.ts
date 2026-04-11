@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Rou
 import { ItemsWithPagination } from "@/base/types"
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 import { AllPlayerStats } from "@/base/types"
-import Player from "@/models/Player"
+import Player, { PlayerAttributes } from "@/models/Player"
 import { getAllStatsForPlayer } from "@/services/PlayerService"
 import { getAllStatsForAllPlayers } from "@/services/PlayerService"
 
@@ -118,7 +118,17 @@ export class PlayersController extends Controller {
   public async createPlayersBulk(
     @Body() requestBody: PlayerApiModel[],
   ): Promise<PlayerApiModel[]> {
-    const newPlayers = await Player.bulkCreate(await Promise.all(requestBody.map(player => player.toEntityModelBulk())))
+    const newPlayers = await Player.bulkCreate(
+      requestBody.map(p => ({
+        nickname: p.nickname,
+        full_name: p.full_name,
+        age: p.age,
+        country: p.country,
+        role: p.role,
+        team_id: p.team_id,
+        player_attributes: p.player_attributes,
+      })),
+    )
     
     this.setStatus(201)
     return newPlayers.map(player => player.toApiModel())
@@ -154,7 +164,7 @@ export class PlayersController extends Controller {
     player.role = role
     player.country = country
     player.team_id = team_id
-    player.player_attributes = await player_attributes.toEntityModel()
+    player.player_attributes = player_attributes as unknown as PlayerAttributes
 
     await player.save()
     
