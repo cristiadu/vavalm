@@ -94,7 +94,16 @@ export class PlayerApiModel extends BaseEntityModel {
 
   @Hidden()
   async toEntityModelBulk(): Promise<Record<string, unknown>> {
-    const entity = await this.toEntityModel()
-    return entity.toJSON()
+    const { id, nickname, full_name, age, country, team_id, role, player_attributes } = await this.toEntityModel()
+    return {
+      ...(id != null && { id }),
+      nickname,
+      full_name,
+      age,
+      country,
+      team_id,
+      role,
+      player_attributes,
+    }
   }
 }

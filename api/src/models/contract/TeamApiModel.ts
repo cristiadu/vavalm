@@ -57,7 +57,14 @@ export class TeamApiModel extends BaseEntityModel {
 
   @Hidden()
   async toEntityModelBulk(): Promise<Record<string, unknown>> {
-    const entity = await this.toEntityModel()
-    return entity.toJSON()
+    const { id, short_name, full_name, description, country, logo_image_file } = await this.toEntityModel()
+    return {
+      ...(id != null && { id }),
+      short_name,
+      full_name,
+      description,
+      country,
+      logo_image_file,
+    }
   }
 }
