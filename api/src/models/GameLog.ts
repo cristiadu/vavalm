@@ -7,6 +7,7 @@ import Player, { PlayerDuelResults } from '@/models/Player'
 import { Weapon } from '@/models/enums'
 import { BaseEntityModel } from '@/base/types'
 import { GameLogApiModel, RoundStateApiModel } from '@/models/contract/GameLogApiModel'
+import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
 export class RoundState extends BaseEntityModel {
   constructor(
@@ -62,8 +63,33 @@ class GameLog extends Model implements BaseEntityModel {
   }
 
   toApiModel(): GameLogApiModel {
+    // round_state is stored as DataTypes.JSON; when loaded from DB it's a plain object,
+    // not a RoundState instance, so we can't call .toApiModel() on it directly.
+    let roundStateApiModel: RoundStateApiModel
+    if (this.round_state instanceof RoundState) {
+      roundStateApiModel = this.round_state.toApiModel()
+    } else {
+      // Plain JSON object deserialized from DB
+      const rs = this.round_state as unknown as {
+        round: number
+        duel: PlayerDuelResults
+        team_won: unknown
+        finished: boolean
+        previous_duel?: PlayerDuelResults
+      }
+      roundStateApiModel = new RoundStateApiModel(
+        rs.round,
+        rs.duel,
+        [], // alive players are transient state — not needed in GET /rounds responses
+        [],
+        (rs.team_won as TeamApiModel | null) ?? null,
+        rs.finished,
+        rs.previous_duel,
+      )
+    }
+
     return new GameLogApiModel(
-      this.round_state.toApiModel(),
+      roundStateApiModel,
       this.duel_buff,
       this.trade_buff,
       this.trade,
@@ -131,6 +157,15 @@ GameLog.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize: db.sequelize, modelName: 'GameLog' })
+}, {
+  sequelize: db.sequelize,
+  modelName: 'GameLog',
+  indexes: [
+    { fields: ['game_id'] },
+    { fields: ['team1_player_id'] },
+    { fields: ['team2_player_id'] },
+    { fields: ['player_killed_id'] },
+  ],
+})
 
 export default GameLog

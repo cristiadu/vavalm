@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "tsoa"
+import { Op } from "sequelize"
 import { ItemsWithPagination } from "@/base/types"
 import { TournamentApiModel } from "@/models/contract/TournamentApiModel"
 import { MatchApiModel } from "@/models/contract/MatchApiModel"
@@ -11,6 +12,10 @@ import TournamentService from "@/services/TournamentService"
 import MatchService from "@/services/MatchService"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
 import Match from "@/models/Match"
+import Game from "@/models/Game"
+import GameLog from "@/models/GameLog"
+import GameStats from "@/models/GameStats"
+import PlayerGameStats from "@/models/PlayerGameStats"
 
 @Route("tournaments")
 export class TournamentController extends Controller {
@@ -290,9 +295,40 @@ export class TournamentController extends Controller {
   @Delete("{tournamentId}")
   @OperationId("deleteTournament")
   public async deleteTournament(@Path() tournamentId: number): Promise<void> {
-    await Tournament.destroy({ where: { id: tournamentId } })
-    await Match.destroy({ where: { tournament_id: tournamentId } })
+    // Cascade: matches → games → game logs / game stats → player game stats
+    const matches = await Match.findAll({ where: { tournament_id: tournamentId }, attributes: ['id'] })
+    const matchIds = matches.map(m => m.id!)
+
+    if (matchIds.length > 0) {
+      const games = await Game.findAll({ where: { match_id: { [Op.in]: matchIds } }, attributes: ['id'] })
+      const gameIds = games.map(g => g.id!)
+
+      if (gameIds.length > 0) {
+        // Delete game logs (FK: game_id, team1_player_id, team2_player_id, player_killed_id)
+        await GameLog.destroy({ where: { game_id: { [Op.in]: gameIds } } })
+
+        // Delete player game stats (FK: game_stats_player1_id / game_stats_player2_id → GameStats)
+        const gameStatsList = await GameStats.findAll({ where: { game_id: { [Op.in]: gameIds } }, attributes: ['id'] })
+        const gameStatsIds = gameStatsList.map(gs => gs.id!)
+        if (gameStatsIds.length > 0) {
+          await PlayerGameStats.destroy({
+            where: {
+              [Op.or]: [
+                { game_stats_player1_id: { [Op.in]: gameStatsIds } },
+                { game_stats_player2_id: { [Op.in]: gameStatsIds } },
+              ],
+            },
+          })
+          await GameStats.destroy({ where: { id: { [Op.in]: gameStatsIds } } })
+        }
+
+        await Game.destroy({ where: { id: { [Op.in]: gameIds } } })
+      }
+
+      await Match.destroy({ where: { tournament_id: tournamentId } })
+    }
+
     await Standings.destroy({ where: { tournament_id: tournamentId } })
-    await Team.destroy({ where: { tournament_id: tournamentId } })
+    await Tournament.destroy({ where: { id: tournamentId } })
   }
 }
