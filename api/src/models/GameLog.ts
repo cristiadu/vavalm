@@ -63,33 +63,24 @@ class GameLog extends Model implements BaseEntityModel {
   }
 
   toApiModel(): GameLogApiModel {
-    // round_state is stored as DataTypes.JSON; when loaded from DB it's a plain object,
-    // not a RoundState instance, so we can't call .toApiModel() on it directly.
-    let roundStateApiModel: RoundStateApiModel
-    if (this.round_state instanceof RoundState) {
-      roundStateApiModel = this.round_state.toApiModel()
-    } else {
-      // Plain JSON object deserialized from DB
-      const rs = this.round_state as unknown as {
-        round: number
-        duel: PlayerDuelResults
-        team_won: unknown
-        finished: boolean
-        previous_duel?: PlayerDuelResults
-      }
-      roundStateApiModel = new RoundStateApiModel(
-        rs.round,
-        rs.duel,
-        [], // alive players are transient state — not needed in GET /rounds responses
-        [],
-        (rs.team_won as TeamApiModel | null) ?? null,
-        rs.finished,
-        rs.previous_duel,
-      )
+    const rs = this.round_state as unknown as {
+      round: number
+      duel: PlayerDuelResults
+      team_won: TeamApiModel | null
+      finished: boolean
+      previous_duel?: PlayerDuelResults
     }
 
     return new GameLogApiModel(
-      roundStateApiModel,
+      new RoundStateApiModel(
+        rs.round,
+        rs.duel,
+        [],
+        [],
+        rs.team_won ?? null,
+        rs.finished,
+        rs.previous_duel,
+      ),
       this.duel_buff,
       this.trade_buff,
       this.trade,

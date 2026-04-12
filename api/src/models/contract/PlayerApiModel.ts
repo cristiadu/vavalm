@@ -78,8 +78,13 @@ export class PlayerApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Player> {
-    const attributes = await this.player_attributes.toEntityModel()
-    
+    // player_attributes may arrive as a plain object (e.g. from Object.assign / JSON deserialization)
+    // rather than a PlayerAttributesApiModel instance — hydrate it if needed.
+    const attrsModel = this.player_attributes instanceof PlayerAttributesApiModel
+      ? this.player_attributes
+      : Object.assign(new PlayerAttributesApiModel(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), this.player_attributes)
+    const attributes = await attrsModel.toEntityModel()
+
     return new Player({
       id: this.id,
       nickname: this.nickname,

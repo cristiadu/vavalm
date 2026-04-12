@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "tsoa"
 import { ItemsWithPagination } from "@/base/types"
-import { PlayerApiModel, PlayerAttributesApiModel } from "@/models/contract/PlayerApiModel"
+import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 import { AllPlayerStats } from "@/base/types"
 import Player from "@/models/Player"
 import { getAllStatsForPlayer } from "@/services/PlayerService"
@@ -119,17 +119,9 @@ export class PlayersController extends Controller {
     @Body() requestBody: PlayerApiModel[],
   ): Promise<PlayerApiModel[]> {
     const newPlayers = await Player.bulkCreate(
-      await Promise.all(requestBody.map(p => {
-        const a = p.player_attributes
-        const attrs = new PlayerAttributesApiModel(
-          a.clutch, a.awareness, a.aim, a.positioning,
-          a.game_reading, a.resilience, a.confidence, a.strategy,
-          a.adaptability, a.communication, a.unpredictability,
-          a.game_sense, a.decision_making, a.rage_fuel, a.teamwork, a.utility_usage,
-        )
-        return new PlayerApiModel(p.nickname, p.full_name, p.age, p.country, p.team_id, p.role, attrs, p.id)
-          .toEntityModelBulk()
-      })),
+      await Promise.all(requestBody.map(p =>
+        Object.assign(Object.create(PlayerApiModel.prototype) as PlayerApiModel, p).toEntityModelBulk(),
+      )),
     )
     
     this.setStatus(201)
@@ -147,8 +139,8 @@ export class PlayersController extends Controller {
     @Path() playerId: number,
     @Body() requestBody: PlayerApiModel,
   ): Promise<PlayerApiModel> {
-    const { nickname, full_name, age, country, team_id, player_attributes, role } = requestBody
-    
+    const { nickname, full_name, age, country, player_attributes, role } = requestBody
+
     if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
       this.setStatus(400)
       throw new Error("nickname, full_name, age, country, role, and player_attributes are required")
@@ -160,24 +152,18 @@ export class PlayersController extends Controller {
       throw new Error("Player not found")
     }
 
-    const a = player_attributes
-    const attrsModel = new PlayerAttributesApiModel(
-      a.clutch, a.awareness, a.aim, a.positioning,
-      a.game_reading, a.resilience, a.confidence, a.strategy,
-      a.adaptability, a.communication, a.unpredictability,
-      a.game_sense, a.decision_making, a.rage_fuel, a.teamwork, a.utility_usage,
-    )
+    const updatedPlayer = await Object.assign(Object.create(PlayerApiModel.prototype) as PlayerApiModel, requestBody).toEntityModel()
 
-    player.nickname = nickname
-    player.full_name = full_name
-    player.age = age
-    player.role = role
-    player.country = country
-    player.team_id = team_id
-    player.player_attributes = await attrsModel.toEntityModel()
+    player.nickname = updatedPlayer.nickname
+    player.full_name = updatedPlayer.full_name
+    player.age = updatedPlayer.age
+    player.role = updatedPlayer.role
+    player.country = updatedPlayer.country
+    player.team_id = updatedPlayer.team_id
+    player.player_attributes = updatedPlayer.player_attributes
 
     await player.save()
-    
+
     return player.toApiModel()
   }
 
