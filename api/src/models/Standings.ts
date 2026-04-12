@@ -86,7 +86,6 @@ Standings.init({
   modelName: 'Standings',
   indexes: [
     { fields: ['tournament_id'] },
-    { fields: ['team_id'] },
     { fields: ['tournament_id', 'team_id'], unique: true },
   ],
 })

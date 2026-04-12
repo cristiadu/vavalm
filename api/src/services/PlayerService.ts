@@ -7,8 +7,7 @@ import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
 import CacheService from '@/services/CacheService'
-
-const STATS_CACHE_TTL = 120 // 2 minutes
+import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
 
 /**
  * Updates or creates a player based on the player data and team.
@@ -170,13 +169,13 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
  * 
 **/
 export const getAllStatsForAllPlayers = async (limit: number, offset: number): Promise<ItemsWithPagination<AllPlayerStats>> => {
-  const cacheKey = 'allPlayerStats'
+  const cacheKey = CACHE_KEYS.ALL_PLAYER_STATS
   let allSorted = CacheService.get<AllPlayerStats[]>(cacheKey)
 
   if (!allSorted) {
     const players = await Player.findAll()
     allSorted = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
-    CacheService.set(cacheKey, allSorted, STATS_CACHE_TTL)
+    CacheService.set(cacheKey, allSorted, CACHE_TTL.ALL_STATS)
   }
 
   const paginatedPlayerStats = allSorted.slice(offset, offset + limit)

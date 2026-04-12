@@ -13,12 +13,7 @@ import MatchService from "@/services/MatchService"
 import GameStatsService from "@/services/GameStatsService"
 import RoundService from "@/services/RoundService"
 import CacheService from "@/services/CacheService"
-
-// Cache TTL constants
-const CACHE_TTL = {
-  GAME: 60, // 1 minute
-  GAME_STATS: 120, // 2 minutes
-}
+import { CACHE_TTL } from "@/base/CacheConstants"
 
 const GameService = {
   /**
@@ -172,8 +167,6 @@ const GameService = {
     // Invalidate caches for this game and stats
     CacheService.delete(`game-${game_id}`)
     CacheService.delete(`game-stats-${game_id}`)
-    CacheService.delete('allPlayerStats')
-    CacheService.delete('allTeamStats')
 
     return { team1_rounds, team2_rounds }
   },

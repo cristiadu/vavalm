@@ -9,6 +9,18 @@ import { BaseEntityModel } from '@/base/types'
 import { GameLogApiModel, RoundStateApiModel } from '@/models/contract/GameLogApiModel'
 import { TeamApiModel } from '@/models/contract/TeamApiModel'
 
+/**
+ * The serialized shape of RoundState as stored in the DB (DataTypes.JSON).
+ * Alive player arrays are not persisted — only round metadata is stored.
+ */
+type RoundStateJson = {
+  round: number
+  duel: PlayerDuelResults
+  team_won: TeamApiModel | null
+  finished: boolean
+  previous_duel?: PlayerDuelResults
+}
+
 export class RoundState extends BaseEntityModel {
   constructor(
     public round: number,
@@ -63,13 +75,9 @@ class GameLog extends Model implements BaseEntityModel {
   }
 
   toApiModel(): GameLogApiModel {
-    const rs = this.round_state as unknown as {
-      round: number
-      duel: PlayerDuelResults
-      team_won: TeamApiModel | null
-      finished: boolean
-      previous_duel?: PlayerDuelResults
-    }
+    // round_state is declared as RoundState but DataTypes.JSON deserializes it
+    // from the DB as a plain RoundStateJson object — cast to the serialized shape.
+    const rs = this.round_state as RoundStateJson
 
     return new GameLogApiModel(
       new RoundStateApiModel(

@@ -50,16 +50,24 @@ pnpm test             # spin up Docker, run tests, tear down
 pnpm build            # production build for both api and ui
 ```
 
-> **Rule: always use `pnpm` scripts — never invoke `docker` or `docker compose` commands directly.** All Docker lifecycle operations (database, containers, test environment) are wrapped by pnpm scripts defined in `package.json`. Examples: `pnpm localdb dev`, `pnpm localdb down`, `pnpm test`, `pnpm dev:docker:up`, `pnpm dev:docker:down`. Using raw `docker` commands bypasses these wrappers and may leave the environment in an inconsistent state.
-
 API docs available at `http://localhost:8000/api/docs` when the server is running.
 
 ## Key Patterns
 
-- **Stats computation** (`PlayerService`, `TeamService`) fetches all rows and computes stats in memory — results are cached for 2 minutes with `CacheService`. Cache is invalidated when a game or round is played.
+- **Stats computation** (`PlayerService`, `TeamService`) fetches all rows and computes stats in memory — results are cached for 30 seconds (`CACHE_TTL.ALL_STATS`) via `CacheService`. Cache keys are constants in `api/src/base/CacheConstants.ts`.
 - **Game simulation**: `POST /games/{id}/play` plays an entire game; `POST /games/{id}/rounds/{n}/play` plays one round; `POST /games/{id}/rounds/{n}/duel` plays one duel.
 - **Player/team data embedded in responses**: `GameLogApiModel` includes `team1_player` and `team2_player`; `AllPlayerStats` includes `team`; `TeamApiModel` includes `players`. Avoid making separate API calls for data already included.
 - **Pagination**: all list endpoints accept `limit` and `offset` query params.
+- **Controllers are thin**: no business logic in controllers — only request parsing, calling a service method, and returning the response. All logic lives in services.
+- **Cascade deletes**: defined via `onDelete: 'CASCADE'` in Sequelize associations (see `api/src/models/Tournament.ts`). Adding new FKs should include cascade rules so service-layer delete methods stay simple.
+
+## Code Rules
+
+> **Never use `any`, `unknown`, or `never` as a type in this codebase.** Use the correct domain type or a named type alias. If a value genuinely has an uncertain shape at runtime (e.g. a JSON column), define a typed interface for its expected shape.
+
+> **Never use `Object.assign` or `Object.create` to hydrate API models.** Use the constructor directly.
+
+> **Always use `pnpm` scripts — never invoke `docker` or `docker compose` commands directly.** All Docker lifecycle operations are wrapped by pnpm scripts. Examples: `pnpm localdb dev`, `pnpm localdb down`, `pnpm test`, `pnpm dev:docker:up`, `pnpm dev:docker:down`.
 
 ## Testing
 
@@ -97,7 +105,7 @@ Each player has a role that determines their probability weights during duels. R
 
 ### Player Attributes
 
-Each player has 16 numeric attributes (range 0–3). They are paired as *attack vs counter* in duel calculations:
+Each player has 16 numeric attributes (range 0–3). Each attribute has a counter attribute on the opponent. Win chance per attribute = `max(0, my_attribute − opponent_counter)`:
 
 | Attribute | Countered by |
 |---|---|
@@ -118,7 +126,7 @@ Each player has 16 numeric attributes (range 0–3). They are paired as *attack 
 | `teamwork` | `communication` |
 | `rage_fuel` | `rage_fuel` (self-counter) |
 
-For each attribute, a player's contribution is `max(0, my_attribute - opponent_counter_attribute)`. All contributions are summed to produce a raw win-chance score per player.
+All 16 attribute contributions are summed to produce a raw win-chance score per player.
 
 ### Duel Mechanics
 

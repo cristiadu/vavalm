@@ -78,12 +78,15 @@ export class PlayerApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Player> {
-    // player_attributes may arrive as a plain object (e.g. from Object.assign / JSON deserialization)
-    // rather than a PlayerAttributesApiModel instance — hydrate it if needed.
-    const attrsModel = this.player_attributes instanceof PlayerAttributesApiModel
-      ? this.player_attributes
-      : Object.assign(new PlayerAttributesApiModel(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), this.player_attributes)
-    const attributes = await attrsModel.toEntityModel()
+    // player_attributes fields are read directly — valid whether this came from
+    // a tsoa-deserialized request body (plain object) or a constructed instance.
+    const a = this.player_attributes
+    const attributes = await new PlayerAttributesApiModel(
+      a.clutch, a.awareness, a.aim, a.positioning,
+      a.game_reading, a.resilience, a.confidence, a.strategy,
+      a.adaptability, a.communication, a.unpredictability,
+      a.game_sense, a.decision_making, a.rage_fuel, a.teamwork, a.utility_usage,
+    ).toEntityModel()
 
     return new Player({
       id: this.id,
