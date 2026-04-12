@@ -104,13 +104,26 @@ VaValM simulates Valorant matches using player **attributes** and **roles** to d
 
 ### Player Attributes (16, range 0–3)
 
-Attributes are grouped into five clusters, each with an attack attribute and its counter:
+Each attribute has a counter attribute on the opponent. Win chance per attribute = `max(0, my_attribute − opponent_counter)`:
 
-- **Combat**: `aim` ↔ `positioning`, `clutch` ↔ `awareness`, `game_reading` ↔ `aim`
-- **Mental**: `resilience` ↔ `confidence`, `confidence` ↔ `game_sense`, `decision_making` ↔ `resilience`
-- **Strategic**: `strategy` ↔ `adaptability`, `adaptability` ↔ `strategy`
-- **Team**: `communication` ↔ `unpredictability`, `teamwork` ↔ `communication`, `utility_usage` ↔ `teamwork`
-- **Wildcard**: `rage_fuel` (counters itself — double-edged)
+| Attribute | Countered by |
+|---|---|
+| `clutch` | `awareness` |
+| `awareness` | `game_reading` |
+| `game_reading` | `aim` |
+| `aim` | `positioning` |
+| `positioning` | `clutch` |
+| `resilience` | `confidence` |
+| `confidence` | `game_sense` |
+| `game_sense` | `decision_making` |
+| `decision_making` | `resilience` |
+| `strategy` | `adaptability` |
+| `adaptability` | `strategy` |
+| `communication` | `unpredictability` |
+| `unpredictability` | `utility_usage` |
+| `utility_usage` | `teamwork` |
+| `teamwork` | `communication` |
+| `rage_fuel` | `rage_fuel` (counters itself) |
 
 ### Duel & Round Flow
 
