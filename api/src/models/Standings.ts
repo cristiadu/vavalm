@@ -81,9 +81,14 @@ Standings.init({
     allowNull: false,
     defaultValue: 1,
   },
-}, { 
-  sequelize: db.sequelize, 
-  modelName: 'Standings', 
+}, {
+  sequelize: db.sequelize,
+  modelName: 'Standings',
+  indexes: [
+    { fields: ['tournament_id'] },
+    { fields: ['team_id'] },
+    { fields: ['tournament_id', 'team_id'], unique: true },
+  ],
 })
 
 export default Standings

@@ -210,8 +210,9 @@ const MatchService = {
     // Create matches for the tournament, all teams play against each other
     // Create only needed matches, however, if a match already exists, it will not be created again
     // Create games inside matches based on the matchType (bo3, bo5, etc).
-    teamIds.forEach((team1Id: number, index: number) => {
-      teamIds.slice(index + 1).forEach(async (team2Id: number) => {
+    for (let index = 0; index < teamIds.length; index++) {
+      const team1Id = teamIds[index]
+      for (const team2Id of teamIds.slice(index + 1)) {
         // Check if the match already exists
         const existingMatch = await Match.findOne({
           where: {
@@ -227,7 +228,7 @@ const MatchService = {
           },
         })
         if (existingMatch) {
-          return
+          continue
         }
         // Create the match
         const match = await Match.create({
@@ -266,8 +267,8 @@ const MatchService = {
         for (let i = 0; i < bestOf; i++) {
           await GameService.createGameForMatch(match, GameService.getRandomMap())
         }
-      })
-    })
+      }
+    }
   },
 
   /**

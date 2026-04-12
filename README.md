@@ -87,6 +87,41 @@ pnpm localdb dev
 - `pnpm generate:spec` - Generate OpenAPI specification
 - `pnpm generate:client` - Regenerate TypeScript clients from OpenAPI spec (run after schema changes)
 
+## Game Simulation
+
+VaValM simulates Valorant matches using player **attributes** and **roles** to determine outcomes probabilistically.
+
+### Player Roles
+
+| Role | Combat style |
+|------|-------------|
+| **Duelist** | Strongest individual duelist; highest duel and trade win buff (+30%/+40%) |
+| **Initiator** | Entry fragger; high duel win buff (+25%) and select buff (+40%) |
+| **Flex** | Versatile all-rounder; strong trade fighter (+35% trade win buff) |
+| **Controller** | Support-oriented; low duel buff but contributes via strategy attributes |
+| **Sentinel** | Defensive specialist; focuses on awareness and positioning |
+| **IGL** | Leader role; no individual duel buff — contributes through team strategy |
+
+### Player Attributes (16, range 0–3)
+
+Attributes are grouped into five clusters, each with an attack attribute and its counter:
+
+- **Combat**: `aim` ↔ `positioning`, `clutch` ↔ `awareness`, `game_reading` ↔ `aim`
+- **Mental**: `resilience` ↔ `confidence`, `confidence` ↔ `game_sense`, `decision_making` ↔ `resilience`
+- **Strategic**: `strategy` ↔ `adaptability`, `adaptability` ↔ `strategy`
+- **Team**: `communication` ↔ `unpredictability`, `teamwork` ↔ `communication`, `utility_usage` ↔ `teamwork`
+- **Wildcard**: `rage_fuel` (counters itself — double-edged)
+
+### Duel & Round Flow
+
+1. Two players are selected for a duel (role-weighted random selection)
+2. Win chances = sum of `max(0, attacker_attribute − opponent_counter)` across all 16 attributes
+3. Role buffs multiply the win chances (e.g. Duelist gets ×1.30 in normal duels)
+4. Winner is drawn randomly proportional to the two players' final win-chance scores
+5. A **trade** may trigger after each kill (10% base + role buff) — the winner fights again immediately
+6. A **round** ends when one team is fully eliminated; 13 round wins (or +2 in overtime) wins the map
+7. **Match formats**: BO1, BO3, BO5 — the team winning the majority of maps wins the match
+
 ## Docker Deployment
 
 You can deploy the entire stack using Docker Compose:

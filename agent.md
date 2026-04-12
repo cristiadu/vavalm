@@ -50,6 +50,8 @@ pnpm test             # spin up Docker, run tests, tear down
 pnpm build            # production build for both api and ui
 ```
 
+> **Rule: always use `pnpm` scripts — never invoke `docker` or `docker compose` commands directly.** All Docker lifecycle operations (database, containers, test environment) are wrapped by pnpm scripts defined in `package.json`. Examples: `pnpm localdb dev`, `pnpm localdb down`, `pnpm test`, `pnpm dev:docker:up`, `pnpm dev:docker:down`. Using raw `docker` commands bypasses these wrappers and may leave the environment in an inconsistent state.
+
 API docs available at `http://localhost:8000/api/docs` when the server is running.
 
 ## Key Patterns
@@ -74,6 +76,66 @@ describe('...', () => {
   it('...', async () => { expect(...) })
 })
 ```
+
+## Game Mechanics
+
+### Player Roles
+
+Each player has a role that determines their probability weights during duels. Roles affect four buffs:
+
+| Role | Duel win buff | Trade win buff | Duel select buff | Trade select buff |
+|------|:---:|:---:|:---:|:---:|
+| **Duelist** | +30% | +40% | +40% | +40% |
+| **Initiator** | +25% | +20% | +40% | +20% |
+| **Flex** | +15% | +35% | +15% | +35% |
+| **Controller** | +5% | +15% | +5% | +15% |
+| **Sentinel** | +5% | +20% | +5% | +20% |
+| **IGL** | 0% | +10% | +5% | +15% |
+
+- **Duel win/select buff** — applied to regular (non-trade) duels
+- **Trade win/select buff** — applied when a trade duel is triggered (see below)
+
+### Player Attributes
+
+Each player has 16 numeric attributes (range 0–3). They are paired as *attack vs counter* in duel calculations:
+
+| Attribute | Countered by |
+|---|---|
+| `clutch` | `awareness` |
+| `awareness` | `game_reading` |
+| `game_reading` | `aim` |
+| `aim` | `positioning` |
+| `positioning` | `clutch` |
+| `resilience` | `confidence` |
+| `confidence` | `game_sense` |
+| `game_sense` | `decision_making` |
+| `decision_making` | `resilience` |
+| `strategy` | `adaptability` |
+| `adaptability` | `strategy` |
+| `communication` | `unpredictability` |
+| `unpredictability` | `utility_usage` |
+| `utility_usage` | `teamwork` |
+| `teamwork` | `communication` |
+| `rage_fuel` | `rage_fuel` (self-counter) |
+
+For each attribute, a player's contribution is `max(0, my_attribute - opponent_counter_attribute)`. All contributions are summed to produce a raw win-chance score per player.
+
+### Duel Mechanics
+
+A single duel proceeds as follows:
+
+1. **Player selection** — Each alive player is duplicated in a weighted array by their select buff (`getDuelSelectBuffByPlayerRole` for regular, `getTradeSelectBuffByPlayerRole` for trades). A random index picks the duelling players.
+2. **Win-chance calculation** — Sum all attribute contributions for each player (attribute vs counter), then multiply by `1 + duel_win_buff` (or `1 + trade_win_buff` during a trade). Both values are floored to ≥ 1.
+3. **Winner draw** — A random integer in `[0, chancesPlayer1 + chancesPlayer2)` is drawn. Values `< chancesPlayer1` give the win to player 1.
+4. **Loser removed** — The losing player is removed from that team's alive list.
+5. **Trade check** — Base trade chance is 10%. If the winner's `getTradeSelectBuffByPlayerRole` pushes it above 10%, the next duel is a *trade duel* (the round winner must fight again first). Trade duels use trade buffs instead of duel buffs.
+
+### Round & Game Scoring
+
+- A **round** is a series of duels (5v5) until one team has 0 players alive. The surviving team wins the round.
+- A **game** (map) is won by the first team to reach 13 round wins. After 12-12 a team must lead by 2.
+- A **match** is BO1, BO3, or BO5 — the team winning the majority of games wins the match.
+- Stats tracked per game log: `kills`, `deaths`, `assists`. KDA = `(kills + assists) / deaths` (0 when deaths = 0). Winrate = `matchesWon / matchesPlayed × 100`.
 
 ## Git / PR Conventions
 

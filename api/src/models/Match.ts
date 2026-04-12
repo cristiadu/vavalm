@@ -108,6 +108,14 @@ Match.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize: db.sequelize, modelName: 'Match' })
+}, {
+  sequelize: db.sequelize,
+  modelName: 'Match',
+  indexes: [
+    { fields: ['tournament_id'] },
+    { fields: ['team1_id'] },
+    { fields: ['team2_id'] },
+  ],
+})
 
 export default Match

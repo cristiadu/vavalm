@@ -181,7 +181,7 @@ describe('Players', () => {
     })
 
     it('fixture player appears with zero stats and correct team embedded', async () => {
-      const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
+      const stats = await apiClient.default.getPlayersStats(200, 0) as ItemsWithPagination_AllPlayerStats_
       const entry = stats.items.find((s: AllPlayerStats) => s.player.id === playerId)!
       expect(entry).toBeDefined()
       expect(entry.kda).toBe(0)

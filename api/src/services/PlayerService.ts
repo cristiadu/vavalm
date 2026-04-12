@@ -139,7 +139,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   const totalKills = playerStats.reduce((acc, stats) => acc + stats.kills, 0)
   const totalDeaths = playerStats.reduce((acc, stats) => acc + stats.deaths, 0)
   const totalAssists = playerStats.reduce((acc, stats) => acc + stats.assists, 0)
-  const kda = parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
+  const kda = totalDeaths === 0 ? 0 : parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
 
   const winrate = parseFloat((totalMatchesWon / distinctMatches.length).toFixed(2)) * 100
   const mapWinrate = parseFloat((totalMapWins / totalMaps).toFixed(2)) * 100
@@ -149,12 +149,12 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
     kda,
     winrate,
     mapWinrate,
-    totalMaps,
-    totalMapWins,
-    totalMaps - totalMapWins,
-    totalMatchesWon,
-    distinctMatches.length - totalMatchesWon,
-    distinctMatches.length,
+    distinctMatches.length,               // totalMatchesPlayed
+    totalMatchesWon,                       // totalMatchesWon
+    distinctMatches.length - totalMatchesWon, // totalMatchesLost
+    totalMaps,                            // totalMapsPlayed
+    totalMapWins,                         // totalMapsWon
+    totalMaps - totalMapWins,             // totalMapsLost
     totalKills,
     totalDeaths,
     totalAssists,

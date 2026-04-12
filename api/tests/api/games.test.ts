@@ -201,7 +201,7 @@ describe('Tournaments, Matches & Games', () => {
       expect(match.team2_score).toBe(0)
       expect(match.started).toBe(false)
       expect(match.finished).toBe(false)
-      expect(match.included_on_standings).toBe(false)
+      expect(match.included_on_standings).toBe(true) // matches are always included in standings from creation
     })
 
     it('embeds team1 and team2 objects with correct IDs', async () => {
