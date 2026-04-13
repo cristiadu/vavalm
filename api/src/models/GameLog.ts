@@ -7,19 +7,6 @@ import Player, { PlayerDuelResults } from '@/models/Player'
 import { Weapon } from '@/models/enums'
 import { BaseEntityModel } from '@/base/types'
 import { GameLogApiModel, RoundStateApiModel } from '@/models/contract/GameLogApiModel'
-import { TeamApiModel } from '@/models/contract/TeamApiModel'
-
-/**
- * The serialized shape of RoundState as stored in the DB (DataTypes.JSON).
- * Alive player arrays are not persisted — only round metadata is stored.
- */
-type RoundStateJson = {
-  round: number
-  duel: PlayerDuelResults
-  team_won: TeamApiModel | null
-  finished: boolean
-  previous_duel?: PlayerDuelResults
-}
 
 export class RoundState extends BaseEntityModel {
   constructor(
@@ -75,9 +62,11 @@ class GameLog extends Model implements BaseEntityModel {
   }
 
   toApiModel(): GameLogApiModel {
-    // round_state is declared as RoundState but DataTypes.JSON deserializes it
-    // from the DB as a plain RoundStateJson object — cast to the serialized shape.
-    const rs = this.round_state as RoundStateJson
+    // round_state is stored as DataTypes.JSON; when read from the DB it is a plain object,
+    // not a RoundState instance. Cast to the scalar subset of RoundStateApiModel to extract
+    // only the fields that are reliably persisted (alive-player arrays are excluded and
+    // served as [] — per-duel player info is embedded via team1_player / team2_player).
+    const rs = this.round_state as Pick<RoundStateApiModel, 'round' | 'duel' | 'team_won' | 'finished' | 'previous_duel'>
 
     return new GameLogApiModel(
       new RoundStateApiModel(

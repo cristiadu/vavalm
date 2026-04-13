@@ -61,9 +61,43 @@ API docs available at `http://localhost:8000/api/docs` when the server is runnin
 - **Controllers are thin**: no business logic in controllers — only request parsing, calling a service method, and returning the response. All logic lives in services.
 - **Cascade deletes**: defined via `onDelete: 'CASCADE'` in Sequelize associations (see `api/src/models/Tournament.ts`). Adding new FKs should include cascade rules so service-layer delete methods stay simple.
 
+## Model & Contract Layer Conventions
+
+Every persisted domain object has two representations that mirror each other:
+
+| Layer | Location | Naming | Base |
+|---|---|---|---|
+| **DB model** | `api/src/models/` | `Team`, `Player`, `GameLog` … | `Model` (Sequelize) + `BaseEntityModel` |
+| **Contract model** | `api/src/models/contract/` | `TeamApiModel`, `PlayerApiModel`, `GameLogApiModel` … | `BaseEntityModel` |
+
+### Required methods
+
+**DB model class** must implement:
+- `toApiModel(): *ApiModel` — converts the Sequelize instance to the contract shape.
+
+**Contract model class** (`*ApiModel`) must implement:
+- `toApiModel(): *ApiModel` — returns `this` (already in API shape).
+- `toEntityModel(): EntityModel | Promise<EntityModel>` — hydrates the contract data back into the DB model type. Never use `Object.assign` or `Object.create`; always call the constructor explicitly.
+- `toEntityModelBulk(): Promise<Record<string, unknown>>` — same as `toEntityModel` but returns a plain object suitable for Sequelize `bulkCreate`.
+
+### Naming rules
+
+- DB models: `PascalCase` noun — `Player`, `GameLog`, `Tournament`.
+- Contract models: same name suffixed with `ApiModel` — `PlayerApiModel`, `GameLogApiModel`.
+- Sub-shapes that appear inside a contract model also follow `*ApiModel` — e.g. `RoundStateApiModel`, `PlayerAttributesApiModel`.
+- Never invent a parallel alias (`RoundStateJson`, `RoundStatePlain`, etc.). If a plain-object cast is needed, use `Pick<*ApiModel, ...>` to derive the type from the existing contract model.
+
+### JSON column pattern
+
+When a `DataTypes.JSON` column stores a complex object, declare the field with the entity type (e.g. `declare round_state: RoundState`). In `toApiModel()`, cast the field to a `Pick` of the matching contract model to read only the reliably persisted scalar fields — this is safe on plain DB objects without relying on instance methods:
+
+```typescript
+const rs = this.round_state as Pick<RoundStateApiModel, 'round' | 'duel' | 'team_won' | 'finished' | 'previous_duel'>
+```
+
 ## Code Rules
 
-> **Never use `any`, `unknown`, or `never` as a type in this codebase.** Use the correct domain type or a named type alias. If a value genuinely has an uncertain shape at runtime (e.g. a JSON column), define a typed interface for its expected shape.
+> **Never use `any`, `unknown`, or `never` as a type in this codebase.** Use the correct domain type or a named type alias. If a value genuinely has an uncertain shape at runtime (e.g. a JSON column), use `Pick<*ApiModel, ...>` or a proper named interface.
 
 > **Never use `Object.assign` or `Object.create` to hydrate API models.** Use the constructor directly.
 
