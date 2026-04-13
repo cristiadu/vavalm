@@ -12,9 +12,9 @@ import {
 } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
-import { givenTeamExists, cleanupTeam } from './common-teams'
-import { givenPlayerExists, cleanupPlayer, TEST_PLAYER_ATTRIBUTES } from './common-players'
-import { givenTournamentExists, cleanupTournament, TEST_TOURNAMENT } from './common-tournaments'
+import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
+import { givenPlayerExists, cleanupPlayer, TEST_PLAYER_ATTRIBUTES } from '@tests/api/common-players'
+import { givenTournamentExists, cleanupTournament, TEST_TOURNAMENT } from '@tests/api/common-tournaments'
 
 describe('Tournaments, Matches & Games', () => {
   let team1Id: number

@@ -6,8 +6,8 @@ import {
 } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
-import { givenTeamExists, cleanupTeam, TEST_TEAM } from './common-teams'
-import { givenPlayerExists, cleanupPlayer } from './common-players'
+import { givenTeamExists, cleanupTeam, TEST_TEAM } from '@tests/api/common-teams'
+import { givenPlayerExists, cleanupPlayer } from '@tests/api/common-players'
 
 describe('Teams', () => {
   let teamId: number
