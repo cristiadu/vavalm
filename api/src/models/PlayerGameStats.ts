@@ -69,6 +69,14 @@ PlayerGameStats.init({
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-}, { sequelize: db.sequelize, modelName: 'PlayerGameStats' })
+}, {
+  sequelize: db.sequelize,
+  modelName: 'PlayerGameStats',
+  indexes: [
+    { fields: ['player_id'] },
+    { fields: ['game_stats_player1_id'] },
+    { fields: ['game_stats_player2_id'] },
+  ],
+})
 
 export default PlayerGameStats

@@ -33,6 +33,10 @@ const setupTestData = async (): Promise<void> => {
         logo_image_file: logoBuffer, 
       })
     }
+    // Reset the sequence so auto-generated IDs don't collide with the seeded explicit IDs
+    await Team.sequelize?.query(
+      `SELECT setval(pg_get_serial_sequence('"Teams"', 'id'), (SELECT MAX(id) FROM "Teams"))`,
+    )
   } else {
     console.warn('Initial teams data already exists')
   }

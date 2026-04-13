@@ -33,20 +33,25 @@ export default function ListPlayers(): React.ReactNode {
   // Simplify the refreshListData function
   const refreshListData = useCallback(async (data: ItemsWithPagination<PlayerApiModel>) => {
     setIsLoading(true)
-    
+
     try {
       const playerToTeam: Record<string, TeamApiModel> = {}
-      
-      const teamFetchPromises = data.items.map((player) =>
-        fetchTeam(player.team_id, team => {
-          if (player.id) {
-            playerToTeam[player.id] = team
-          }
-        }),
+
+      // Deduplicate team IDs so players sharing a team only trigger one fetch
+      const distinctTeamIds = [...new Set(data.items.map(p => p.team_id).filter(Boolean))]
+
+      await Promise.all(
+        distinctTeamIds.map(teamId =>
+          fetchTeam(teamId, team => {
+            data.items
+              .filter(p => p.team_id === teamId)
+              .forEach(p => {
+                if (p.id) playerToTeam[p.id] = team
+              })
+          }),
+        ),
       )
-  
-      await Promise.all(teamFetchPromises)
-      
+
       setPlayerToTeam(playerToTeam)
       setTotalItems(data.total)
       setPlayers(data.items)

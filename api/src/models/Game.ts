@@ -72,6 +72,12 @@ Game.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize: db.sequelize, modelName: 'Game' })
+}, {
+  sequelize: db.sequelize,
+  modelName: 'Game',
+  indexes: [
+    { fields: ['match_id'] },
+  ],
+})
 
 export default Game

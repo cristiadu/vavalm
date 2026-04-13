@@ -6,6 +6,8 @@ import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
+import CacheService from '@/services/CacheService'
+import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
 
 /**
  * Updates or creates a player based on the player data and team.
@@ -59,6 +61,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
       {
         model: Player,
         as: 'player',
+        include: [{ model: Team, as: 'team' }],
       },
       {
         model: GameStats,
@@ -88,8 +91,11 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   })
 
   if (playerStats.length === 0) {
+    const playerWithTeam = await Player.findByPk(playerId, {
+      include: [{ model: Team, as: 'team' }],
+    }) as Player
     return new AllPlayerStats(
-      (await Player.findByPk(playerId) as Player).toApiModel(),
+      playerWithTeam.toApiModel(),
       parseFloat(0.00.toFixed(2)),
       parseFloat(0.00.toFixed(2)),
       parseFloat(0.00.toFixed(2)),
@@ -102,6 +108,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
       0,
       0,
       0,
+      playerWithTeam.team?.toApiModel(),
     )
   }
 
@@ -131,7 +138,7 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   const totalKills = playerStats.reduce((acc, stats) => acc + stats.kills, 0)
   const totalDeaths = playerStats.reduce((acc, stats) => acc + stats.deaths, 0)
   const totalAssists = playerStats.reduce((acc, stats) => acc + stats.assists, 0)
-  const kda = parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
+  const kda = totalDeaths === 0 ? 0 : parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
 
   const winrate = parseFloat((totalMatchesWon / distinctMatches.length).toFixed(2)) * 100
   const mapWinrate = parseFloat((totalMapWins / totalMaps).toFixed(2)) * 100
@@ -141,15 +148,16 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
     kda,
     winrate,
     mapWinrate,
-    totalMaps,
-    totalMapWins,
-    totalMaps - totalMapWins,
-    totalMatchesWon,
-    distinctMatches.length - totalMatchesWon,
-    distinctMatches.length,
+    distinctMatches.length,               // totalMatchesPlayed
+    totalMatchesWon,                       // totalMatchesWon
+    distinctMatches.length - totalMatchesWon, // totalMatchesLost
+    totalMaps,                            // totalMapsPlayed
+    totalMapWins,                         // totalMapsWon
+    totalMaps - totalMapWins,             // totalMapsLost
     totalKills,
     totalDeaths,
     totalAssists,
+    playerStats[0].player.team?.toApiModel(),
   )
 }
 
@@ -161,15 +169,20 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
  * 
 **/
 export const getAllStatsForAllPlayers = async (limit: number, offset: number): Promise<ItemsWithPagination<AllPlayerStats>> => {
-  const players = await Player.findAll()
-  const playerStats = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
+  const cacheKey = CACHE_KEYS.ALL_PLAYER_STATS
+  let allSorted = CacheService.get<AllPlayerStats[]>(cacheKey)
 
-  // Apply limit and offset
-  const paginatedPlayerStats = playerStats.slice(offset, offset + limit)
+  if (!allSorted) {
+    const players = await Player.findAll()
+    allSorted = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
+    CacheService.set(cacheKey, allSorted, CACHE_TTL.ALL_STATS)
+  }
+
+  const paginatedPlayerStats = allSorted.slice(offset, offset + limit)
 
   return new ItemsWithPagination<AllPlayerStats>(
     paginatedPlayerStats,
-    players.length,
+    allSorted.length,
   )
 }
 

@@ -678,6 +678,10 @@ components:
           type: boolean
         included_on_team_stats:
           type: boolean
+        team1_player:
+          $ref: "#/components/schemas/PlayerApiModel"
+        team2_player:
+          $ref: "#/components/schemas/PlayerApiModel"
         id:
           type: number
           format: double
@@ -749,6 +753,8 @@ components:
         totalAssists:
           type: number
           format: double
+        team:
+          $ref: "#/components/schemas/TeamApiModel"
       required:
         - player
         - kda

@@ -82,6 +82,14 @@ GameStats.init({
     type: DataTypes.INTEGER,
     allowNull: true,
   },
-}, { sequelize: db.sequelize, modelName: 'GameStats' })
+}, {
+  sequelize: db.sequelize,
+  modelName: 'GameStats',
+  indexes: [
+    { fields: ['game_id'], unique: true },
+    { fields: ['team1_id'] },
+    { fields: ['team2_id'] },
+  ],
+})
 
 export default GameStats

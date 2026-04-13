@@ -114,15 +114,15 @@ const DuelService = {
     const lastDuelOfRound = updatedTeam1AlivePlayers.length === 0 || updatedTeam2AlivePlayers.length === 0
 
     // Create the updated round state
-    const playedRound = {
-      round: currentRound.round,
-      duel: duelResults,
-      previous_duel: currentRound.duel,
-      team1_alive_players: updatedTeam1AlivePlayers,
-      team2_alive_players: updatedTeam2AlivePlayers,
-      team_won: lastDuelOfRound ? (updatedTeam1AlivePlayers.length > 0 ? updatedTeam1AlivePlayers[0].team : updatedTeam2AlivePlayers[0].team) : null,
-      finished: lastDuelOfRound,
-    } as RoundState
+    const playedRound = new RoundState(
+      currentRound.round,
+      duelResults,
+      updatedTeam1AlivePlayers,
+      updatedTeam2AlivePlayers,
+      lastDuelOfRound ? (updatedTeam1AlivePlayers.length > 0 ? updatedTeam1AlivePlayers[0].team : updatedTeam2AlivePlayers[0].team) : null,
+      lastDuelOfRound,
+      currentRound.duel,
+    )
 
     // Save a GameLog with the duel results
     await GameLog.create({

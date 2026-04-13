@@ -1,7 +1,6 @@
 import { BaseEntityModel } from "@/base/types"
 import { Hidden } from "tsoa"
 import Team from "@/models/Team"
-import type { Optional } from "sequelize"
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 
 /**
@@ -18,6 +17,17 @@ export class TeamApiModel extends BaseEntityModel {
     public players?: PlayerApiModel[],
   ) {
     super()
+  }
+
+  /**
+   * Constructs a real TeamApiModel instance from a plain object
+   * (e.g. a tsoa-deserialized request body, which has the right shape but no methods).
+   */
+  static from(data: TeamApiModel): TeamApiModel {
+    return new TeamApiModel(
+      data.short_name, data.full_name, data.description, data.country,
+      data.logo_image_file, data.id, data.players,
+    )
   }
 
   @Hidden()
@@ -57,8 +67,15 @@ export class TeamApiModel extends BaseEntityModel {
   }
 
   @Hidden()
-  async toEntityModelBulk(): Promise<Optional<object, never>> {
-    const entity = await this.toEntityModel()
-    return entity.toJSON()
+  async toEntityModelBulk(): Promise<Record<string, unknown>> {
+    const { id, short_name, full_name, description, country, logo_image_file } = await this.toEntityModel()
+    return {
+      ...(id != null && { id }),
+      short_name,
+      full_name,
+      description,
+      country,
+      logo_image_file,
+    }
   }
 }

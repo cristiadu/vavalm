@@ -118,7 +118,9 @@ export class PlayersController extends Controller {
   public async createPlayersBulk(
     @Body() requestBody: PlayerApiModel[],
   ): Promise<PlayerApiModel[]> {
-    const newPlayers = await Player.bulkCreate(await Promise.all(requestBody.map(player => player.toEntityModelBulk())))
+    const newPlayers = await Player.bulkCreate(
+      await Promise.all(requestBody.map(p => PlayerApiModel.from(p).toEntityModelBulk())),
+    )
     
     this.setStatus(201)
     return newPlayers.map(player => player.toApiModel())
@@ -135,8 +137,8 @@ export class PlayersController extends Controller {
     @Path() playerId: number,
     @Body() requestBody: PlayerApiModel,
   ): Promise<PlayerApiModel> {
-    const { nickname, full_name, age, country, team_id, player_attributes, role } = requestBody
-    
+    const { nickname, full_name, age, country, player_attributes, role } = requestBody
+
     if (!nickname || !full_name || !age || !country || !player_attributes || !role) {
       this.setStatus(400)
       throw new Error("nickname, full_name, age, country, role, and player_attributes are required")
@@ -148,16 +150,18 @@ export class PlayersController extends Controller {
       throw new Error("Player not found")
     }
 
-    player.nickname = nickname
-    player.full_name = full_name
-    player.age = age
-    player.role = role
-    player.country = country
-    player.team_id = team_id
-    player.player_attributes = await player_attributes.toEntityModel()
+    const updatedPlayer = await PlayerApiModel.from(requestBody).toEntityModel()
+
+    player.nickname = updatedPlayer.nickname
+    player.full_name = updatedPlayer.full_name
+    player.age = updatedPlayer.age
+    player.role = updatedPlayer.role
+    player.country = updatedPlayer.country
+    player.team_id = updatedPlayer.team_id
+    player.player_attributes = updatedPlayer.player_attributes
 
     await player.save()
-    
+
     return player.toApiModel()
   }
 

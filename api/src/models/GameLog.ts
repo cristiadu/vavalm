@@ -63,7 +63,7 @@ class GameLog extends Model implements BaseEntityModel {
 
   toApiModel(): GameLogApiModel {
     return new GameLogApiModel(
-      this.round_state.toApiModel(),
+      RoundStateApiModel.from(this.round_state),
       this.duel_buff,
       this.trade_buff,
       this.trade,
@@ -74,6 +74,8 @@ class GameLog extends Model implements BaseEntityModel {
       this.player_killed_id,
       this.included_on_player_stats,
       this.included_on_team_stats,
+      this.team1_player ? this.team1_player.toApiModel() : undefined,
+      this.team2_player ? this.team2_player.toApiModel() : undefined,
     )
   }
 
@@ -129,6 +131,15 @@ GameLog.init({
     allowNull: false,
     defaultValue: false,
   },
-}, { sequelize: db.sequelize, modelName: 'GameLog' })
+}, {
+  sequelize: db.sequelize,
+  modelName: 'GameLog',
+  indexes: [
+    { fields: ['game_id'] },
+    { fields: ['team1_player_id'] },
+    { fields: ['team2_player_id'] },
+    { fields: ['player_killed_id'] },
+  ],
+})
 
 export default GameLog

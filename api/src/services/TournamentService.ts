@@ -241,6 +241,18 @@ const TournamentService = {
       where: { tournament_id: tournamentId, team_id: { [Op.in]: teamIds } },
     })
   },
+
+  /**
+   * Deletes a tournament and all its associated data.
+   * Cascade deletes are handled at the DB level via onDelete: 'CASCADE' associations:
+   * Tournament → Matches → Games → GameLogs / GameStats → PlayerGameStats
+   * Tournament → Standings
+   *
+   * @param tournamentId id of the tournament to delete
+   */
+  deleteTournament: async (tournamentId: number): Promise<void> => {
+    await Tournament.destroy({ where: { id: tournamentId } })
+  },
 }
 
 export default TournamentService

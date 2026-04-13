@@ -207,6 +207,10 @@ Player.init({
 }, {
   sequelize: db.sequelize,
   modelName: 'Player',
+  indexes: [
+    { fields: ['team_id'] },
+    { fields: ['nickname'], unique: true },
+  ],
 })
 
 export default Player

@@ -44,15 +44,15 @@ const RoundService = {
       },
       order: [['id', 'DESC']],
       include: [
-        { 
-          model: Player, 
+        {
+          model: Player,
           as: 'team1_player',
-          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
+          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id', 'player_attributes'],
         },
-        { 
-          model: Player, 
-          as: 'team2_player', 
-          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id'],
+        {
+          model: Player,
+          as: 'team2_player',
+          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id', 'player_attributes'],
         },
       ],
     })

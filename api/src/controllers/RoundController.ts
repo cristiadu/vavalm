@@ -21,7 +21,7 @@ export class RoundController extends Controller {
   ): Promise<RoundStateApiModel> {
     const roundFinishedState = await RoundService.playFullRound(gameId, round)
     await GameStatsService.updateAllStats(gameId)
-    
+
     const match = await MatchService.getMatchByGameId(gameId)
     if (!match || !match.id) {
       this.setStatus(500)

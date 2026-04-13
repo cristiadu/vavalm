@@ -113,30 +113,30 @@ Team.belongsToMany(Tournament, { through: 'TournamentTeams', foreignKey: 'team_i
 Tournament.belongsTo(Team, { as: 'winner', foreignKey: 'winner_id' })
 Team.hasMany(Tournament, { as: 'tournaments_won', foreignKey: 'winner_id', sourceKey: 'id' })
 
-Tournament.hasMany(Match, { as: 'schedule', foreignKey: 'tournament_id', sourceKey: 'id' })
+Tournament.hasMany(Match, { as: 'schedule', foreignKey: 'tournament_id', sourceKey: 'id', onDelete: 'CASCADE' })
 Match.belongsTo(Tournament, { foreignKey: 'tournament_id', as: 'tournament' })
 
-Match.hasMany(Game, { as: 'games', foreignKey: 'match_id', sourceKey: 'id' })
+Match.hasMany(Game, { as: 'games', foreignKey: 'match_id', sourceKey: 'id', onDelete: 'CASCADE' })
 Game.belongsTo(Match, { foreignKey: 'match_id', as : 'match' })
 
 Match.belongsTo(Team, { as: 'team1', foreignKey: 'team1_id', targetKey: 'id' })
 Match.belongsTo(Team, { as: 'team2', foreignKey: 'team2_id', targetKey: 'id' })
 
-Tournament.hasMany(Standings, { as: 'standings', foreignKey: 'tournament_id', sourceKey: 'id' })
+Tournament.hasMany(Standings, { as: 'standings', foreignKey: 'tournament_id', sourceKey: 'id', onDelete: 'CASCADE' })
 Standings.belongsTo(Tournament, { foreignKey: 'tournament_id', as: 'tournament' })
 
-Game.hasMany(GameLog, { as: 'logs', foreignKey: 'game_id', sourceKey: 'id' })
+Game.hasMany(GameLog, { as: 'logs', foreignKey: 'game_id', sourceKey: 'id', onDelete: 'CASCADE' })
 GameLog.belongsTo(Game, { foreignKey: 'game_id', as: 'game', targetKey: 'id' })
 
-Game.hasOne(GameStats, { as: 'stats', foreignKey: 'game_id', sourceKey: 'id' })
+Game.hasOne(GameStats, { as: 'stats', foreignKey: 'game_id', sourceKey: 'id', onDelete: 'CASCADE' })
 GameStats.belongsTo(Game, { foreignKey: 'game_id', as: 'game' })
 
 GameStats.belongsTo(Team, { as: 'team1', foreignKey: 'team1_id', targetKey: 'id' })
 GameStats.belongsTo(Team, { as: 'team2', foreignKey: 'team2_id', targetKey: 'id' })
 GameStats.belongsTo(Team, { as: 'winner', foreignKey: 'winner_id', targetKey: 'id' })
 
-GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team1', foreignKey: 'game_stats_player1_id', sourceKey: 'id' })
-GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team2', foreignKey: 'game_stats_player2_id', sourceKey: 'id' })
+GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team1', foreignKey: 'game_stats_player1_id', sourceKey: 'id', onDelete: 'CASCADE' })
+GameStats.hasMany(PlayerGameStats, { as: 'players_stats_team2', foreignKey: 'game_stats_player2_id', sourceKey: 'id', onDelete: 'CASCADE' })
 PlayerGameStats.belongsTo(GameStats, { as: 'game_stats_player1', foreignKey: 'game_stats_player1_id', targetKey: 'id' })
 PlayerGameStats.belongsTo(GameStats, { as: 'game_stats_player2', foreignKey: 'game_stats_player2_id', targetKey: 'id' })
 

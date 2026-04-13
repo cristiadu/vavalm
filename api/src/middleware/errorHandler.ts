@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express'
 import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
 import { ValidateError } from 'tsoa'
+import { UniqueConstraintError, ValidationError as SequelizeValidationError } from 'sequelize'
 
 /**
  * Error handler middleware
@@ -26,7 +27,31 @@ export const errorHandler: ErrorRequestHandler = (
     return
   }
 
+  if (err instanceof UniqueConstraintError) {
+    // Sequelize unique constraint violation — a duplicate record was attempted
+    const fields = err.errors.map(e => e.path).join(', ')
+    const apiError = new ErrorApiModel(
+      422,
+      `Duplicate value for field(s): ${fields}`,
+      'DUPLICATE_ENTRY',
+    )
+    res.status(422).json(apiError)
+    return
+  }
+
+  if (err instanceof SequelizeValidationError) {
+    // Sequelize model-level validation failure — the OpenAPI spec should have caught this
+    // before it reached the DB. Treat as an internal server error so it surfaces as a bug.
+    console.error('[ErrorHandler] SequelizeValidationError (should be caught by OpenAPI validation):', err.message)
+    const apiError = new ErrorApiModel(500, 'An unexpected validation error occurred', 'INTERNAL_SERVER_ERROR')
+    res.status(500).json(apiError)
+    return
+  }
+
   if (err instanceof Error) {
+    // Log all errors for debugging
+    console.error('[ErrorHandler] Caught error:', err.message, err.stack?.split('\n')[1] ?? '')
+
     // Determine status code from the Error name if possible
     let status = 500
     let code = 'INTERNAL_SERVER_ERROR'

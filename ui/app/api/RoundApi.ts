@@ -21,20 +21,20 @@ export const getLastRound = async (game_id: number, closure: (_lastRoundLogs: Ga
   try {
     const cacheKey = `last_${game_id}`
     const cachedData = roundCache.get(cacheKey)
-    
+
     // Return cached data if available and not expired
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
       closure(cachedData.data)
       return cachedData.data
     }
-    
+
     const response = await VavalMApiClient.default.getLastRound(game_id)
-    const data = await Promise.all(response.map(async (log: GameLogApiModel) => ({
+    const data = response.map((log: GameLogApiModel) => ({
       ...log,
-      player1: await VavalMApiClient.default.getPlayer(log.team1_player_id),
-      player2: await VavalMApiClient.default.getPlayer(log.team2_player_id),
-    } as GameLogWithPlayers)))
-    
+      player1: log.team1_player,
+      player2: log.team2_player,
+    } as GameLogWithPlayers))
+
     roundCache.set(cacheKey, { data: data, timestamp: Date.now() })
     closure(data)
     return data
@@ -48,23 +48,23 @@ export const getRound = async (game_id: number, round: number, closure: (_roundL
   try {
     const cacheKey = `round_${game_id}_${round}`
     const cachedData = roundCache.get(cacheKey)
-    
+
     // Return cached data if available and not expired
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
       closure(cachedData.data)
       return cachedData.data
     }
-    
+
     const response = await VavalMApiClient.default.getRound(game_id, round)
-    const data = await Promise.all(response.map(async (log: GameLogApiModel) => ({
+    const data = response.map((log: GameLogApiModel) => ({
       ...log,
-      player1: await VavalMApiClient.default.getPlayer(log.team1_player_id),
-      player2: await VavalMApiClient.default.getPlayer(log.team2_player_id),
-    } as GameLogWithPlayers)))
-  
+      player1: log.team1_player,
+      player2: log.team2_player,
+    } as GameLogWithPlayers))
+
     // Cache the response
     roundCache.set(cacheKey, { data: data, timestamp: Date.now() })
-    
+
     closure(data)
     return data
   } catch (error) {

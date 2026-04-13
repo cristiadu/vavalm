@@ -13,12 +13,7 @@ import MatchService from "@/services/MatchService"
 import GameStatsService from "@/services/GameStatsService"
 import RoundService from "@/services/RoundService"
 import CacheService from "@/services/CacheService"
-
-// Cache TTL constants
-const CACHE_TTL = {
-  GAME: 60, // 1 minute
-  GAME_STATS: 120, // 2 minutes
-}
+import { CACHE_TTL } from "@/base/CacheConstants"
 
 const GameService = {
   /**
@@ -169,7 +164,7 @@ const GameService = {
     // Update tournament standings if the game is finished
     await TournamentService.updateStandingsAndWinner(game.match.tournament_id)
 
-    // Invalidate caches for this game
+    // Invalidate caches for this game and stats
     CacheService.delete(`game-${game_id}`)
     CacheService.delete(`game-stats-${game_id}`)
 

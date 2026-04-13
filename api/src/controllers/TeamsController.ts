@@ -33,6 +33,7 @@ export class TeamsController extends Controller {
       limit: Math.min(limit, 100),
       offset,
       order: [["id", "ASC"]],
+      include: [{ model: Player, as: 'players' }],
     })
     
     const result = new ItemsWithPagination(teams.rows, teams.count)
@@ -64,7 +65,9 @@ export class TeamsController extends Controller {
   public async createTeamsBulk(
     @Body() requestBody: TeamApiModel[],
   ): Promise<TeamApiModel[]> {
-    const newTeams = await Team.bulkCreate(await Promise.all(requestBody.map(team => team.toEntityModelBulk())))
+    const newTeams = await Team.bulkCreate(
+      await Promise.all(requestBody.map(t => TeamApiModel.from(t).toEntityModelBulk())),
+    )
     
     this.setStatus(201)
     return newTeams.map(team => team.toApiModel())

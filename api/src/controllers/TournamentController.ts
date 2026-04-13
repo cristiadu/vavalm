@@ -10,7 +10,6 @@ import { MatchType } from "@/models/enums"
 import TournamentService from "@/services/TournamentService"
 import MatchService from "@/services/MatchService"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
-import Match from "@/models/Match"
 
 @Route("tournaments")
 export class TournamentController extends Controller {
@@ -290,9 +289,6 @@ export class TournamentController extends Controller {
   @Delete("{tournamentId}")
   @OperationId("deleteTournament")
   public async deleteTournament(@Path() tournamentId: number): Promise<void> {
-    await Tournament.destroy({ where: { id: tournamentId } })
-    await Match.destroy({ where: { tournament_id: tournamentId } })
-    await Standings.destroy({ where: { tournament_id: tournamentId } })
-    await Team.destroy({ where: { tournament_id: tournamentId } })
+    await TournamentService.deleteTournament(tournamentId)
   }
 }
