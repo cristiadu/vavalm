@@ -14,13 +14,6 @@ const config = {
       ignore: ['./app/components/games/GameDetails.tsx'],
     },
   },
-  ignore: [
-    '**/public/**',
-    '**/dist/**',
-    '**/.next/**',
-    '**/node_modules/**',
-    '**/.turbo/**',
-  ],
 } as const satisfies KnipConfig
 
 export default config

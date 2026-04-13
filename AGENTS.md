@@ -106,39 +106,67 @@ Never use `Pick<*ApiModel, ...>` casts inline in `toApiModel()` or controllers �
 - DB models: `PascalCase` noun — `Player`, `GameLog`, `Tournament`.
 - Contract models: same name suffixed with `ApiModel` — `PlayerApiModel`, `GameLogApiModel`.
 - Sub-shapes that appear inside a contract model also follow `*ApiModel` — e.g. `RoundStateApiModel`, `PlayerAttributesApiModel`.
-- Never invent a parallel alias (`RoundStateJson`, `RoundStatePlain`, etc.). If a plain-object cast is needed, use `Pick<*ApiModel, ...>` to derive the type from the existing contract model.
+- Never invent a parallel alias (`RoundStateJson`, `RoundStatePlain`, etc.). Use the existing `*ApiModel` and its `static from()` factory.
 
 ### JSON column pattern
 
-When a `DataTypes.JSON` column stores a complex object, declare the field with the entity type (e.g. `declare round_state: RoundState`). In `toApiModel()`, cast the field to a `Pick` of the matching contract model to read only the reliably persisted scalar fields — this is safe on plain DB objects without relying on instance methods:
+When a `DataTypes.JSON` column stores a complex object, declare the field with the entity type (e.g. `declare round_state: RoundState`). In `toApiModel()`, convert it via `static from()` on the matching contract model — the factory handles the plain-object-to-instance conversion:
 
 ```typescript
-const rs = this.round_state as Pick<RoundStateApiModel, 'round' | 'duel' | 'team_won' | 'finished' | 'previous_duel'>
+return new GameLogApiModel(
+  RoundStateApiModel.from(this.round_state),
+  ...
+)
 ```
 
 ## Code Rules
 
-> **Never use `any`, `unknown`, or `never` as a type in this codebase.** Use the correct domain type or a named type alias. If a value genuinely has an uncertain shape at runtime (e.g. a JSON column), use `Pick<*ApiModel, ...>` or a proper named interface.
+> **Never use `any`, `unknown`, or `never` as a type in this codebase.** Use the correct domain type or a named type alias. For plain objects from JSON columns or tsoa bodies, use `static from()` on the matching `*ApiModel`.
 
 > **Never use `Object.assign` or `Object.create` to hydrate API models.** Use the constructor directly.
 
 > **Always use `pnpm` scripts — never invoke `docker` or `docker compose` commands directly.** All Docker lifecycle operations are wrapped by pnpm scripts. Examples: `pnpm localdb dev`, `pnpm localdb down`, `pnpm test`, `pnpm dev:docker:up`, `pnpm dev:docker:down`.
 
+> **Every exported function and method must have a JSDoc comment.** Include at minimum a one-line description; add `@param` / `@returns` for non-obvious signatures.
+
+> **Always use path aliases — never use relative imports.** `api/tsconfig.json` defines `@/*` → `src/*` and `@tests/*` → `tests/*`. All imports in `api/src/` use `@/…` and all imports in `api/tests/` use `@tests/…`.
+
 ## Testing
 
-Tests live in `api/tests/api/` and use **Vitest** against a real Docker PostgreSQL instance. Follow the pattern in `health.test.ts`:
+Tests live in `api/tests/api/` and use **Vitest** against a real Docker PostgreSQL instance.
+
+### GWT structure
+
+Follow the **Given / When / Then** split:
+
+- **GIVEN** — fixture setup lives in `beforeAll` / `afterAll`, calling helpers from `common-*.ts`.
+- **WHEN** — the actual API call being tested, written inline in the `it()` body.
+- **THEN** — assertions written inline in the `it()` body. Complex or reusable assertions can be extracted to a helper; if the helper is used in multiple test files, put it in `common-*.ts`.
 
 ```typescript
 import { apiClient } from '@tests/setup'
+import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 
-describe('...', () => {
-  let fixtureId: number
-  beforeAll(async () => { /* create via API */ })
-  afterAll(async () => { /* delete via API */ })
-  it('...', async () => { expect(...) })
+describe('Teams', () => {
+  let teamId: number
+  beforeAll(async () => { teamId = await givenTeamExists() })  // GIVEN
+  afterAll(async () => { await cleanupTeam(teamId) })
+
+  it('returns the team by id', async () => {
+    const result = await apiClient.teams.getTeam(teamId)       // WHEN
+    expect(result.id).toBe(teamId)                             // THEN
+  })
 })
 ```
+
+### `common-*.ts` files
+
+Shared fixture helpers (`givenXExists`, `cleanupX`, shared constants) live in `api/tests/api/common-*.ts`. Rules:
+
+- Every exported function **must have a JSDoc comment** explaining what it sets up or tears down.
+- Functions are named `givenXExists` / `cleanupX` to make the Given/Then intent clear at the call site.
+- Complex assertion helpers reused across test files also go here.
 
 ## Game Mechanics
 
