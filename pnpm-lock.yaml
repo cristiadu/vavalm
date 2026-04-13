@@ -9,10 +9,10 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^25.5.2
+        specifier: ^25.6.0
         version: 25.6.0
       knip:
-        specifier: ^6.3.0
+        specifier: ^6.4.1
         version: 6.4.1(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)
       turbo:
         specifier: latest
