@@ -47,3 +47,6 @@ venv
 
 # coverage
 **/tests/coverage
+
+# claude
+.claude/
