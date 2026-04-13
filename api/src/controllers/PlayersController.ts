@@ -119,9 +119,7 @@ export class PlayersController extends Controller {
     @Body() requestBody: PlayerApiModel[],
   ): Promise<PlayerApiModel[]> {
     const newPlayers = await Player.bulkCreate(
-      await Promise.all(requestBody.map(p => new PlayerApiModel(
-        p.nickname, p.full_name, p.age, p.country, p.team_id, p.role, p.player_attributes, p.id,
-      ).toEntityModelBulk())),
+      await Promise.all(requestBody.map(p => PlayerApiModel.from(p).toEntityModelBulk())),
     )
     
     this.setStatus(201)
@@ -152,10 +150,7 @@ export class PlayersController extends Controller {
       throw new Error("Player not found")
     }
 
-    const updatedPlayer = await new PlayerApiModel(
-      requestBody.nickname, requestBody.full_name, requestBody.age, requestBody.country,
-      requestBody.team_id, requestBody.role, requestBody.player_attributes, requestBody.id,
-    ).toEntityModel()
+    const updatedPlayer = await PlayerApiModel.from(requestBody).toEntityModel()
 
     player.nickname = updatedPlayer.nickname
     player.full_name = updatedPlayer.full_name

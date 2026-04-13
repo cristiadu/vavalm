@@ -19,6 +19,17 @@ export class TeamApiModel extends BaseEntityModel {
     super()
   }
 
+  /**
+   * Constructs a real TeamApiModel instance from a plain object
+   * (e.g. a tsoa-deserialized request body, which has the right shape but no methods).
+   */
+  static from(data: TeamApiModel): TeamApiModel {
+    return new TeamApiModel(
+      data.short_name, data.full_name, data.description, data.country,
+      data.logo_image_file, data.id, data.players,
+    )
+  }
+
   @Hidden()
   override toApiModel(): TeamApiModel {
     return this

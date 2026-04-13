@@ -80,6 +80,22 @@ Every persisted domain object has two representations that mirror each other:
 - `toEntityModel(): EntityModel | Promise<EntityModel>` — hydrates the contract data back into the DB model type. Never use `Object.assign` or `Object.create`; always call the constructor explicitly.
 - `toEntityModelBulk(): Promise<Record<string, unknown>>` — same as `toEntityModel` but returns a plain object suitable for Sequelize `bulkCreate`.
 
+### tsoa request bodies are plain objects — use `static from()`
+
+tsoa (`bodyCoercion: true`) validates and coerces primitive types but does **not** instantiate TypeScript classes. A `@Body() requestBody: PlayerApiModel` arrives in the controller typed correctly but is a plain `{}` at runtime — it has no prototype methods.
+
+Every `*ApiModel` class exposes a **`static from(data: *ApiModel): *ApiModel`** factory that constructs a real instance from a plain object. Controllers always call `from()` before calling any instance method:
+
+```typescript
+// WRONG — p is a plain object; p.toEntityModelBulk() throws at runtime
+requestBody.map(p => p.toEntityModelBulk())
+
+// CORRECT — hydrate via the static factory first
+requestBody.map(p => PlayerApiModel.from(p).toEntityModelBulk())
+```
+
+`from()` is also responsible for hydrating nested `*ApiModel` fields (e.g. `PlayerApiModel.from()` calls `PlayerAttributesApiModel.from()` so that `this.player_attributes.toEntityModel()` works inside `toEntityModel()`).
+
 ### Naming rules
 
 - DB models: `PascalCase` noun — `Player`, `GameLog`, `Tournament`.

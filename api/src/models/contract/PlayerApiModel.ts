@@ -25,10 +25,23 @@ export class PlayerAttributesApiModel extends BaseEntityModel {
     super()
   }
 
+  /**
+   * Constructs a real PlayerAttributesApiModel instance from a plain object
+   * (e.g. a tsoa-deserialized request body, which has the right shape but no methods).
+   */
+  static from(data: PlayerAttributesApiModel): PlayerAttributesApiModel {
+    return new PlayerAttributesApiModel(
+      data.clutch, data.awareness, data.aim, data.positioning,
+      data.game_reading, data.resilience, data.confidence, data.strategy,
+      data.adaptability, data.communication, data.unpredictability,
+      data.game_sense, data.decision_making, data.rage_fuel, data.teamwork, data.utility_usage,
+    )
+  }
+
   async toEntityModel(): Promise<PlayerAttributes> {
     const PlayerModule = await import('@/models/Player')
     const { PlayerAttributes } = PlayerModule
-    
+
     return new PlayerAttributes(
       this.clutch,
       this.awareness,
@@ -51,7 +64,7 @@ export class PlayerAttributesApiModel extends BaseEntityModel {
 
   toApiModel(): PlayerAttributesApiModel {
     return this
-  } 
+  }
 }
 
 /**
@@ -71,6 +84,19 @@ export class PlayerApiModel extends BaseEntityModel {
     super()
   }
 
+  /**
+   * Constructs a real PlayerApiModel instance from a plain object
+   * (e.g. a tsoa-deserialized request body, which has the right shape but no methods).
+   */
+  static from(data: PlayerApiModel): PlayerApiModel {
+    return new PlayerApiModel(
+      data.nickname, data.full_name, data.age, data.country,
+      data.team_id, data.role,
+      PlayerAttributesApiModel.from(data.player_attributes),
+      data.id,
+    )
+  }
+
   @Hidden()
   override toApiModel(): PlayerApiModel {
     return this
@@ -78,15 +104,7 @@ export class PlayerApiModel extends BaseEntityModel {
 
   @Hidden()
   override async toEntityModel(): Promise<Player> {
-    // player_attributes fields are read directly — valid whether this came from
-    // a tsoa-deserialized request body (plain object) or a constructed instance.
-    const a = this.player_attributes
-    const attributes = await new PlayerAttributesApiModel(
-      a.clutch, a.awareness, a.aim, a.positioning,
-      a.game_reading, a.resilience, a.confidence, a.strategy,
-      a.adaptability, a.communication, a.unpredictability,
-      a.game_sense, a.decision_making, a.rage_fuel, a.teamwork, a.utility_usage,
-    ).toEntityModel()
+    const attributes = await this.player_attributes.toEntityModel()
 
     return new Player({
       id: this.id,
