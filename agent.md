@@ -80,21 +80,26 @@ Every persisted domain object has two representations that mirror each other:
 - `toEntityModel(): EntityModel | Promise<EntityModel>` — hydrates the contract data back into the DB model type. Never use `Object.assign` or `Object.create`; always call the constructor explicitly.
 - `toEntityModelBulk(): Promise<Record<string, unknown>>` — same as `toEntityModel` but returns a plain object suitable for Sequelize `bulkCreate`.
 
-### tsoa request bodies are plain objects — use `static from()`
+### Plain objects must go through `static from()` — use it everywhere
 
-tsoa (`bodyCoercion: true`) validates and coerces primitive types but does **not** instantiate TypeScript classes. A `@Body() requestBody: PlayerApiModel` arrives in the controller typed correctly but is a plain `{}` at runtime — it has no prototype methods.
+Two situations produce plain objects that look like `*ApiModel` but have no prototype methods:
 
-Every `*ApiModel` class exposes a **`static from(data: *ApiModel): *ApiModel`** factory that constructs a real instance from a plain object. Controllers always call `from()` before calling any instance method:
+1. **tsoa request bodies** — `bodyCoercion: true` validates and coerces fields but never calls `new *ApiModel(...)`.
+2. **`DataTypes.JSON` columns** — Sequelize deserializes JSON column values as plain `{}` objects.
+
+Every `*ApiModel` class exposes a **`static from(data): *ApiModel`** factory. Always call it before invoking any method:
 
 ```typescript
-// WRONG — p is a plain object; p.toEntityModelBulk() throws at runtime
-requestBody.map(p => p.toEntityModelBulk())
-
-// CORRECT — hydrate via the static factory first
+// tsoa request body
 requestBody.map(p => PlayerApiModel.from(p).toEntityModelBulk())
+
+// DB JSON column
+RoundStateApiModel.from(this.round_state)
 ```
 
 `from()` is also responsible for hydrating nested `*ApiModel` fields (e.g. `PlayerApiModel.from()` calls `PlayerAttributesApiModel.from()` so that `this.player_attributes.toEntityModel()` works inside `toEntityModel()`).
+
+Never use `Pick<*ApiModel, ...>` casts inline in `toApiModel()` or controllers — that logic belongs inside `static from()`.
 
 ### Naming rules
 

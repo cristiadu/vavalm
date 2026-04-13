@@ -22,6 +22,23 @@ export class RoundStateApiModel extends BaseEntityModel {
     super()
   }
 
+  /**
+   * Constructs a real RoundStateApiModel instance from a plain object
+   * (e.g. a DataTypes.JSON column read from the DB, which has the right shape but no methods).
+   * alive-player arrays are not persisted — they are served as [].
+   */
+  static from(data: RoundState): RoundStateApiModel {
+    return new RoundStateApiModel(
+      data.round,
+      data.duel,
+      [],
+      [],
+      data.team_won as TeamApiModel | null,
+      data.finished,
+      data.previous_duel,
+    )
+  }
+
   async toEntityModel(): Promise<RoundState> {
     const RoundStateModule = await import('@/models/GameLog')
     const { RoundState } = RoundStateModule
