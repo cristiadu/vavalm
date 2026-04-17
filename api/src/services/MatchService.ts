@@ -27,6 +27,7 @@ const MatchService = {
     // Get count of all matches from tournament, then get the matches with limit and offset
     const tournamentMatches = await Match.findAndCountAll({
       where: { tournament_id: tournamentId },
+      order: [['date', 'ASC'], ['id', 'ASC']],
       limit,
       offset,
     })
@@ -131,21 +132,19 @@ const MatchService = {
   },
 
   /**
-   * Retrieves all matches that should be played based on a before date.
-   * It limits the number of matches to 10 at at time.
-   * 
-   * @param {Date} before - A date that represents the maximum date for the matches to be played.
-   * @returns {Promise<Match[]>} A promise that resolves to an array of games that should be played.
+   * Retrieves the next batch of unstarted matches up to MAX_CONCURRENT_MATCHES,
+   * ordered by date ascending across all tournaments.
+   *
+   * @param {Date} before - Upper bound for the match date (inclusive).
+   * @returns {Promise<Match[]>} Matches to play next.
    */
   getMatchesToBePlayed: async (before: Date): Promise<Match[]> => {
     return await Match.findAll({
       where: {
-        date: {
-          [Op.lte]: before,
-        },
+        date: { [Op.lte]: before },
         started: false,
       },
-      order: [['date', 'ASC']],
+      order: [['date', 'ASC'], ['id', 'ASC']],
       limit: MAX_CONCURRENT_MATCHES,
     })
   },

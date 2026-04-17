@@ -1,9 +1,8 @@
 import { parentPort } from 'worker_threads'
 import Match from '@/models/Match'
 import MatchService from '@/services/MatchService'
-import { WorkerMessageType, ErrorReportMessage } from '@/models/SchedulerTypes'
+import { WorkerMessageType } from '@/models/SchedulerTypes'
 import {
-  MAX_CONCURRENT_MATCHES,
   STANDARD_CHECK_INTERVAL,
   REDUCED_CHECK_INTERVAL,
   CIRCUIT_BREAKER_THRESHOLD,
@@ -19,43 +18,15 @@ let circuitBroken = false
 let lastCircuitBreak = 0
 
 /**
- * Reports a database error back to the parent thread
- * 
- * @param error The error that occurred
- */
-const reportDbError = (error: Error): void => {
-  if (parentPort) {
-    try {
-      const errorMessage: ErrorReportMessage = {
-        type: WorkerMessageType.DB_ERROR,
-        error: {
-          message: error.message,
-          name: error.name,
-          stack: error.stack,
-        },
-      }
-      parentPort.postMessage(errorMessage)
-    } catch (e) {
-      console.error('Failed to report error to parent:', e)
-    }
-  }
-}
-
-/**
- * Handles database errors and implements circuit breaker pattern
- * 
+ * Handles errors and implements circuit breaker pattern
+ *
  * @param error The error that occurred
  */
 const handleDbError = (error: Error): void => {
-  console.error('Database error in scheduler worker:', error)
+  console.error('Error in scheduler worker:', error)
 
-  // Track consecutive errors for circuit breaker
   consecutiveErrors++
 
-  // Report error to parent process
-  reportDbError(error)
-
-  // Implement circuit breaker pattern
   if (consecutiveErrors >= CIRCUIT_BREAKER_THRESHOLD) {
     circuitBroken = true
     lastCircuitBreak = Date.now()
@@ -88,26 +59,21 @@ const recordSuccess = (): void => {
  * Fetch matches that should be played based on their scheduled time
  */
 const fetchMatchesThatShouldBePlayed = async (): Promise<Match[]> => {
-  // Skip processing if circuit breaker is active or worker is paused
+  resetCircuitBreakerIfNeeded()
+
   if (circuitBroken || workerPaused) {
     return []
   }
 
   try {
-    // Reset circuit breaker if needed
-    resetCircuitBreakerIfNeeded()
 
     const now = new Date()
-    // Get matches that should be played using MatchService
     const matchesToPlay = await MatchService.getMatchesToBePlayed(now)
-
-    // Limit to prevent overloading the system
-    const limitedMatches = matchesToPlay.slice(0, MAX_CONCURRENT_MATCHES)
 
     // Record success for circuit breaker
     recordSuccess()
 
-    return limitedMatches as Match[]
+    return matchesToPlay as Match[]
   } catch (error) {
     handleDbError(error as Error)
     return []
