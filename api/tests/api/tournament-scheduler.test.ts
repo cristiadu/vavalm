@@ -4,9 +4,8 @@ import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
 import {
   givenTournamentExists,
   cleanupTournament,
-  waitForCondition,
-  isValidDateString,
 } from '@tests/api/common-tournaments'
+import { waitForCondition, isValidDateString } from '@tests/api/common-utils'
 import {
   AllPlayerStats,
   GameApiModel,
