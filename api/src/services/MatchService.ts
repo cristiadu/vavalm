@@ -243,7 +243,7 @@ const MatchService = {
           team2_score: 0,
           type: matchType,
           winner_id: null,
-          included_on_standings: true,
+          standings_processed: false,
           started: false,
           finished: false,
         })

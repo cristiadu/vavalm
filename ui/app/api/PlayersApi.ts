@@ -1,5 +1,7 @@
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
-import { AllPlayerStats, ItemsWithPagination_AllPlayerStats_, ItemsWithPagination_PlayerApiModel_, PlayerApiModel } from "@/api/generated"
+import { parseLogoImageFile } from "@/api/models/helpers"
+import { TeamWithLogoImageData } from "@/api/models/types"
+import { AllPlayerStats, ItemsWithPagination_AllPlayerStats_, ItemsWithPagination_PlayerApiModel_, PlayerApiModel, TeamApiModel } from "@/api/generated"
 import { VavalMApiClient } from "@/api/client"
 
 // Cache for API responses to reduce network requests
@@ -47,9 +49,18 @@ export const fetchPlayersStats = async (
   try {
     const data = await withCache(cacheKey, async () => {
       const response = await VavalMApiClient.default.getPlayersStats(limit, offset)
+      // Parse team logo files from base64 to File objects
+      if (response?.items) {
+        response.items = response.items.map((item: AllPlayerStats) => {
+          if (item.team) {
+            return { ...item, team: parseLogoImageFile<TeamApiModel>(item.team as TeamWithLogoImageData) }
+          }
+          return item
+        })
+      }
       return response
     })
-    
+
     closure(data)
     return data
   } catch (error) {

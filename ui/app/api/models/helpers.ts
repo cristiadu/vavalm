@@ -1,5 +1,6 @@
 import { GameStatsApiModel, MatchApiModel, PlayerGameStatsApiModel, PlayerRole, TeamApiModel } from "@/api/generated"
 import { ASSISTS_HALF_MULTIPLIER, DEFAULT_TEAM_LOGO_IMAGE_PATH } from "@/api/models/constants"
+import { calculatePlayerRating } from "@/common/NumberUtils"
 import { TeamWithLogoImageData } from "@/api/models/types"
 
 /**
@@ -26,22 +27,21 @@ export const getAttributeBgColor = (attributeValue: number): string => {
  * @returns The background color for the role
  */
 export const getRoleBgColor = (role: PlayerRole): string => {
-  const tailwindStyle = "p-1 rounded text-white ml-2 "
   switch (role) {
   case PlayerRole.INITIATOR:
-    return tailwindStyle + 'bg-blue-400'
+    return 'bg-blue-400'
   case PlayerRole.DUELIST:
-    return tailwindStyle + 'bg-red-700'
+    return 'bg-red-700'
   case PlayerRole.CONTROLLER:
-    return tailwindStyle + 'bg-green-700'
+    return 'bg-green-700'
   case PlayerRole.SENTINEL:
-    return tailwindStyle + 'bg-purple-700'
+    return 'bg-purple-700'
   case PlayerRole.FLEX:
-    return tailwindStyle + 'bg-yellow-600'
+    return 'bg-yellow-600'
   case PlayerRole.IGL:
-    return tailwindStyle + 'bg-orange-500'
+    return 'bg-orange-500'
   default:
-    return tailwindStyle + 'bg-gray-700'
+    return 'bg-gray-700'
   }
 }
 
@@ -137,8 +137,8 @@ export const getWinOrLossColor = (team: TeamApiModel, stats: GameStatsApiModel |
  * @returns The sorted players
  */
 export const sortPlayersByStats = (p1: PlayerGameStatsApiModel, p2: PlayerGameStatsApiModel): number => {
-  const kda1 = (p1.kills + p1.assists * ASSISTS_HALF_MULTIPLIER) / p1.deaths
-  const kda2 = (p2.kills + p2.assists * ASSISTS_HALF_MULTIPLIER) / p2.deaths
+  const kda1 = calculatePlayerRating(p1.kills, p1.assists, p1.deaths, ASSISTS_HALF_MULTIPLIER)
+  const kda2 = calculatePlayerRating(p2.kills, p2.assists, p2.deaths, ASSISTS_HALF_MULTIPLIER)
 
   if (kda1 !== kda2) return kda2 - kda1
   if (p1.kills !== p2.kills) return p2.kills - p1.kills

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { LIMIT_PER_PAGE_INITIAL_VALUE } from '@/api/models/constants'
 
 interface PaginationProps {
@@ -8,39 +8,32 @@ interface PaginationProps {
 }
 
 const Pagination: React.FC<PaginationProps> = ({ totalItems, onPageChange, limitValue = LIMIT_PER_PAGE_INITIAL_VALUE}) => {
-  const [limit, setLimit] = useState(limitValue)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
   const [showPageSelect, setShowPageSelect] = useState(false)
 
-  useEffect(() => {
-    setTotalPages(Math.ceil(totalItems / limit))
-  }, [totalItems, limit])
-
-  useEffect(() => {
-    setLimit(limitValue)
-  }, [limitValue])
+  // Derive totalPages directly from props — no stale state
+  const totalPages = Math.max(1, Math.ceil(totalItems / limitValue))
 
   const handlePreviousPage = (): void => {
     const newCurrentPage = Math.max(currentPage - 1, 1)
-    const newOffset = (newCurrentPage - 1) * limit
+    const newOffset = (newCurrentPage - 1) * limitValue
 
     setCurrentPage(newCurrentPage)
-    onPageChange(limit, newOffset)
+    onPageChange(limitValue, newOffset)
   }
 
   const handleNextPage = (): void => {
     const newCurrentPage = Math.min(currentPage + 1, totalPages)
-    const newOffset = (newCurrentPage - 1) * limit
+    const newOffset = (newCurrentPage - 1) * limitValue
 
     setCurrentPage(newCurrentPage)
-    onPageChange(limit, newOffset)
+    onPageChange(limitValue, newOffset)
   }
 
   const handlePageSelect = (page: number): void => {
-    const newOffset = (page - 1) * limit
+    const newOffset = (page - 1) * limitValue
     setCurrentPage(page)
-    onPageChange(limit, newOffset)
+    onPageChange(limitValue, newOffset)
     setShowPageSelect(false)
   }
 

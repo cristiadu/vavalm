@@ -4,6 +4,7 @@ import GameLog, { RoundState } from '@/models/GameLog'
 import GameStats from '@/models/GameStats'
 
 import DuelService from '@/services/DuelService'
+import GameStatsService from '@/services/GameStatsService'
 
 const RoundService = {
   /**
@@ -59,14 +60,48 @@ const RoundService = {
   },
   /**
    * Plays rounds until one team wins 13 rounds or 2 rounds more than the enemy if both get to 12-12 without a winner.
-   * 
+   * Continues from existing game state if rounds were already played (e.g. via Play Duel / Play Round).
+   *
    * @param {number} game_id - The ID of the game.
    * @returns {Promise<{team1_rounds: number, team2_rounds: number}>} The number of rounds won by each team.
    */
   playRoundsUntilWin: async (game_id: number): Promise<{ team1_rounds: number, team2_rounds: number }> => {
-    let round = 1
-    let team1_rounds = 0
-    let team2_rounds = 0
+    // First, process any unprocessed logs from previous play actions (duels/rounds)
+    // so that current scores reflect all previously played rounds
+    await GameStatsService.updateAllStats(game_id)
+
+    // Get current game scores to continue from existing state
+    const gameStats = await GameStats.findOne({ where: { game_id } })
+    if (!gameStats) {
+      throw new Error(`Game stats not found for game_id: ${game_id}`)
+    }
+
+    // If the game already has a winner, nothing to do
+    if (gameStats.winner_id) {
+      return { team1_rounds: gameStats.team1_score, team2_rounds: gameStats.team2_score }
+    }
+
+    let team1_rounds = gameStats.team1_score
+    let team2_rounds = gameStats.team2_score
+
+    // Find the last played round to continue from there
+    const lastLog = await GameLog.findOne({
+      where: { game_id },
+      order: [['id', 'DESC']],
+    })
+    let round = lastLog ? lastLog.round_state.round + (lastLog.round_state.finished ? 1 : 0) : 1
+
+    // If the last round wasn't finished, finish it first
+    if (lastLog && !lastLog.round_state.finished) {
+      const finishedRound = await RoundService.finishExistingRound(game_id, lastLog.round_state.round)
+      if (finishedRound.team1_alive_players.length === 0) {
+        team2_rounds += 1
+      } else if (finishedRound.team2_alive_players.length === 0) {
+        team1_rounds += 1
+      }
+      round = finishedRound.round + 1
+    }
+
     let currentRound: RoundState
 
     while ((team1_rounds < 13 && team2_rounds < 13) || (Math.abs(team1_rounds - team2_rounds) < 2)) {
@@ -159,6 +194,11 @@ const RoundService = {
       } else if (currentRound == null || currentRound.finished) {
         console.info('Starting round: ', round_number + 1)
         currentRound = await RoundService.createRoundState(game_id, round_number + 1)
+      } else {
+        // round_state was deserialized from a JSON column — alive players are plain
+        // objects without Sequelize model methods. Reload them from the DB so that
+        // toApiModel() and association accessors (e.g. player.team) work correctly.
+        currentRound = await RoundService.rehydrateRoundState(currentRound)
       }
 
 
@@ -173,6 +213,24 @@ const RoundService = {
       console.error('Error playing round step:', error)
       throw error
     }
+  },
+
+  /**
+   * Finishes an existing in-progress round by playing remaining duels.
+   * Uses playRoundStep which correctly resumes from the last duel state.
+   *
+   * @param {number} game_id - The ID of the game.
+   * @param {number} round_number - The round number to finish.
+   * @returns {Promise<RoundState>} - The final state of the completed round.
+   */
+  finishExistingRound: async (game_id: number, round_number: number): Promise<RoundState> => {
+    let currentRound: RoundState = await RoundService.playRoundStep(game_id, round_number)
+
+    while (!currentRound.finished) {
+      currentRound = await RoundService.playRoundStep(game_id, round_number)
+    }
+
+    return currentRound
   },
 
   /**
@@ -207,6 +265,47 @@ const RoundService = {
       null,
       false,
       undefined,
+    )
+  },
+
+  /**
+   * Rehydrates a RoundState that was deserialized from a JSON column.
+   *
+   * When Sequelize reads the `round_state` JSON column from GameLog, the Player
+   * and Team objects inside it are plain JavaScript objects without model methods
+   * (e.g. `toApiModel()`). This helper reloads the alive players from the DB so
+   * they are proper Sequelize model instances.
+   *
+   * @param {RoundState} plainRound - The deserialized (plain-object) round state.
+   * @returns {Promise<RoundState>} - A RoundState with real Player model instances.
+   */
+  rehydrateRoundState: async (plainRound: RoundState): Promise<RoundState> => {
+    const team1Ids = (plainRound.team1_alive_players || []).map((p: Player) => p.id)
+    const team2Ids = (plainRound.team2_alive_players || []).map((p: Player) => p.id)
+    const allIds = [...team1Ids, ...team2Ids]
+
+    const players = await Player.findAll({
+      where: { id: allIds },
+      include: [{ model: Team, as: 'team' }],
+    })
+    const playerMap = new Map(players.map(p => [p.id, p]))
+
+    // Preserve the original ordering from the JSON
+    const team1Players = team1Ids
+      .map(id => playerMap.get(id))
+      .filter((p): p is Player => p != null)
+    const team2Players = team2Ids
+      .map(id => playerMap.get(id))
+      .filter((p): p is Player => p != null)
+
+    return new RoundState(
+      plainRound.round,
+      plainRound.duel,
+      team1Players,
+      team2Players,
+      plainRound.team_won,
+      plainRound.finished,
+      plainRound.previous_duel,
     )
   },
 }

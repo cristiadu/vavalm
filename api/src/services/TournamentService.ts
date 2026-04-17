@@ -100,13 +100,13 @@ const TournamentService = {
     const matches = await Match.findAll({
       where: {
         tournament_id: tournamentId,
-        included_on_standings: false,
+        standings_processed: false,
       },
       include: [
         {
           model: Game,
           as: "games",
-          where: { included_on_standings: false },
+          where: { standings_processed: false },
           include: [
             {
               model: GameStats,
@@ -142,12 +142,12 @@ const TournamentService = {
             match.team1_score += 1
             team1Standings.maps_won += 1
             team2Standings.maps_lost += 1
-            game.included_on_standings = true
+            game.standings_processed = true
           } else if (game.stats.winner_id === team2Id) {
             match.team2_score += 1
             team2Standings.maps_won += 1
             team1Standings.maps_lost += 1
-            game.included_on_standings = true
+            game.standings_processed = true
           } else {
             console.info("No winner found for game:", game.id)
           }
@@ -169,7 +169,7 @@ const TournamentService = {
           }
 
           match.winner_id = matchWinner
-          match.included_on_standings = true
+          match.standings_processed = true
         }
 
         await team1Standings.save()

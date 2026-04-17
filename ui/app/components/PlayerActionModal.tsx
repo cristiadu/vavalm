@@ -183,7 +183,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
               onSelect={handleRoleSelect}
               displayKey="value"
               placeholder="Select a type"
-              styleCssOnValue={(value) => getRoleBgColor(value as PlayerRole)}
+              styleCssOnValue={(value) => `p-1 rounded text-white ${getRoleBgColor(value as PlayerRole)}`}
               isMultiSelect={false} 
             />
           )}

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Country } from "@/api/models/types"
 import { getGame, getGameStats, playFullGame, getMatch } from "@/api/GameApi"
 import { getLastDuel } from "@/api/DuelApi"
-import { playFullRound } from "@/api/RoundApi"
+import { playFullRound, clearRoundCacheForGame } from "@/api/RoundApi"
 import { playSingleDuel } from "@/api/DuelApi"
 import GameHeader from "@/components/games/GameHeader"
 import GameLogsTable from "@/components/games/GameLogsTable"
@@ -37,42 +37,32 @@ export default function GameView(props: GameViewProps): React.ReactNode {
   const [gameBeingPlayedMessage, setGameBeingPlayedMessage] = useState<string | null>(null)
   const [lastRoundPlayed, setLastRoundPlayed] = useState<number>(0)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  
-  // Using refs for component state tracking
+  const [isFetching, setIsFetching] = useState<boolean>(false)
+  const [dataVersion, setDataVersion] = useState<number>(0)
+
+  // Track if component is still mounted to avoid state updates after unmount
   const isMounted = useRef(true)
-  const isFetching = useRef(false)
-  
-  // Fetch game data function - no caching, direct fetch
+
+  /** Fetch game data, stats, and last duel in parallel */
   const fetchGameData = useCallback(async () => {
-    // Don't start another fetch if one is in progress
-    if (isFetching.current) return
-    
-    isFetching.current = true
+    setIsFetching(true)
     setFetchError(null)
-    
+    setIsLoading(true)
+
     try {
-      setIsLoading(true)
-      
-      // Simple sequential fetching to avoid race conditions
-      const gameData = await getGame(gameId, () => {})
-      const gameStats = await getGameStats(gameId, () => {})
-      // Only continue if component is still mounted
+      const [gameData, statsData, duelData] = await Promise.all([
+        getGame(gameId),
+        getGameStats(gameId),
+        getLastDuel(gameId),
+      ])
+
       if (!isMounted.current) return
-      
-      if (gameData && gameStats) {
+
+      if (gameData && statsData) {
         setGame(gameData)
-        setGameStats(gameStats)
-        // After game data is fetched, get the last duel
-        try {
-          const duelData = await getLastDuel(gameId, () => {})
-          
-          if (isMounted.current && duelData) {
-            setLastDuel(duelData)
-            setLastRoundPlayed(duelData?.round_state?.round || 0)
-          }
-        } catch (duelError) {
-          console.log('Failed to fetch duel data, but game data is available. Error: ', duelError)
-        }
+        setGameStats(statsData)
+        setLastDuel(duelData)
+        setLastRoundPlayed(duelData?.round_state?.round || 0)
       } else {
         setFetchError('Failed to load game data or game stats')
       }
@@ -84,74 +74,89 @@ export default function GameView(props: GameViewProps): React.ReactNode {
     } finally {
       if (isMounted.current) {
         setIsLoading(false)
-        isFetching.current = false
+        setIsFetching(false)
       }
     }
   }, [gameId])
 
   // Effect to fetch game data when the gameId changes
   useEffect(() => {
-    // Set mounted flag to true
     isMounted.current = true
-    
-    // Simple fetch without debounce or caching
     fetchGameData()
-    
-    // Cleanup function
     return (): void => {
       isMounted.current = false
     }
   }, [gameId, fetchGameData])
 
-  // Handle playing a round
-  const handlePlayRound = useCallback(() => {
-    setGameBeingPlayedMessage('Round is being played...')
-    playFullRound(gameId, lastRoundPlayed + 1, async () => {
+  /** Shared post-play logic: clear round cache, refetch game data, update match */
+  const afterPlayAction = useCallback(async () => {
+    try {
+      clearRoundCacheForGame(gameId)
       await fetchGameData()
-      // Get the fresh match data from the server
-      const freshMatch = await getMatch(match.id || 0, () => {})
-      if (freshMatch) {
-        updateMatchInfo(freshMatch)
-      }
-      setGameBeingPlayedMessage(null)
-    })
-  }, [gameId, lastRoundPlayed, fetchGameData, match.id, updateMatchInfo])
+    } catch (error) {
+      console.error('Error refreshing game data after play action:', error)
+    }
 
-  // Handle playing a duel
-  const handlePlayDuel = useCallback(() => {
-    setGameBeingPlayedMessage('Duel is being played...')
-    const round = lastRoundPlayed == 0 ? 1 : lastRoundPlayed
-    playSingleDuel(gameId, round, async () => {
-      await fetchGameData()
-      // Get the fresh match data from the server
-      const freshMatch = await getMatch(match.id || 0, () => {})
-      if (freshMatch) {
-        updateMatchInfo(freshMatch)
-      }
-      setGameBeingPlayedMessage(null)
-    })
-  }, [gameId, lastRoundPlayed, fetchGameData, match.id, updateMatchInfo])
+    // Always bump data version so GameLogsTable remounts with fresh data
+    setDataVersion(prev => prev + 1)
 
-  // Handle playing the full game
-  const handlePlayFullGame = useCallback(() => {
-    setGameBeingPlayedMessage('Game is being played...')
-    playFullGame(gameId, async () => {
-      await fetchGameData()
-      // Get the fresh match data from the server
-      const freshMatch = await getMatch(match.id || 0, () => {})
+    // Refresh match data separately — don't let a failure here block the rest
+    try {
+      const freshMatch = await getMatch(match.id || 0)
       if (freshMatch) {
         updateMatchInfo(freshMatch)
       }
-      setGameBeingPlayedMessage(null)
-    })
+    } catch (error) {
+      console.error('Error refreshing match data after play action:', error)
+    }
+
+    setGameBeingPlayedMessage(null)
   }, [gameId, fetchGameData, match.id, updateMatchInfo])
 
-  // Handle manual refresh
+  /** Handle playing a round */
+  const handlePlayRound = useCallback(async () => {
+    setGameBeingPlayedMessage('Round is being played...')
+    try {
+      await playFullRound(gameId, lastRoundPlayed + 1)
+      await afterPlayAction()
+    } catch (error) {
+      console.error('Error playing round:', error)
+      setGameBeingPlayedMessage(null)
+    }
+  }, [gameId, lastRoundPlayed, afterPlayAction])
+
+  /** Handle playing a duel */
+  const handlePlayDuel = useCallback(async () => {
+    setGameBeingPlayedMessage('Duel is being played...')
+    try {
+      const round = lastRoundPlayed === 0 ? 1 : lastRoundPlayed
+      await playSingleDuel(gameId, round)
+      await afterPlayAction()
+    } catch (error) {
+      console.error('Error playing duel:', error)
+      setGameBeingPlayedMessage(null)
+    }
+  }, [gameId, lastRoundPlayed, afterPlayAction])
+
+  /** Handle playing the full game */
+  const handlePlayFullGame = useCallback(async () => {
+    setGameBeingPlayedMessage('Game is being played...')
+    try {
+      await playFullGame(gameId)
+      await afterPlayAction()
+    } catch (error) {
+      console.error('Error playing full game:', error)
+      setGameBeingPlayedMessage(null)
+    }
+  }, [gameId, afterPlayAction])
+
+  /** Handle manual refresh */
   const handleRefresh = useCallback(() => {
-    if (!isFetching.current) {
+    if (!isFetching) {
+      clearRoundCacheForGame(gameId)
       fetchGameData()
     }
-  }, [fetchGameData])
+  }, [gameId, fetchGameData, isFetching])
 
   if (isLoading && !game) {
     return (
@@ -173,9 +178,9 @@ export default function GameView(props: GameViewProps): React.ReactNode {
           <button 
             onClick={handleRefresh}
             className="mt-3 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            disabled={isFetching.current}
+            disabled={isFetching}
           >
-            {isFetching.current ? 'Refreshing...' : 'Try Again'}
+            {isFetching ? 'Refreshing...' : 'Try Again'}
           </button>
         </div>
       </div>
@@ -191,30 +196,33 @@ export default function GameView(props: GameViewProps): React.ReactNode {
           <button 
             onClick={handleRefresh}
             className="mt-3 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-            disabled={isFetching.current}
+            disabled={isFetching}
           >
-            {isFetching.current ? 'Refreshing...' : 'Try Again'}
+            {isFetching ? 'Refreshing...' : 'Try Again'}
           </button>
         </div>
       </div>
     )
   }
 
-  // Determine if buttons should be disabled
-  const buttonsDisabled = gameStats?.winner_id !== null || match?.winner_id !== null || isFetching.current || !!gameBeingPlayedMessage
+  const buttonsDisabled = !!gameStats?.winner_id || !!match?.winner_id || isFetching || !!gameBeingPlayedMessage
 
-  // Determine the last round from the game data
   const lastRound = lastDuel?.round_state?.round || 1
 
-
   return (
-    <div className="py-4">
-      <GameHeader 
+    <div className="py-4 relative">
+      {isLoading && game && (
+        <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 rounded">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      <GameHeader
         stats={gameStats as GameStatsApiModel}
         team1Country={team1Country}
         team2Country={team2Country}
       />
-      
+
       {gameBeingPlayedMessage && (
         <div className="my-4 p-3 bg-blue-100 text-blue-700 rounded">
           {gameBeingPlayedMessage}
@@ -246,9 +254,9 @@ export default function GameView(props: GameViewProps): React.ReactNode {
         <button
           onClick={handleRefresh}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700 mx-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          disabled={isFetching.current}
+          disabled={isFetching}
         >
-          {isFetching.current ? 'Refreshing...' : 'Refresh'}
+          {isFetching ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
       
@@ -271,8 +279,8 @@ export default function GameView(props: GameViewProps): React.ReactNode {
       
       <div className="mt-8">
         <h3 className="text-xl font-bold mb-4">Game Logs</h3>
-        <GameLogsTable 
-          key={`game-logs-${gameId}-${lastRound}`}
+        <GameLogsTable
+          key={`game-logs-${gameId}-${lastRound}-${dataVersion}`}
           gameId={gameId}
           initialRound={lastRound}
           maxRoundNumber={lastRound}
