@@ -228,6 +228,66 @@ A single duel proceeds as follows:
 - A **match** is BO1, BO3, or BO5 — the team winning the majority of games wins the match.
 - Stats tracked per game log: `kills`, `deaths`, `assists`. KDA = `(kills + assists) / deaths` (0 when deaths = 0). Winrate = `matchesWon / matchesPlayed × 100`.
 
+## Background Match Scheduler
+
+The scheduler automatically plays matches when their scheduled date/time is reached. It runs as a Node.js worker thread, separate from the Express request cycle.
+
+### Architecture
+
+```
+SchedulerService (main thread)
+  └── scheduleMatchesToPlayWorker (worker thread)
+        └── sends create_worker messages → SchedulerService
+              └── MatchWorkerService (main thread)
+                    └── playScheduledMatchWorker (worker thread, one per match)
+                          └── MatchService.playFullMatch(matchId)
+```
+
+### Flow
+
+1. **`SchedulerService.startScheduler()`** — spawns `scheduleMatchesToPlayWorker` and sends it a `START` message.
+2. Every 60 seconds (or 120 s under stress) the scheduler worker calls `MatchService.getMatchesToBePlayed(now)`:
+   - Query: `date <= now AND started = false`, ordered by `date ASC` across all tournaments, limit `MAX_CONCURRENT_MATCHES` (20).
+3. For each fetched match it **marks `started = true`** (to prevent duplicate processing) then sends a `create_worker` message to the parent.
+4. **`MatchWorkerService.createMatchWorker`** (max `MAX_CONCURRENT_MATCHES` concurrent) spawns a `playScheduledMatchWorker` for the match.
+   - If the pool is full **or** spawning fails, `started` is **reverted to `false`** so the match is retried next cycle.
+5. **`playScheduledMatchWorker`** calls `MatchService.playFullMatch(matchId)`, then posts a `MatchCompletedMessage` (`WorkerMessageType.MATCH_COMPLETED`) to the parent with `success: true` or `success: false`.
+   - On `success: false`, `MatchWorkerService` reverts `started = false` so the match is retried.
+   - On worker **crash** (`worker.on('error')`), `MatchWorkerService` also reverts `started = false`.
+   - On `success: true`, the match has `finished = true` and is excluded from all future queries.
+
+### Message protocol
+
+`playScheduledMatchWorker` → `MatchWorkerService` uses a single typed message: `MatchCompletedMessage` (`api/src/models/SchedulerTypes.ts`). There are no ad-hoc string message types in the play worker path.
+
+### Circuit Breaker
+
+After 5 consecutive errors the scheduler worker pauses for 60 s before resuming. This is local to `scheduleMatchesToPlayWorker` and only affects match fetching, not in-flight workers. If the scheduler thread crashes it is automatically restarted after 5 s.
+
+### Configuration (`api/src/models/constants.ts`)
+
+| Constant | Default | Meaning |
+|---|---|---|
+| `MAX_CONCURRENT_MATCHES` | 20 | Max matches fetched per cycle and max simultaneous `playScheduledMatchWorker` threads |
+| `STANDARD_CHECK_INTERVAL` | 60 000 ms | Polling interval under normal conditions |
+| `REDUCED_CHECK_INTERVAL` | 120 000 ms | Polling interval when errors are detected |
+| `CIRCUIT_BREAKER_THRESHOLD` | 5 | Consecutive errors before pausing |
+| `CIRCUIT_BREAKER_RESET_TIME` | 60 000 ms | Pause duration before resuming |
+
+### Relevant files
+
+| File | Role |
+|---|---|
+| `api/src/services/SchedulerService.ts` | Lifecycle management, message routing |
+| `api/src/workers/scheduleMatchesToPlayWorker.ts` | Polling loop, circuit breaker |
+| `api/src/services/MatchWorkerService.ts` | Worker pool, `started` revert on error |
+| `api/src/workers/playScheduledMatchWorker.ts` | Executes a single match |
+| `api/src/services/MatchService.ts` | `getMatchesToBePlayed`, `playFullMatch`, `updateMatchStatus` |
+
+### Enabling the scheduler
+
+Set `START_SCHEDULER=true` in the API environment. See `api/src/index.ts` for the conditional startup.
+
 ## Git / PR Conventions
 
 - **Commit format**: conventional commits with scope — `fix(api): ...`, `perf(ui): ...`, `feat(api): ...`

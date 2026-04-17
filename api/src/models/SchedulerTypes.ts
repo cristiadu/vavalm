@@ -22,37 +22,24 @@ export enum WorkerMessageType {
   START = 'start',
   PAUSE = 'pause',
   RESUME = 'resume',
-  DB_ERROR = 'db_error',
   MATCH_COMPLETED = 'match_completed'
 }
 
 /**
- * Error report message interface
- */
-export interface ErrorReportMessage {
-  type: WorkerMessageType.DB_ERROR
-  error: {
-    message: string
-    name: string
-    stack?: string
-  }
-}
-
-/**
- * Match completed message interface
+ * Match completed message interface — sent from playScheduledMatchWorker to MatchWorkerService
  */
 export interface MatchCompletedMessage {
   type: WorkerMessageType.MATCH_COMPLETED
   matchId: number
   success: boolean
+  error?: string
 }
 
 /**
  * Union type for all worker messages
  */
-export type WorkerMessage = 
+export type WorkerMessage =
   | WorkerMessageType.START
   | WorkerMessageType.PAUSE
   | WorkerMessageType.RESUME
-  | ErrorReportMessage
-  | MatchCompletedMessage 
+  | MatchCompletedMessage

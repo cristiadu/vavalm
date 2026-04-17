@@ -1,5 +1,6 @@
 import { Worker } from 'worker_threads'
 import MatchWorkerService from '@/services/MatchWorkerService'
+import MatchService from '@/services/MatchService'
 import { WorkerStatus, WorkerMessageType } from '@/models/SchedulerTypes'
 
 // Track scheduler state
@@ -47,8 +48,8 @@ const startScheduler = (): void => {
         MatchWorkerService.createMatchWorker(matchId, { id: matchId })
           .then(success => {
             if (!success) {
-              console.log(`Failed to create worker for match ${matchId}, notifying worker`)
-              // Notify worker of failure if needed
+              console.log(`Failed to create worker for match ${matchId}, reverting started status`)
+              return MatchService.updateMatchStatus(matchId, { started: false })
             }
           })
           .catch(error => {

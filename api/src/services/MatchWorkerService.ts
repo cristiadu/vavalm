@@ -1,6 +1,7 @@
 import { Worker } from 'worker_threads'
-import { WorkerStatus } from '@/models/SchedulerTypes'
-import { MAX_CONCURRENT_WORKERS } from '@/models/constants'
+import MatchService from '@/services/MatchService'
+import { WorkerStatus, WorkerMessageType, MatchCompletedMessage } from '@/models/SchedulerTypes'
+import { MAX_CONCURRENT_MATCHES } from '@/models/constants'
 
 // Track active workers to manage resources
 let workerPool: Worker[] = []
@@ -73,8 +74,8 @@ const createMatchWorker = async (matchId: number, matchData: unknown): Promise<b
     return false
   }
   
-  if (workerPool.length >= MAX_CONCURRENT_WORKERS) {
-    console.log(`Worker pool at capacity (${MAX_CONCURRENT_WORKERS}), delaying match ${matchId} processing`)
+  if (workerPool.length >= MAX_CONCURRENT_MATCHES) {
+    console.log(`Worker pool at capacity (${MAX_CONCURRENT_MATCHES}), delaying match ${matchId} processing`)
     return false
   }
   
@@ -94,14 +95,38 @@ const createMatchWorker = async (matchId: number, matchData: unknown): Promise<b
       workerData: { matchToPlay: workerData },
     })
     
+    // Tracks whether the worker reported completion normally (via message or error event).
+    // Used to avoid a false-positive revert when worker.terminate() causes a non-zero exit code.
+    let completionHandled = false
+
     worker.on('error', (error) => {
       console.error(`Worker error for match ${extractedId}:`, error)
-      removeWorker(worker)
+      completionHandled = true
+      MatchService.updateMatchStatus(extractedId, { started: false })
+        .catch(e => console.error(`Failed to revert started for match ${extractedId} after crash:`, e))
     })
-    
+
     worker.on('exit', (code) => {
       removeWorker(worker)
-      console.log(`Worker for match ${extractedId} completed with code ${code}`)
+      if (!completionHandled) {
+        console.error(`Worker for match ${extractedId} exited unexpectedly (code ${code}), reverting started status`)
+        MatchService.updateMatchStatus(extractedId, { started: false })
+          .catch(e => console.error(`Failed to revert started for match ${extractedId}:`, e))
+      } else {
+        console.log(`Worker for match ${extractedId} exited (code ${code})`)
+      }
+    })
+
+    worker.on('message', (message: MatchCompletedMessage) => {
+      if (message?.type !== WorkerMessageType.MATCH_COMPLETED) return
+      completionHandled = true
+      if (!message.success) {
+        console.log(`Match ${message.matchId} failed, reverting started status for retry`)
+        MatchService.updateMatchStatus(message.matchId, { started: false })
+          .catch(e => console.error(`Failed to revert started for match ${message.matchId}:`, e))
+      }
+      // Terminate the worker — Sequelize pool timers keep its event loop alive otherwise
+      worker.terminate()
     })
     
     // Add to pool and return success
@@ -162,7 +187,7 @@ const cleanup = (): void => {
 const getWorkerPoolStatus = (): Pick<WorkerStatus, 'activeWorkers' | 'maxWorkers' | 'paused'> => {
   return {
     activeWorkers: workerPool.length,
-    maxWorkers: MAX_CONCURRENT_WORKERS,
+    maxWorkers: MAX_CONCURRENT_MATCHES,
     paused: schedulerPaused,
   }
 }
