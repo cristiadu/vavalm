@@ -1,7 +1,12 @@
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { apiClient } from '@tests/setup'
 import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
-import { givenTournamentExists, cleanupTournament } from '@tests/api/common-tournaments'
+import {
+  givenTournamentExists,
+  cleanupTournament,
+  waitForCondition,
+  isValidDateString,
+} from '@tests/api/common-tournaments'
 import {
   AllPlayerStats,
   GameApiModel,
@@ -23,40 +28,6 @@ interface TournamentScheduleFixture {
   shouldBePickedNow: boolean
   tournamentId?: number
   matchId?: number
-}
-
-/**
- * Waits until an async condition becomes true or times out.
- *
- * @param condition - Async function that resolves to true when done.
- * @param timeoutMs - Maximum time to wait.
- * @param pollEveryMs - Poll interval in milliseconds.
- * @returns Whether the condition was met before timeout.
- */
-const waitForCondition = async (
-  condition: () => Promise<boolean>,
-  timeoutMs: number,
-  pollEveryMs: number,
-): Promise<boolean> => {
-  const deadline = Date.now() + timeoutMs
-  while (Date.now() < deadline) {
-    if (await condition()) {
-      return true
-    }
-    await new Promise(resolve => setTimeout(resolve, pollEveryMs))
-  }
-
-  return false
-}
-
-/**
- * Returns whether an ISO date string can be parsed into a valid Date.
- *
- * @param value - Date-like string from API payload.
- * @returns True when value parses to a valid Date.
- */
-const isValidDateString = (value: string): boolean => {
-  return !Number.isNaN(new Date(value).getTime())
 }
 
 describe('Tournament scheduling generation', () => {
