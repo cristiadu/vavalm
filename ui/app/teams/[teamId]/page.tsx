@@ -12,6 +12,7 @@ import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { TeamApiModel, TeamStats } from '@/api/generated'
+import { stripHtmlTags } from '@/common/StringUtils'
 
 type Params = Promise<{ teamId: string }>
 export default function ViewTeam(props: { params: Params }): React.ReactNode {
@@ -86,7 +87,7 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
           </div>
         </div>
         <div className="text-lg mb-4">
-          <strong>Description:</strong> <span className="text-gray-600">{team.description?.replace(/<[^>]*>/g, '') || 'No description'}</span>
+          <strong>Description:</strong> <span className="text-gray-600">{team.description ? stripHtmlTags(team.description) : 'No description'}</span>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Players</h3>

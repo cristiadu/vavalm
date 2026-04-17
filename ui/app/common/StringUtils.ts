@@ -12,6 +12,16 @@ export const asSafeHTML = (description: string): string => {
   return DOMPurify.sanitize(description)
 }
 
+/**
+ * Strips all HTML tags from a string, returning plain text.
+ * Uses DOMPurify for safe sanitization to avoid incomplete multi-character sanitization vulnerabilities.
+ */
+export const stripHtmlTags = (html: string): string => {
+  // First sanitize with DOMPurify, then strip remaining allowed tags
+  const sanitized = DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
+  return sanitized
+}
+
 export const asFormattedDate = (date: Date): string => {
   return new Intl.DateTimeFormat('en-US', {
     day: 'numeric',

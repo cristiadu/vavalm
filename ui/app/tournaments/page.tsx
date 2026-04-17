@@ -11,6 +11,7 @@ import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { TeamApiModel, TournamentApiModel } from '@/api/generated'
+import { stripHtmlTags } from '@/common/StringUtils'
 
 export default function ListTournaments(): React.ReactNode {
   const router = useRouter()
@@ -110,7 +111,7 @@ export default function ListTournaments(): React.ReactNode {
                   <td className="px-5 py-4">
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-gray-900">{tournament.name}</span>
-                      <span className="text-xs text-gray-500 mt-0.5 line-clamp-1">{tournament.description?.replace(/<[^>]*>/g, '') || ''}</span>
+                      <span className="text-xs text-gray-500 mt-0.5 line-clamp-1">{tournament.description ? stripHtmlTags(tournament.description) : ''}</span>
                     </div>
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap">

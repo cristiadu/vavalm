@@ -13,6 +13,7 @@ import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { Country, PlayerWithFlag } from '@/api/models/types'
 import { PlayerApiModel, TeamApiModel } from '@/api/generated'
+import { stripHtmlTags } from '@/common/StringUtils'
 
 export default function ListTeams(): React.ReactNode {
   const LIMIT_VALUE_TEAM_LIST = 5
@@ -164,7 +165,7 @@ export default function ListTeams(): React.ReactNode {
                     </div>
                   </td>
                   <td className="px-5 py-4 text-sm text-gray-500 max-w-xs">
-                    <span className="line-clamp-2">{team.description?.replace(/<[^>]*>/g, '') || ''}</span>
+                    <span className="line-clamp-2">{team.description ? stripHtmlTags(team.description) : ''}</span>
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap text-center">
                     <div className="flex items-center justify-center gap-1">

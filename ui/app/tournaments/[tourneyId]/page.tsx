@@ -4,7 +4,7 @@ import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchTournamentMatchSchedule, getTournament, getTournamentStandings } from '@/api/TournamentsApi'
-import { asFormattedDate } from '@/common/StringUtils'
+import { asFormattedDate, stripHtmlTags } from '@/common/StringUtils'
 import { getWinOrLossColor, teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import SectionHeader from '@/components/common/SectionHeader'
 import { sortByDate } from '@/common/UIUtils'
@@ -113,7 +113,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           </div>
         </div>
         <div className="text-lg mb-4">
-          <strong>Description:</strong> <span className="text-gray-600">{tournament.description?.replace(/<[^>]*>/g, '') || 'No description'}</span>
+          <strong>Description:</strong> <span className="text-gray-600">{tournament.description ? stripHtmlTags(tournament.description) : 'No description'}</span>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Teams</h3>
