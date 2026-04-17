@@ -107,7 +107,7 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
         </div>
         <div className="text-lg mb-4">
           <strong>Role:</strong> 
-          <span className={getRoleBgColor(player.role)}>
+          <span className={`p-1 rounded text-white ml-2 ${getRoleBgColor(player.role)}`}>
             {player.role}
           </span>
         </div>
@@ -130,11 +130,11 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
             <h3 className="text-xl font-bold mb-2">Player Stats</h3>
             <hr className="mb-2" />
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white text-center">
+              <table className="min-w-full text-center rounded-lg overflow-hidden shadow">
                 <thead>
-                  <tr>
-                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700">Stat</th>
-                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700">Value</th>
+                  <tr className="bg-gray-800 text-white">
+                    <th className="py-2 px-4 text-left text-xs font-semibold uppercase tracking-wider">Stat</th>
+                    <th className="py-2 px-4 text-center text-xs font-semibold uppercase tracking-wider">Value</th>
                   </tr>
                 </thead>
                 <tbody>

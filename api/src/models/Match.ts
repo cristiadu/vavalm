@@ -24,7 +24,7 @@ class Match extends Model implements BaseEntityModel {
   declare games: Game[]
   declare tournament_id: number
   declare tournament: Tournament
-  declare included_on_standings: boolean
+  declare standings_processed: boolean
   declare started: boolean
   declare finished: boolean
 
@@ -42,7 +42,7 @@ class Match extends Model implements BaseEntityModel {
       this.type,
       this.team1_score,
       this.team2_score,
-      this.included_on_standings,
+      this.standings_processed,
       this.started,
       this.finished,
       this.winner_id,
@@ -93,7 +93,7 @@ Match.init({
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  included_on_standings: {
+  standings_processed: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,

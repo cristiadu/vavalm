@@ -4,6 +4,7 @@ import MatchService from '@/services/MatchService'
 import GameStatsService from '@/services/GameStatsService'
 import RoundService from '@/services/RoundService'
 import DuelService from '@/services/DuelService'
+import CacheService from '@/services/CacheService'
 import { GameLogApiModel, RoundStateApiModel } from '@/models/contract/GameLogApiModel'
 
 @Route("games/{gameId}/rounds")
@@ -21,6 +22,12 @@ export class RoundController extends Controller {
   ): Promise<RoundStateApiModel> {
     const roundFinishedState = await RoundService.playFullRound(gameId, round)
     await GameStatsService.updateAllStats(gameId)
+
+    // Invalidate caches so subsequent fetches return fresh data
+    CacheService.delete(`game-${gameId}`)
+    CacheService.delete(`game-stats-${gameId}`)
+    CacheService.delete(`game-basic-stats-${gameId}`)
+    CacheService.delete(`game-full-stats-${gameId}`)
 
     const match = await MatchService.getMatchByGameId(gameId)
     if (!match || !match.id) {
@@ -45,6 +52,12 @@ export class RoundController extends Controller {
   ): Promise<RoundStateApiModel> {
     const roundState = await RoundService.playRoundStep(gameId, round)
     await GameStatsService.updateAllStats(gameId)
+
+    // Invalidate caches so subsequent fetches return fresh data
+    CacheService.delete(`game-${gameId}`)
+    CacheService.delete(`game-stats-${gameId}`)
+    CacheService.delete(`game-basic-stats-${gameId}`)
+    CacheService.delete(`game-full-stats-${gameId}`)
 
     const match = await MatchService.getMatchByGameId(gameId)
     if (!match || !match.id) {

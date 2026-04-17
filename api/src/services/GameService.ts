@@ -78,7 +78,7 @@ const GameService = {
         team2_id: match.team2_id,
         team1_score: 0,
         team2_score: 0,
-        included_on_standings: false,
+        standings_processed: false,
       },
     }, {
       include: [
@@ -167,6 +167,8 @@ const GameService = {
     // Invalidate caches for this game and stats
     CacheService.delete(`game-${game_id}`)
     CacheService.delete(`game-stats-${game_id}`)
+    CacheService.delete(`game-basic-stats-${game_id}`)
+    CacheService.delete(`game-full-stats-${game_id}`)
 
     return { team1_rounds, team2_rounds }
   },

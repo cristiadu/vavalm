@@ -17,7 +17,7 @@ class Game extends Model implements BaseEntityModel {
   declare match_id: number
   declare match: Match
   declare stats: GameStats
-  declare included_on_standings: boolean
+  declare standings_processed: boolean
   declare started : boolean
   declare finished : boolean
 
@@ -31,7 +31,7 @@ class Game extends Model implements BaseEntityModel {
       this.date.toISOString(),
       this.map,
       this.match_id,
-      this.included_on_standings,
+      this.standings_processed,
       this.started,
       this.finished,
       this.id,
@@ -57,7 +57,7 @@ Game.init({
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  included_on_standings: {
+  standings_processed: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,

@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchPlayers, deletePlayer } from '@/api/PlayersApi'
 import { getAttributeBgColor, getRoleBgColor } from '@/api/models/helpers'
-import 'react-quill-new/dist/quill.snow.css'
 import PlayerActionModal from '@/components/PlayerActionModal'
 import { fetchTeam } from '@/api/TeamsApi'
 import { asWord } from '@/common/StringUtils'
@@ -126,113 +125,101 @@ export default function ListPlayers(): React.ReactNode {
           actionText="New Player" 
         />
         
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                ID
-              </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Nickname
-              </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Full Name
-              </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Age
-              </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Country
-              </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Team
-              </th>
-              <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Role
-              </th>
-              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                Attributes
-              </th>
-              <th className="py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase w-auto">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {isLoading ? (
-              // Display placeholder loading rows
-              Array.from({ length: 5 }).map((_, index) => (
-                <tr key={`row-loading-${index}`}>
-                  <td colSpan={9}>
-                    <div className="animate-pulse h-16 bg-gray-100 my-1"></div>
-                  </td>
-                </tr>
-              ))
-            ) : players.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="px-3 py-4 text-center text-gray-500">
-                  No players found
-                </td>
+        <div className="w-full overflow-x-auto rounded-lg shadow">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-800 text-white">
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Player</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Age</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Country</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Team</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Role</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Attributes</th>
+                <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wider">Actions</th>
               </tr>
-            ) : (
-              // Inline the player rows instead of using a separate component
-              players.map((player) => (
-                <tr key={`player-row-${player.id}`}>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.id}</td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.nickname}</td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.full_name}</td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.age}</td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {player.country && (
-                      <span className="flex items-center">
-                        <ImageAutoSize src={countriesToFlagMap[player.country]} alt={player.country} width={32} height={16} className="mr-2" />
-                        {player.country}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {playerToTeam && playerToTeam[String(player.id)] ? (
-                      <span className="flex items-center">
-                        <ImageAutoSize 
-                          imageFile={playerToTeam[String(player.id)].logo_image_file as File}
-                          fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                          alt={playerToTeam[String(player.id)].short_name || ''} 
-                          width={32} 
-                          height={32} 
-                          className="mr-2" />
-                        {playerToTeam[String(player.id)].short_name}
-                      </span>
-                    ) : (
-                      'No Team'
-                    )}
-                  </td>
-                  <td>
-                    <span className={getRoleBgColor(player.role)}>
-                      {player.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-normal text-sm font-medium text-gray-500">
-                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-1">
-                      {Object.entries(player.player_attributes).map(([key, value]) => {
-                        return (
-                          <div key={`player-attributes-${key}`} className="flex items-center space-x-1">
-                            <span className={`w-6 h-6 flex items-center justify-center rounded text-xs text-white ${getAttributeBgColor(value)}`}>{value}</span>
-                            <span className="text-xs text-gray-900 truncate">{asWord(key)}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </td>
-                  <td className="py-4 whitespace-nowrap text-sm text-left text-gray-900 w-auto">
-                    <button onClick={() => handleView(player)} className="text-blue-600 hover:text-blue-900 p-0 mr-1">👀</button>
-                    <button onClick={() => handleEdit(player)} className="text-blue-600 hover:text-blue-900 p-0 mr-1">✏️</button>
-                    <button onClick={() => handleDelete(player)} className="text-red-600 hover:text-red-900 p-0">🗑️</button>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={`row-loading-${index}`}>
+                    <td colSpan={7}>
+                      <div className="animate-pulse h-16 bg-gray-100 my-1"></div>
+                    </td>
+                  </tr>
+                ))
+              ) : players.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-gray-500">
+                    No players found
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                players.map((player) => (
+                  <tr key={`player-row-${player.id}`} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-900">{player.nickname}</span>
+                        <span className="text-xs text-gray-500">{player.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-700">{player.age}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {player.country && (
+                        <span className="flex items-center text-sm text-gray-700">
+                          <ImageAutoSize src={countriesToFlagMap[player.country]} alt={player.country} width={24} height={16} className="mr-2" />
+                          {player.country}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {playerToTeam && playerToTeam[String(player.id)] ? (
+                        <span className="flex items-center text-sm text-gray-700">
+                          <ImageAutoSize
+                            imageFile={playerToTeam[String(player.id)].logo_image_file as File}
+                            fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
+                            alt={playerToTeam[String(player.id)].short_name || ''}
+                            width={24} height={24}
+                            className="mr-2" />
+                          {playerToTeam[String(player.id)].short_name}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-400">No Team</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className={`p-1 rounded text-white ${getRoleBgColor(player.role)}`}>
+                        {player.role}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="grid grid-cols-4 gap-1">
+                        {Object.entries(player.player_attributes).map(([key, value]) => (
+                          <div key={`player-attributes-${key}`} className="flex items-center space-x-1">
+                            <span className={`w-5 h-5 flex items-center justify-center rounded text-xs text-white ${getAttributeBgColor(value)}`}>{value}</span>
+                            <span className="text-xs text-gray-600 truncate">{asWord(key)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => handleView(player)} title="View" className="p-1.5 rounded hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </button>
+                        <button onClick={() => handleEdit(player)} title="Edit" className="p-1.5 rounded hover:bg-blue-100 text-gray-500 hover:text-blue-600 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                        <button onClick={() => handleDelete(player)} title="Delete" className="p-1.5 rounded hover:bg-red-100 text-gray-500 hover:text-red-600 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
         
         <Pagination 
           totalItems={totalItems} 

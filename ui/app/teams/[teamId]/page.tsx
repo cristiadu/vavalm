@@ -8,12 +8,11 @@ import { fetchCountries } from '@/api/CountryApi'
 import { Country } from '@/api/models/types'
 import { fetchTeam, fetchTeamStats } from '@/api/TeamsApi'
 import { teamLogoURLObjectOrDefault } from '@/api/models/helpers'
-import 'react-quill-new/dist/quill.snow.css'
-import { asSafeHTML } from '@/common/StringUtils'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { TeamApiModel, TeamStats } from '@/api/generated'
+import { stripHtmlTags } from '@/common/StringUtils'
 
 type Params = Promise<{ teamId: string }>
 export default function ViewTeam(props: { params: Params }): React.ReactNode {
@@ -88,20 +87,22 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
           </div>
         </div>
         <div className="text-lg mb-4">
-          <strong>Description:</strong><div className="ql-container ql-snow" style={{ border: "0" }}><div className="ql-editor" dangerouslySetInnerHTML={{ __html: asSafeHTML(team.description || "") }} /></div>
+          <strong>Description:</strong> <span className="text-gray-600">{team.description ? stripHtmlTags(team.description) : 'No description'}</span>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Players</h3>
           <hr className="mb-2" />
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             {players && players.map(player => (
-              <div key={`team-${team.id}-player-${player.id}`} className="flex items-center space-x-2">
-                <span className={getRoleBgColor(player.role)}>
+              <div key={`team-${team.id}-player-${player.id}`} className="flex items-center gap-2">
+                <span className={`inline-flex items-center justify-center w-[82px] px-1.5 py-0.5 rounded text-xs font-medium text-white text-center shrink-0 ${getRoleBgColor(player.role)}`}>
                   {player.role}
                 </span>
-                {player.countryFlag && <ImageAutoSize src={player.countryFlag} alt={player.country} width={32} height={16} className="inline-block ml-2 mr-2" />}
-                <span className="text-lg">{player.nickname}</span>
-                <span className="text-sm text-gray-600 mt-1">({player.full_name})</span>
+                {player.countryFlag && <ImageAutoSize src={player.countryFlag} alt={player.country} width={20} height={14} className="shrink-0" />}
+                <div className="flex flex-col leading-tight min-w-0">
+                  <span className="text-sm font-semibold text-gray-900 truncate">{player.nickname}</span>
+                  <span className="text-[11px] text-gray-400 truncate">{player.full_name}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -111,11 +112,11 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
             <h3 className="text-xl font-bold mb-2">Team Stats</h3>
             <hr className="mb-2" />
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white text-center">
+              <table className="min-w-full text-center rounded-lg overflow-hidden shadow">
                 <thead>
-                  <tr>
-                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700">Stat</th>
-                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700">Value</th>
+                  <tr className="bg-gray-800 text-white">
+                    <th className="py-2 px-4 text-left text-xs font-semibold uppercase tracking-wider">Stat</th>
+                    <th className="py-2 px-4 text-center text-xs font-semibold uppercase tracking-wider">Value</th>
                   </tr>
                 </thead>
                 <tbody>

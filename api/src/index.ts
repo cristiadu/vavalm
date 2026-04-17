@@ -26,7 +26,7 @@ app.use(cors())
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: Number(process.env.RATE_LIMIT_MAX ?? 100), // Configurable via env var; default 100 per window
+    max: Number(process.env.RATE_LIMIT_MAX ?? 1000), // Configurable via env var; default 1000 per window
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     handler: (req: express.Request, res: express.Response): void => {
@@ -85,26 +85,18 @@ app.get('/swagger.yaml', (_req, res) => {
 // Graceful shutdown
 const gracefulShutdown = (): void => {
   console.log('Received shutdown signal, closing connections...')
-  
+
   // Stop scheduler
   SchedulerService.cleanupWorkers()
-  
-  // Close database connection
+
+  // Close database connection, then let the process end naturally
   db.sequelize.close()
     .then(() => {
       console.log('Database connections closed')
-      throw new Error('Database connection issues detected. Pausing background workers.')
     })
     .catch((err: Error) => {
       console.error('Error closing database connections:', err)
-      throw new Error('Database connection issues detected. Pausing background workers.')
     })
-    
-  // Force exit after timeout if graceful shutdown fails
-  setTimeout(() => {
-    console.error('Forced shutdown after timeout')
-    throw new Error('Database connection issues detected. Pausing background workers.')
-  }, 10000)
 }
 
 // Listen for shutdown signals

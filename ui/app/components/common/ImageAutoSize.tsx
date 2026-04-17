@@ -47,7 +47,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
       src={imageSrc}
       width={width}
       height={height}
-      style={{ maxWidth: width, maxHeight: height, width: width, height: height, ...style }}
+      style={{ ...style, maxWidth: width, maxHeight: height, width: 'auto', height: 'auto' }}
     />
   ) : (
     <NoImageFallback />

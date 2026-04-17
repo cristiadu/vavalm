@@ -375,7 +375,7 @@ components:
         match_id:
           type: number
           format: double
-        included_on_standings:
+        standings_processed:
           type: boolean
         started:
           type: boolean
@@ -390,7 +390,7 @@ components:
         - date
         - map
         - match_id
-        - included_on_standings
+        - standings_processed
         - started
         - finished
       type: object
@@ -416,7 +416,7 @@ components:
         team2_score:
           type: number
           format: double
-        included_on_standings:
+        standings_processed:
           type: boolean
         started:
           type: boolean
@@ -444,7 +444,7 @@ components:
         - type
         - team1_score
         - team2_score
-        - included_on_standings
+        - standings_processed
         - started
         - finished
       type: object

@@ -143,7 +143,7 @@ describe('Tournaments, Matches & Games', () => {
         expect(match.team2_score).toBe(0)
         expect(match.started).toBe(false)
         expect(match.finished).toBe(false)
-        expect(match.included_on_standings).toBe(true) // matches are always included in standings from creation
+        expect(match.standings_processed).toBe(false)
       }
     })
 
@@ -201,7 +201,7 @@ describe('Tournaments, Matches & Games', () => {
       expect(match.team2_score).toBe(0)
       expect(match.started).toBe(false)
       expect(match.finished).toBe(false)
-      expect(match.included_on_standings).toBe(true) // matches are always included in standings from creation
+      expect(match.standings_processed).toBe(false)
     })
 
     it('embeds team1 and team2 objects with correct IDs', async () => {
@@ -236,7 +236,7 @@ describe('Tournaments, Matches & Games', () => {
         expect(game.id).toBeGreaterThan(0)
         expect(game.started).toBe(false)
         expect(game.finished).toBe(false)
-        expect(game.included_on_standings).toBe(false)
+        expect(game.standings_processed).toBe(false)
       }
     })
   })
@@ -250,7 +250,7 @@ describe('Tournaments, Matches & Games', () => {
       expect(game.match_id).toBe(matchId)
       expect(game.started).toBe(false)
       expect(game.finished).toBe(false)
-      expect(game.included_on_standings).toBe(false)
+      expect(game.standings_processed).toBe(false)
     })
   })
 

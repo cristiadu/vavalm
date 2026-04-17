@@ -34,10 +34,10 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
   }, [])
 
   const fetchMatchData = useCallback(async (matchIdRequest: number) => {
-    // Check if we have the data in the cache
     if (matchCache.has(matchIdRequest)) {
       const cachedMatch = matchCache.get(matchIdRequest)
       setMatch(cachedMatch || null)
+      setIsLoading(false)
       return
     }
     
@@ -45,18 +45,19 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
     
     try {
       // Fetch match data with the signal
-      const data = await getMatch(matchIdRequest, () => {})
+      const data = await getMatch(matchIdRequest)
       
       if (data) {
         setMatch(data)
-        
-        // Cache the result
         matchCache.set(matchIdRequest, data)
-        
-        // If there are games, select the first one if none is selected
-        if (data?.games?.length && data.games.length > 0 && selectedGameId === 0) {
-          setSelectedGameId(data.games[0].id || 0)
-        }
+
+        // Only set game if none is currently selected
+        setSelectedGameId(prev => {
+          if (prev === 0 && data?.games?.length && data.games.length > 0) {
+            return data.games[0].id || 0
+          }
+          return prev
+        })
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
@@ -67,7 +68,7 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
     } finally {
       setIsLoading(false)
     }
-  }, [selectedGameId])
+  }, [])
 
   // Effect to fetch match data when the matchId changes
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
       <SectionHeader title="Match Logs" />
       <div className="bg-white p-8 rounded shadow w-full max-w-6xl">
         <MatchHeader match={match} team1Country={team1Country} team2Country={team2Country} />
-        <GamePicker games={match.games || []} selectedGameId={selectedGameId} onClick={handleGameSelection} matchWinnerId={match.winner_id || null} />
+        <GamePicker games={match.games || []} selectedGameId={selectedGameId} onClick={handleGameSelection} />
         {selectedGameId > 0 ? (
           <GameView 
             key={`tournament-${match.tournament_id}-match-${match.id}-game-${selectedGameId}`}

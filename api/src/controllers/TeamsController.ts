@@ -34,6 +34,7 @@ export class TeamsController extends Controller {
       offset,
       order: [["id", "ASC"]],
       include: [{ model: Player, as: 'players' }],
+      distinct: true,
     })
     
     const result = new ItemsWithPagination(teams.rows, teams.count)

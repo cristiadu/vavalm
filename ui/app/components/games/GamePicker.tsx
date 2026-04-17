@@ -6,10 +6,9 @@ interface GamePickerProps {
   games: GameApiModel[]
   selectedGameId: number
   onClick: (_id: number) => void
-  matchWinnerId: number | null
 }
 
-const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick, matchWinnerId }) => {
+const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick }) => {
   if (!games || games.length === 0) {
     return null
   }
@@ -26,7 +25,6 @@ const GamePicker: React.FC<GamePickerProps> = ({ games, selectedGameId, onClick,
           key={`picker-game-${game.id}`}
           onClick={() => onClick(game.id || 0)}
           className={`px-4 py-2 m-1 rounded ${selectedGameId === game.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} transition-colors`}
-          disabled={matchWinnerId !== null && game.stats?.winner_id === null}
         >
           <strong>Game {index + 1}: </strong>
           {game.map}

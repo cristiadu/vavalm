@@ -1,11 +1,10 @@
 "use client"
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { fetchCountries } from '@/api/CountryApi'
 import { fetchTournamentMatchSchedule, getTournament, getTournamentStandings } from '@/api/TournamentsApi'
-import 'react-quill-new/dist/quill.snow.css'
-import { asFormattedDate, asSafeHTML } from '@/common/StringUtils'
+import { asFormattedDate, stripHtmlTags } from '@/common/StringUtils'
 import { getWinOrLossColor, teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import SectionHeader from '@/components/common/SectionHeader'
 import { sortByDate } from '@/common/UIUtils'
@@ -72,6 +71,11 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
     fetchTournamentMatches(limit, offset)
   }
 
+  const sortedMatches = useMemo(() => {
+    if (!matches) return null
+    return [...matches].sort((a, b) => sortByDate(new Date(a.date), new Date(b.date)))
+  }, [matches])
+
   if (!tournament) {
     return <div>Loading...</div>
   }
@@ -85,7 +89,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
       .map(team => [(team as TeamApiModel).id!, teamLogoURLObjectOrDefault(team as TeamApiModel)]) || [],
   )
 
-  const tournamentWinner = tournament.winner_id ? 
+  const tournamentWinner = tournament.winner_id ?
     tournament.teams?.find(team => 
       typeof team === 'object' && team !== null && (team as TeamApiModel).id === tournament.winner_id,
     ) || null : 
@@ -109,7 +113,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           </div>
         </div>
         <div className="text-lg mb-4">
-          <strong>Description:</strong><div className="ql-container ql-snow" style={{ border: "0" }}><div className="ql-editor" dangerouslySetInnerHTML={{ __html: asSafeHTML(tournament.description || "") }} /></div>
+          <strong>Description:</strong> <span className="text-gray-600">{tournament.description ? stripHtmlTags(tournament.description) : 'No description'}</span>
         </div>
         <div className="mt-4">
           <h3 className="text-xl font-bold mb-2">Teams</h3>
@@ -161,39 +165,41 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <h3 className="text-xl font-bold mb-2">Standings</h3>
           <hr className="mb-2" />
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white table-fixed">
+            <table className="min-w-full rounded-lg overflow-hidden shadow">
               <thead>
-                <tr>
-                  <th className="py-2 px-2 border-b">#</th>
-                  <th className="py-2 px-2 border-b">Team</th>
-                  <th className="py-2 border-b">Wins</th>
-                  <th className="py-2 border-b">Losses</th>
-                  <th className="py-2 border-b">Maps Won</th>
-                  <th className="py-2 border-b">Maps Lost</th>
-                  <th className="py-2 border-b">Rounds Won</th>
-                  <th className="py-2 border-b">Rounds Lost</th>
+                <tr className="bg-gray-800 text-white">
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">#</th>
+                  <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wider">Team</th>
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">Wins</th>
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">Losses</th>
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">Maps Won</th>
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">Maps Lost</th>
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">Rds Won</th>
+                  <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">Rds Lost</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {tournamentStandings && tournamentStandings.map((standing: StandingsApiModel) => (
-                  <tr key={`tournament-${tournament.id}-standing-${standing.id}`}>
-                    <td className="py-2 px-2 border-b text-center bg-gray-100">{standing.position}</td>
-                    <td className="py-2 px-2 border-b items-center bg-gray-100">
-                      <ImageAutoSize 
-                        src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH} 
-                        alt={(tournament.teams?.find(team => team instanceof Number ? team === standing.team_id : (team as TeamApiModel).id === standing.team_id) as TeamApiModel)?.short_name || "No Team Yet"} 
-                        width={32} 
-                        height={32} 
-                        className="inline-block mr-2" 
-                      />
-                      <span>{(tournament.teams?.find(team => team instanceof Number ? team === standing.team_id : (team as TeamApiModel).id === standing.team_id) as TeamApiModel)?.short_name || "No Team Yet"}</span>
+                  <tr key={`tournament-${tournament.id}-standing-${standing.id}`} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-2 px-2 text-center text-sm font-bold text-gray-700">{standing.position}</td>
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-2">
+                        <ImageAutoSize
+                          src={standing.team_id && teamsToLogoSrc.get(standing.team_id) ? teamsToLogoSrc.get(standing.team_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
+                          alt={(tournament.teams?.find(team => team instanceof Number ? team === standing.team_id : (team as TeamApiModel).id === standing.team_id) as TeamApiModel)?.short_name || "No Team Yet"}
+                          width={24}
+                          height={24}
+                          className="shrink-0 rounded"
+                        />
+                        <span className="text-sm font-semibold text-gray-900">{(tournament.teams?.find(team => team instanceof Number ? team === standing.team_id : (team as TeamApiModel).id === standing.team_id) as TeamApiModel)?.short_name || "No Team Yet"}</span>
+                      </div>
                     </td>
-                    <td className="py-2 border-b text-center bg-gray-100">{standing.wins}</td>
-                    <td className="py-2 border-b text-center bg-gray-100">{standing.losses}</td>
-                    <td className="py-2 border-b text-center">{standing.maps_won}</td>
-                    <td className="py-2 border-b text-center">{standing.maps_lost}</td>
-                    <td className="py-2 border-b text-center">{standing.rounds_won}</td>
-                    <td className="py-2 border-b text-center">{standing.rounds_lost}</td>
+                    <td className="py-2 text-center text-sm font-medium text-green-700">{standing.wins}</td>
+                    <td className="py-2 text-center text-sm font-medium text-red-600">{standing.losses}</td>
+                    <td className="py-2 text-center text-sm">{standing.maps_won}</td>
+                    <td className="py-2 text-center text-sm">{standing.maps_lost}</td>
+                    <td className="py-2 text-center text-sm">{standing.rounds_won}</td>
+                    <td className="py-2 text-center text-sm">{standing.rounds_lost}</td>
                   </tr>
                 ))}
               </tbody>
@@ -204,54 +210,54 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <h3 className="text-xl font-bold mb-2">Matches Schedule</h3>
           <hr className="mb-2" />
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white table-fixed">
+            <table className="min-w-full rounded-lg overflow-hidden shadow">
               <thead>
-                <tr>
-                  <th className="py-2 border-b">Date</th>
-                  <th className="py-2 border-b">Type</th>
-                  <th className="py-2 border-b">Team 1</th>
-                  <th className="py-2 border-b">Team 2</th>
-                  <th className="py-2 border-b">Score</th>
+                <tr className="bg-gray-800 text-white">
+                  <th className="py-2 px-3 text-center text-xs font-semibold uppercase tracking-wider">Date</th>
+                  <th className="py-2 px-3 text-center text-xs font-semibold uppercase tracking-wider">Type</th>
+                  <th className="py-2 px-3 text-left text-xs font-semibold uppercase tracking-wider">Team 1</th>
+                  <th className="py-2 px-3 text-left text-xs font-semibold uppercase tracking-wider">Team 2</th>
+                  <th className="py-2 px-3 text-center text-xs font-semibold uppercase tracking-wider">Score</th>
                 </tr>
               </thead>
-              <tbody>
-                {matches && matches.sort((a, b) => sortByDate(new Date(a.date), new Date(b.date))).map((match) => 
+              <tbody className="bg-white divide-y divide-gray-200">
+                {sortedMatches && sortedMatches.map((match) =>
                   (match.team1 && match.team2) && (
-                    <tr key={`tournament-${tournament.id}-match-${match.id || 0}`} onClick={() => match.id && showGameLogs(match.id)} className='cursor-pointer bg-gray-100 hover:bg-gray-200'>
-                      <td className="py-2 border-b text-center">
+                    <tr key={`tournament-${tournament.id}-match-${match.id || 0}`} onClick={() => match.id && showGameLogs(match.id)} className="cursor-pointer hover:bg-gray-50 transition-colors">
+                      <td className="py-2 px-3 text-center text-sm text-gray-600">
                         {asFormattedDate(new Date(match.date))}
                       </td>
-                      <td className="py-2 border-b text-center">{match.type}</td>
-                      <td className="py-2 border-b items-center">
-                        <div className="flex items-center space-x-2">
-                          <ImageAutoSize 
+                      <td className="py-2 px-3 text-center">
+                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{match.type}</span>
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="flex items-center gap-2">
+                          <ImageAutoSize
                             src={match.team1_id && teamsToLogoSrc.get(match.team1_id) ? teamsToLogoSrc.get(match.team1_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                            alt={match.team1?.short_name || ""} 
-                            width={32} 
-                            height={32} 
-                            className="inline-block mr-2" 
+                            alt={match.team1?.short_name || ""}
+                            width={24}
+                            height={24}
+                            className="shrink-0 rounded"
                           />
-                          <span>{match.team1?.short_name}</span>
+                          <span className="text-sm font-medium text-gray-900">{match.team1?.short_name}</span>
                         </div>
                       </td>
-                      <td className="py-2 border-b items-center">
-                        <div className="flex items-center space-x-2">
-                          <ImageAutoSize 
+                      <td className="py-2 px-3">
+                        <div className="flex items-center gap-2">
+                          <ImageAutoSize
                             src={match.team2_id && teamsToLogoSrc.get(match.team2_id) ? teamsToLogoSrc.get(match.team2_id) ?? DEFAULT_TEAM_LOGO_IMAGE_PATH : DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                            alt={match.team2?.short_name || ""} 
-                            width={32} 
-                            height={32} 
-                            className="inline-block mr-2" 
+                            alt={match.team2?.short_name || ""}
+                            width={24}
+                            height={24}
+                            className="shrink-0 rounded"
                           />
-                          <span>{match.team2?.short_name}</span>
+                          <span className="text-sm font-medium text-gray-900">{match.team2?.short_name}</span>
                         </div>
                       </td>
-                      <td className="py-2 border-b text-center">
-                        <strong>
-                          <span className={getWinOrLossColor(match.team1, match)}>{match?.team1_score}</span>
-                        - 
-                          <span className={getWinOrLossColor(match.team2, match)}>{match?.team2_score}</span>
-                        </strong>
+                      <td className="py-2 px-3 text-center">
+                        <span className={`inline-block px-2 py-0.5 rounded text-sm font-bold ${getWinOrLossColor(match.team1, match)}`}>{match?.team1_score}</span>
+                        <span className="mx-1 text-gray-400">-</span>
+                        <span className={`inline-block px-2 py-0.5 rounded text-sm font-bold ${getWinOrLossColor(match.team2, match)}`}>{match?.team2_score}</span>
                       </td>
                     </tr>
                   ))}

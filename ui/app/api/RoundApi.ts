@@ -6,25 +6,22 @@ import { VavalMApiClient } from "@/api/client"
 const roundCache = new Map<string, { data: GameLogWithPlayers[], timestamp: number }>()
 const CACHE_TTL = 60000 // 1 minute cache
 
-export const playFullRound = async (game_id: number, round: number, closure: (_roundState: RoundStateApiModel) => void): Promise<RoundStateApiModel | null> => {
+export const playFullRound = async (game_id: number, round: number): Promise<RoundStateApiModel | null> => {
   try {
-    const response = await VavalMApiClient.default.playRound(game_id, round)
-    closure(response)
-    return response
+    return await VavalMApiClient.default.playRound(game_id, round)
   } catch (error) {
     console.error('Error:', error)
     throw error
   }
 }
 
-export const getLastRound = async (game_id: number, closure: (_lastRoundLogs: GameLogWithPlayers[]) => void): Promise<GameLogWithPlayers[] | null> => {
+export const getLastRound = async (game_id: number): Promise<GameLogWithPlayers[] | null> => {
   try {
     const cacheKey = `last_${game_id}`
     const cachedData = roundCache.get(cacheKey)
 
     // Return cached data if available and not expired
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
-      closure(cachedData.data)
       return cachedData.data
     }
 
@@ -36,7 +33,6 @@ export const getLastRound = async (game_id: number, closure: (_lastRoundLogs: Ga
     } as GameLogWithPlayers))
 
     roundCache.set(cacheKey, { data: data, timestamp: Date.now() })
-    closure(data)
     return data
   } catch (error) {
     console.error('Error:', error)
@@ -44,14 +40,26 @@ export const getLastRound = async (game_id: number, closure: (_lastRoundLogs: Ga
   }
 }
 
-export const getRound = async (game_id: number, round: number, closure: (_roundLogs: GameLogWithPlayers[]) => void): Promise<GameLogWithPlayers[] | null> => {
+/**
+ * Clear cached round data for a specific game.
+ * Should be called after play actions to ensure fresh data on next fetch.
+ * @param gameId - The game ID whose cache entries should be cleared
+ */
+export const clearRoundCacheForGame = (gameId: number): void => {
+  for (const key of roundCache.keys()) {
+    if (key.startsWith(`round_${gameId}_`) || key === `last_${gameId}`) {
+      roundCache.delete(key)
+    }
+  }
+}
+
+export const getRound = async (game_id: number, round: number): Promise<GameLogWithPlayers[] | null> => {
   try {
     const cacheKey = `round_${game_id}_${round}`
     const cachedData = roundCache.get(cacheKey)
 
     // Return cached data if available and not expired
     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_TTL)) {
-      closure(cachedData.data)
       return cachedData.data
     }
 
@@ -65,7 +73,6 @@ export const getRound = async (game_id: number, round: number, closure: (_roundL
     // Cache the response
     roundCache.set(cacheKey, { data: data, timestamp: Date.now() })
 
-    closure(data)
     return data
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {

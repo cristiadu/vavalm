@@ -46,7 +46,7 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTablePr
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      const fetchedLogs = await getRound(gameId, round, () => {})
+      const fetchedLogs = await getRound(gameId, round)
       
       setState(prev => ({
         ...prev,
