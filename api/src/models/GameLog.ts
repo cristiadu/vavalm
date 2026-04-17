@@ -76,6 +76,7 @@ class GameLog extends Model implements BaseEntityModel {
       this.included_on_team_stats,
       this.team1_player ? this.team1_player.toApiModel() : undefined,
       this.team2_player ? this.team2_player.toApiModel() : undefined,
+      this.id,
     )
   }
 
