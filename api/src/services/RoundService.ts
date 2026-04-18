@@ -48,12 +48,12 @@ const RoundService = {
         {
           model: Player,
           as: 'team1_player',
-          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id', 'player_attributes'],
+          attributes: ['id', 'nickname', 'full_name', 'age', 'country', 'role', 'team_id', 'player_attributes'],
         },
         {
           model: Player,
           as: 'team2_player',
-          attributes: ['id', 'nickname', 'full_name', 'role', 'team_id', 'player_attributes'],
+          attributes: ['id', 'nickname', 'full_name', 'age', 'country', 'role', 'team_id', 'player_attributes'],
         },
       ],
     })
