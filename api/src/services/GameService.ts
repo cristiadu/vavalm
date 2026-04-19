@@ -15,6 +15,129 @@ import RoundService from "@/services/RoundService"
 import CacheService from "@/services/CacheService"
 import { CACHE_TTL } from "@/base/CacheConstants"
 
+type SeriesProgress = {
+  team1Wins: number
+  team2Wins: number
+  nextUnplayedGameId: number | null
+}
+
+/**
+ * Retrieves a game with its match relation or throws if not found.
+ *
+ * @param {number} gameId - The game ID.
+ * @returns {Promise<Game>} The game with its match relation.
+ * @throws {Error} If the game is not found.
+ */
+const getGameWithMatchOrThrow = async (gameId: number): Promise<Game> => {
+  const game = await Game.findByPk(gameId, {
+    include: [{ model: Match, as: 'match' }],
+  })
+
+  if (!game) {
+    throw new Error('Game not found')
+  }
+
+  return game
+}
+
+/**
+ * Retrieves the game stats row for a game or throws if not found.
+ *
+ * @param {number} gameId - The game ID.
+ * @returns {Promise<GameStats>} The game stats row.
+ * @throws {Error} If game stats are not found.
+ */
+const getGameStatsOrThrow = async (gameId: number): Promise<GameStats> => {
+  const gameStats = await GameStats.findOne({
+    where: { game_id: gameId },
+  })
+
+  if (!gameStats) {
+    throw new Error('Game stats not found')
+  }
+
+  return gameStats
+}
+
+/**
+ * Retrieves all games from a match in deterministic play order.
+ *
+ * @param {number} matchId - The match ID.
+ * @returns {Promise<Game[]>} Ordered games with winner stats.
+ */
+const getOrderedMatchGames = async (matchId: number): Promise<Game[]> => {
+  return await Game.findAll({
+    where: { match_id: matchId },
+    order: [['date', 'ASC'], ['id', 'ASC']],
+    include: [{ model: GameStats, as: 'stats', attributes: ['winner_id'] }],
+  })
+}
+
+/**
+ * Computes current series progress from already-finished games.
+ *
+ * @param {Match} match - The parent match.
+ * @param {Game[]} matchGames - Ordered games from the match.
+ * @returns {SeriesProgress} Win counts and next unplayed game.
+ * @throws {Error} If a game has an invalid winner id.
+ */
+const computeSeriesProgress = (match: Match, matchGames: Game[]): SeriesProgress => {
+  let team1Wins = 0
+  let team2Wins = 0
+  let nextUnplayedGameId: number | null = null
+
+  for (const matchGame of matchGames) {
+    const winnerId = matchGame.stats?.winner_id
+    if (winnerId === null || winnerId === undefined) {
+      nextUnplayedGameId = matchGame.id
+      break
+    }
+
+    if (winnerId === match.team1_id) {
+      team1Wins += 1
+      continue
+    }
+
+    if (winnerId === match.team2_id) {
+      team2Wins += 1
+      continue
+    }
+
+    throw new Error(`Invalid winner ${winnerId} for game ${matchGame.id}`)
+  }
+
+  return {
+    team1Wins,
+    team2Wins,
+    nextUnplayedGameId,
+  }
+}
+
+/**
+ * Validates that the requested game is the next playable game in the series.
+ *
+ * @param {Game} game - The requested game.
+ * @param {Game[]} matchGames - Ordered games from the same match.
+ * @throws {Error} If the series is already decided, has no pending games, or if
+ * the requested game is not next in order.
+ */
+const assertGameIsNextToPlay = (game: Game, matchGames: Game[]): void => {
+  const gamesToWin = MatchService.numberOfGamesToWinForMatchType(game.match.type)
+  const { team1Wins, team2Wins, nextUnplayedGameId } = computeSeriesProgress(game.match, matchGames)
+
+  if (team1Wins >= gamesToWin || team2Wins >= gamesToWin) {
+    throw new Error(`Match ${game.match_id} is already decided`)
+  }
+
+  if (nextUnplayedGameId === null) {
+    throw new Error(`No pending games left for match ${game.match_id}`)
+  }
+
+  if (nextUnplayedGameId !== game.id) {
+    throw new Error(`Game ${game.id} cannot be played before game ${nextUnplayedGameId}`)
+  }
+}
+
 const GameService = {
   /**
    * Retrieves a game based on its ID.
@@ -137,37 +260,26 @@ const GameService = {
    * Fully plays an unplayed game based on its ID. 
    * It will count the number of rounds to determine which team won the game.
    * The first team to get 13 rounds wins.
-   * If the parent match is already decided, this becomes a no-op and returns
-   * the current game score without simulating new rounds.
+   * Enforces match map order so only the next scheduled unplayed game can be played.
    * 
    * @param {number} game_id - The ID of the game to be played.
    * @returns {Promise<{team1_rounds: number, team2_rounds: number}>} A promise that resolves to the number of rounds won by each team.
    * @throws {Error} If the game or game stats are not found.
    */
   playFullGame: async (game_id: number): Promise<{team1_rounds: number, team2_rounds: number}> => {
-    // Get the game
-    const game = await Game.findByPk(game_id, {
-      include: [{ model: Match, as: 'match' }],
-    })
-    if (!game) {
-      throw new Error('Game not found')
-    }
+    const game = await getGameWithMatchOrThrow(game_id)
+    const currentGameStats = await getGameStatsOrThrow(game.id)
 
-    const matchWinner = game.match.winner_id ?? MatchService.getWinnerForMatchType(game.match)
-    if (matchWinner !== null && matchWinner !== undefined) {
-      const currentGameStats = await GameStats.findOne({
-        where: { game_id: game.id },
-      })
-
-      if (!currentGameStats) {
-        throw new Error('Game stats not found')
-      }
-
+    // Idempotency for already finished games.
+    if (currentGameStats.winner_id !== null && currentGameStats.winner_id !== undefined) {
       return {
         team1_rounds: currentGameStats.team1_score,
         team2_rounds: currentGameStats.team2_score,
       }
     }
+
+    const matchGames = await getOrderedMatchGames(game.match_id)
+    assertGameIsNextToPlay(game, matchGames)
 
     // Play the game
     const { team1_rounds, team2_rounds } = await RoundService.playRoundsUntilWin(game_id)
