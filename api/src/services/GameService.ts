@@ -53,61 +53,6 @@ const getGameStatsOrThrow = async (gameId: number): Promise<GameStats> => {
   return gameStats
 }
 
-/**
- * Retrieves all games from a match in deterministic play order.
- *
- * @param {number} matchId - The match ID.
- * @returns {Promise<Game[]>} Ordered games with winner stats.
- */
-const getOrderedMatchGames = async (matchId: number): Promise<Game[]> => {
-  return await Game.findAll({
-    where: { match_id: matchId },
-    order: [['date', 'ASC'], ['id', 'ASC']],
-    include: [{ model: GameStats, as: 'stats', attributes: ['winner_id'] }],
-  })
-}
-
-/**
- * Returns the next playable game id for a match in scheduled order.
- *
- * @param {Match} match - The parent match.
- * @param {Game[]} matchGames - Ordered games from the match.
- * @returns {number | null} Next playable game id, or null when series is decided.
- * @throws {Error} If a game has an invalid winner id.
- */
-const getNextPlayableGameId = (match: Match, matchGames: Game[]): number | null => {
-  const gamesToWin = MatchService.numberOfGamesToWinForMatchType(match.type)
-  let team1Wins = 0
-  let team2Wins = 0
-  let nextUnplayedGameId: number | null = null
-
-  for (const matchGame of matchGames) {
-    const winnerId = matchGame.stats?.winner_id
-    if (winnerId === null || winnerId === undefined) {
-      nextUnplayedGameId = matchGame.id
-      break
-    }
-
-    if (winnerId === match.team1_id) {
-      team1Wins += 1
-      continue
-    }
-
-    if (winnerId === match.team2_id) {
-      team2Wins += 1
-      continue
-    }
-
-    throw new Error(`Invalid winner ${winnerId} for game ${matchGame.id}`)
-  }
-
-  if (team1Wins >= gamesToWin || team2Wins >= gamesToWin) {
-    return null
-  }
-
-  return nextUnplayedGameId
-}
-
 const GameService = {
   /**
    * Retrieves a game based on its ID.
@@ -230,7 +175,6 @@ const GameService = {
    * Fully plays an unplayed game based on its ID. 
    * It will count the number of rounds to determine which team won the game.
    * The first team to get 13 rounds wins.
-   * Enforces match map order so only the next scheduled unplayed game can be played.
    * 
    * @param {number} game_id - The ID of the game to be played.
    * @returns {Promise<{team1_rounds: number, team2_rounds: number}>} A promise that resolves to the number of rounds won by each team.
@@ -253,30 +197,6 @@ const GameService = {
       }
     }
 
-    const matchGames = await getOrderedMatchGames(game.match_id)
-    const nextPlayableGameId = getNextPlayableGameId(game.match, matchGames)
-
-    if (nextPlayableGameId === null) {
-      if (!game.finished) {
-        game.finished = true
-        await game.save()
-      }
-
-      CacheService.delete(`game-${game_id}`)
-
-      return {
-        team1_rounds: currentGameStats.team1_score,
-        team2_rounds: currentGameStats.team2_score,
-      }
-    }
-
-    if (nextPlayableGameId !== game.id) {
-      return {
-        team1_rounds: currentGameStats.team1_score,
-        team2_rounds: currentGameStats.team2_score,
-      }
-    }
-
     // Play the game
     const { team1_rounds, team2_rounds } = await RoundService.playRoundsUntilWin(game_id)
 
@@ -288,8 +208,11 @@ const GameService = {
     // Update player and game stats
     await GameStatsService.updateAllStats(game_id)
 
-    game.finished = true
-    await game.save()
+    const updatedGameStats = await getGameStatsOrThrow(game.id)
+    if (updatedGameStats.winner_id !== null && updatedGameStats.winner_id !== undefined) {
+      game.finished = true
+      await game.save()
+    }
 
     // Update tournament standings if the game is finished
     await TournamentService.updateStandingsAndWinner(game.match.tournament_id)

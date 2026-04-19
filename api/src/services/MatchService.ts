@@ -64,8 +64,18 @@ const MatchService = {
       let team1Wins = 0
       let team2Wins = 0
 
-      // Loop through games and stop once one team reaches the required wins.
+      // Loop through games in order. Once the series is decided, mark the
+      // remaining games as finished without playing them.
       for (const game of matchGames) {
+        const seriesIsDecided = team1Wins >= gamesToWin || team2Wins >= gamesToWin
+        if (seriesIsDecided) {
+          if (!game.finished) {
+            game.finished = true
+            await game.save({ transaction })
+          }
+          continue
+        }
+
         const { team1_rounds, team2_rounds } = await GameService.playFullGame(game.id)
 
         const isTeam1GameWinner = team1_rounds > team2_rounds
@@ -77,11 +87,6 @@ const MatchService = {
 
         team1Wins += isTeam1GameWinner ? 1 : 0
         team2Wins += isTeam2GameWinner ? 1 : 0
-
-        const seriesIsDecided = team1Wins >= gamesToWin || team2Wins >= gamesToWin
-        if (seriesIsDecided) {
-          break
-        }
       }
 
       match.team1_score = team1Wins
