@@ -293,10 +293,16 @@ describe('Tournament scheduling generation', () => {
 
       const matchTeam1WinsFromGames = gameStatsList.filter(gameStats => gameStats.winner_id === match.team1_id).length
       const matchTeam2WinsFromGames = gameStatsList.filter(gameStats => gameStats.winner_id === match.team2_id).length
+      const playedGames = gameStatsList.filter(gameStats => gameStats.winner_id !== null && gameStats.winner_id !== undefined).length
+      const unplayedGames = gameStatsList.length - playedGames
       expect(match.team1_score).toBe(matchTeam1WinsFromGames)
       expect(match.team2_score).toBe(matchTeam2WinsFromGames)
-      expect(match.team1_score + match.team2_score).toBe(gameStatsList.length)
-      expect(Math.max(match.team1_score, match.team2_score)).toBeGreaterThanOrEqual(2)
+      expect(match.team1_score + match.team2_score).toBe(playedGames)
+      expect(playedGames).toBeGreaterThanOrEqual(2)
+      expect(playedGames).toBeLessThanOrEqual(3)
+      expect(unplayedGames).toBeGreaterThanOrEqual(0)
+      expect(unplayedGames).toBeLessThanOrEqual(1)
+      expect(Math.max(match.team1_score, match.team2_score)).toBe(2)
       expect(Math.min(match.team1_score, match.team2_score)).toBeLessThanOrEqual(1)
       if (match.winner_id === match.team1_id) {
         expect(match.team1_score).toBeGreaterThan(match.team2_score)
@@ -339,23 +345,28 @@ describe('Tournament scheduling generation', () => {
         expect(game.stats?.team2_score).toBeGreaterThanOrEqual(0)
         const maxRounds = Math.max(game.stats?.team1_score ?? 0, game.stats?.team2_score ?? 0)
         const minRounds = Math.min(game.stats?.team1_score ?? 0, game.stats?.team2_score ?? 0)
-        expect(maxRounds).toBeGreaterThanOrEqual(13)
-        expect(maxRounds - minRounds).toBeGreaterThanOrEqual(2)
         const winnerId = game.stats?.winner_id
-        expect(winnerId).toBeDefined()
         if (winnerId !== undefined && winnerId !== null) {
+          expect(game.finished).toBe(true)
+          expect(maxRounds).toBeGreaterThanOrEqual(13)
+          expect(maxRounds - minRounds).toBeGreaterThanOrEqual(2)
           expect([game.stats!.team1_id, game.stats!.team2_id]).toContain(winnerId)
           if (winnerId === game.stats!.team1_id) {
             expect(game.stats!.team1_score).toBeGreaterThan(game.stats!.team2_score)
           } else {
             expect(game.stats!.team2_score).toBeGreaterThan(game.stats!.team1_score)
           }
+        } else {
+          expect(game.finished).toBe(false)
+          expect(maxRounds).toBe(0)
+          expect(minRounds).toBe(0)
+          expect(game.standings_processed).toBe(false)
         }
         if (game.standings_processed) {
           processedGames += 1
         }
       }
-      expect(processedGames).toBeGreaterThan(0)
+      expect(processedGames).toBe(playedGames)
     }
 
     for (const playerId of trackedPastPlayerIds) {

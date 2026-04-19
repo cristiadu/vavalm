@@ -98,6 +98,7 @@ const GameService = {
       where: {
         match_id: match_id,
       },
+      order: [['date', 'ASC'], ['id', 'ASC']],
       include: [
         { model: GameStats, as: 'stats' },
         { model: Match, as: 'match' },
