@@ -137,6 +137,8 @@ const GameService = {
    * Fully plays an unplayed game based on its ID. 
    * It will count the number of rounds to determine which team won the game.
    * The first team to get 13 rounds wins.
+   * If the parent match is already decided, this becomes a no-op and returns
+   * the current game score without simulating new rounds.
    * 
    * @param {number} game_id - The ID of the game to be played.
    * @returns {Promise<{team1_rounds: number, team2_rounds: number}>} A promise that resolves to the number of rounds won by each team.
@@ -149,6 +151,22 @@ const GameService = {
     })
     if (!game) {
       throw new Error('Game not found')
+    }
+
+    const matchWinner = game.match.winner_id ?? MatchService.getWinnerForMatchType(game.match)
+    if (matchWinner !== null && matchWinner !== undefined) {
+      const currentGameStats = await GameStats.findOne({
+        where: { game_id: game.id },
+      })
+
+      if (!currentGameStats) {
+        throw new Error('Game stats not found')
+      }
+
+      return {
+        team1_rounds: currentGameStats.team1_score,
+        team2_rounds: currentGameStats.team2_score,
+      }
     }
 
     // Play the game

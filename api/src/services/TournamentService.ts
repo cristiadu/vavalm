@@ -120,7 +120,14 @@ const TournamentService = {
 
     // Update standings for each based on the matches
     for (const match of matches) {
-      const games = match.games
+      const games = [...match.games].sort((gameA, gameB) => {
+        const dateDifference = gameA.date.getTime() - gameB.date.getTime()
+        if (dateDifference !== 0) {
+          return dateDifference
+        }
+
+        return gameA.id - gameB.id
+      })
       const team1Id = match.team1_id
       const team2Id = match.team2_id
 
@@ -133,6 +140,14 @@ const TournamentService = {
 
       if (team1Standings !== null && team2Standings !== null) {
         for (const game of games) {
+          // Do not keep counting games after the series winner is already decided.
+          // This prevents BO3 matches from drifting to 3-0 if an extra game gets played.
+          if (MatchService.getWinnerForMatchType(match) !== null) {
+            game.standings_processed = true
+            await game.save()
+            continue
+          }
+
           team1Standings.rounds_won += game.stats.team1_score
           team1Standings.rounds_lost += game.stats.team2_score
           team2Standings.rounds_won += game.stats.team2_score

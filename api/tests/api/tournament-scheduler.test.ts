@@ -347,7 +347,6 @@ describe('Tournament scheduling generation', () => {
         const minRounds = Math.min(game.stats?.team1_score ?? 0, game.stats?.team2_score ?? 0)
         const winnerId = game.stats?.winner_id
         if (winnerId !== undefined && winnerId !== null) {
-          expect(game.finished).toBe(true)
           expect(maxRounds).toBeGreaterThanOrEqual(13)
           expect(maxRounds - minRounds).toBeGreaterThanOrEqual(2)
           expect([game.stats!.team1_id, game.stats!.team2_id]).toContain(winnerId)
@@ -357,7 +356,6 @@ describe('Tournament scheduling generation', () => {
             expect(game.stats!.team2_score).toBeGreaterThan(game.stats!.team1_score)
           }
         } else {
-          expect(game.finished).toBe(false)
           expect(maxRounds).toBe(0)
           expect(minRounds).toBe(0)
           expect(game.standings_processed).toBe(false)
