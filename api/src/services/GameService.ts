@@ -15,12 +15,6 @@ import RoundService from "@/services/RoundService"
 import CacheService from "@/services/CacheService"
 import { CACHE_TTL } from "@/base/CacheConstants"
 
-type SeriesProgress = {
-  team1Wins: number
-  team2Wins: number
-  nextUnplayedGameId: number | null
-}
-
 /**
  * Retrieves a game with its match relation or throws if not found.
  *
@@ -74,14 +68,15 @@ const getOrderedMatchGames = async (matchId: number): Promise<Game[]> => {
 }
 
 /**
- * Computes current series progress from already-finished games.
+ * Returns the next playable game id for a match in scheduled order.
  *
  * @param {Match} match - The parent match.
  * @param {Game[]} matchGames - Ordered games from the match.
- * @returns {SeriesProgress} Win counts and next unplayed game.
+ * @returns {number | null} Next playable game id, or null when series is decided.
  * @throws {Error} If a game has an invalid winner id.
  */
-const computeSeriesProgress = (match: Match, matchGames: Game[]): SeriesProgress => {
+const getNextPlayableGameId = (match: Match, matchGames: Game[]): number | null => {
+  const gamesToWin = MatchService.numberOfGamesToWinForMatchType(match.type)
   let team1Wins = 0
   let team2Wins = 0
   let nextUnplayedGameId: number | null = null
@@ -106,36 +101,11 @@ const computeSeriesProgress = (match: Match, matchGames: Game[]): SeriesProgress
     throw new Error(`Invalid winner ${winnerId} for game ${matchGame.id}`)
   }
 
-  return {
-    team1Wins,
-    team2Wins,
-    nextUnplayedGameId,
-  }
-}
-
-/**
- * Validates that the requested game is the next playable game in the series.
- *
- * @param {Game} game - The requested game.
- * @param {Game[]} matchGames - Ordered games from the same match.
- * @throws {Error} If the series is already decided, has no pending games, or if
- * the requested game is not next in order.
- */
-const assertGameIsNextToPlay = (game: Game, matchGames: Game[]): void => {
-  const gamesToWin = MatchService.numberOfGamesToWinForMatchType(game.match.type)
-  const { team1Wins, team2Wins, nextUnplayedGameId } = computeSeriesProgress(game.match, matchGames)
-
   if (team1Wins >= gamesToWin || team2Wins >= gamesToWin) {
-    throw new Error(`Match ${game.match_id} is already decided`)
+    return null
   }
 
-  if (nextUnplayedGameId === null) {
-    throw new Error(`No pending games left for match ${game.match_id}`)
-  }
-
-  if (nextUnplayedGameId !== game.id) {
-    throw new Error(`Game ${game.id} cannot be played before game ${nextUnplayedGameId}`)
-  }
+  return nextUnplayedGameId
 }
 
 const GameService = {
@@ -272,6 +242,11 @@ const GameService = {
 
     // Idempotency for already finished games.
     if (currentGameStats.winner_id !== null && currentGameStats.winner_id !== undefined) {
+      if (!game.finished) {
+        game.finished = true
+        await game.save()
+      }
+
       return {
         team1_rounds: currentGameStats.team1_score,
         team2_rounds: currentGameStats.team2_score,
@@ -279,7 +254,28 @@ const GameService = {
     }
 
     const matchGames = await getOrderedMatchGames(game.match_id)
-    assertGameIsNextToPlay(game, matchGames)
+    const nextPlayableGameId = getNextPlayableGameId(game.match, matchGames)
+
+    if (nextPlayableGameId === null) {
+      if (!game.finished) {
+        game.finished = true
+        await game.save()
+      }
+
+      CacheService.delete(`game-${game_id}`)
+
+      return {
+        team1_rounds: currentGameStats.team1_score,
+        team2_rounds: currentGameStats.team2_score,
+      }
+    }
+
+    if (nextPlayableGameId !== game.id) {
+      return {
+        team1_rounds: currentGameStats.team1_score,
+        team2_rounds: currentGameStats.team2_score,
+      }
+    }
 
     // Play the game
     const { team1_rounds, team2_rounds } = await RoundService.playRoundsUntilWin(game_id)
@@ -291,6 +287,9 @@ const GameService = {
 
     // Update player and game stats
     await GameStatsService.updateAllStats(game_id)
+
+    game.finished = true
+    await game.save()
 
     // Update tournament standings if the game is finished
     await TournamentService.updateStandingsAndWinner(game.match.tournament_id)
