@@ -44,11 +44,14 @@ const MatchService = {
    * @throws {Error} If the match is not found.
    */
   playFullMatch: async (matchId: number): Promise<void> => {
-    return db.sequelize.transaction(async (transaction: Transaction) => {
+    let tournamentId: number | null = null
+
+    await db.sequelize.transaction(async (transaction: Transaction) => {
       const match = await Match.findByPk(matchId, { transaction })
       if (!match) {
         throw new Error('Match not found')
       }
+      tournamentId = match.tournament_id
 
       // Ensure all expected games exist for this match type.
       await GameService.createGamesForMatch(match)
@@ -95,12 +98,12 @@ const MatchService = {
       match.winner_id = MatchService.getWinnerForMatchType(match)
 
       await match.save({ transaction })
-
-      // Update tournament standings
-      if (match.tournament_id) {
-        await TournamentService.updateStandingsAndWinner(match.tournament_id)
-      }
     })
+
+    // Update tournament standings only after match updates are committed.
+    if (tournamentId) {
+      await TournamentService.updateStandingsAndWinner(tournamentId)
+    }
   },
 
   /**

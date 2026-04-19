@@ -203,11 +203,12 @@ const TournamentService = {
           await game.save()
         }
 
-        match.team1_score = seriesTeam1Wins
-        match.team2_score = seriesTeam2Wins
-
-        // Check if the match has a winner
-        const matchWinner = MatchService.getWinnerForMatchType(match)
+        // Determine series winner from game results counted up to the BO threshold.
+        const matchWinner = seriesTeam1Wins >= gamesToWin
+          ? team1Id
+          : seriesTeam2Wins >= gamesToWin
+            ? team2Id
+            : null
         if (matchWinner != null) {
           if (matchWinner === team1Id) {
             team1Standings.wins += 1
