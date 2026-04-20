@@ -95,7 +95,10 @@ const MatchService = {
       match.team1_score = team1Wins
       match.team2_score = team2Wins
       match.finished = true
-      match.winner_id = MatchService.getWinnerForMatchType(match)
+      const winnerId = MatchService.getWinnerForMatchType(match)
+      if (winnerId !== null) {
+        match.winner_id = winnerId
+      }
 
       await match.save({ transaction })
     })
