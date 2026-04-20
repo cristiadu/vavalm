@@ -15,6 +15,44 @@ import RoundService from "@/services/RoundService"
 import CacheService from "@/services/CacheService"
 import { CACHE_TTL } from "@/base/CacheConstants"
 
+/**
+ * Retrieves a game with its match relation or throws if not found.
+ *
+ * @param {number} gameId - The game ID.
+ * @returns {Promise<Game>} The game with its match relation.
+ * @throws {Error} If the game is not found.
+ */
+const getGameWithMatchOrThrow = async (gameId: number): Promise<Game> => {
+  const game = await Game.findByPk(gameId, {
+    include: [{ model: Match, as: 'match' }],
+  })
+
+  if (!game) {
+    throw new Error('Game not found')
+  }
+
+  return game
+}
+
+/**
+ * Retrieves the game stats row for a game or throws if not found.
+ *
+ * @param {number} gameId - The game ID.
+ * @returns {Promise<GameStats>} The game stats row.
+ * @throws {Error} If game stats are not found.
+ */
+const getGameStatsOrThrow = async (gameId: number): Promise<GameStats> => {
+  const gameStats = await GameStats.findOne({
+    where: { game_id: gameId },
+  })
+
+  if (!gameStats) {
+    throw new Error('Game stats not found')
+  }
+
+  return gameStats
+}
+
 const GameService = {
   /**
    * Retrieves a game based on its ID.
@@ -98,6 +136,7 @@ const GameService = {
       where: {
         match_id: match_id,
       },
+      order: [['date', 'ASC'], ['id', 'ASC']],
       include: [
         { model: GameStats, as: 'stats' },
         { model: Match, as: 'match' },
@@ -142,12 +181,20 @@ const GameService = {
    * @throws {Error} If the game or game stats are not found.
    */
   playFullGame: async (game_id: number): Promise<{team1_rounds: number, team2_rounds: number}> => {
-    // Get the game
-    const game = await Game.findByPk(game_id, {
-      include: [{ model: Match, as: 'match' }],
-    })
-    if (!game) {
-      throw new Error('Game not found')
+    const game = await getGameWithMatchOrThrow(game_id)
+    const currentGameStats = await getGameStatsOrThrow(game.id)
+
+    // Idempotency for already finished games.
+    if (currentGameStats.winner_id !== null && currentGameStats.winner_id !== undefined) {
+      if (!game.finished) {
+        game.finished = true
+        await game.save()
+      }
+
+      return {
+        team1_rounds: currentGameStats.team1_score,
+        team2_rounds: currentGameStats.team2_score,
+      }
     }
 
     // Play the game
@@ -160,6 +207,12 @@ const GameService = {
 
     // Update player and game stats
     await GameStatsService.updateAllStats(game_id)
+
+    const updatedGameStats = await getGameStatsOrThrow(game.id)
+    if (updatedGameStats.winner_id !== null && updatedGameStats.winner_id !== undefined) {
+      game.finished = true
+      await game.save()
+    }
 
     // Update tournament standings if the game is finished
     await TournamentService.updateStandingsAndWinner(game.match.tournament_id)

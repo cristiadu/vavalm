@@ -120,7 +120,14 @@ const TournamentService = {
 
     // Update standings for each based on the matches
     for (const match of matches) {
-      const games = match.games
+      const games = [...match.games].sort((gameA, gameB) => {
+        const dateDifference = gameA.date.getTime() - gameB.date.getTime()
+        if (dateDifference !== 0) {
+          return dateDifference
+        }
+
+        return gameA.id - gameB.id
+      })
       const team1Id = match.team1_id
       const team2Id = match.team2_id
 
@@ -132,19 +139,60 @@ const TournamentService = {
       })
 
       if (team1Standings !== null && team2Standings !== null) {
+        const gamesToWin = MatchService.numberOfGamesToWinForMatchType(match.type)
+
+        // Resume from already-processed games, but only count up to the series
+        // deciding threshold in case older data contains extra processed maps.
+        const processedGames = await Game.findAll({
+          where: {
+            match_id: match.id,
+            standings_processed: true,
+          },
+          include: [
+            {
+              model: GameStats,
+              as: "stats",
+              attributes: ["winner_id"],
+            },
+          ],
+          order: [['date', 'ASC'], ['id', 'ASC']],
+        })
+
+        let seriesTeam1Wins = 0
+        let seriesTeam2Wins = 0
+        for (const processedGame of processedGames) {
+          const seriesAlreadyDecided = seriesTeam1Wins >= gamesToWin || seriesTeam2Wins >= gamesToWin
+          if (seriesAlreadyDecided) {
+            break
+          }
+
+          if (processedGame.stats.winner_id === team1Id) {
+            seriesTeam1Wins += 1
+          } else if (processedGame.stats.winner_id === team2Id) {
+            seriesTeam2Wins += 1
+          }
+        }
+
         for (const game of games) {
+          const seriesAlreadyDecided = seriesTeam1Wins >= gamesToWin || seriesTeam2Wins >= gamesToWin
+          if (seriesAlreadyDecided) {
+            game.standings_processed = true
+            await game.save()
+            continue
+          }
+
           team1Standings.rounds_won += game.stats.team1_score
           team1Standings.rounds_lost += game.stats.team2_score
           team2Standings.rounds_won += game.stats.team2_score
           team2Standings.rounds_lost += game.stats.team1_score
 
           if (game.stats.winner_id === team1Id) {
-            match.team1_score += 1
+            seriesTeam1Wins += 1
             team1Standings.maps_won += 1
             team2Standings.maps_lost += 1
             game.standings_processed = true
           } else if (game.stats.winner_id === team2Id) {
-            match.team2_score += 1
+            seriesTeam2Wins += 1
             team2Standings.maps_won += 1
             team1Standings.maps_lost += 1
             game.standings_processed = true
@@ -155,8 +203,12 @@ const TournamentService = {
           await game.save()
         }
 
-        // Check if the match has a winner
-        const matchWinner = MatchService.getWinnerForMatchType(match)
+        // Determine series winner from game results counted up to the BO threshold.
+        const matchWinner = seriesTeam1Wins >= gamesToWin
+          ? team1Id
+          : seriesTeam2Wins >= gamesToWin
+            ? team2Id
+            : null
         if (matchWinner != null) {
           if (matchWinner === team1Id) {
             team1Standings.wins += 1

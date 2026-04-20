@@ -36,7 +36,7 @@ const MatchService = {
   },
 
   /**
-   * Fully plays a match by simulating all of its games.
+   * Fully plays a match by simulating its games until one team wins the series.
    * Uses database transactions to ensure data consistency.
    * 
    * @param {number} matchId - The ID of the match to be played.
@@ -44,56 +44,69 @@ const MatchService = {
    * @throws {Error} If the match is not found.
    */
   playFullMatch: async (matchId: number): Promise<void> => {
-    return db.sequelize.transaction(async (transaction: Transaction) => {
+    let tournamentId: number | null = null
+
+    await db.sequelize.transaction(async (transaction: Transaction) => {
       const match = await Match.findByPk(matchId, { transaction })
       if (!match) {
         throw new Error('Match not found')
       }
+      tournamentId = match.tournament_id
 
-      // Create games for the match if needed
-      const games = await Game.findAll({
-        where: { match_id: matchId },
-        transaction,
-      })
-
-      if (games.length === 0) {
-        await GameService.createGamesForMatch(match)
-      }
+      // Ensure all expected games exist for this match type.
+      await GameService.createGamesForMatch(match)
 
       // Get all games for the match
       const matchGames = await Game.findAll({
         where: { match_id: matchId },
+        order: [['date', 'ASC'], ['id', 'ASC']],
         transaction,
       })
 
-      // Loop through each game and play it
-      const results = []
-      for (const game of matchGames) {
-        const { team1_rounds, team2_rounds } = await GameService.playFullGame(game.id)
-        results.push({ gameId: game.id, team1_rounds, team2_rounds })
-      }
+      const gamesToWin = MatchService.numberOfGamesToWinForMatchType(match.type)
+      let team1Wins = 0
+      let team2Wins = 0
 
-      // Update match results based on games played
-      const team1Wins = results.filter(r => r.team1_rounds > r.team2_rounds).length
-      const team2Wins = results.filter(r => r.team2_rounds > r.team1_rounds).length
+      // Loop through games in order. Once the series is decided, mark the
+      // remaining games as finished without playing them.
+      for (const game of matchGames) {
+        const seriesIsDecided = team1Wins >= gamesToWin || team2Wins >= gamesToWin
+        if (seriesIsDecided) {
+          if (!game.finished) {
+            game.finished = true
+            await game.save({ transaction })
+          }
+          continue
+        }
+
+        const { team1_rounds, team2_rounds } = await GameService.playFullGame(game.id)
+
+        const isTeam1GameWinner = team1_rounds > team2_rounds
+        const isTeam2GameWinner = team2_rounds > team1_rounds
+
+        if (!isTeam1GameWinner && !isTeam2GameWinner) {
+          throw new Error(`Invalid game result for game ${game.id}: tied rounds`)
+        }
+
+        team1Wins += isTeam1GameWinner ? 1 : 0
+        team2Wins += isTeam2GameWinner ? 1 : 0
+      }
 
       match.team1_score = team1Wins
       match.team2_score = team2Wins
       match.finished = true
-
-      if (team1Wins > team2Wins) {
-        match.winner_id = match.team1_id
-      } else if (team2Wins > team1Wins) {
-        match.winner_id = match.team2_id
+      const winnerId = MatchService.getWinnerForMatchType(match)
+      if (winnerId !== null) {
+        match.winner_id = winnerId
       }
 
       await match.save({ transaction })
-
-      // Update tournament standings
-      if (match.tournament_id) {
-        await TournamentService.updateStandingsAndWinner(match.tournament_id)
-      }
     })
+
+    // Update tournament standings only after match updates are committed.
+    if (tournamentId) {
+      await TournamentService.updateStandingsAndWinner(tournamentId)
+    }
   },
 
   /**
@@ -163,6 +176,8 @@ const MatchService = {
           model: Game,
           as: "games",
           attributes: ["id", "date", "map"],
+          separate: true,
+          order: [['date', 'ASC'], ['id', 'ASC']],
         },
         {
           model: Tournament,
@@ -248,21 +263,7 @@ const MatchService = {
         })
 
         // Create the games
-        let bestOf
-        switch (matchType) {
-        case MatchType.BO1:
-          bestOf = 1
-          break
-        case MatchType.BO3:
-          bestOf = 3
-          break
-        case MatchType.BO5:
-          bestOf = 5
-          break
-        default:
-          bestOf = 1
-        }
-
+        const bestOf = MatchService.numberOfGamesForMatchType(matchType)
         for (let i = 0; i < bestOf; i++) {
           await GameService.createGameForMatch(match, GameService.getRandomMap())
         }

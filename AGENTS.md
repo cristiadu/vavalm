@@ -52,6 +52,11 @@ pnpm build            # production build for both api and ui
 
 API docs available at `http://localhost:8000/api/docs` when the server is running.
 
+### Environment Prerequisite
+
+- Before running `pnpm dev`, `pnpm test`, migrations, or any API/UI task, always verify both `api/.env` and `ui/.env` exist.
+- If either file is missing, create it from the matching template (`api/.env.template` → `api/.env`, `ui/.env.template` → `ui/.env`) before continuing.
+
 ## Key Patterns
 
 - **Stats computation** (`PlayerService`, `TeamService`) fetches all rows and computes stats in memory — results are cached for 30 seconds (`CACHE_TTL.ALL_STATS`) via `CacheService`. Cache keys are constants in `api/src/base/CacheConstants.ts`.
