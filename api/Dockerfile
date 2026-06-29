@@ -11,7 +11,6 @@ COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
 
 # install the dependencies
 RUN npm install -g pnpm
-RUN pnpm config set allow-scripts true
 RUN pnpm clean 
 RUN pnpm install
 
