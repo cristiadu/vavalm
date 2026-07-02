@@ -4,3 +4,5 @@ packages:
 allowBuilds:
   '@scarf/scarf': false
   sharp: true
+# only install package versions published at least 3 days ago (supply-chain protection)
+minimumReleaseAge: 4320
