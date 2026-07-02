@@ -1,3 +1,6 @@
 packages:
   - 'api'
   - 'ui'
+allowBuilds:
+  '@scarf/scarf': false
+  sharp: true

@@ -8,10 +8,13 @@ COPY ./ /app
 COPY ./src /app/src
 COPY ./docs /app/docs
 COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
+# workspace config carries pnpm policies (e.g. allowBuilds) needed by pnpm install
+COPY --from=parent_dir ./pnpm-workspace.yaml /app/pnpm-workspace.yaml
 
 # install the dependencies
-RUN npm install -g pnpm
-RUN pnpm clean 
+# pin pnpm to the workspace's packageManager version (see root package.json)
+RUN npm install -g pnpm@11.9.0
+RUN pnpm clean
 RUN pnpm install
 
 # build the application
@@ -38,10 +41,12 @@ COPY --from=builder /app/node_modules /app/node_modules
 
 # copy config files root api folder.
 COPY package.json /app/
-COPY --from=parent_dir ./pnpm-lock.yaml /app/pnpm-lock.yaml
+# use the builder's lockfile/workspace config so they match the installed node_modules
+COPY --from=builder /app/pnpm-lock.yaml /app/pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
 
-# install pnpm globally
-RUN npm install -g pnpm
+# install pnpm globally, pinned to the workspace's packageManager version
+RUN npm install -g pnpm@11.9.0
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
