@@ -28,7 +28,7 @@
     "dompurify": "^3.4.11",
     "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",
-    "next": "^16.2.9",
+    "next": "^16.2.11",
     "postcss": "^8.5.16",
     "react": "19.2.7",
     "react-dom": "19.2.7",
