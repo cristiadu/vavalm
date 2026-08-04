@@ -29,7 +29,7 @@
     "dotenv": "^17.4.2",
     "jsonwebtoken": "^9.0.3",
     "next": "^16.2.9",
-    "postcss": "^8.5.16",
+    "postcss": "^8.5.23",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-quill-new": "^3.8.3",
