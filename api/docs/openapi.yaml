@@ -1333,8 +1333,7 @@ paths:
                 type: string
                 format: byte
       description: Downloads a team's logo image.
-      security:
-        - BearerAuth: []
+      security: []
       parameters:
         - description: The team whose logo to download
           in: path

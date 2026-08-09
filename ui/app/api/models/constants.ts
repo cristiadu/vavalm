@@ -8,7 +8,20 @@ export const CACHE_DURATION_MS: number = 60000 // 1 minute
  * @returns The base URL of the API
  */
 export const getApiBaseUrl = (): string => {
-  return process.env.API_BASE_URL || 'http://localhost:8000/api'
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'
+}
+
+/**
+ * Resolves an API-relative asset path against the configured public API host.
+ * @param assetPath The API-relative or already absolute asset URL
+ * @returns The URL the browser should request
+ */
+export const resolveApiAssetUrl = (assetPath: string): string => {
+  if (!assetPath.startsWith('/api/')) {
+    return assetPath
+  }
+
+  return `${new URL(getApiBaseUrl()).origin}${assetPath}`
 }
 
 /**

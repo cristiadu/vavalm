@@ -11,6 +11,8 @@ import { givenPlayerExists, cleanupPlayer } from '@tests/api/common-players'
 const WHOLE_TEAM_LIST = 500
 /** Real country with no bootstrap teams, used to isolate this suite's list fixtures. */
 const TEAM_FIXTURE_COUNTRY = 'Antarctica'
+/** Bootstrap team whose stored logo is always available. */
+const BOOTSTRAP_TEAM_WITH_LOGO_ID = 1
 
 
 describe('Teams', () => {
@@ -191,6 +193,17 @@ describe('Teams', () => {
       // endpoint rather than carrying tens of kilobytes of base64.
       expect(entry.team.logo_url).toBe(`/api/teams/${teamId}/logo`)
       expect(JSON.stringify(entry.team)).not.toContain('data:image')
+    })
+
+    it('serves the bootstrap logo without API client authentication', async () => {
+      const response = await fetch(
+        `${process.env.API_BASE_URL || 'http://localhost:8000/api'}/teams/${BOOTSTRAP_TEAM_WITH_LOGO_ID}/logo`,
+      )
+      const logo = await response.arrayBuffer()
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('content-type')).toContain('image/')
+      expect(logo.byteLength).toBeGreaterThan(0)
     })
 
     it('reports the same totals as GET /teams/:id/stats', async () => {

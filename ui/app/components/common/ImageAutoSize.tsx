@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import Image, { ImageProps } from 'next/image'
 import { objectURLOrDefault } from '@/api/models/helpers'
+import { resolveApiAssetUrl } from '@/api/models/constants'
 
 type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
   imageFile?: File | null;
@@ -9,7 +10,7 @@ type ImageAutoSizeProps = Omit<ImageProps, 'src'> & {
 }
 
 const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
-  const { imageFile, fallbackSrc, src, width, height, style, ...rest } = props
+  const { imageFile, fallbackSrc, src, width, height, style, unoptimized, ...rest } = props
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -38,7 +39,11 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
   )
 
   // Memoize the image source to prevent unnecessary re-renders
-  const imageSrc = useMemo(() => src || objectUrl || fallbackSrc || '', [src, objectUrl, fallbackSrc])
+  const imageSrc = useMemo(
+    () => resolveApiAssetUrl(src || objectUrl || fallbackSrc || ''),
+    [src, objectUrl, fallbackSrc],
+  )
+  const isApiAsset = Boolean(src?.startsWith('/api/'))
 
   return (imageSrc ? (
     <Image
@@ -47,6 +52,7 @@ const ImageAutoSize: React.FC<ImageAutoSizeProps> = (props) => {
       src={imageSrc}
       width={width}
       height={height}
+      unoptimized={unoptimized || isApiAsset}
       style={{ ...style, maxWidth: width, maxHeight: height, width: 'auto', height: 'auto' }}
     />
   ) : (
