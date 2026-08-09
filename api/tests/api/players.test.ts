@@ -9,6 +9,13 @@ import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { givenPlayerExists, cleanupPlayer, TEST_PLAYER, TEST_PLAYER_ATTRIBUTES } from '@tests/api/common-players'
 import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
+import { waitForListEntry } from '@tests/api/common-utils'
+
+/** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
+const STATS_LIST_TIMEOUT_MS = 45_000
+/** How often to re-read the stats list while waiting. */
+const STATS_LIST_POLL_EVERY_MS = 2_000
+
 
 describe('Players', () => {
   let teamId: number
@@ -181,8 +188,12 @@ describe('Players', () => {
     })
 
     it('fixture player appears with zero stats and correct team embedded', async () => {
-      const stats = await apiClient.default.getPlayersStats(200, 0) as ItemsWithPagination_AllPlayerStats_
-      const entry = stats.items.find((s: AllPlayerStats) => s.player.id === playerId)!
+      const entry = await waitForListEntry(
+        async () => ((await apiClient.default.getPlayersStats(200, 0)) as ItemsWithPagination_AllPlayerStats_).items,
+        (s: AllPlayerStats) => s.player.id === playerId,
+        STATS_LIST_TIMEOUT_MS,
+        STATS_LIST_POLL_EVERY_MS,
+      ) as AllPlayerStats
       expect(entry).toBeDefined()
       expect(entry.kda).toBe(0)
       expect(entry.winrate).toBe(0)

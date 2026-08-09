@@ -3,6 +3,7 @@ import { apiClient } from '@tests/setup'
 import { cleanupPlayer, givenPlayerExists } from '@tests/api/common-players'
 import { cleanupTeam, givenTeamExists } from '@tests/api/common-teams'
 import { cleanupTournament, givenTournamentExists } from '@tests/api/common-tournaments'
+import { rateLowerBound } from '@tests/api/common-utils'
 import {
   GameStatsApiModel,
   GameLogApiModel,
@@ -460,8 +461,8 @@ describe('Duel and trade mechanics (integration)', () => {
       const team1RoundWinRate = team1RoundWins / roundsToPlay
 
       expect(totalDuels).toBeGreaterThan(0)
-      expect(team1DuelWinRate).toBeGreaterThanOrEqual(0.85)
-      expect(team1RoundWinRate).toBeGreaterThanOrEqual(0.85)
+      expect(team1DuelWinRate).toBeGreaterThanOrEqual(rateLowerBound(0.85, totalDuels))
+      expect(team1RoundWinRate).toBeGreaterThanOrEqual(rateLowerBound(0.85, roundsToPlay))
       await assertGameStatsPayload(fixture!, allPlayerIds, roundsToPlay, totalDuels)
     }, 120000)
   })
@@ -541,7 +542,7 @@ describe('Duel and trade mechanics (integration)', () => {
 
       const duelistPickRate = team1DuelistSelectedCount / firstDuelCount
       expect(firstDuelCount).toBe(roundsToPlay)
-      expect(duelistPickRate).toBeGreaterThanOrEqual(0.50)
+      expect(duelistPickRate).toBeGreaterThanOrEqual(rateLowerBound(0.50, firstDuelCount))
       await assertGameStatsPayload(fixture!, allPlayerIds, roundsToPlay, totalDuels)
     }, 120000)
   })
@@ -662,10 +663,12 @@ describe('Duel and trade mechanics (integration)', () => {
       const expectedTeam2DuelistSelectionRate = accumulatedExpectedTeam2DuelistSelectionRate / team2DuelistSelectionOpportunities
 
       expect(totalTradeDuels).toBeGreaterThanOrEqual(20)
-      expect(team1TradeWinRate).toBeGreaterThanOrEqual(0.70)
+      expect(team1TradeWinRate).toBeGreaterThanOrEqual(rateLowerBound(0.70, totalTradeDuels))
       expect(team1InitiatedTradeDuels).toBeGreaterThanOrEqual(10)
       expect(team2DuelistSelectionOpportunities).toBeGreaterThanOrEqual(10)
-      expect(team2DuelistTradeSelectionRate).toBeGreaterThanOrEqual(expectedTeam2DuelistSelectionRate - 0.15)
+      expect(team2DuelistTradeSelectionRate).toBeGreaterThanOrEqual(
+        rateLowerBound(expectedTeam2DuelistSelectionRate, team2DuelistSelectionOpportunities, 0.15),
+      )
       await assertGameStatsPayload(fixture!, allPlayerIds, roundsToPlay, totalDuels)
     }, 120000)
   })

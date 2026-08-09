@@ -8,6 +8,13 @@ import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { givenTeamExists, cleanupTeam, TEST_TEAM } from '@tests/api/common-teams'
 import { givenPlayerExists, cleanupPlayer } from '@tests/api/common-players'
+import { waitForListEntry } from '@tests/api/common-utils'
+
+/** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
+const STATS_LIST_TIMEOUT_MS = 45_000
+/** How often to re-read the stats list while waiting. */
+const STATS_LIST_POLL_EVERY_MS = 2_000
+
 
 describe('Teams', () => {
   let teamId: number
@@ -166,8 +173,12 @@ describe('Teams', () => {
     })
 
     it('fixture team appears with zero stats', async () => {
-      const stats = await apiClient.default.getTeamsStats(100, 0) as ItemsWithPagination_TeamStats_
-      const entry = stats.items.find((s: TeamStats) => s.team.id === teamId)!
+      const entry = await waitForListEntry(
+        async () => ((await apiClient.default.getTeamsStats(100, 0)) as ItemsWithPagination_TeamStats_).items,
+        (s: TeamStats) => s.team.id === teamId,
+        STATS_LIST_TIMEOUT_MS,
+        STATS_LIST_POLL_EVERY_MS,
+      ) as TeamStats
       expect(entry).toBeDefined()
       expect(entry.team.short_name).toBe(TEST_TEAM.short_name)
       expect(entry.winrate).toBe(0)
@@ -180,7 +191,7 @@ describe('Teams', () => {
       expect(entry.totalMapsLost).toBe(0)
       expect(entry.tournamentsWon).toBe(0)
       expect(entry.tournamentsParticipated).toBe(0)
-    })
+    }, STATS_LIST_TIMEOUT_MS)
 
     it('all items have non-negative stats and satisfy win+loss invariants', async () => {
       const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_
