@@ -46,11 +46,33 @@ pnpm install          # install + regenerate spec, routes, clients
 pnpm localdb dev      # start local PostgreSQL via Docker
 pnpm dev              # start API (port 8000) + UI (port 3000) with hot reload
 pnpm migrate          # run database migrations
-pnpm test             # spin up Docker, run tests, tear down
+pnpm dev:docker:up    # start the Docker stack (db + api + ui)
+pnpm test             # run the test suites against a running stack
+pnpm dev:docker:down  # stop the stack
 pnpm build            # production build for both api and ui
 ```
 
 API docs available at `http://localhost:8000/api/docs` when the server is running.
+
+### Verifying a change
+
+A change is not verified until all three pass — they catch different things, and none of
+them substitutes for another:
+
+```bash
+pnpm lint                                   # style and unused code
+pnpm build                                  # type errors, including the ui's
+pnpm dev:docker:up && pnpm test             # behaviour, against a real database
+pnpm dev:docker:down
+```
+
+- **`pnpm lint` is not a type check.** ESLint leaves type errors to the compiler, so a ui
+  change can lint clean and still fail to build — `pnpm build` is what type-checks the ui.
+- **`pnpm test` needs a running stack.** It no longer starts or stops Docker itself, so bring
+  the stack up first; leaving it up between runs is the point.
+- **Run these through the pnpm scripts.** Do not substitute `docker`, `vitest`, `tsc` or
+  `psql` invocations of your own — if a script fails in your environment, say so rather than
+  working around it, because a parallel setup diverges from what CI actually runs.
 
 ### Environment Prerequisite
 
