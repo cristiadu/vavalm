@@ -45,9 +45,16 @@ jobs:
       run: |
         pnpm lint
 
-    - name: Test Projects
+    - name: Create env files
       run: |
         pnpm create-env-file
+
+    - name: Start Docker stack
+      run: |
+        pnpm dev:docker:up
+
+    - name: Test Projects
+      run: |
         pnpm test
 
     - name: Checking for unused code and dependencies
@@ -67,3 +74,9 @@ jobs:
         name: vavalm-docker-logs-${{ github.run_id }}-${{ github.run_attempt }}
         path: artifacts/*.zip
         if-no-files-found: ignore
+
+    # Last, so a failing run still has its container logs bundled above.
+    - name: Stop Docker stack
+      if: ${{ always() }}
+      run: |
+        pnpm dev:docker:down
