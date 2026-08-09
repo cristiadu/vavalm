@@ -16,7 +16,7 @@
     "create-env-file": "cp .env.template .env",
     "build": "NODE_ENV=production pnpm generate:routes && pnpm generate:client && pnpm webpack --config webpack.config.js --mode production",
     "start": "wait-on dist/bundle.js && node --max-old-space-size=4096 dist/bundle.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/api/pagination.test.ts && vitest run tests/api/pagination.test.ts",
     "check-health": "wait-on -t 60000 http://localhost:8000/api/health",
     "test:coverage": "vitest run --coverage",
     "lint": "pnpm eslint . --config  ./eslint.config.js",
