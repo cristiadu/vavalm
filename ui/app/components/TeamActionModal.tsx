@@ -12,7 +12,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { quill_config } from '@/common/UIUtils'
 import DropdownSelect from '@/components/common/DropdownSelect'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from '@/api/models/constants'
 import { TeamApiModel } from '@/api/generated'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
@@ -124,7 +124,8 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 width={256}
                 height={256}
                 className="w-full h-auto max-w-screen-sm max-h-80"
-                imageFile={teamState.logo_image_file as File}
+                imageFile={teamState.logo_image_file instanceof File ? teamState.logo_image_file : undefined}
+                src={!(teamState.logo_image_file instanceof File) && teamState.id ? teamLogoUrl(teamState.id) : undefined}
                 fallbackSrc={imageSrc}
                 alt="Team Logo"
               />

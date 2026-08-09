@@ -20,17 +20,22 @@ class Team extends Model {
     players: Association<Team, Player>
   }
 
+  /**
+   * Converts to the api shape.
+   *
+   * The logo is deliberately left out: it is a blob, and inlining it as base64
+   * made every row that embeds a team tens of kilobytes larger. Clients read it
+   * from GET /api/teams/{id}/logo, which is cacheable and fetched only when a
+   * logo is actually shown. The field stays on the contract because create and
+   * update still accept an uploaded image through it.
+   */
   toApiModel(): TeamApiModel {
-    const logoBase64 = this.logo_image_file 
-      ? `data:image/png;base64,${Buffer.from(this.logo_image_file).toString('base64')}` 
-      : null
-      
     return new TeamApiModel(
       this.short_name,
       this.full_name,
       this.description,
       this.country,
-      logoBase64,
+      null,
       this.id,
       this.players?.map(player => player.toApiModel()),
     )

@@ -9,6 +9,8 @@ interface DropdownSelectProps<T> {
   onSelect: (_item: T) => void
   displayKey: keyof T
   imageKey?: keyof T
+  /** Resolves an image url for an item, for images served from an endpoint rather than embedded. */
+  imageUrlFor?: (_item: T) => string | undefined
   placeholder: string
   isMultiSelect: boolean
   imageDimensions?: { width: number; height: number }
@@ -22,6 +24,7 @@ const DropdownSelect = <T,>({
   onSelect,
   displayKey,
   imageKey,
+  imageUrlFor,
   placeholder,
   isMultiSelect,
   imageDimensions = { width: 32, height: 32 },
@@ -64,11 +67,11 @@ const DropdownSelect = <T,>({
           <div className="flex items-center">
             {selectedItems.map((selectedItem , index) => (
               <div key={`selectedItem-${index}`}>
-                {imageKey && (
+                {(imageKey || imageUrlFor) && (
                   <ImageAutoSize
-                    imageFile={selectedItem[imageKey] as File}
+                    imageFile={imageKey && !imageUrlFor ? selectedItem[imageKey] as File : undefined}
                     fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
-                    src={selectedItem[imageKey] && !(selectedItem[imageKey] instanceof File) ? selectedItem[imageKey] as string: undefined}
+                    src={imageUrlFor ? imageUrlFor(selectedItem) : (imageKey && selectedItem[imageKey] && !(selectedItem[imageKey] instanceof File) ? selectedItem[imageKey] as string : undefined)}
                     alt={selectedItem[displayKey] as string}
                     width={imageDimensions.width}
                     height={imageDimensions.height}

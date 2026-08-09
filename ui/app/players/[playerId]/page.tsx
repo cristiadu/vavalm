@@ -9,7 +9,7 @@ import { asWord } from '@/common/StringUtils'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from '@/api/models/constants'
 import { AllPlayerStats, TeamApiModel, PlayerApiModel } from '@/api/generated'
 import { Threshold } from '@/common/CommonModels'
 
@@ -92,7 +92,7 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
             <strong>Team:</strong> {team ? (
               <span className="flex items-center ml-2">
                 <ImageAutoSize 
-                  imageFile={team.logo_image_file as File} 
+                  src={teamLogoUrl(team.id!)} 
                   fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH} 
                   alt={team.short_name || ''} 
                   width={32} 

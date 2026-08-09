@@ -1,5 +1,5 @@
 import { GameStatsApiModel, MatchApiModel, PlayerGameStatsApiModel, PlayerRole, TeamApiModel } from "@/api/generated"
-import { ASSISTS_HALF_MULTIPLIER, DEFAULT_TEAM_LOGO_IMAGE_PATH } from "@/api/models/constants"
+import { ASSISTS_HALF_MULTIPLIER, DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from "@/api/models/constants"
 import { calculatePlayerRating } from "@/common/NumberUtils"
 import { TeamWithLogoImageData } from "@/api/models/types"
 
@@ -93,7 +93,13 @@ export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
  * @returns The URL of the logo image file for the team
  */
 export const teamLogoURLObjectOrDefault = (team: TeamApiModel | null): string => {
-  return objectURLOrDefault(team?.logo_image_file as File | null, DEFAULT_TEAM_LOGO_IMAGE_PATH) as string
+  // A team the user is still editing holds an unsaved File; a saved team is
+  // read from the logo endpoint rather than from an inlined blob.
+  if (team?.logo_image_file instanceof File) {
+    return objectURLOrDefault(team.logo_image_file, DEFAULT_TEAM_LOGO_IMAGE_PATH) as string
+  }
+
+  return team?.id ? teamLogoUrl(team.id) : DEFAULT_TEAM_LOGO_IMAGE_PATH
 }
 
 /**

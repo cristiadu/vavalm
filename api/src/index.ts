@@ -13,6 +13,7 @@ import SchedulerService from '@/services/SchedulerService'
 import rateLimit from 'express-rate-limit'
 import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
 import { errorHandler } from '@/middleware/errorHandler'
+import { registerTeamLogoRoute } from '@/routes/teamLogoRoute'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -58,6 +59,9 @@ app.use((req, res, next) => {
 
 // Register routes using TSOA's RegisterRoutes function
 RegisterRoutes(app)
+
+// Binary route that cannot go through tsoa's json serialisation
+registerTeamLogoRoute(app)
 
 // Add error handler middleware
 app.use(errorHandler)

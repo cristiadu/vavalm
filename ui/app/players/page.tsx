@@ -12,7 +12,7 @@ import Pagination from '@/components/common/Pagination'
 import { ItemsWithPagination } from '@/api/models/types'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from '@/api/models/constants'
 import { PlayerApiModel, TeamApiModel } from '@/api/generated'
 
 const DEFAULT_LIMIT_VALUE_PLAYER_LIST = 5 // Return to original value
@@ -175,7 +175,7 @@ export default function ListPlayers(): React.ReactNode {
                       {playerToTeam && playerToTeam[String(player.id)] ? (
                         <span className="flex items-center text-sm text-gray-700">
                           <ImageAutoSize
-                            imageFile={playerToTeam[String(player.id)].logo_image_file as File}
+                            src={teamLogoUrl(playerToTeam[String(player.id)].id!)}
                             fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                             alt={playerToTeam[String(player.id)].short_name || ''}
                             width={24} height={24}

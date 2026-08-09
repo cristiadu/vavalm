@@ -202,6 +202,16 @@ describe('Teams', () => {
     }, STATS_LIST_TIMEOUT_MS)
 
 
+    it('does not inline the logo into the payload', async () => {
+      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+
+      // Logos are served from /api/teams/{id}/logo instead, so a stats row
+      // carries a team without tens of kilobytes of base64 attached.
+      for (const entry of listed) {
+        expect(entry.team.logo_image_file ?? null).toBeNull()
+      }
+    })
+
     it('reports the same totals as GET /teams/:id/stats', async () => {
       const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
       const entry = listed.find(item => item.team.id === teamId)

@@ -7,7 +7,7 @@ import { fetchCountries } from '@/api/CountryApi'
 import TournamentActionModal from '@/components/TournamentActionModal'
 import { ItemsWithPagination } from '@/api/models/types'
 import Pagination from '@/components/common/Pagination'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE, teamLogoUrl } from '@/api/models/constants'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { TeamApiModel, TournamentApiModel } from '@/api/generated'
@@ -141,7 +141,7 @@ export default function ListTournaments(): React.ReactNode {
                           {winner ? (
                             <>
                               <ImageAutoSize
-                                imageFile={winner.logo_image_file as File}
+                                src={teamLogoUrl(winner.id!)}
                                 fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                                 alt={winner.short_name || ''}
                                 width={16} height={16}
@@ -165,7 +165,7 @@ export default function ListTournaments(): React.ReactNode {
                         return (
                           <div key={`tournament-${tournament.id}-team-${team.id}`} title={team.short_name || ''} className="flex items-center bg-gray-100 rounded-full pl-1 pr-2.5 py-0.5">
                             <ImageAutoSize
-                              imageFile={team.logo_image_file as File}
+                              src={teamLogoUrl(team.id!)}
                               fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                               alt={team.short_name || ""}
                               width={20} height={20}

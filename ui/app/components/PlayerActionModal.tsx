@@ -10,6 +10,7 @@ import AlertMessage, { AlertType } from '@/components/common/AlertMessage'
 import DropdownSelect from '@/components/common/DropdownSelect'
 import { EnumWithFieldName } from '@/api/models/types'
 import { PlayerApiModel, TeamApiModel, PlayerRole, PlayerAttributesApiModel } from '@/api/generated'
+import { teamLogoUrl } from '@/api/models/constants'
 
 const defaultPlayerAttributes: PlayerAttributesApiModel = {
   clutch: 0,
@@ -213,7 +214,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
               selectedItems={selectedTeam ? [selectedTeam] : []}
               onSelect={handleTeamSelect}
               displayKey="short_name"
-              imageKey="logo_image_file"
+              imageUrlFor={(team) => team.id ? teamLogoUrl(team.id) : undefined}
               placeholder="Select teams"
               isMultiSelect={false} 
             />

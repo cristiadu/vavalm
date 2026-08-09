@@ -9,7 +9,7 @@ import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
 import Pagination from '@/components/common/Pagination'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from '@/api/models/constants'
 import { AllPlayerStats, PlayerApiModel } from '@/api/generated'
 import { Threshold } from '@/common/CommonModels'
 
@@ -142,7 +142,7 @@ const PlayersStatsPage = (): React.ReactNode => {
                     {stats.team ? (
                       <div className="flex items-center gap-2">
                         <ImageAutoSize
-                          imageFile={stats.team.logo_image_file as File}
+                          src={teamLogoUrl(stats.team.id!)}
                           fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                           alt={stats.team.short_name || ''}
                           width={24}
