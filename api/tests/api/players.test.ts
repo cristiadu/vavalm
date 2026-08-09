@@ -9,6 +9,16 @@ import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { givenPlayerExists, cleanupPlayer, TEST_PLAYER, TEST_PLAYER_ATTRIBUTES } from '@tests/api/common-players'
 import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
+import { waitForListEntry } from '@tests/api/common-utils'
+
+/** Entities other suites may create or delete between two reads of a list. */
+const TOTAL_DRIFT_TOLERANCE = 40
+
+/** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
+const STATS_LIST_TIMEOUT_MS = 45_000
+/** How often to re-read the stats list while waiting. */
+const STATS_LIST_POLL_EVERY_MS = 2_000
+
 
 describe('Players', () => {
   let teamId: number
@@ -45,8 +55,9 @@ describe('Players', () => {
         expect(page1.items).toHaveLength(1)
         expect(page2.items).toHaveLength(1)
         expect(page1.items[0].id).not.toBe(page2.items[0].id)
-        // totals may differ slightly due to parallel test concurrency
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(5)
+        // Both pages come from one ordering, so their totals agree unless
+        // another suite mutated data between the two reads.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
       }
     })
 
@@ -181,8 +192,12 @@ describe('Players', () => {
     })
 
     it('fixture player appears with zero stats and correct team embedded', async () => {
-      const stats = await apiClient.default.getPlayersStats(200, 0) as ItemsWithPagination_AllPlayerStats_
-      const entry = stats.items.find((s: AllPlayerStats) => s.player.id === playerId)!
+      const entry = await waitForListEntry(
+        async () => ((await apiClient.default.getPlayersStats(200, 0)) as ItemsWithPagination_AllPlayerStats_).items,
+        (s: AllPlayerStats) => s.player.id === playerId,
+        STATS_LIST_TIMEOUT_MS,
+        STATS_LIST_POLL_EVERY_MS,
+      ) as AllPlayerStats
       expect(entry).toBeDefined()
       expect(entry.kda).toBe(0)
       expect(entry.winrate).toBe(0)
@@ -232,8 +247,9 @@ describe('Players', () => {
       if (all.total > 2) {
         const page1 = await apiClient.default.getPlayersStats(2, 0) as ItemsWithPagination_AllPlayerStats_
         const page2 = await apiClient.default.getPlayersStats(2, 2) as ItemsWithPagination_AllPlayerStats_
-        // totals may differ slightly due to parallel test concurrency
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(5)
+        // Both pages come from one ordering, so their totals agree unless
+        // another suite mutated data between the two reads.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
         const page1Ids = page1.items.map(s => s.player.id)
         const page2Ids = page2.items.map(s => s.player.id)
         expect(page1Ids).not.toEqual(page2Ids)
