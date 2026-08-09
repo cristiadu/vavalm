@@ -22,11 +22,14 @@ describe('Stats aggregation', () => {
   beforeAll(async () => {
     fixture = await givenPlayedMatchExists('AGGR')
 
-    // The leaderboards are cached, so wait until the fixture is visible rather
-    // than assuming invalidation has already happened.
+    // The leaderboards are cached, so wait until the fixture's played match is
+    // reflected rather than assuming invalidation has already happened. The
+    // team appears as soon as it is created, so presence alone is not enough —
+    // wait for its maps to show up.
     await waitForCondition(async () => {
       const page = await apiClient.default.getTeamsStats(WHOLE_LIST, 0)
-      return (page.items as TeamStats[]).some(entry => entry.team.id === fixture.match.team1_id)
+      const listed = (page.items as TeamStats[]).find(entry => entry.team.id === fixture.match.team1_id)
+      return listed !== undefined && listed.totalMapsPlayed > 0
     }, FIXTURE_VISIBLE_TIMEOUT_MS, FIXTURE_POLL_EVERY_MS)
 
     allTeams = (await apiClient.default.getTeamsStats(WHOLE_LIST, 0)).items as TeamStats[]
@@ -125,19 +128,22 @@ describe('Stats aggregation', () => {
   // ── Pagination ────────────────────────────────────────────────────────────
 
   describe('pagination', () => {
+    // Other suites create and delete entities in parallel, so each test reads
+    // the full list and the page together rather than comparing against a
+    // snapshot taken in beforeAll.
     it('returns a team page matching that slice of the full ordering', async () => {
+      const everything = await apiClient.default.getTeamsStats(WHOLE_LIST, 0)
       const page = await apiClient.default.getTeamsStats(PAGE_SIZE, PAGE_SIZE)
-      const expected = allTeams.slice(PAGE_SIZE, PAGE_SIZE * 2)
+      const expected = (everything.items as TeamStats[]).slice(PAGE_SIZE, PAGE_SIZE * 2)
 
-      expect(page.total).toBe(allTeams.length)
       expect((page.items as TeamStats[]).map(entry => entry.team.id)).toEqual(expected.map(entry => entry.team.id))
     })
 
     it('returns a player page matching that slice of the full ordering', async () => {
+      const everything = await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
       const page = await apiClient.default.getPlayersStats(PAGE_SIZE, PAGE_SIZE)
-      const expected = allPlayers.slice(PAGE_SIZE, PAGE_SIZE * 2)
+      const expected = (everything.items as AllPlayerStats[]).slice(PAGE_SIZE, PAGE_SIZE * 2)
 
-      expect(page.total).toBe(allPlayers.length)
       expect((page.items as AllPlayerStats[]).map(entry => entry.player.id)).toEqual(expected.map(entry => entry.player.id))
     })
 
@@ -147,13 +153,15 @@ describe('Stats aggregation', () => {
 
       expect(singleRow.total).toBe(everything.total)
       expect(singleRow.items).toHaveLength(1)
+      expect(everything.items.length).toBe(everything.total)
     })
 
     it('returns an empty page past the end without changing the total', async () => {
-      const page = await apiClient.default.getPlayersStats(PAGE_SIZE, allPlayers.length + PAGE_SIZE)
+      const everything = await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
+      const page = await apiClient.default.getPlayersStats(PAGE_SIZE, everything.total + PAGE_SIZE)
 
       expect(page.items).toHaveLength(0)
-      expect(page.total).toBe(allPlayers.length)
+      expect(page.total).toBe(everything.total)
     })
   })
 

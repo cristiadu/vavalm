@@ -5,10 +5,10 @@ import { VlrPlayer } from '@/models/Vlr'
 import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
-import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
+import { AllPlayerStats, expectedPageSize, ItemsWithPagination } from '@/base/types'
 import CacheService from '@/services/CacheService'
 import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
-import { fetchPlayerStatsTotals, PlayerStatsTotals } from '@/services/StatsAggregationService'
+import { fetchPlayerStatsTotals, PlayerStatsTotals } from '@/services/PlayerStatsAggregationService'
 
 /**
  * Updates or creates a player based on the player data and team.
@@ -178,6 +178,29 @@ export const getAllStatsForAllPlayers = async (limit: number, offset: number): P
     CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
   }
 
+  let items = await hydratePlayerStatsPage(totals, limit, offset)
+
+  // A cached ordering can name a player deleted since it was built, which would
+  // report a total the page cannot fill. Treat that as a stale cache and
+  // recompute once so items and total come from the same snapshot.
+  if (items.length < expectedPageSize(totals.length, limit, offset)) {
+    totals = await fetchPlayerStatsTotals()
+    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
+    items = await hydratePlayerStatsPage(totals, limit, offset)
+  }
+
+  return new ItemsWithPagination<AllPlayerStats>(items, totals.length)
+}
+
+/**
+ * Loads the entities for one page of aggregated totals and builds their stats.
+ *
+ * @param totals  The full ordered totals
+ * @param limit  Page size
+ * @param offset  Rows to skip
+ * @returns {Promise<AllPlayerStats[]>} - Stats for the players on that page that still exist.
+ */
+const hydratePlayerStatsPage = async (totals: PlayerStatsTotals[], limit: number, offset: number): Promise<AllPlayerStats[]> => {
   const page = totals.slice(offset, offset + limit)
   const players = await Player.findAll({
     where: { id: page.map(entry => entry.playerId) },
@@ -185,14 +208,12 @@ export const getAllStatsForAllPlayers = async (limit: number, offset: number): P
   })
   const playersById = new Map(players.map(player => [player.id, player]))
 
-  const items = page
+  return page
     .map(entry => {
       const player = playersById.get(entry.playerId)
       return player ? buildPlayerStats(player, entry) : null
     })
     .filter((stats): stats is AllPlayerStats => stats !== null)
-
-  return new ItemsWithPagination<AllPlayerStats>(items, totals.length)
 }
 
 /**

@@ -2,7 +2,7 @@ import { Op } from "sequelize"
 
 import { downloadPNGImage } from '@/base/FileUtils'
 
-import { ItemsWithPagination, TeamStats } from '@/base/types'
+import { expectedPageSize, ItemsWithPagination, TeamStats } from '@/base/types'
 import { VlrTeam } from '@/models/Vlr'
 import Tournament from '@/models/Tournament'
 import Match from '@/models/Match'
@@ -11,7 +11,7 @@ import GameStats from '@/models/GameStats'
 import Team from '@/models/Team'
 import CacheService from '@/services/CacheService'
 import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
-import { fetchTeamStatsTotals, TeamStatsTotals } from '@/services/StatsAggregationService'
+import { fetchTeamStatsTotals, TeamStatsTotals } from '@/services/TeamStatsAggregationService'
 
 /**
  * Upserts a team entry based on the team data.
@@ -57,18 +57,39 @@ export const getAllStatsForAllTeams = async (limit: number, offset: number): Pro
     CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
   }
 
+  let items = await hydrateTeamStatsPage(totals, limit, offset)
+
+  // A cached ordering can name a team deleted since it was built, which would
+  // report a total the page cannot fill. Treat that as a stale cache and
+  // recompute once so items and total come from the same snapshot.
+  if (items.length < expectedPageSize(totals.length, limit, offset)) {
+    totals = await fetchTeamStatsTotals()
+    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
+    items = await hydrateTeamStatsPage(totals, limit, offset)
+  }
+
+  return new ItemsWithPagination<TeamStats>(items, totals.length)
+}
+
+/**
+ * Loads the entities for one page of aggregated totals and builds their stats.
+ *
+ * @param totals  The full ordered totals
+ * @param limit  Page size
+ * @param offset  Rows to skip
+ * @returns {Promise<TeamStats[]>} - Stats for the teams on that page that still exist.
+ */
+const hydrateTeamStatsPage = async (totals: TeamStatsTotals[], limit: number, offset: number): Promise<TeamStats[]> => {
   const page = totals.slice(offset, offset + limit)
   const teams = await Team.findAll({ where: { id: page.map(entry => entry.teamId) } })
   const teamsById = new Map(teams.map(team => [team.id, team]))
 
-  const items = page
+  return page
     .map(entry => {
       const team = teamsById.get(entry.teamId)
       return team ? buildTeamStats(team, entry) : null
     })
     .filter((stats): stats is TeamStats => stats !== null)
-
-  return new ItemsWithPagination<TeamStats>(items, totals.length)
 }
 
 /**
