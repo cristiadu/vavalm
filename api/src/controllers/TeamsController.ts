@@ -5,7 +5,7 @@ import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 import { TeamStats } from "@/base/types"
 import Team from "@/models/Team"
 import Player from "@/models/Player"
-import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamService"
+import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamStatsService"
 import { Op } from "sequelize"
 
 @Route("teams")

@@ -12,6 +12,10 @@ import { waitForListEntry } from '@tests/api/common-utils'
 
 /** Entities other suites may create or delete between two reads of a list. */
 const TOTAL_DRIFT_TOLERANCE = 40
+/** Large enough to hold every team the suite could encounter. */
+const WHOLE_TEAM_LIST = 500
+/** Page size used for the pagination checks. */
+const TEAM_PAGE_SIZE = 5
 
 /** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
 const STATS_LIST_TIMEOUT_MS = 45_000
@@ -196,6 +200,65 @@ describe('Teams', () => {
       expect(entry.tournamentsWon).toBe(0)
       expect(entry.tournamentsParticipated).toBe(0)
     }, STATS_LIST_TIMEOUT_MS)
+
+
+    it('reports the same totals as GET /teams/:id/stats', async () => {
+      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+      const entry = listed.find(item => item.team.id === teamId)
+      const single = await apiClient.default.getTeamStats(teamId) as TeamStats
+
+      expect(entry).toBeDefined()
+      expect(entry!.totalMapsPlayed).toBe(single.totalMapsPlayed)
+      expect(entry!.totalMapsWon).toBe(single.totalMapsWon)
+      expect(entry!.totalMapsLost).toBe(single.totalMapsLost)
+      expect(entry!.totalMatchesPlayed).toBe(single.totalMatchesPlayed)
+      expect(entry!.totalMatchesWon).toBe(single.totalMatchesWon)
+      expect(entry!.totalMatchesLost).toBe(single.totalMatchesLost)
+      expect(entry!.tournamentsParticipated).toBe(single.tournamentsParticipated)
+      expect(entry!.tournamentsWon).toBe(single.tournamentsWon)
+      expect(entry!.winrate).toBe(single.winrate)
+      expect(entry!.mapWinrate).toBe(single.mapWinrate)
+    })
+
+    it('orders teams by the leaderboard criteria in priority order', async () => {
+      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+
+      for (let position = 1; position < listed.length; position++) {
+        const previous = listed[position - 1]
+        const current = listed[position]
+        const criteria: [number, number][] = [
+          [previous.tournamentsWon, current.tournamentsWon],
+          [previous.winrate, current.winrate],
+          [previous.mapWinrate, current.mapWinrate],
+          [previous.totalMatchesWon, current.totalMatchesWon],
+          [previous.totalMapsWon, current.totalMapsWon],
+        ]
+
+        const firstDifference = criteria.find(([earlier, later]) => earlier !== later)
+        if (firstDifference) {
+          expect(firstDifference[0]).toBeGreaterThan(firstDifference[1])
+        }
+      }
+    })
+
+    it('returns a page matching that slice of the full ordering', async () => {
+      const everything = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+      const page = await apiClient.default.getTeamsStats(TEAM_PAGE_SIZE, TEAM_PAGE_SIZE)
+      const expected = everything.slice(TEAM_PAGE_SIZE, TEAM_PAGE_SIZE * 2)
+
+      expect((page.items as TeamStats[]).map(entry => entry.team.id)).toEqual(expected.map(entry => entry.team.id))
+    })
+
+    it('lists a team as soon as it is created, without waiting for a cache to expire', async () => {
+      const created = await givenTeamExists({ short_name: 'TFRESH', full_name: 'Freshness Team', country: 'Chile' })
+
+      try {
+        const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+        expect(listed.some(item => item.team.id === created.id)).toBe(true)
+      } finally {
+        await cleanupTeam(created.id)
+      }
+    })
 
     it('all items have non-negative stats and satisfy win+loss invariants', async () => {
       const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_

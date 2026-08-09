@@ -2,7 +2,6 @@ import { Worker } from 'worker_threads'
 import MatchService from '@/services/MatchService'
 import { WorkerStatus, WorkerMessageType, MatchCompletedMessage } from '@/models/SchedulerTypes'
 import { MAX_CONCURRENT_MATCHES } from '@/models/constants'
-import { invalidateAggregateStatsCaches } from '@/models/StatsCacheInvalidation'
 
 // Track active workers to manage resources
 let workerPool: Worker[] = []
@@ -121,9 +120,6 @@ const createMatchWorker = async (matchId: number, matchData: unknown): Promise<b
     worker.on('message', (message: MatchCompletedMessage) => {
       if (message?.type !== WorkerMessageType.MATCH_COMPLETED) return
       completionHandled = true
-      // The worker played the match in its own thread, so its model hooks
-      // cleared its own copy of the cache, not this one. Drop ours here.
-      invalidateAggregateStatsCaches()
       if (!message.success) {
         console.log(`Match ${message.matchId} failed, reverting started status for retry`)
         MatchService.updateMatchStatus(message.matchId, { started: false })
