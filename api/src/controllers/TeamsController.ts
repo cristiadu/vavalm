@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FormField, Get, OperationId, Path, Post, Produces, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { Body, Controller, Delete, FormField, Get, NoSecurity, OperationId, Path, Post, Produces, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
 import { Readable } from "stream"
 import { ItemsWithPagination } from "@/base/types"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
@@ -9,6 +9,7 @@ import Player from "@/models/Player"
 import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamStatsService"
 import { fetchTeamLogo, replaceTeamLogo, LOGO_CACHE_SECONDS } from "@/services/TeamService"
 import { Op } from "sequelize"
+import { detectImageMimeType } from "@/base/FileUtils"
 
 @Route("teams")
 export class TeamsController extends Controller {
@@ -112,11 +113,13 @@ export class TeamsController extends Controller {
    * @param teamId The team whose logo to download
    */
   @Get("{teamId}/logo")
+  @NoSecurity()
   @OperationId("getTeamLogo")
   @Produces("image/png")
   public async getTeamLogo(@Path() teamId: number): Promise<Readable> {
     const logo = await fetchTeamLogo(teamId)
 
+    this.setHeader('Content-Type', detectImageMimeType(logo))
     this.setHeader('Cache-Control', `public, max-age=${LOGO_CACHE_SECONDS}`)
     return Readable.from(logo)
   }

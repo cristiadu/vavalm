@@ -1,6 +1,8 @@
 /**
  * @type {import('next').NextConfig}
  */
+const apiBaseUrl = new URL(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api')
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -23,6 +25,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'flags.restcountries.com',
+      },
+      {
+        protocol: apiBaseUrl.protocol.replace(':', ''),
+        hostname: apiBaseUrl.hostname,
+        port: apiBaseUrl.port,
+        pathname: '/api/**',
       },
     ],
   },
