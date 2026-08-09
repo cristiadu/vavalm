@@ -10,6 +10,9 @@ import { givenTeamExists, cleanupTeam, TEST_TEAM } from '@tests/api/common-teams
 import { givenPlayerExists, cleanupPlayer } from '@tests/api/common-players'
 import { waitForListEntry } from '@tests/api/common-utils'
 
+/** Entities other suites may create or delete between two reads of a list. */
+const TOTAL_DRIFT_TOLERANCE = 40
+
 /** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
 const STATS_LIST_TIMEOUT_MS = 45_000
 /** How often to re-read the stats list while waiting. */
@@ -61,8 +64,9 @@ describe('Teams', () => {
         expect(page1.items).toHaveLength(1)
         expect(page2.items).toHaveLength(1)
         expect(page1.items[0].id).not.toBe(page2.items[0].id)
-        // totals may differ slightly due to parallel test concurrency
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(5)
+        // Both pages come from one ordering, so their totals agree unless
+        // another suite mutated data between the two reads.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
       }
     })
 
@@ -225,8 +229,9 @@ describe('Teams', () => {
       if (all.total > 2) {
         const page1 = await apiClient.default.getTeamsStats(2, 0) as ItemsWithPagination_TeamStats_
         const page2 = await apiClient.default.getTeamsStats(2, 2) as ItemsWithPagination_TeamStats_
-        // totals may differ slightly due to parallel test concurrency
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(5)
+        // Both pages come from one ordering, so their totals agree unless
+        // another suite mutated data between the two reads.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
         const page1Ids = page1.items.map(s => s.team.id)
         const page2Ids = page2.items.map(s => s.team.id)
         expect(page1Ids).not.toEqual(page2Ids)

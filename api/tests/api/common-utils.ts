@@ -1,4 +1,31 @@
 /**
+ * Timeouts for vitest hooks, in milliseconds.
+ *
+ * Vitest's own hook timeout argument is a bare number, so naming the values
+ * here keeps the unit and the intent visible at the call site.
+ */
+export const HOOK_TIMEOUT_MS = {
+  /** Standing up a fixture that simulates a full match end to end. */
+  PLAYED_MATCH_FIXTURE: 120_000,
+  /** Tearing a fixture back down again. */
+  FIXTURE_CLEANUP: 60_000,
+}
+
+/**
+ * Scales a ratio to a percentage rounded to two decimals — the form the API
+ * reports winrates in.
+ *
+ * @param value - The part, for example matches won.
+ * @param total - The whole, for example matches played. Zero yields 0.
+ * @returns The percentage, rounded to at most two decimals.
+ */
+export const formatPercentage = (value: number, total: number): number => {
+  if (total === 0) {
+    return 0
+  }
+
+  return parseFloat(((value / total) * 100).toFixed(2))
+
  * Polls a paginated list until the expected entry shows up.
  *
  * The stats leaderboards are cached, so an entity created after the cache was
