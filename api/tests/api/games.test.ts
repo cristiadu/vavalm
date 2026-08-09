@@ -16,6 +16,9 @@ import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
 import { givenPlayerExists, cleanupPlayer, TEST_PLAYER_ATTRIBUTES } from '@tests/api/common-players'
 import { givenTournamentExists, cleanupTournament, TEST_TOURNAMENT } from '@tests/api/common-tournaments'
 
+/** Entities other suites may create or delete between two reads of a list. */
+const TOTAL_DRIFT_TOLERANCE = 40
+
 describe('Tournaments, Matches & Games', () => {
   let team1Id: number
   let team2Id: number
@@ -95,7 +98,9 @@ describe('Tournaments, Matches & Games', () => {
         expect(page1.items).toHaveLength(1)
         expect(page2.items).toHaveLength(1)
         expect(page1.items[0].id).not.toBe(page2.items[0].id)
-        expect(page1.total).toBe(page2.total)
+        // Other suites create and delete tournaments in parallel, so two reads
+        // need not report the same total.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
       }
     })
   })
