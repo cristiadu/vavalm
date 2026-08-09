@@ -14,8 +14,7 @@
     },
     "dialectOptions": {
       "statement_timeout": 30000
-    },
-    "port": 5433
+    }
   },
   "test": {
     "username": "user",
@@ -32,14 +31,13 @@
     },
     "dialectOptions": {
       "statement_timeout": 30000
-    },
-    "port": 5433
+    }
   },
   "production": {
     "username": "user",
     "password": "password",
     "database": "mydb",
-    "host": "127.0.0.1",
+    "host": "db",
     "dialect": "postgres",
     "pool": {
       "max": 20,
@@ -50,7 +48,6 @@
     },
     "dialectOptions": {
       "statement_timeout": 30000
-    },
-    "port": 5433
+    }
   }
 }
