@@ -1,6 +1,4 @@
 import {
-  ItemsWithPagination_TeamApiModel_,
-  ItemsWithPagination_TeamStats_,
   TeamApiModel,
   TeamStats,
 } from '@tests/generated/api'
@@ -11,8 +9,8 @@ import { givenPlayerExists, cleanupPlayer } from '@tests/api/common-players'
 
 /** Large enough to hold every team the suite could encounter. */
 const WHOLE_TEAM_LIST = 500
-/** Distinct filter that isolates this suite's list fixtures. */
-const TEAM_FIXTURE_COUNTRY = 'VaValM Teams Pagination Fixture'
+/** Real country with no bootstrap teams, used to isolate this suite's list fixtures. */
+const TEAM_FIXTURE_COUNTRY = 'Antarctica'
 
 
 describe('Teams', () => {
@@ -43,14 +41,14 @@ describe('Teams', () => {
 
   describe('GET /teams', () => {
     it('returns a paginated list with correct shape', async () => {
-      const response = await apiClient.default.getTeams() as ItemsWithPagination_TeamApiModel_
+      const response = await apiClient.default.getTeams()
       expect(Array.isArray(response.items)).toBe(true)
       expect(typeof response.total).toBe('number')
       expect(response.total).toBeGreaterThanOrEqual(1)
     })
 
     it('embeds a players array in each team', async () => {
-      const response = await apiClient.default.getTeams(undefined, 50, 0) as ItemsWithPagination_TeamApiModel_
+      const response = await apiClient.default.getTeams(undefined, 50, 0)
       const team = response.items.find((t: TeamApiModel) => t.id === teamId)
       expect(team).toBeDefined()
       expect(Array.isArray(team?.players)).toBe(true)
@@ -61,9 +59,9 @@ describe('Teams', () => {
     })
 
     it('respects limit and offset', async () => {
-      const all = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 100, 0) as ItemsWithPagination_TeamApiModel_
-      const page1 = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 1, 0) as ItemsWithPagination_TeamApiModel_
-      const page2 = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 1, 1) as ItemsWithPagination_TeamApiModel_
+      const all = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 100, 0)
+      const page1 = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 1, 0)
+      const page2 = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 1, 1)
 
       expect(all.total).toBe(2)
       expect(all.items.map(team => team.id)).toEqual([teamId, paginationTeamId])
@@ -72,7 +70,7 @@ describe('Teams', () => {
     })
 
     it('filters by country', async () => {
-      const response = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 50, 0) as ItemsWithPagination_TeamApiModel_
+      const response = await apiClient.default.getTeams(TEAM_FIXTURE_COUNTRY, 50, 0)
       expect(response.total).toBe(2)
       for (const team of response.items) {
         expect(team.country).toContain(TEAM_FIXTURE_COUNTRY)
@@ -80,7 +78,7 @@ describe('Teams', () => {
     })
 
     it('each team item has all required fields', async () => {
-      const response = await apiClient.default.getTeams(undefined, 50, 0) as ItemsWithPagination_TeamApiModel_
+      const response = await apiClient.default.getTeams(undefined, 50, 0)
       const team = response.items.find(t => t.id === teamId)!
       expect(team.id).toBe(teamId)
       expect(team.short_name).toBe(TEST_TEAM.short_name)
@@ -94,7 +92,7 @@ describe('Teams', () => {
 
   describe('GET /teams/:id', () => {
     it('returns the correct team with all fields', async () => {
-      const team = await apiClient.default.getTeam(teamId) as TeamApiModel
+      const team = await apiClient.default.getTeam(teamId)
       expect(team.id).toBe(teamId)
       expect(team.short_name).toBe(TEST_TEAM.short_name)
       expect(team.full_name).toBe(TEST_TEAM.full_name)
@@ -103,7 +101,7 @@ describe('Teams', () => {
     })
 
     it('includes the players array with the fixture player', async () => {
-      const team = await apiClient.default.getTeam(teamId) as TeamApiModel
+      const team = await apiClient.default.getTeam(teamId)
       expect(Array.isArray(team.players)).toBe(true)
       const player = team.players!.find(p => p.id === playerId)
       expect(player).toBeDefined()
@@ -136,7 +134,7 @@ describe('Teams', () => {
 
   describe('GET /teams/:id/stats', () => {
     it('returns all stats as 0 for a team with no games played', async () => {
-      const stats = await apiClient.default.getTeamStats(teamId) as TeamStats
+      const stats = await apiClient.default.getTeamStats(teamId)
       expect(stats.team.id).toBe(teamId)
       expect(stats.team.short_name).toBe(TEST_TEAM.short_name)
       expect(stats.winrate).toBe(0)
@@ -152,17 +150,17 @@ describe('Teams', () => {
     })
 
     it('totalMatchesWon + totalMatchesLost equals totalMatchesPlayed', async () => {
-      const stats = await apiClient.default.getTeamStats(teamId) as TeamStats
+      const stats = await apiClient.default.getTeamStats(teamId)
       expect(stats.totalMatchesWon + stats.totalMatchesLost).toBe(stats.totalMatchesPlayed)
     })
 
     it('totalMapsWon + totalMapsLost equals totalMapsPlayed', async () => {
-      const stats = await apiClient.default.getTeamStats(teamId) as TeamStats
+      const stats = await apiClient.default.getTeamStats(teamId)
       expect(stats.totalMapsWon + stats.totalMapsLost).toBe(stats.totalMapsPlayed)
     })
 
     it('tournamentsWon does not exceed tournamentsParticipated', async () => {
-      const stats = await apiClient.default.getTeamStats(teamId) as TeamStats
+      const stats = await apiClient.default.getTeamStats(teamId)
       expect(stats.tournamentsWon).toBeLessThanOrEqual(stats.tournamentsParticipated)
     })
   })
@@ -171,22 +169,22 @@ describe('Teams', () => {
 
   describe('GET /teams/stats', () => {
     it('returns a paginated stats list with correct shape', async () => {
-      const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_
+      const stats = await apiClient.default.getTeamsStats(50, 0)
       expect(Array.isArray(stats.items)).toBe(true)
       expect(typeof stats.total).toBe('number')
       expect(stats.total).toBeGreaterThanOrEqual(1)
     })
 
     it('fixture team appears with zero stats', async () => {
-      const stats = await apiClient.default.getTeamsStats(100, 0) as ItemsWithPagination_TeamStats_
+      const stats = await apiClient.default.getTeamsStats(100, 0)
       const entry = stats.items.find(item => item.team.id === teamId)
-      const single = await apiClient.default.getTeamStats(teamId) as TeamStats
+      const single = await apiClient.default.getTeamStats(teamId)
 
       expect(entry).toEqual(single)
     })
 
     it('references the logo by url instead of embedding it', async () => {
-      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items
       const entry = listed.find(item => item.team.id === teamId)!
 
       // The blob is no longer on the contract at all; a row points at the logo
@@ -196,9 +194,9 @@ describe('Teams', () => {
     })
 
     it('reports the same totals as GET /teams/:id/stats', async () => {
-      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items
       const entry = listed.find(item => item.team.id === teamId)
-      const single = await apiClient.default.getTeamStats(teamId) as TeamStats
+      const single = await apiClient.default.getTeamStats(teamId)
 
       expect(entry).toBeDefined()
       expect(entry!.totalMapsPlayed).toBe(single.totalMapsPlayed)
@@ -214,7 +212,7 @@ describe('Teams', () => {
     })
 
     it('orders teams by the leaderboard criteria in priority order', async () => {
-      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+      const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items
 
       for (let position = 1; position < listed.length; position++) {
         const previous = listed[position - 1]
@@ -238,7 +236,7 @@ describe('Teams', () => {
       const created = await givenTeamExists({ short_name: 'TFRESH', full_name: 'Freshness Team', country: 'Chile' })
 
       try {
-        const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+        const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items
         expect(listed.some(item => item.team.id === created.id)).toBe(true)
       } finally {
         await cleanupTeam(created.id)
@@ -246,7 +244,7 @@ describe('Teams', () => {
     })
 
     it('all items have non-negative stats and satisfy win+loss invariants', async () => {
-      const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_
+      const stats = await apiClient.default.getTeamsStats(50, 0)
       for (const item of stats.items) {
         expect(item.team.id).toBeGreaterThan(0)
         expect(item.team.short_name?.length).toBeGreaterThan(0)
@@ -267,13 +265,13 @@ describe('Teams', () => {
     })
 
     it('respects limit — page size does not exceed requested limit', async () => {
-      const page = await apiClient.default.getTeamsStats(1, 0) as ItemsWithPagination_TeamStats_
+      const page = await apiClient.default.getTeamsStats(1, 0)
       expect(page.items.length).toBeLessThanOrEqual(1)
       expect(page.total).toBeGreaterThanOrEqual(1)
     })
 
     it('includes the fixture team in the stats list', async () => {
-      const stats = await apiClient.default.getTeamsStats(100, 0) as ItemsWithPagination_TeamStats_
+      const stats = await apiClient.default.getTeamsStats(100, 0)
       const entry = stats.items.find((s: TeamStats) => s.team.id === teamId)
       expect(entry).toBeDefined()
       expect(entry?.team.short_name).toBe(TEST_TEAM.short_name)

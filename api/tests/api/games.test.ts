@@ -1,13 +1,6 @@
 import {
-  GameApiModel,
-  GameLogApiModel,
-  GameStatsApiModel,
-  ItemsWithPagination_MatchApiModel_,
-  ItemsWithPagination_TournamentApiModel_,
-  MatchApiModel,
   MatchType,
   RoundStateApiModel,
-  StandingsApiModel,
   TournamentApiModel,
 } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
@@ -41,7 +34,7 @@ describe('Tournaments, Matches & Games', () => {
     const tournament = await givenTournamentExists([team1Id, team2Id])
     tournamentId = tournament.id!
 
-    const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
+    const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0)
     matchId = schedule.items[0].id!
 
     const games = await apiClient.default.getGamesByMatch(matchId)
@@ -61,13 +54,13 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /tournaments', () => {
     it('returns a paginated list with correct shape', async () => {
-      const response = await apiClient.default.getTournaments(50, 0) as ItemsWithPagination_TournamentApiModel_
+      const response = await apiClient.default.getTournaments(50, 0)
       expect(Array.isArray(response.items)).toBe(true)
       expect(response.total).toBeGreaterThanOrEqual(1)
     })
 
     it('includes the fixture tournament with correct field values', async () => {
-      const response = await apiClient.default.getTournaments(50, 0) as ItemsWithPagination_TournamentApiModel_
+      const response = await apiClient.default.getTournaments(50, 0)
       const found = response.items.find((t: TournamentApiModel) => t.id === tournamentId)!
       expect(found).toBeDefined()
       expect(found.id).toBe(tournamentId)
@@ -80,7 +73,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('embeds teams array containing both fixture teams', async () => {
-      const response = await apiClient.default.getTournaments(50, 0) as ItemsWithPagination_TournamentApiModel_
+      const response = await apiClient.default.getTournaments(50, 0)
       const fixture = response.items.find((t: TournamentApiModel) => t.id === tournamentId)!
       const teamIds = (fixture.teams as Array<{ id?: number }>).map(t => t.id)
       expect(teamIds).toContain(team1Id)
@@ -93,7 +86,7 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /tournaments/:id', () => {
     it('returns the correct tournament with all field values', async () => {
-      const tournament = await apiClient.default.getTournament(tournamentId) as TournamentApiModel
+      const tournament = await apiClient.default.getTournament(tournamentId)
       expect(tournament.id).toBe(tournamentId)
       expect(tournament.name).toBe(TEST_TOURNAMENT.name)
       expect(tournament.description).toBe(TEST_TOURNAMENT.description)
@@ -105,7 +98,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('embeds the teams array with both fixture teams', async () => {
-      const tournament = await apiClient.default.getTournament(tournamentId) as TournamentApiModel
+      const tournament = await apiClient.default.getTournament(tournamentId)
       expect((tournament.teams as Array<unknown>).length).toBe(2)
       const teamIds = (tournament.teams as Array<{ id?: number }>).map(t => t.id)
       expect(teamIds).toContain(team1Id)
@@ -117,13 +110,13 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /tournaments/:id/schedule', () => {
     it('returns a paginated match list', async () => {
-      const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
+      const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0)
       expect(schedule.total).toBeGreaterThanOrEqual(1)
       expect(schedule.items.length).toBeGreaterThanOrEqual(1)
     })
 
     it('each match has correct field values for a not-yet-played match', async () => {
-      const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
+      const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0)
       for (const match of schedule.items) {
         expect(match.id).toBeGreaterThan(0)
         expect(match.tournament_id).toBe(tournamentId)
@@ -137,7 +130,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('the match involves both fixture teams', async () => {
-      const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0) as ItemsWithPagination_MatchApiModel_
+      const schedule = await apiClient.default.getTournamentSchedule(tournamentId, 10, 0)
       const match = schedule.items.find(m =>
         (m.team1_id === team1Id && m.team2_id === team2Id) ||
         (m.team1_id === team2Id && m.team2_id === team1Id),
@@ -151,12 +144,12 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /tournaments/:id/standings', () => {
     it('returns exactly 2 standings entries (one per team)', async () => {
-      const standings = await apiClient.default.getTournamentStandings(tournamentId) as StandingsApiModel[]
+      const standings = await apiClient.default.getTournamentStandings(tournamentId)
       expect(standings).toHaveLength(2)
     })
 
     it('each standing starts at zero with correct tournament and team IDs', async () => {
-      const standings = await apiClient.default.getTournamentStandings(tournamentId) as StandingsApiModel[]
+      const standings = await apiClient.default.getTournamentStandings(tournamentId)
       for (const s of standings) {
         expect(s.tournament_id).toBe(tournamentId)
         expect(s.team_id).toBeGreaterThan(0)
@@ -171,7 +164,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('standings cover both fixture teams', async () => {
-      const standings = await apiClient.default.getTournamentStandings(tournamentId) as StandingsApiModel[]
+      const standings = await apiClient.default.getTournamentStandings(tournamentId)
       const teamIds = standings.map(s => s.team_id)
       expect(teamIds).toContain(team1Id)
       expect(teamIds).toContain(team2Id)
@@ -182,7 +175,7 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /matches/:id', () => {
     it('returns the correct match with all field values', async () => {
-      const match = await apiClient.default.getMatch(matchId) as MatchApiModel
+      const match = await apiClient.default.getMatch(matchId)
       expect(match.id).toBe(matchId)
       expect(match.tournament_id).toBe(tournamentId)
       expect(match.type).toBe(MatchType.BO3)
@@ -194,7 +187,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('embeds team1 and team2 objects with correct IDs', async () => {
-      const match = await apiClient.default.getMatch(matchId) as MatchApiModel
+      const match = await apiClient.default.getMatch(matchId)
       expect(match.team1?.id).toBe(match.team1_id)
       expect(match.team1?.short_name?.length).toBeGreaterThan(0)
       expect(match.team2?.id).toBe(match.team2_id)
@@ -202,7 +195,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('embeds games array with at least 1 game', async () => {
-      const match = await apiClient.default.getMatch(matchId) as MatchApiModel
+      const match = await apiClient.default.getMatch(matchId)
       expect(match.games!.length).toBeGreaterThanOrEqual(1)
       expect(match.games![0].id).toBe(gameId)
     })
@@ -212,7 +205,7 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /games/match/:matchId', () => {
     it('returns all games for the match', async () => {
-      const games = await apiClient.default.getGamesByMatch(matchId) as GameApiModel[]
+      const games = await apiClient.default.getGamesByMatch(matchId)
       expect(games.length).toBeGreaterThanOrEqual(1)
       for (const game of games) {
         expect(game.match_id).toBe(matchId)
@@ -220,7 +213,7 @@ describe('Tournaments, Matches & Games', () => {
     })
 
     it('each unplayed game has correct initial field values', async () => {
-      const games = await apiClient.default.getGamesByMatch(matchId) as GameApiModel[]
+      const games = await apiClient.default.getGamesByMatch(matchId)
       for (const game of games) {
         expect(game.id).toBeGreaterThan(0)
         expect(game.started).toBe(false)
@@ -234,7 +227,7 @@ describe('Tournaments, Matches & Games', () => {
 
   describe('GET /games/:id', () => {
     it('returns the correct unplayed game with all field values', async () => {
-      const game = await apiClient.default.getGame(gameId) as GameApiModel
+      const game = await apiClient.default.getGame(gameId)
       expect(game.id).toBe(gameId)
       expect(game.match_id).toBe(matchId)
       expect(game.started).toBe(false)
@@ -251,7 +244,7 @@ describe('Tournaments, Matches & Games', () => {
 
     beforeAll(async () => {
       allPlayerIds.push(...team1PlayerIds, ...team2PlayerIds)
-      roundState = await apiClient.default.playRound(gameId, 1) as RoundStateApiModel
+      roundState = await apiClient.default.playRound(gameId, 1)
     })
 
     describe('POST /games/:id/rounds/:n/play', () => {
@@ -283,14 +276,14 @@ describe('Tournaments, Matches & Games', () => {
 
     describe('GET /games/:id/rounds/:n', () => {
       it('returns at least 5 and at most 9 game logs for a 5v5 round', async () => {
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const logs = await apiClient.default.getRound(gameId, 1)
         // Each duel kills one player; 5v5 round ends after 5–9 deaths
         expect(logs.length).toBeGreaterThanOrEqual(5)
         expect(logs.length).toBeLessThanOrEqual(9)
       })
 
       it('every log references the correct game and round', async () => {
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const logs = await apiClient.default.getRound(gameId, 1)
         for (const log of logs) {
           expect(log.game_id).toBe(gameId)
           expect(log.round_state.round).toBe(1)
@@ -298,7 +291,7 @@ describe('Tournaments, Matches & Games', () => {
       })
 
       it('every log has player IDs belonging to the fixture teams', async () => {
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const logs = await apiClient.default.getRound(gameId, 1)
         for (const log of logs) {
           expect(allPlayerIds).toContain(log.team1_player_id)
           expect(allPlayerIds).toContain(log.team2_player_id)
@@ -307,7 +300,7 @@ describe('Tournaments, Matches & Games', () => {
       })
 
       it('every log embeds team1_player and team2_player matching the IDs (no extra API calls needed)', async () => {
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const logs = await apiClient.default.getRound(gameId, 1)
         for (const log of logs) {
           expect(log.team1_player?.id).toBe(log.team1_player_id)
           expect(log.team1_player?.nickname.length).toBeGreaterThan(0)
@@ -317,7 +310,7 @@ describe('Tournaments, Matches & Games', () => {
       })
 
       it('duel buffs are finite numbers and trade is a boolean', async () => {
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const logs = await apiClient.default.getRound(gameId, 1)
         for (const log of logs) {
           expect(Number.isFinite(log.duel_buff)).toBe(true)
           expect(Number.isFinite(log.trade_buff)).toBe(true)
@@ -328,8 +321,8 @@ describe('Tournaments, Matches & Games', () => {
 
     describe('GET /games/:id/rounds/last', () => {
       it('returns the same logs as getRound(gameId, 1) after only one round played', async () => {
-        const lastLogs = await apiClient.default.getLastRound(gameId) as GameLogApiModel[]
-        const roundLogs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const lastLogs = await apiClient.default.getLastRound(gameId)
+        const roundLogs = await apiClient.default.getRound(gameId, 1)
         expect(lastLogs.length).toBe(roundLogs.length)
         expect(lastLogs.every(l => l.round_state.round === 1)).toBe(true)
       })
@@ -337,7 +330,7 @@ describe('Tournaments, Matches & Games', () => {
 
     describe('GET /games/:id/stats', () => {
       it('returns game stats with one team having scored a round', async () => {
-        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
+        const stats = await apiClient.default.getGameStats(gameId)
         expect(stats.game_id).toBe(gameId)
         // After one round, exactly one team scored
         expect(stats.team1_score + stats.team2_score).toBe(1)
@@ -346,7 +339,7 @@ describe('Tournaments, Matches & Games', () => {
       })
 
       it('embeds team1 and team2 objects matching the fixture teams', async () => {
-        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
+        const stats = await apiClient.default.getGameStats(gameId)
         expect([team1Id, team2Id]).toContain(stats.team1_id)
         expect([team1Id, team2Id]).toContain(stats.team2_id)
         expect(stats.team1?.id).toBe(stats.team1_id)
@@ -356,14 +349,14 @@ describe('Tournaments, Matches & Games', () => {
       })
 
       it('embeds exactly 5 player stat entries per team', async () => {
-        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
+        const stats = await apiClient.default.getGameStats(gameId)
         expect(stats.players_stats_team1).toHaveLength(5)
         expect(stats.players_stats_team2).toHaveLength(5)
       })
 
       it('total kills across all players equals the number of game log entries', async () => {
-        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
-        const logs = await apiClient.default.getRound(gameId, 1) as GameLogApiModel[]
+        const stats = await apiClient.default.getGameStats(gameId)
+        const logs = await apiClient.default.getRound(gameId, 1)
         const totalKills = [
           ...stats.players_stats_team1!,
           ...stats.players_stats_team2!,
@@ -372,7 +365,7 @@ describe('Tournaments, Matches & Games', () => {
       })
 
       it('each player stat has non-negative kills, deaths, and assists', async () => {
-        const stats = await apiClient.default.getGameStats(gameId) as GameStatsApiModel
+        const stats = await apiClient.default.getGameStats(gameId)
         for (const ps of [...stats.players_stats_team1!, ...stats.players_stats_team2!]) {
           expect(ps.kills).toBeGreaterThanOrEqual(0)
           expect(ps.deaths).toBeGreaterThanOrEqual(0)

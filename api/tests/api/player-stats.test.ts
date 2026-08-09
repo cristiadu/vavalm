@@ -1,4 +1,4 @@
-import { AllPlayerStats, PlayerApiModel, TeamStats } from '@tests/generated/api'
+import { AllPlayerStats, PlayerApiModel } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import {
@@ -24,7 +24,7 @@ describe('GET /players/:id/stats', () => {
     fixture = await givenPlayedMatchExists('PSTATS')
     allPlayers = [...fixture.team1Players, ...fixture.team2Players]
     const allStats = await Promise.all(
-      allPlayers.map(player => apiClient.default.getPlayerStats(player.id!) as Promise<AllPlayerStats>),
+      allPlayers.map(player => apiClient.default.getPlayerStats(player.id!)),
     )
     for (const stats of allStats) {
       playerStatsById.set(stats.player.id!, stats)
@@ -173,7 +173,7 @@ describe('GET /players/:id/stats', () => {
 
     it('agrees with the team stats for the same match', async () => {
       const { winningTeamId, winningPlayers } = splitByMatchResult(fixture)
-      const teamStats = await apiClient.default.getTeamStats(winningTeamId) as TeamStats
+      const teamStats = await apiClient.default.getTeamStats(winningTeamId)
       const playerStats = statsFor(winningPlayers[0])
 
       expect(playerStats.totalMatchesWon).toBe(teamStats.totalMatchesWon)
@@ -196,13 +196,13 @@ describe('GET /players/:id/stats', () => {
       const { winningTeamId, losingTeamId, winningPlayers } = splitByMatchResult(fixture)
       const transferring = winningPlayers[0]
       const before = statsFor(transferring)
-      const player = await apiClient.default.getPlayer(transferring.id!) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(transferring.id!)
 
       // WHEN the player transfers to the team they just beat
       await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: losingTeamId })
 
       try {
-        const after = await apiClient.default.getPlayerStats(transferring.id!) as AllPlayerStats
+        const after = await apiClient.default.getPlayerStats(transferring.id!)
 
         // THEN the already-played match is still a win, because the side played
         // is stored per game rather than read from the player's current team.
@@ -222,7 +222,7 @@ describe('GET /players/:id/stats', () => {
 
   describe('leaderboard', () => {
     it('lists every fixture player with the same totals as the per-player endpoint', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
 
       for (const player of allPlayers) {
         const single = statsFor(player)
@@ -233,7 +233,7 @@ describe('GET /players/:id/stats', () => {
     })
 
     it('orders players by the leaderboard criteria in priority order', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
 
       for (let position = 1; position < listed.length; position++) {
         const previous = listed[position - 1]
@@ -254,7 +254,7 @@ describe('GET /players/:id/stats', () => {
     })
 
     it('embeds the player team so the ui needs no second call', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
       const entry = listed.find(item => item.player.id === fixture.team1Players[0].id)!
 
       expect(entry.team).toBeDefined()
@@ -266,7 +266,7 @@ describe('GET /players/:id/stats', () => {
 
   describe('freshness', () => {
     it('reflects the played match without waiting for a cache to expire', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
       const entry = listed.find(item => item.player.id === allPlayers[0].id)!
 
       expect(entry.totalMapsPlayed).toBeGreaterThan(0)
@@ -275,12 +275,12 @@ describe('GET /players/:id/stats', () => {
     it('reflects a transfer on the next read', async () => {
       const { winningTeamId, losingTeamId, winningPlayers } = splitByMatchResult(fixture)
       const transferring = winningPlayers[0]
-      const player = await apiClient.default.getPlayer(transferring.id!) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(transferring.id!)
 
       await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: losingTeamId })
 
       try {
-        const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+        const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
         const entry = listed.find(item => item.player.id === transferring.id)!
         expect(entry.team!.id).toBe(losingTeamId)
       } finally {

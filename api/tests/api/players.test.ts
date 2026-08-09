@@ -1,7 +1,4 @@
 import {
-  AllPlayerStats,
-  ItemsWithPagination_AllPlayerStats_,
-  ItemsWithPagination_PlayerApiModel_,
   PlayerApiModel,
   PlayerRole,
 } from '@tests/generated/api'
@@ -35,7 +32,7 @@ describe('Players', () => {
 
   describe('GET /players', () => {
     it('returns a paginated list with correct shape', async () => {
-      const response = await apiClient.default.getPlayers() as ItemsWithPagination_PlayerApiModel_
+      const response = await apiClient.default.getPlayers()
       expect(response.items).toBeDefined()
       expect(Array.isArray(response.items)).toBe(true)
       expect(typeof response.total).toBe('number')
@@ -43,9 +40,9 @@ describe('Players', () => {
     })
 
     it('respects limit and offset', async () => {
-      const all = await apiClient.default.getPlayers(teamId, 100, 0) as ItemsWithPagination_PlayerApiModel_
-      const page1 = await apiClient.default.getPlayers(teamId, 1, 0) as ItemsWithPagination_PlayerApiModel_
-      const page2 = await apiClient.default.getPlayers(teamId, 1, 1) as ItemsWithPagination_PlayerApiModel_
+      const all = await apiClient.default.getPlayers(teamId, 100, 0)
+      const page1 = await apiClient.default.getPlayers(teamId, 1, 0)
+      const page2 = await apiClient.default.getPlayers(teamId, 1, 1)
 
       expect(all.total).toBe(2)
       expect(all.items.map(player => player.id)).toEqual([playerId, paginationPlayerId])
@@ -54,7 +51,7 @@ describe('Players', () => {
     })
 
     it('filters by teamId and only returns players from that team', async () => {
-      const response = await apiClient.default.getPlayers(teamId, 100, 0) as ItemsWithPagination_PlayerApiModel_
+      const response = await apiClient.default.getPlayers(teamId, 100, 0)
       expect(response.total).toBe(2)
       expect(response.items.map(player => player.id)).toEqual([playerId, paginationPlayerId])
       for (const player of response.items) {
@@ -63,7 +60,7 @@ describe('Players', () => {
     })
 
     it('each player item has all required fields', async () => {
-      const response = await apiClient.default.getPlayers(teamId) as ItemsWithPagination_PlayerApiModel_
+      const response = await apiClient.default.getPlayers(teamId)
       const player = response.items.find(p => p.id === playerId)!
       expect(player).toBeDefined()
       expect(player.id).toBe(playerId)
@@ -81,7 +78,7 @@ describe('Players', () => {
 
   describe('GET /players/:id', () => {
     it('returns the correct player with all fields', async () => {
-      const player = await apiClient.default.getPlayer(playerId) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(playerId)
       expect(player.id).toBe(playerId)
       expect(player.nickname).toBe(TEST_PLAYER.nickname)
       expect(player.full_name).toBe(TEST_PLAYER.full_name)
@@ -92,7 +89,7 @@ describe('Players', () => {
     })
 
     it('returns all player_attributes fields with correct values', async () => {
-      const player = await apiClient.default.getPlayer(playerId) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(playerId)
       const attrs = player.player_attributes
       expect(attrs.clutch).toBe(TEST_PLAYER_ATTRIBUTES.clutch)
       expect(attrs.awareness).toBe(TEST_PLAYER_ATTRIBUTES.awareness)
@@ -130,7 +127,7 @@ describe('Players', () => {
       expect(updated.age).toBe(25)
 
       // Confirm persistence
-      const fetched = await apiClient.default.getPlayer(playerId) as PlayerApiModel
+      const fetched = await apiClient.default.getPlayer(playerId)
       expect(fetched.nickname).toBe('updated_fixture')
       expect(fetched.age).toBe(25)
     })
@@ -140,7 +137,7 @@ describe('Players', () => {
 
   describe('GET /players/:id/stats', () => {
     it('returns all stats as 0 for a player with no games played', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.player.id).toBe(playerId)
       expect(stats.kda).toBe(0)
       expect(stats.winrate).toBe(0)
@@ -157,19 +154,19 @@ describe('Players', () => {
     })
 
     it('embeds the correct team in the response', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.team?.id).toBe(teamId)
       expect(stats.team?.short_name).toBe('PLFIX')
       expect(stats.team?.country).toBe('Portugal')
     })
 
     it('totalMatchesWon + totalMatchesLost equals totalMatchesPlayed', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.totalMatchesWon + stats.totalMatchesLost).toBe(stats.totalMatchesPlayed)
     })
 
     it('totalMapsWon + totalMapsLost equals totalMapsPlayed', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.totalMapsWon + stats.totalMapsLost).toBe(stats.totalMapsPlayed)
     })
   })
@@ -178,22 +175,22 @@ describe('Players', () => {
 
   describe('GET /players/stats', () => {
     it('returns a paginated stats list with correct shape', async () => {
-      const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
+      const stats = await apiClient.default.getPlayersStats(50, 0)
       expect(Array.isArray(stats.items)).toBe(true)
       expect(typeof stats.total).toBe('number')
       expect(stats.total).toBeGreaterThanOrEqual(1)
     })
 
     it('fixture player appears with zero stats and correct team embedded', async () => {
-      const stats = await apiClient.default.getPlayersStats(200, 0) as ItemsWithPagination_AllPlayerStats_
+      const stats = await apiClient.default.getPlayersStats(200, 0)
       const entry = stats.items.find(item => item.player.id === playerId)
-      const single = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const single = await apiClient.default.getPlayerStats(playerId)
 
       expect(entry).toEqual(single)
     })
 
     it('all items have non-negative stats and embedded player + team', async () => {
-      const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
+      const stats = await apiClient.default.getPlayersStats(50, 0)
       for (const item of stats.items) {
         expect(item.player.id).toBeGreaterThan(0)
         expect(item.kda).toBeGreaterThanOrEqual(0)
@@ -215,7 +212,7 @@ describe('Players', () => {
 
     it('respects limit — page size does not exceed requested limit', async () => {
       const limit = 2
-      const page = await apiClient.default.getPlayersStats(limit, 0) as ItemsWithPagination_AllPlayerStats_
+      const page = await apiClient.default.getPlayersStats(limit, 0)
       expect(page.items.length).toBeLessThanOrEqual(limit)
     })
   })

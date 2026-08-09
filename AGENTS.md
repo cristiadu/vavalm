@@ -202,7 +202,8 @@ so a test must not assume it is alone:
   fixtures in the past, deliberately, for the matches it wants picked up.
 - **Isolate global list comparisons.** Bootstrap rows are always present, and other suites
   create and delete additional rows. Tests that compare exact pages from multiple reads must
-  run in the isolated pagination phase, after the parallel integration suites finish.
+  run after the parallel integration suites finish and assert immutable identity/order fields.
+  The scheduler can still update bootstrap tournament and stats values during that phase.
 - **Test probability mechanics deterministically.** Assert the exact attribute scores,
   role buffs, weighted selection pools, and trade chances in unit tests. Keep API tests for
   round/game orchestration and persistence; do not make correctness depend on random samples.
