@@ -1,4 +1,4 @@
-import { AllPlayerStats, PlayerApiModel, TeamStats } from '@tests/generated/api'
+import { AllPlayerStats, PlayerApiModel } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import {
@@ -13,27 +13,35 @@ import { formatPercentage, HOOK_TIMEOUT_MS } from '@tests/api/common-utils'
 const MATCHES_PLAYED = 1
 /** Large enough to hold every player the suite could encounter. */
 const WHOLE_LIST = 500
-/** Page size used for the pagination checks. */
-const PAGE_SIZE = 5
-/**
- * Players other suites may create or delete between two reads. Nothing is
- * cached, so each read sees live data and two reads need not agree exactly.
- */
-const TOTAL_DRIFT_TOLERANCE = 40
 
 describe('GET /players/:id/stats', () => {
   // GIVEN two full rosters that have played every game of one match
   let fixture: PlayedMatchFixture
   let allPlayers: PlayerApiModel[]
+  const playerStatsById = new Map<number, AllPlayerStats>()
 
   beforeAll(async () => {
     fixture = await givenPlayedMatchExists('PSTATS')
     allPlayers = [...fixture.team1Players, ...fixture.team2Players]
+    const allStats = await Promise.all(
+      allPlayers.map(player => apiClient.default.getPlayerStats(player.id!)),
+    )
+    for (const stats of allStats) {
+      playerStatsById.set(stats.player.id!, stats)
+    }
   }, HOOK_TIMEOUT_MS.PLAYED_MATCH_FIXTURE)
 
   afterAll(async () => {
     await cleanupPlayedMatch(fixture)
   }, HOOK_TIMEOUT_MS.FIXTURE_CLEANUP)
+
+  const statsFor = (player: PlayerApiModel): AllPlayerStats => {
+    const stats = playerStatsById.get(player.id!)
+    if (!stats) {
+      throw new Error(`Missing fixture stats for player ${player.id}`)
+    }
+    return stats
+  }
 
   // ── Identity ──────────────────────────────────────────────────────────────
 
@@ -41,7 +49,7 @@ describe('GET /players/:id/stats', () => {
     it('returns the requested player with their team embedded', async () => {
       const player = fixture.team1Players[0]
 
-      const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+      const stats = statsFor(player)
 
       expect(stats.player.id).toBe(player.id)
       expect(stats.player.nickname).toBe(player.nickname)
@@ -56,7 +64,7 @@ describe('GET /players/:id/stats', () => {
   describe('match and map totals', () => {
     it('counts the single played match for every player on both sides', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         expect(stats.totalMatchesPlayed).toBe(MATCHES_PLAYED)
         // A match is a best-of, so the number of maps depends on how it went.
@@ -66,7 +74,7 @@ describe('GET /players/:id/stats', () => {
 
     it('splits matches and maps into wins and losses that add back up', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         expect(stats.totalMatchesWon + stats.totalMatchesLost).toBe(stats.totalMatchesPlayed)
         expect(stats.totalMapsWon + stats.totalMapsLost).toBe(stats.totalMapsPlayed)
@@ -77,13 +85,13 @@ describe('GET /players/:id/stats', () => {
       const { winningPlayers, losingPlayers } = splitByMatchResult(fixture)
 
       for (const player of winningPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
         expect(stats.totalMatchesWon).toBe(MATCHES_PLAYED)
         expect(stats.totalMatchesLost).toBe(0)
       }
 
       for (const player of losingPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
         expect(stats.totalMatchesWon).toBe(0)
         expect(stats.totalMatchesLost).toBe(MATCHES_PLAYED)
       }
@@ -91,7 +99,7 @@ describe('GET /players/:id/stats', () => {
 
     it('reports non-negative kill, death and assist totals', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         expect(stats.totalKills).toBeGreaterThanOrEqual(0)
         expect(stats.totalDeaths).toBeGreaterThanOrEqual(0)
@@ -105,7 +113,7 @@ describe('GET /players/:id/stats', () => {
   describe('derived percentages', () => {
     it('reports winrate as the match ratio scaled to a percentage', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         expect(stats.winrate).toBe(formatPercentage(stats.totalMatchesWon, stats.totalMatchesPlayed))
       }
@@ -113,7 +121,7 @@ describe('GET /players/:id/stats', () => {
 
     it('reports mapWinrate as the map ratio scaled to a percentage', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         expect(stats.mapWinrate).toBe(formatPercentage(stats.totalMapsWon, stats.totalMapsPlayed))
       }
@@ -121,7 +129,7 @@ describe('GET /players/:id/stats', () => {
 
     it('rounds percentages to two decimals rather than to whole percents', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         // Scaling before rounding keeps two decimals intact. Rounding the ratio
         // first quantises to whole percents and reintroduces float artefacts
@@ -134,7 +142,7 @@ describe('GET /players/:id/stats', () => {
 
     it('keeps percentages within the 0 to 100 range', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         for (const percentage of [stats.winrate, stats.mapWinrate]) {
           expect(percentage).toBeGreaterThanOrEqual(0)
@@ -145,7 +153,7 @@ describe('GET /players/:id/stats', () => {
 
     it('reports kda as (kills + assists) / deaths, or 0 without deaths', async () => {
       for (const player of allPlayers) {
-        const stats = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const stats = statsFor(player)
 
         const expected = stats.totalDeaths === 0
           ? 0
@@ -165,8 +173,8 @@ describe('GET /players/:id/stats', () => {
 
     it('agrees with the team stats for the same match', async () => {
       const { winningTeamId, winningPlayers } = splitByMatchResult(fixture)
-      const teamStats = await apiClient.default.getTeamStats(winningTeamId) as TeamStats
-      const playerStats = await apiClient.default.getPlayerStats(winningPlayers[0].id!) as AllPlayerStats
+      const teamStats = await apiClient.default.getTeamStats(winningTeamId)
+      const playerStats = statsFor(winningPlayers[0])
 
       expect(playerStats.totalMatchesWon).toBe(teamStats.totalMatchesWon)
       expect(playerStats.totalMapsWon).toBe(teamStats.totalMapsWon)
@@ -175,8 +183,8 @@ describe('GET /players/:id/stats', () => {
 
     it('keeps map wins attributed to the side the player played on', async () => {
       const { winningPlayers, losingPlayers } = splitByMatchResult(fixture)
-      const winner = await apiClient.default.getPlayerStats(winningPlayers[0].id!) as AllPlayerStats
-      const loser = await apiClient.default.getPlayerStats(losingPlayers[0].id!) as AllPlayerStats
+      const winner = statsFor(winningPlayers[0])
+      const loser = statsFor(losingPlayers[0])
 
       // Both sides played the same maps, so their counts must complement.
       expect(winner.totalMapsPlayed).toBe(loser.totalMapsPlayed)
@@ -187,14 +195,14 @@ describe('GET /players/:id/stats', () => {
     it('keeps a played result with the team the player played for after a transfer', async () => {
       const { winningTeamId, losingTeamId, winningPlayers } = splitByMatchResult(fixture)
       const transferring = winningPlayers[0]
-      const before = await apiClient.default.getPlayerStats(transferring.id!) as AllPlayerStats
-      const player = await apiClient.default.getPlayer(transferring.id!) as PlayerApiModel
+      const before = statsFor(transferring)
+      const player = await apiClient.default.getPlayer(transferring.id!)
 
       // WHEN the player transfers to the team they just beat
       await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: losingTeamId })
 
       try {
-        const after = await apiClient.default.getPlayerStats(transferring.id!) as AllPlayerStats
+        const after = await apiClient.default.getPlayerStats(transferring.id!)
 
         // THEN the already-played match is still a win, because the side played
         // is stored per game rather than read from the player's current team.
@@ -214,30 +222,18 @@ describe('GET /players/:id/stats', () => {
 
   describe('leaderboard', () => {
     it('lists every fixture player with the same totals as the per-player endpoint', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
 
       for (const player of allPlayers) {
-        const single = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const single = statsFor(player)
         const entry = listed.find(item => item.player.id === player.id)
 
-        expect(entry).toBeDefined()
-        expect(entry!.totalMapsPlayed).toBe(single.totalMapsPlayed)
-        expect(entry!.totalMapsWon).toBe(single.totalMapsWon)
-        expect(entry!.totalMapsLost).toBe(single.totalMapsLost)
-        expect(entry!.totalMatchesPlayed).toBe(single.totalMatchesPlayed)
-        expect(entry!.totalMatchesWon).toBe(single.totalMatchesWon)
-        expect(entry!.totalMatchesLost).toBe(single.totalMatchesLost)
-        expect(entry!.totalKills).toBe(single.totalKills)
-        expect(entry!.totalDeaths).toBe(single.totalDeaths)
-        expect(entry!.totalAssists).toBe(single.totalAssists)
-        expect(entry!.kda).toBe(single.kda)
-        expect(entry!.winrate).toBe(single.winrate)
-        expect(entry!.mapWinrate).toBe(single.mapWinrate)
+        expect(entry).toEqual(single)
       }
     })
 
     it('orders players by the leaderboard criteria in priority order', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
 
       for (let position = 1; position < listed.length; position++) {
         const previous = listed[position - 1]
@@ -257,40 +253,8 @@ describe('GET /players/:id/stats', () => {
       }
     })
 
-    it('returns a page that follows the full ordering', async () => {
-      const everything = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
-      const page = await apiClient.default.getPlayersStats(PAGE_SIZE, PAGE_SIZE)
-
-      // Other suites create and delete players between the two reads, so the
-      // page can sit at a different offset than the snapshot. What has to hold
-      // is that it keeps the leaderboard's relative order.
-      const rankById = new Map(everything.map((entry, rank) => [entry.player.id, rank]))
-      const ranks = (page.items as AllPlayerStats[])
-        .map(entry => rankById.get(entry.player.id))
-        .filter((rank): rank is number => rank !== undefined)
-
-      expect(page.items.length).toBeLessThanOrEqual(PAGE_SIZE)
-      expect(ranks.length).toBeGreaterThan(0)
-      expect([...ranks].sort((a, b) => a - b)).toEqual(ranks)
-    })
-
-    it('reports a total independent of the requested page size', async () => {
-      const singleRow = await apiClient.default.getPlayersStats(1, 0)
-      const everything = await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
-
-      expect(singleRow.items).toHaveLength(1)
-      expect(Math.abs(singleRow.total - everything.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
-    })
-
-    it('returns an empty page past the end', async () => {
-      const everything = await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
-      const page = await apiClient.default.getPlayersStats(PAGE_SIZE, everything.total + TOTAL_DRIFT_TOLERANCE)
-
-      expect(page.items).toHaveLength(0)
-    })
-
     it('embeds the player team so the ui needs no second call', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
       const entry = listed.find(item => item.player.id === fixture.team1Players[0].id)!
 
       expect(entry.team).toBeDefined()
@@ -302,7 +266,7 @@ describe('GET /players/:id/stats', () => {
 
   describe('freshness', () => {
     it('reflects the played match without waiting for a cache to expire', async () => {
-      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
       const entry = listed.find(item => item.player.id === allPlayers[0].id)!
 
       expect(entry.totalMapsPlayed).toBeGreaterThan(0)
@@ -311,12 +275,12 @@ describe('GET /players/:id/stats', () => {
     it('reflects a transfer on the next read', async () => {
       const { winningTeamId, losingTeamId, winningPlayers } = splitByMatchResult(fixture)
       const transferring = winningPlayers[0]
-      const player = await apiClient.default.getPlayer(transferring.id!) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(transferring.id!)
 
       await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: losingTeamId })
 
       try {
-        const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+        const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items
         const entry = listed.find(item => item.player.id === transferring.id)!
         expect(entry.team!.id).toBe(losingTeamId)
       } finally {

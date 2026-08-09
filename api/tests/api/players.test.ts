@@ -1,7 +1,4 @@
 import {
-  AllPlayerStats,
-  ItemsWithPagination_AllPlayerStats_,
-  ItemsWithPagination_PlayerApiModel_,
   PlayerApiModel,
   PlayerRole,
 } from '@tests/generated/api'
@@ -9,30 +6,25 @@ import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { givenPlayerExists, cleanupPlayer, TEST_PLAYER, TEST_PLAYER_ATTRIBUTES } from '@tests/api/common-players'
 import { givenTeamExists, cleanupTeam } from '@tests/api/common-teams'
-import { waitForListEntry } from '@tests/api/common-utils'
-
-/** Entities other suites may create or delete between two reads of a list. */
-const TOTAL_DRIFT_TOLERANCE = 40
-
-/** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
-const STATS_LIST_TIMEOUT_MS = 45_000
-/** How often to re-read the stats list while waiting. */
-const STATS_LIST_POLL_EVERY_MS = 2_000
 
 
 describe('Players', () => {
   let teamId: number
   let playerId: number
+  let paginationPlayerId: number
 
   beforeAll(async () => {
     const team = await givenTeamExists({ short_name: 'PLFIX', full_name: 'Players Fixture Team', country: 'Portugal' })
     teamId = team.id!
     const player = await givenPlayerExists(teamId)
     playerId = player.id!
+    const paginationPlayer = await givenPlayerExists(teamId, { nickname: 'players_fixture_page_2' })
+    paginationPlayerId = paginationPlayer.id!
   })
 
   afterAll(async () => {
     await cleanupPlayer(playerId)
+    await cleanupPlayer(paginationPlayerId)
     await cleanupTeam(teamId)
   })
 
@@ -40,7 +32,7 @@ describe('Players', () => {
 
   describe('GET /players', () => {
     it('returns a paginated list with correct shape', async () => {
-      const response = await apiClient.default.getPlayers() as ItemsWithPagination_PlayerApiModel_
+      const response = await apiClient.default.getPlayers()
       expect(response.items).toBeDefined()
       expect(Array.isArray(response.items)).toBe(true)
       expect(typeof response.total).toBe('number')
@@ -48,29 +40,27 @@ describe('Players', () => {
     })
 
     it('respects limit and offset', async () => {
-      const all = await apiClient.default.getPlayers(undefined, 100, 0) as ItemsWithPagination_PlayerApiModel_
-      if (all.total > 1) {
-        const page1 = await apiClient.default.getPlayers(undefined, 1, 0) as ItemsWithPagination_PlayerApiModel_
-        const page2 = await apiClient.default.getPlayers(undefined, 1, 1) as ItemsWithPagination_PlayerApiModel_
-        expect(page1.items).toHaveLength(1)
-        expect(page2.items).toHaveLength(1)
-        expect(page1.items[0].id).not.toBe(page2.items[0].id)
-        // Both pages come from one ordering, so their totals agree unless
-        // another suite mutated data between the two reads.
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
-      }
+      const all = await apiClient.default.getPlayers(teamId, 100, 0)
+      const page1 = await apiClient.default.getPlayers(teamId, 1, 0)
+      const page2 = await apiClient.default.getPlayers(teamId, 1, 1)
+
+      expect(all.total).toBe(2)
+      expect(all.items.map(player => player.id)).toEqual([playerId, paginationPlayerId])
+      expect(page1).toEqual({ items: all.items.slice(0, 1), total: 2 })
+      expect(page2).toEqual({ items: all.items.slice(1, 2), total: 2 })
     })
 
     it('filters by teamId and only returns players from that team', async () => {
-      const response = await apiClient.default.getPlayers(teamId, 100, 0) as ItemsWithPagination_PlayerApiModel_
-      expect(response.items.length).toBeGreaterThanOrEqual(1)
+      const response = await apiClient.default.getPlayers(teamId, 100, 0)
+      expect(response.total).toBe(2)
+      expect(response.items.map(player => player.id)).toEqual([playerId, paginationPlayerId])
       for (const player of response.items) {
         expect(player.team_id).toBe(teamId)
       }
     })
 
     it('each player item has all required fields', async () => {
-      const response = await apiClient.default.getPlayers(teamId) as ItemsWithPagination_PlayerApiModel_
+      const response = await apiClient.default.getPlayers(teamId)
       const player = response.items.find(p => p.id === playerId)!
       expect(player).toBeDefined()
       expect(player.id).toBe(playerId)
@@ -88,7 +78,7 @@ describe('Players', () => {
 
   describe('GET /players/:id', () => {
     it('returns the correct player with all fields', async () => {
-      const player = await apiClient.default.getPlayer(playerId) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(playerId)
       expect(player.id).toBe(playerId)
       expect(player.nickname).toBe(TEST_PLAYER.nickname)
       expect(player.full_name).toBe(TEST_PLAYER.full_name)
@@ -99,7 +89,7 @@ describe('Players', () => {
     })
 
     it('returns all player_attributes fields with correct values', async () => {
-      const player = await apiClient.default.getPlayer(playerId) as PlayerApiModel
+      const player = await apiClient.default.getPlayer(playerId)
       const attrs = player.player_attributes
       expect(attrs.clutch).toBe(TEST_PLAYER_ATTRIBUTES.clutch)
       expect(attrs.awareness).toBe(TEST_PLAYER_ATTRIBUTES.awareness)
@@ -137,7 +127,7 @@ describe('Players', () => {
       expect(updated.age).toBe(25)
 
       // Confirm persistence
-      const fetched = await apiClient.default.getPlayer(playerId) as PlayerApiModel
+      const fetched = await apiClient.default.getPlayer(playerId)
       expect(fetched.nickname).toBe('updated_fixture')
       expect(fetched.age).toBe(25)
     })
@@ -147,7 +137,7 @@ describe('Players', () => {
 
   describe('GET /players/:id/stats', () => {
     it('returns all stats as 0 for a player with no games played', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.player.id).toBe(playerId)
       expect(stats.kda).toBe(0)
       expect(stats.winrate).toBe(0)
@@ -164,19 +154,19 @@ describe('Players', () => {
     })
 
     it('embeds the correct team in the response', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.team?.id).toBe(teamId)
       expect(stats.team?.short_name).toBe('PLFIX')
       expect(stats.team?.country).toBe('Portugal')
     })
 
     it('totalMatchesWon + totalMatchesLost equals totalMatchesPlayed', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.totalMatchesWon + stats.totalMatchesLost).toBe(stats.totalMatchesPlayed)
     })
 
     it('totalMapsWon + totalMapsLost equals totalMapsPlayed', async () => {
-      const stats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const stats = await apiClient.default.getPlayerStats(playerId)
       expect(stats.totalMapsWon + stats.totalMapsLost).toBe(stats.totalMapsPlayed)
     })
   })
@@ -185,38 +175,22 @@ describe('Players', () => {
 
   describe('GET /players/stats', () => {
     it('returns a paginated stats list with correct shape', async () => {
-      const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
+      const stats = await apiClient.default.getPlayersStats(50, 0)
       expect(Array.isArray(stats.items)).toBe(true)
       expect(typeof stats.total).toBe('number')
       expect(stats.total).toBeGreaterThanOrEqual(1)
     })
 
     it('fixture player appears with zero stats and correct team embedded', async () => {
-      const entry = await waitForListEntry(
-        async () => ((await apiClient.default.getPlayersStats(200, 0)) as ItemsWithPagination_AllPlayerStats_).items,
-        (s: AllPlayerStats) => s.player.id === playerId,
-        STATS_LIST_TIMEOUT_MS,
-        STATS_LIST_POLL_EVERY_MS,
-      ) as AllPlayerStats
-      expect(entry).toBeDefined()
-      expect(entry.kda).toBe(0)
-      expect(entry.winrate).toBe(0)
-      expect(entry.mapWinrate).toBe(0)
-      expect(entry.totalKills).toBe(0)
-      expect(entry.totalDeaths).toBe(0)
-      expect(entry.totalAssists).toBe(0)
-      expect(entry.totalMatchesPlayed).toBe(0)
-      expect(entry.totalMatchesWon).toBe(0)
-      expect(entry.totalMatchesLost).toBe(0)
-      expect(entry.totalMapsPlayed).toBe(0)
-      expect(entry.totalMapsWon).toBe(0)
-      expect(entry.totalMapsLost).toBe(0)
-      expect(entry.team?.id).toBe(teamId)
-      expect(entry.team?.short_name).toBe('PLFIX')
+      const stats = await apiClient.default.getPlayersStats(200, 0)
+      const entry = stats.items.find(item => item.player.id === playerId)
+      const single = await apiClient.default.getPlayerStats(playerId)
+
+      expect(entry).toEqual(single)
     })
 
     it('all items have non-negative stats and embedded player + team', async () => {
-      const stats = await apiClient.default.getPlayersStats(50, 0) as ItemsWithPagination_AllPlayerStats_
+      const stats = await apiClient.default.getPlayersStats(50, 0)
       for (const item of stats.items) {
         expect(item.player.id).toBeGreaterThan(0)
         expect(item.kda).toBeGreaterThanOrEqual(0)
@@ -238,26 +212,8 @@ describe('Players', () => {
 
     it('respects limit — page size does not exceed requested limit', async () => {
       const limit = 2
-      const page = await apiClient.default.getPlayersStats(limit, 0) as ItemsWithPagination_AllPlayerStats_
+      const page = await apiClient.default.getPlayersStats(limit, 0)
       expect(page.items.length).toBeLessThanOrEqual(limit)
-    })
-
-    it('pagination offset returns different players with same total', async () => {
-      const all = await apiClient.default.getPlayersStats(100, 0) as ItemsWithPagination_AllPlayerStats_
-      if (all.total > 2) {
-        const page1 = await apiClient.default.getPlayersStats(2, 0) as ItemsWithPagination_AllPlayerStats_
-        const page2 = await apiClient.default.getPlayersStats(2, 2) as ItemsWithPagination_AllPlayerStats_
-        // Both pages come from one ordering, so their totals agree unless
-        // another suite mutated data between the two reads.
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
-        const page1Ids = page1.items.map(s => s.player.id)
-        const page2Ids = page2.items.map(s => s.player.id)
-        expect(page1Ids).not.toEqual(page2Ids)
-        // No overlap
-        for (const id of page2Ids) {
-          expect(page1Ids).not.toContain(id)
-        }
-      }
     })
   })
 

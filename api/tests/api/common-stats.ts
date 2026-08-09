@@ -1,6 +1,4 @@
 import {
-  GameApiModel,
-  ItemsWithPagination_MatchApiModel_,
   MatchApiModel,
   PlayerApiModel,
 } from '@tests/generated/api'
@@ -31,8 +29,8 @@ export interface PlayedMatchFixture {
 /**
  * GIVEN: two teams with full rosters have played every game of a match.
  *
- * Creates the teams, players and tournament, then plays each game of the first
- * scheduled match so the stats endpoints have real results to aggregate.
+ * Creates the teams, players and tournament, then plays games through the API
+ * until the first scheduled match is decided.
  *
  * @param fixturePrefix - Short prefix applied to the created team short_names
  *                        and player nicknames, so fixtures from different test
@@ -65,16 +63,20 @@ export const givenPlayedMatchExists = async (fixturePrefix: string): Promise<Pla
   }
 
   const tournament = await givenTournamentExists([team1.id!, team2.id!])
-  const schedule = await apiClient.default.getTournamentSchedule(tournament.id!, 10, 0) as ItemsWithPagination_MatchApiModel_
+  const schedule = await apiClient.default.getTournamentSchedule(tournament.id!, 10, 0)
   const scheduledMatch = schedule.items[0]
 
-  const games = await apiClient.default.getGamesByMatch(scheduledMatch.id!) as GameApiModel[]
+  const games = await apiClient.default.getGamesByMatch(scheduledMatch.id!)
   for (const game of games) {
     await apiClient.default.playGame(game.id!)
+    const match = await apiClient.default.getMatch(scheduledMatch.id!)
+    if (match.finished && match.winner_id) {
+      break
+    }
   }
 
   return {
-    match: await apiClient.default.getMatch(scheduledMatch.id!) as MatchApiModel,
+    match: await apiClient.default.getMatch(scheduledMatch.id!),
     team1Players,
     team2Players,
   }

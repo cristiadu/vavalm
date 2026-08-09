@@ -8,12 +8,9 @@ import {
 import { waitForCondition, isValidDateString } from '@tests/api/common-utils'
 import {
   AllPlayerStats,
-  GameApiModel,
   GameStatsApiModel,
   ItemsWithPagination_MatchApiModel_,
   MatchType,
-  MatchApiModel,
-  TournamentApiModel,
   TournamentType,
 } from '@tests/generated/api'
 import { givenPlayerExists, cleanupPlayer, TEST_PLAYER_ATTRIBUTES } from '@tests/api/common-players'
@@ -36,13 +33,11 @@ describe('Tournament scheduling generation', () => {
   const fixtureTournaments: TournamentScheduleFixture[] = []
 
   beforeAll(async () => {
-    const suffix = `${Date.now()}_${Math.floor(Math.random() * 10000)}`
-
     // GIVEN: two teams with full rosters; reused across multiple tournaments.
     for (let index = 1; index <= 2; index += 1) {
       const team = await givenTeamExists({
-        short_name: `TS${index}${suffix.slice(-3)}`,
-        full_name: `Tournament Scheduler Team ${index} ${suffix}`,
+        short_name: `TSFIX${index}`,
+        full_name: `Tournament Scheduler Fixture Team ${index}`,
         country: index % 2 === 0 ? 'Brazil' : 'Argentina',
       })
       teamIds.push(team.id!)
@@ -50,7 +45,7 @@ describe('Tournament scheduling generation', () => {
 
       for (let playerIndex = 1; playerIndex <= 5; playerIndex += 1) {
         const player = await givenPlayerExists(team.id!, {
-          nickname: `sched_${index}_${playerIndex}_${suffix}`,
+          nickname: `scheduler_fixture_${index}_${playerIndex}`,
           player_attributes: TEST_PLAYER_ATTRIBUTES,
         })
         playerIds.push(player.id!)
@@ -60,24 +55,24 @@ describe('Tournament scheduling generation', () => {
 
     fixtureTournaments.push(
       {
-        name: `Scheduler Past Tournament A ${suffix}`,
-        description: `Scheduler Past Tournament A ${suffix} fixture`,
+        name: 'Scheduler Past Tournament A Fixture',
+        description: 'Scheduler Past Tournament A fixture',
         startDate: new Date('1900-01-01T00:00:00.000Z'),
         endDate: new Date('1900-01-02T00:00:00.000Z'),
         teamIds: [teamIds[0], teamIds[1]],
         shouldBePickedNow: true,
       },
       {
-        name: `Scheduler Past Tournament B ${suffix}`,
-        description: `Scheduler Past Tournament B ${suffix} fixture`,
+        name: 'Scheduler Past Tournament B Fixture',
+        description: 'Scheduler Past Tournament B fixture',
         startDate: new Date('1900-01-03T00:00:00.000Z'),
         endDate: new Date('1900-01-04T00:00:00.000Z'),
         teamIds: [teamIds[0], teamIds[1]],
         shouldBePickedNow: true,
       },
       {
-        name: `Scheduler Future Tournament ${suffix}`,
-        description: `Scheduler Future Tournament ${suffix} fixture`,
+        name: 'Scheduler Future Tournament Fixture',
+        description: 'Scheduler Future Tournament fixture',
         startDate: new Date('2100-03-10T00:00:00.000Z'),
         endDate: new Date('2100-03-11T00:00:00.000Z'),
         teamIds: [teamIds[0], teamIds[1]],
@@ -163,7 +158,7 @@ describe('Tournament scheduling generation', () => {
     // Same reasoning as above — "before scheduler processing" only holds for
     // fixtures the scheduler will not act on.
     for (const tournamentFixture of fixtureTournaments.filter(fixture => !fixture.shouldBePickedNow)) {
-      const tournament = await apiClient.default.getTournament(tournamentFixture.tournamentId!) as TournamentApiModel
+      const tournament = await apiClient.default.getTournament(tournamentFixture.tournamentId!)
       expect(tournament.id).toBe(tournamentFixture.tournamentId)
       expect(tournament.name).toBe(tournamentFixture.name)
       expect(tournament.description).toBe(tournamentFixture.description)
@@ -183,7 +178,7 @@ describe('Tournament scheduling generation', () => {
       expect(tournamentTeamIds).toContain(tournamentFixture.teamIds[0])
       expect(tournamentTeamIds).toContain(tournamentFixture.teamIds[1])
 
-      const detailedMatch = await apiClient.default.getMatch(tournamentFixture.matchId!) as MatchApiModel
+      const detailedMatch = await apiClient.default.getMatch(tournamentFixture.matchId!)
       expect(detailedMatch.id).toBe(tournamentFixture.matchId)
       expect(isValidDateString(detailedMatch.date)).toBe(true)
       expect(detailedMatch.tournament_id).toBe(tournamentFixture.tournamentId)
@@ -208,7 +203,7 @@ describe('Tournament scheduling generation', () => {
       expect(detailedMatch.games).toBeDefined()
       expect((detailedMatch.games ?? []).length).toBeGreaterThan(0)
 
-      const games = await apiClient.default.getGamesByMatch(tournamentFixture.matchId!) as GameApiModel[]
+      const games = await apiClient.default.getGamesByMatch(tournamentFixture.matchId!)
       expect(games.length).toBeGreaterThan(0)
       for (const game of games) {
         expect(game.id).toBeGreaterThan(0)
@@ -248,14 +243,14 @@ describe('Tournament scheduling generation', () => {
     const trackedPastPlayerIds = pastTeamIds.flatMap(teamId => teamToPlayerIds.get(teamId) ?? [])
     const baselineStatsByPlayerId = new Map<number, AllPlayerStats>()
     for (const playerId of trackedPastPlayerIds) {
-      const baselineStats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const baselineStats = await apiClient.default.getPlayerStats(playerId)
       baselineStatsByPlayerId.set(playerId, baselineStats)
     }
 
     const allPastFinished = await waitForCondition(
       async (): Promise<boolean> => {
         for (const fixture of pastTournamentFixtures) {
-          const match = await apiClient.default.getMatch(fixture.matchId!) as MatchApiModel
+          const match = await apiClient.default.getMatch(fixture.matchId!)
           if (!match.started || !match.finished || !match.winner_id) {
             return false
           }
@@ -269,7 +264,7 @@ describe('Tournament scheduling generation', () => {
     expect(allPastFinished).toBe(true)
 
     for (const fixture of pastTournamentFixtures) {
-      const match = await apiClient.default.getMatch(fixture.matchId!) as MatchApiModel
+      const match = await apiClient.default.getMatch(fixture.matchId!)
       expect(match.id).toBe(fixture.matchId)
       expect(isValidDateString(match.date)).toBe(true)
       expect(match.tournament_id).toBe(fixture.tournamentId)
@@ -292,7 +287,7 @@ describe('Tournament scheduling generation', () => {
 
       const gameStatsList: GameStatsApiModel[] = []
       for (const game of (match.games ?? [])) {
-        const gameStats = await apiClient.default.getGameStats(game.id!) as GameStatsApiModel
+        const gameStats = await apiClient.default.getGameStats(game.id!)
         gameStatsList.push(gameStats)
       }
 
@@ -315,7 +310,7 @@ describe('Tournament scheduling generation', () => {
         expect(match.team2_score).toBeGreaterThan(match.team1_score)
       }
 
-      const tournament = await apiClient.default.getTournament(fixture.tournamentId!) as TournamentApiModel
+      const tournament = await apiClient.default.getTournament(fixture.tournamentId!)
       expect(tournament.started).toBe(true)
       expect(tournament.ended).toBe(true)
       expect(tournament.winner_id).toBeGreaterThan(0)
@@ -329,7 +324,7 @@ describe('Tournament scheduling generation', () => {
       expect(tournament.teams).toBeDefined()
       expect(tournament.teams?.length).toBe(2)
 
-      const games = await apiClient.default.getGamesByMatch(fixture.matchId!) as GameApiModel[]
+      const games = await apiClient.default.getGamesByMatch(fixture.matchId!)
       expect(games.length).toBeGreaterThan(0)
       let processedGames = 0
       for (const game of games) {
@@ -374,7 +369,7 @@ describe('Tournament scheduling generation', () => {
 
     for (const playerId of trackedPastPlayerIds) {
       const beforeStats = baselineStatsByPlayerId.get(playerId)!
-      const afterStats = await apiClient.default.getPlayerStats(playerId) as AllPlayerStats
+      const afterStats = await apiClient.default.getPlayerStats(playerId)
       expect(afterStats.totalMapsPlayed).toBeGreaterThan(beforeStats.totalMapsPlayed)
       expect(afterStats.totalMatchesPlayed).toBeGreaterThanOrEqual(beforeStats.totalMatchesPlayed)
       expect(afterStats.totalKills + afterStats.totalDeaths + afterStats.totalAssists)
@@ -386,7 +381,7 @@ describe('Tournament scheduling generation', () => {
       expect(afterStats.mapWinrate).toBeLessThanOrEqual(100)
     }
 
-    const futureMatch = await apiClient.default.getMatch(futureTournamentFixture!.matchId!) as MatchApiModel
+    const futureMatch = await apiClient.default.getMatch(futureTournamentFixture!.matchId!)
     expect(futureMatch.id).toBe(futureTournamentFixture!.matchId)
     expect(isValidDateString(futureMatch.date)).toBe(true)
     expect(futureMatch.tournament_id).toBe(futureTournamentFixture!.tournamentId)
@@ -405,7 +400,7 @@ describe('Tournament scheduling generation', () => {
     expect(futureMatch.games).toBeDefined()
     expect((futureMatch.games ?? []).length).toBeGreaterThan(0)
 
-    const futureTournament = await apiClient.default.getTournament(futureTournamentFixture!.tournamentId!) as TournamentApiModel
+    const futureTournament = await apiClient.default.getTournament(futureTournamentFixture!.tournamentId!)
     expect(futureTournament.id).toBe(futureTournamentFixture!.tournamentId)
     expect(futureTournament.name).toBe(futureTournamentFixture!.name)
     expect(futureTournament.description).toBe(futureTournamentFixture!.description)
@@ -419,7 +414,7 @@ describe('Tournament scheduling generation', () => {
     expect(futureTournament.teams).toBeDefined()
     expect(futureTournament.teams?.length).toBe(2)
 
-    const futureGames = await apiClient.default.getGamesByMatch(futureTournamentFixture!.matchId!) as GameApiModel[]
+    const futureGames = await apiClient.default.getGamesByMatch(futureTournamentFixture!.matchId!)
     expect(futureGames.length).toBeGreaterThan(0)
     for (const game of futureGames) {
       expect(game.id).toBeGreaterThan(0)
