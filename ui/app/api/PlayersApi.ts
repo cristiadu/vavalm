@@ -50,7 +50,7 @@ export const fetchPlayersStats = async (
       if (response?.items) {
         response.items = response.items.map((item: AllPlayerStats) => {
           if (item.team) {
-            return { ...item, team: item.team }
+            return item
           }
           return item
         })

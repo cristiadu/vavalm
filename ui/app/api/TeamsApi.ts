@@ -13,9 +13,7 @@ export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void
       return emptyResult
     }
     
-    const teamsWithParsedLogos = response.items.map((team) => {
-      return team
-    })
+    const teamsWithParsedLogos = response.items
     
     closure(teamsWithParsedLogos)
     return teamsWithParsedLogos
@@ -36,9 +34,7 @@ export const fetchTeams = async (closure: (_teamData: ItemsWithPagination_TeamAp
       throw new Error("No teams data received")
     }
     
-    const teamsWithParsedLogos = response.items.map((team) => {
-      return team
-    })
+    const teamsWithParsedLogos = response.items
     
     const result = { total: response.total || 0, items: teamsWithParsedLogos }
     closure(result)
@@ -60,7 +56,7 @@ export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination_T
     }
     
     const teamsWithParsedLogos = response.items.map((item: TeamStats) => {
-      return { ...item, team: item.team }
+      return item
     })
     
     const result = { total: response.total || 0, items: teamsWithParsedLogos }

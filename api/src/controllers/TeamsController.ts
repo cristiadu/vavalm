@@ -7,10 +7,8 @@ import { TeamStats } from "@/base/types"
 import Team from "@/models/Team"
 import Player from "@/models/Player"
 import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamStatsService"
+import { fetchTeamLogo, replaceTeamLogo, LOGO_CACHE_SECONDS } from "@/services/TeamService"
 import { Op } from "sequelize"
-
-/** Logos only change when a team is edited, so let clients hold them for a day. */
-const LOGO_CACHE_SECONDS = 60 * 60 * 24
 
 @Route("teams")
 export class TeamsController extends Controller {
@@ -110,31 +108,21 @@ export class TeamsController extends Controller {
   }
 
   /**
-   * Streams a team's logo image.
-   *
-   * Logos are bytes, so they are served here rather than embedded in every
-   * response that carries a team.
-   *
-   * @param teamId The team whose logo is wanted
+   * Downloads a team's logo image.
+   * @param teamId The team whose logo to download
    */
   @Get("{teamId}/logo")
   @OperationId("getTeamLogo")
   @Produces("image/png")
   public async getTeamLogo(@Path() teamId: number): Promise<Readable> {
-    const team = await Team.findByPk(teamId, { attributes: ['id', 'logo_image_file'] })
-
-    if (!team?.logo_image_file) {
-      this.setStatus(404)
-      throw new Error("Team logo not found")
-    }
+    const logo = await fetchTeamLogo(teamId)
 
     this.setHeader('Cache-Control', `public, max-age=${LOGO_CACHE_SECONDS}`)
-    return Readable.from(team.logo_image_file)
+    return Readable.from(logo)
   }
 
   /**
-   * Replaces a team's logo image.
-   *
+   * Uploads a new logo image for a team, replacing any existing one.
    * @param teamId The team to set the logo on
    * @param logo_image_file The image to store
    */
@@ -145,14 +133,7 @@ export class TeamsController extends Controller {
     @Path() teamId: number,
     @UploadedFile() logo_image_file: Buffer<ArrayBufferLike>,
   ): Promise<void> {
-    const team = await Team.findByPk(teamId)
-
-    if (!team) {
-      this.setStatus(404)
-      throw new Error("Team not found")
-    }
-
-    await team.update({ logo_image_file })
+    await replaceTeamLogo(teamId, logo_image_file)
     this.setStatus(204)
   }
 

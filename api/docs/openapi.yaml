@@ -1317,15 +1317,11 @@ paths:
               schema:
                 type: string
                 format: byte
-      description: |-
-        Streams a team's logo image.
-
-        Logos are bytes, so they are served here rather than embedded in every
-        response that carries a team.
+      description: Downloads a team's logo image.
       security:
         - BearerAuth: []
       parameters:
-        - description: The team whose logo is wanted
+        - description: The team whose logo to download
           in: path
           name: teamId
           required: true
@@ -1337,7 +1333,7 @@ paths:
       responses:
         "204":
           description: Logo stored
-      description: Replaces a team's logo image.
+      description: Uploads a new logo image for a team, replacing any existing one.
       security:
         - BearerAuth: []
       parameters:
