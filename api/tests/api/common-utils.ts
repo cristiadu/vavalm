@@ -25,7 +25,9 @@ export const formatPercentage = (value: number, total: number): number => {
   }
 
   return parseFloat(((value / total) * 100).toFixed(2))
+}
 
+/**
  * Polls a paginated list until the expected entry shows up.
  *
  * The stats leaderboards are cached, so an entity created after the cache was
