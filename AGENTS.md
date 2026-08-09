@@ -16,7 +16,7 @@ Monorepo managed with **pnpm workspaces** and **Turborepo**.
 
 - **Express 5** with **tsoa** for decorator-based controllers → auto-generated OpenAPI spec and route handlers
 - **Sequelize 6** ORM with **PostgreSQL**
-- **CacheService** (`api/src/services/CacheService.ts`) — in-memory TTL cache used in GameService, PlayerService, TeamService
+- **CacheService** (`api/src/services/CacheService.ts`) — in-memory TTL cache used by GameService. The stats endpoints do not use it: they read live (see Stats computation).
 - Controllers live in `api/src/controllers/`, services in `api/src/services/`, Sequelize models in `api/src/models/`
 - Contract models (API shapes) are separate from DB models: `api/src/models/contract/`
 
@@ -81,9 +81,10 @@ pnpm dev:docker:down
 
 ## Key Patterns
 
-- **Stats computation** (`PlayerService`, `TeamService`) fetches all rows and computes stats in memory — results are cached for 30 seconds (`CACHE_TTL.ALL_STATS`) via `CacheService`. Cache keys are constants in `api/src/base/CacheConstants.ts`.
+- **Stats computation** lives in `PlayerStatsService` and `TeamStatsService`, one per entity. Each computes totals in a single `GROUP BY` query — the same query serves the leaderboard and one entity, so `/players/stats` and `/players/{id}/stats` can never disagree. Nothing is cached: the query is cheap and a cache only added staleness. `PlayerService` and `TeamService` keep just the VLR upsert helpers.
 - **Game simulation**: `POST /games/{id}/play` plays an entire game; `POST /games/{id}/rounds/{n}/play` plays one round; `POST /games/{id}/rounds/{n}/duel` plays one duel.
 - **Player/team data embedded in responses**: `GameLogApiModel` includes `team1_player` and `team2_player`; `AllPlayerStats` includes `team`; `TeamApiModel` includes `players`. Avoid making separate API calls for data already included.
+- **Images are referenced, not embedded**: `TeamApiModel` carries `logo_url`, not the image. Bytes come from `GET /teams/{id}/logo` and are uploaded with multipart to `POST /teams/{id}/logo`. Never inline a blob as base64 into a response — a team's logo was ~26KB of every 27KB stats row.
 - **Pagination**: all list endpoints accept `limit` and `offset` query params.
 - **Controllers are thin**: no business logic in controllers — only request parsing, calling a service method, and returning the response. All logic lives in services.
 - **Cascade deletes**: defined via `onDelete: 'CASCADE'` in Sequelize associations (see `api/src/models/Tournament.ts`). Adding new FKs should include cascade rules so service-layer delete methods stay simple.
@@ -186,6 +187,20 @@ describe('Teams', () => {
   })
 })
 ```
+
+### Writing tests that survive a parallel run
+
+Test files run in parallel against one database, and the scheduler is running,
+so a test must not assume it is alone:
+
+- **Future-date fixture tournaments.** `TEST_TOURNAMENT` is dated in 2100 so the
+  scheduler never treats its matches as due. Only the scheduler suite dates
+  fixtures in the past, deliberately, for the matches it wants picked up.
+- **Do not compare two reads of a list.** Other suites create and delete rows
+  between them. Assert the property that has to hold — a page keeps the
+  leaderboard's relative order — rather than exact identity against a snapshot.
+- **Bound rate assertions by sampling error.** Simulation is random; use
+  `rateLowerBound` rather than a hardcoded threshold, or the test fails on noise.
 
 ### `common-*.ts` files
 
@@ -296,8 +311,9 @@ After 5 consecutive errors the scheduler worker pauses for 60 s before resuming.
 | Constant | Default | Meaning |
 |---|---|---|
 | `MAX_CONCURRENT_MATCHES` | 20 | Max matches fetched per cycle and max simultaneous `playScheduledMatchWorker` threads |
-| `STANDARD_CHECK_INTERVAL` | 60 000 ms | Polling interval under normal conditions |
-| `REDUCED_CHECK_INTERVAL` | 120 000 ms | Polling interval when errors are detected |
+| `MATCH_WORKER_POOL_MAX` | 2 | Database connections a match worker may hold. Each worker thread builds its own Sequelize pool, so the main thread's size would otherwise be multiplied by the worker count |
+| `STANDARD_CHECK_INTERVAL` | 60 000 ms | Polling interval under normal conditions. Override with `SCHEDULER_CHECK_INTERVAL`; dev and CI set 2 000 ms so tests do not sit through a cycle |
+| `REDUCED_CHECK_INTERVAL` | 2× standard | Polling interval when errors are detected |
 | `CIRCUIT_BREAKER_THRESHOLD` | 5 | Consecutive errors before pausing |
 | `CIRCUIT_BREAKER_RESET_TIME` | 60 000 ms | Pause duration before resuming |
 
