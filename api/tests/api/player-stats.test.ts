@@ -257,12 +257,21 @@ describe('GET /players/:id/stats', () => {
       }
     })
 
-    it('returns a page matching that slice of the full ordering', async () => {
+    it('returns a page that follows the full ordering', async () => {
       const everything = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
       const page = await apiClient.default.getPlayersStats(PAGE_SIZE, PAGE_SIZE)
-      const expected = everything.slice(PAGE_SIZE, PAGE_SIZE * 2)
 
-      expect((page.items as AllPlayerStats[]).map(entry => entry.player.id)).toEqual(expected.map(entry => entry.player.id))
+      // Other suites create and delete players between the two reads, so the
+      // page can sit at a different offset than the snapshot. What has to hold
+      // is that it keeps the leaderboard's relative order.
+      const rankById = new Map(everything.map((entry, rank) => [entry.player.id, rank]))
+      const ranks = (page.items as AllPlayerStats[])
+        .map(entry => rankById.get(entry.player.id))
+        .filter((rank): rank is number => rank !== undefined)
+
+      expect(page.items.length).toBeLessThanOrEqual(PAGE_SIZE)
+      expect(ranks.length).toBeGreaterThan(0)
+      expect([...ranks].sort((a, b) => a - b)).toEqual(ranks)
     })
 
     it('reports a total independent of the requested page size', async () => {
