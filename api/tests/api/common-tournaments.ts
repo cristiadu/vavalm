@@ -6,8 +6,11 @@ export const TEST_TOURNAMENT: Omit<TournamentApiModel, 'id' | 'started' | 'ended
   description: 'Tournament created for API tests',
   country: 'Brazil',
   type: TournamentType.SINGLE_GROUP,
-  start_date: '2025-01-01T00:00:00.000Z',
-  end_date: '2025-12-31T00:00:00.000Z',
+  // Far enough out that the background scheduler never treats these matches as
+  // due. Suites that want a match played call playGame themselves; only the
+  // scheduler suite dates fixtures in the past, and it does so explicitly.
+  start_date: '2100-01-01T00:00:00.000Z',
+  end_date: '2100-12-31T00:00:00.000Z',
 }
 
 /**

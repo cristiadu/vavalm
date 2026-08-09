@@ -18,12 +18,10 @@
     },
     "test": {
       "cache": false,
-      "dependsOn": ["build"],
       "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
     },
     "test:coverage": {
       "cache": false,
-      "dependsOn": ["build"],
       "outputs": ["tests/coverage/**"],
       "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts", "test/**/*.tsx"]
     },
