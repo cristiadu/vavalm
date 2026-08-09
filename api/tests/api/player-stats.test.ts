@@ -1,4 +1,4 @@
-import { AllPlayerStats, PlayerApiModel } from '@tests/generated/api'
+import { AllPlayerStats, PlayerApiModel, TeamStats } from '@tests/generated/api'
 import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import {
@@ -142,6 +142,61 @@ describe('GET /players/:id/stats', () => {
           ? 0
           : parseFloat(((stats.totalKills + stats.totalAssists) / stats.totalDeaths).toFixed(2))
         expect(stats.kda).toBe(expected)
+      }
+    })
+  })
+
+  // ── Result attribution ────────────────────────────────────────────────────
+
+  describe('result attribution', () => {
+    it('decides the match in favour of one of the two fixture teams', () => {
+      expect(fixture.match.winner_id).toBeTruthy()
+      expect([fixture.match.team1_id, fixture.match.team2_id]).toContain(fixture.match.winner_id)
+    })
+
+    it('agrees with the team stats for the same match', async () => {
+      const { winningTeamId, winningPlayers } = splitByMatchResult(fixture)
+      const teamStats = await apiClient.default.getTeamStats(winningTeamId) as TeamStats
+      const playerStats = await apiClient.default.getPlayerStats(winningPlayers[0].id!) as AllPlayerStats
+
+      expect(playerStats.totalMatchesWon).toBe(teamStats.totalMatchesWon)
+      expect(playerStats.totalMapsWon).toBe(teamStats.totalMapsWon)
+      expect(playerStats.totalMapsPlayed).toBe(teamStats.totalMapsPlayed)
+    })
+
+    it('keeps map wins attributed to the side the player played on', async () => {
+      const { winningPlayers, losingPlayers } = splitByMatchResult(fixture)
+      const winner = await apiClient.default.getPlayerStats(winningPlayers[0].id!) as AllPlayerStats
+      const loser = await apiClient.default.getPlayerStats(losingPlayers[0].id!) as AllPlayerStats
+
+      // Both sides played the same maps, so their counts must complement.
+      expect(winner.totalMapsPlayed).toBe(loser.totalMapsPlayed)
+      expect(winner.totalMapsWon).toBe(loser.totalMapsLost)
+      expect(winner.totalMapsLost).toBe(loser.totalMapsWon)
+    })
+
+    it('keeps a played result with the team the player played for after a transfer', async () => {
+      const { winningTeamId, losingTeamId, winningPlayers } = splitByMatchResult(fixture)
+      const transferring = winningPlayers[0]
+      const before = await apiClient.default.getPlayerStats(transferring.id!) as AllPlayerStats
+      const player = await apiClient.default.getPlayer(transferring.id!) as PlayerApiModel
+
+      // WHEN the player transfers to the team they just beat
+      await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: losingTeamId })
+
+      try {
+        const after = await apiClient.default.getPlayerStats(transferring.id!) as AllPlayerStats
+
+        // THEN the already-played match is still a win, because the side played
+        // is stored per game rather than read from the player's current team.
+        expect(after.totalMatchesWon).toBe(before.totalMatchesWon)
+        expect(after.totalMatchesLost).toBe(before.totalMatchesLost)
+        expect(after.totalMapsWon).toBe(before.totalMapsWon)
+        expect(after.totalMapsLost).toBe(before.totalMapsLost)
+        expect(after.winrate).toBe(before.winrate)
+        expect(after.mapWinrate).toBe(before.mapWinrate)
+      } finally {
+        await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: winningTeamId })
       }
     })
   })
