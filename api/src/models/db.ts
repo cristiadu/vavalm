@@ -1,9 +1,32 @@
 import { Sequelize, Dialect } from 'sequelize'
+import { isMainThread } from 'worker_threads'
 import config from '@/config/config.json'
+import { MATCH_WORKER_POOL_MAX } from '@/models/constants'
 
 type Environment = 'development' | 'test' | 'production'
 const env = (process.env.NODE_ENV || 'development') as Environment
 const dbConfig = config[env]
+
+/**
+ * Connection pool bounds for the thread this module was loaded in.
+ *
+ * Worker threads get their own module instance, so they each build their own
+ * pool. The main thread serves every request and keeps the configured size; a
+ * match worker plays one match and takes a small pool with no idle minimum, so
+ * the total stays well inside the database's connection limit.
+ *
+ * @param onMainThread - Whether this is the main thread rather than a worker.
+ * @returns The max and min connections this thread should hold.
+ */
+export const resolvePoolBounds = (onMainThread: boolean): { max: number, min: number } => {
+  if (onMainThread) {
+    return { max: dbConfig.pool.max, min: dbConfig.pool.min }
+  }
+
+  return { max: Math.min(MATCH_WORKER_POOL_MAX, dbConfig.pool.max), min: 0 }
+}
+
+const poolBounds = resolvePoolBounds(isMainThread)
 
 const sequelize = new Sequelize(
   dbConfig.database,
@@ -13,8 +36,8 @@ const sequelize = new Sequelize(
     host: dbConfig.host,
     dialect: dbConfig.dialect as Dialect,
     pool: {
-      max: dbConfig.pool.max,
-      min: dbConfig.pool.min,
+      max: poolBounds.max,
+      min: poolBounds.min,
       acquire: dbConfig.pool.acquire,
       idle: dbConfig.pool.idle,
       evict: dbConfig.pool.evict,
