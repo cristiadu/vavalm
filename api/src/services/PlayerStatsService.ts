@@ -23,6 +23,9 @@ export interface PlayerStatsTotals {
   assists: number
 }
 
+/**
+ * One row of the player aggregate query, before the bigint counts are converted.
+ */
 interface PlayerTotalsRow {
   player_id: number
   maps_played: string
@@ -35,12 +38,16 @@ interface PlayerTotalsRow {
 }
 
 
-// Table names come from the models so the SQL below tracks any rename.
-const players = Player.getTableName()
-const games = Game.getTableName()
-const matches = Match.getTableName()
-const gameStats = GameStats.getTableName()
-const playerGameStats = PlayerGameStats.getTableName()
+/**
+ * Table names read from the models, so this SQL tracks any rename.
+ */
+const table = {
+  players: Player.getTableName(),
+  games: Game.getTableName(),
+  matches: Match.getTableName(),
+  gameStats: GameStats.getTableName(),
+  playerGameStats: PlayerGameStats.getTableName(),
+}
 
 /**
  * Ordering for the players leaderboard, with player_id breaking ties so paging
@@ -68,7 +75,7 @@ const PLAYER_ORDER_BY = `
  * game_stats_player2 means team2. Results are attributed to that side rather
  * than to the player's current team, so transfers do not rewrite history.
  */
-const PLAYER_TOTALS_SQL = `
+const playerTotalsSql = (playerFilter: string): string => `
   WITH player_games AS (
     SELECT
       pgs.player_id,
@@ -79,13 +86,13 @@ const PLAYER_TOTALS_SQL = `
       COALESCE(gs1.winner_id, gs2.winner_id) AS map_winner_id,
       COALESCE(g1.match_id, g2.match_id) AS match_id,
       COALESCE(m1.winner_id, m2.winner_id) AS match_winner_id
-    FROM "${playerGameStats}" pgs
-    LEFT JOIN "${gameStats}" gs1 ON gs1.id = pgs.game_stats_player1_id
-    LEFT JOIN "${gameStats}" gs2 ON gs2.id = pgs.game_stats_player2_id
-    LEFT JOIN "${games}" g1 ON g1.id = gs1.game_id
-    LEFT JOIN "${games}" g2 ON g2.id = gs2.game_id
-    LEFT JOIN "${matches}" m1 ON m1.id = g1.match_id
-    LEFT JOIN "${matches}" m2 ON m2.id = g2.match_id
+    FROM "${table.playerGameStats}" pgs
+    LEFT JOIN "${table.gameStats}" gs1 ON gs1.id = pgs.game_stats_player1_id
+    LEFT JOIN "${table.gameStats}" gs2 ON gs2.id = pgs.game_stats_player2_id
+    LEFT JOIN "${table.games}" g1 ON g1.id = gs1.game_id
+    LEFT JOIN "${table.games}" g2 ON g2.id = gs2.game_id
+    LEFT JOIN "${table.matches}" m1 ON m1.id = g1.match_id
+    LEFT JOIN "${table.matches}" m2 ON m2.id = g2.match_id
   ),
   totals AS (
     SELECT
@@ -97,8 +104,9 @@ const PLAYER_TOTALS_SQL = `
       COALESCE(SUM(pg.kills), 0) AS kills,
       COALESCE(SUM(pg.deaths), 0) AS deaths,
       COALESCE(SUM(pg.assists), 0) AS assists
-    FROM "${players}" p
+    FROM "${table.players}" p
     LEFT JOIN player_games pg ON pg.player_id = p.id
+    ${playerFilter}
     GROUP BY p.id
   )
   SELECT
@@ -114,12 +122,17 @@ const PLAYER_TOTALS_SQL = `
 `
 
 /**
- * Aggregates every player's map, match and combat totals in one query,
- * already ordered for the leaderboard.
+ * Aggregates player map, match and combat totals in one query, already ordered
+ * for the leaderboard.
+ *
+ * @param playerId - Restrict to a single player; omit for every player.
  * @returns {Promise<PlayerStatsTotals[]>} One entry per player, including players with no games played.
  */
-export const fetchPlayerStatsTotals = async (): Promise<PlayerStatsTotals[]> => {
-  const rows = await db.sequelize.query<PlayerTotalsRow>(PLAYER_TOTALS_SQL, { type: QueryTypes.SELECT })
+export const fetchPlayerStatsTotals = async (playerId?: number): Promise<PlayerStatsTotals[]> => {
+  const rows = await db.sequelize.query<PlayerTotalsRow>(
+    playerTotalsSql(playerId === undefined ? '' : 'WHERE p.id = :playerId'),
+    { type: QueryTypes.SELECT, replacements: { playerId } },
+  )
 
   return rows.map(row => ({
     playerId: Number(row.player_id),
@@ -134,117 +147,25 @@ export const fetchPlayerStatsTotals = async (): Promise<PlayerStatsTotals[]> => 
 }
 
 /**
- * Updates or creates a player based on the player data and team.
- * @param playerData player data from VLR
- * @param team team data saved in the database
- * @returns {Promise<Player>} - The player created or updated.
- * 
-**/
+ * Get all statistics for a single player, from the same aggregate query that
+ * builds the leaderboard so the two can never disagree.
+ *
+ * @param playerId  The id of the player
+ * @returns {Promise<AllPlayerStats>} - The player's aggregated statistics.
+ * @throws {Error} - If the player is not found.
+ */
 export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerStats> => {
-  const playerStats = await PlayerGameStats.findAll({
-    where: { player_id: playerId },
-    include: [
-      {
-        model: Player,
-        as: 'player',
-        include: [{ model: Team, as: 'team' }],
-      },
-      {
-        model: GameStats,
-        as: 'game_stats_player1',
-        include: [{
-          model: Game,
-          as: 'game',
-          include: [{
-            model: Match,
-            as: 'match',
-          }],
-        }],
-      },
-      {
-        model: GameStats,
-        as: 'game_stats_player2',
-        include: [{
-          model: Game,
-          as: 'game',
-          include: [{
-            model: Match,
-            as: 'match',
-          }],
-        }],
-      },
-    ],
+  const player = await Player.findByPk(playerId, {
+    include: [{ model: Team, as: 'team' }],
   })
 
-  if (playerStats.length === 0) {
-    const playerWithTeam = await Player.findByPk(playerId, {
-      include: [{ model: Team, as: 'team' }],
-    }) as Player
-    return new AllPlayerStats(
-      playerWithTeam.toApiModel(),
-      parseFloat(0.00.toFixed(2)),
-      parseFloat(0.00.toFixed(2)),
-      parseFloat(0.00.toFixed(2)),
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      playerWithTeam.team?.toApiModel(),
-    )
+  if (!player) {
+    throw new Error('Player not found')
   }
 
-  // Results are credited to the side the player took in each game, not to the
-  // team they belong to now, so a transfer does not rewrite their history.
-  const totalMapWins = playerStats.filter(stats => {
-    const teamId = stats.playedForTeamId()
-    return teamId !== undefined && stats.playedGameStats()?.winner_id === teamId
-  }).length
-  const totalMaps = playerStats.length
+  const [totals] = await fetchPlayerStatsTotals(playerId)
 
-  // A match spans several games, so collapse to distinct matches, keeping the
-  // side the player took in each one.
-  const matchesPlayed = new Map<number, { match: Match, teamId: number }>()
-  for (const stats of playerStats) {
-    const match = stats.playedGameStats()?.game?.match
-    const matchId = match?.id
-    const teamId = stats.playedForTeamId()
-    if (match && matchId !== undefined && teamId !== undefined && !matchesPlayed.has(matchId)) {
-      matchesPlayed.set(matchId, { match, teamId })
-    }
-  }
-  const totalMatchesPlayed = matchesPlayed.size
-  const totalMatchesWon = Array.from(matchesPlayed.values())
-    .filter(({ match, teamId }) => match.winner_id === teamId).length
-
-  const totalKills = playerStats.reduce((acc, stats) => acc + stats.kills, 0)
-  const totalDeaths = playerStats.reduce((acc, stats) => acc + stats.deaths, 0)
-  const totalAssists = playerStats.reduce((acc, stats) => acc + stats.assists, 0)
-  const kda = totalDeaths === 0 ? 0 : parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
-
-  const winrate = parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2))
-  const mapWinrate = parseFloat(((totalMapWins / totalMaps) * 100).toFixed(2))
-
-  return new AllPlayerStats(
-    playerStats[0].player.toApiModel(),
-    kda,
-    winrate,
-    mapWinrate,
-    totalMatchesPlayed,                    // totalMatchesPlayed
-    totalMatchesWon,                       // totalMatchesWon
-    totalMatchesPlayed - totalMatchesWon,  // totalMatchesLost
-    totalMaps,                            // totalMapsPlayed
-    totalMapWins,                         // totalMapsWon
-    totalMaps - totalMapWins,             // totalMapsLost
-    totalKills,
-    totalDeaths,
-    totalAssists,
-    playerStats[0].player.team?.toApiModel(),
-  )
+  return buildPlayerStats(player, totals)
 }
 
 /**

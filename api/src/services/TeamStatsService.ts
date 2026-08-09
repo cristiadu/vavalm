@@ -1,4 +1,4 @@
-import { Op, QueryTypes } from 'sequelize'
+import { QueryTypes } from 'sequelize'
 
 import db from '@/models/db'
 import Team from '@/models/Team'
@@ -23,6 +23,9 @@ export interface TeamStatsTotals {
   tournamentsWon: number
 }
 
+/**
+ * One row of the team aggregate query, before the bigint counts are converted.
+ */
 interface TeamTotalsRow {
   team_id: number
   maps_played: string
@@ -34,12 +37,16 @@ interface TeamTotalsRow {
 }
 
 
-// Table names come from the models so the SQL below tracks any rename.
-const teams = Team.getTableName()
-const games = Game.getTableName()
-const matches = Match.getTableName()
-const tournaments = Tournament.getTableName()
-const gameStats = GameStats.getTableName()
+/**
+ * Table names read from the models, so this SQL tracks any rename.
+ */
+const table = {
+  teams: Team.getTableName(),
+  games: Game.getTableName(),
+  matches: Match.getTableName(),
+  tournaments: Tournament.getTableName(),
+  gameStats: GameStats.getTableName(),
+}
 
 /**
  * Ordering for the teams leaderboard, evaluated in the database so only the
@@ -64,7 +71,7 @@ const TEAM_ORDER_BY = `
  * Matches and tournaments are derived from those rows, so a team that has not
  * played anything still appears with zeroes thanks to the outer joins.
  */
-const TEAM_TOTALS_SQL = `
+const teamTotalsSql = (teamFilter: string): string => `
   WITH totals AS (
     SELECT
       t.id AS team_id,
@@ -74,12 +81,13 @@ const TEAM_TOTALS_SQL = `
       COUNT(DISTINCT g.match_id) FILTER (WHERE m.winner_id = t.id) AS matches_won,
       COUNT(DISTINCT m.tournament_id) AS tournaments_played,
       COUNT(DISTINCT m.tournament_id) FILTER (WHERE tr.winner_id = t.id) AS tournaments_won
-    FROM "${teams}" t
-    LEFT JOIN "${gameStats}" gs
+    FROM "${table.teams}" t
+    LEFT JOIN "${table.gameStats}" gs
       ON (gs.team1_id = t.id OR gs.team2_id = t.id) AND gs.winner_id IS NOT NULL
-    LEFT JOIN "${games}" g ON g.id = gs.game_id
-    LEFT JOIN "${matches}" m ON m.id = g.match_id
-    LEFT JOIN "${tournaments}" tr ON tr.id = m.tournament_id
+    LEFT JOIN "${table.games}" g ON g.id = gs.game_id
+    LEFT JOIN "${table.matches}" m ON m.id = g.match_id
+    LEFT JOIN "${table.tournaments}" tr ON tr.id = m.tournament_id
+    ${teamFilter}
     GROUP BY t.id
   )
   SELECT
@@ -93,12 +101,17 @@ const TEAM_TOTALS_SQL = `
 `
 
 /**
- * Aggregates every team's map, match and tournament totals in one query,
- * already ordered for the leaderboard.
+ * Aggregates team map, match and tournament totals in one query, already
+ * ordered for the leaderboard.
+ *
+ * @param teamId - Restrict to a single team; omit for every team.
  * @returns {Promise<TeamStatsTotals[]>} One entry per team, including teams with no games played.
  */
-export const fetchTeamStatsTotals = async (): Promise<TeamStatsTotals[]> => {
-  const rows = await db.sequelize.query<TeamTotalsRow>(TEAM_TOTALS_SQL, { type: QueryTypes.SELECT })
+export const fetchTeamStatsTotals = async (teamId?: number): Promise<TeamStatsTotals[]> => {
+  const rows = await db.sequelize.query<TeamTotalsRow>(
+    teamTotalsSql(teamId === undefined ? '' : 'WHERE t.id = :teamId'),
+    { type: QueryTypes.SELECT, replacements: { teamId } },
+  )
 
   return rows.map(row => ({
     teamId: Number(row.team_id),
@@ -180,12 +193,13 @@ const buildTeamStats = (team: Team, totals: TeamStatsTotals): TeamStats => {
 }
 
 /**
- * Get all statistics for a team.
- * 
+ * Get all statistics for a single team, from the same aggregate query that
+ * builds the leaderboard so the two can never disagree.
+ *
  * @param teamId  The id of the team
  * @returns {Promise<TeamStats>} - The team statistics.
  * @throws {Error} - If the team is not found.
-  */
+ */
 export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => {
   const team = await Team.findByPk(teamId)
 
@@ -193,76 +207,7 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
     throw new Error('Team not found')
   }
 
-  const mapsPlayedForTeam = await GameStats.findAll({
-    where: {
-      [Op.or]: [
-        { team1_id: teamId },
-        { team2_id: teamId },
-      ],
-      winner_id: {
-        [Op.not]: null,
-      },
-    },
-    include: [
-      {
-        model: Game,
-        as: 'game',
-        include: [
-          {
-            model: Match,
-            as: 'match',
-            include: [
-              { model: Tournament, as: 'tournament' },
-            ],
-          },
-        ],
-      },
-    ],
-  })
+  const [totals] = await fetchTeamStatsTotals(teamId)
 
-  if (mapsPlayedForTeam.length === 0) {
-    return new TeamStats(
-      team.toApiModel(),
-      0,
-      0,
-      0.0,
-      0,
-      0,
-      0,
-      0.0,
-      0,
-      0,
-      0,
-    )
-  }
-
-  const totalMapsPlayed = mapsPlayedForTeam.length
-  const totalMapsWon = mapsPlayedForTeam.filter(map => map.winner_id === teamId).length
-  const totalMapsLost = totalMapsPlayed - totalMapsWon
-  const distinctMatches = mapsPlayedForTeam
-    .map(stats => stats.game.match)
-    .filter((match, index, self) => match && index === self.findIndex(t => t?.id === match.id))
-  const totalMatchesPlayed = distinctMatches.length
-  const totalMatchesWon = distinctMatches.filter(match => match.winner_id === teamId).length
-  const totalMatchesLost = distinctMatches.filter(match => match.winner_id !== teamId).length
-
-  // tournaments stats
-  const distinctTournaments = distinctMatches
-    .map(match => match.tournament)
-    .filter((tournament, index, self) => tournament && index === self.findIndex(t => t?.id === tournament.id))
-  const tournamentsWon = distinctTournaments.filter(tournament => tournament.winner_id === teamId).length
-
-  return new TeamStats(
-    team.toApiModel(),
-    tournamentsWon,
-    distinctTournaments.length,
-    parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2)),
-    totalMatchesPlayed,
-    totalMatchesWon,
-    totalMatchesLost,
-    parseFloat(((totalMapsWon / totalMapsPlayed) * 100).toFixed(2)),
-    totalMapsPlayed,
-    totalMapsWon,
-    totalMapsLost,
-  )
+  return buildTeamStats(team, totals)
 }
