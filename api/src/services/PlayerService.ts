@@ -140,8 +140,8 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
   const totalAssists = playerStats.reduce((acc, stats) => acc + stats.assists, 0)
   const kda = totalDeaths === 0 ? 0 : parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
 
-  const winrate = parseFloat((totalMatchesWon / totalMatchesPlayed).toFixed(2)) * 100
-  const mapWinrate = parseFloat((totalMapWins / totalMaps).toFixed(2)) * 100
+  const winrate = parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2))
+  const mapWinrate = parseFloat(((totalMapWins / totalMaps) * 100).toFixed(2))
 
   return new AllPlayerStats(
     playerStats[0].player.toApiModel(),
