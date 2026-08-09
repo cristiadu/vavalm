@@ -31,8 +31,8 @@ export interface PlayedMatchFixture {
 /**
  * GIVEN: two teams with full rosters have played every game of a match.
  *
- * Creates the teams, players and tournament, then plays each game of the first
- * scheduled match so the stats endpoints have real results to aggregate.
+ * Creates the teams, players and tournament, then plays games through the API
+ * until the first scheduled match is decided.
  *
  * @param fixturePrefix - Short prefix applied to the created team short_names
  *                        and player nicknames, so fixtures from different test
@@ -71,6 +71,10 @@ export const givenPlayedMatchExists = async (fixturePrefix: string): Promise<Pla
   const games = await apiClient.default.getGamesByMatch(scheduledMatch.id!) as GameApiModel[]
   for (const game of games) {
     await apiClient.default.playGame(game.id!)
+    const match = await apiClient.default.getMatch(scheduledMatch.id!) as MatchApiModel
+    if (match.finished && match.winner_id) {
+      break
+    }
   }
 
   return {

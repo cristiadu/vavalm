@@ -9,6 +9,33 @@ const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
 const DuelService = {
   /**
+   * Builds the exact weighted player pool used for duel selection.
+   *
+   * @param players - Alive players eligible for selection.
+   * @param isTrade - Whether trade selection buffs apply.
+   * @returns Players repeated according to their role's selection weight.
+   */
+  getPlayerSelectionPool: (players: Player[], isTrade: boolean): Player[] => {
+    return players.flatMap(player => {
+      const selectBuff = isTrade
+        ? ChanceService.getTradeSelectBuffByPlayerRole(player)
+        : ChanceService.getDuelSelectBuffByPlayerRole(player)
+
+      return Array(Math.floor(selectBuff * 100)).fill(player) as Player[]
+    })
+  },
+
+  /**
+   * Calculates the chance that a duel winner starts a trade duel.
+   *
+   * @param duelWinner - Player whose role supplies the trade selection buff.
+   * @returns Trade probability from zero to one.
+   */
+  getTradeChance: (duelWinner: Player): number => {
+    return Math.min(BASE_TRADE_CHANCE_PERCENTAGE + ChanceService.getTradeSelectBuffByPlayerRole(duelWinner), 1)
+  },
+
+  /**
    * Retrieves the last duel played in a game.
    *  
    * @param {number} game_id - The ID of the game.
@@ -50,24 +77,20 @@ const DuelService = {
     }
 
     if (!team1Player) {
-      const team1PlayerAliveChances = currentRound.team1_alive_players.map(player => {
-        const selectBuff = (currentDuel?.startedTradeDuel
-          ? ChanceService.getTradeSelectBuffByPlayerRole(player)
-          : ChanceService.getDuelSelectBuffByPlayerRole(player))
-        return Array(Math.floor(selectBuff * 100)).fill(player)
-      }).flat()
+      const team1PlayerAliveChances = DuelService.getPlayerSelectionPool(
+        currentRound.team1_alive_players,
+        currentDuel?.startedTradeDuel || false,
+      )
 
       const team1PlayerIndex = randomInt(0, team1PlayerAliveChances.length)
       team1Player = team1PlayerAliveChances[team1PlayerIndex]
     }
 
     if(!team2Player) {
-      const team2PlayerAliveChances = currentRound.team2_alive_players.map(player => {
-        const selectBuff = (currentDuel?.startedTradeDuel
-          ? ChanceService.getTradeSelectBuffByPlayerRole(player)
-          : ChanceService.getDuelSelectBuffByPlayerRole(player))
-        return Array(Math.floor(selectBuff * 100)).fill(player)
-      }).flat()
+      const team2PlayerAliveChances = DuelService.getPlayerSelectionPool(
+        currentRound.team2_alive_players,
+        currentDuel?.startedTradeDuel || false,
+      )
 
       const team2PlayerIndex = randomInt(0, team2PlayerAliveChances.length)
       team2Player = team2PlayerAliveChances[team2PlayerIndex]
@@ -181,7 +204,7 @@ const DuelService = {
    */
   shouldTradeHappen(duelWinner: Player): boolean {
     // Calculate the total trade chance
-    const tradeChance = Math.min(BASE_TRADE_CHANCE_PERCENTAGE + ChanceService.getTradeSelectBuffByPlayerRole(duelWinner), 1)
+    const tradeChance = DuelService.getTradeChance(duelWinner)
 
     // Determine if a trade should happen based on the calculated chance
     return randomInt(0, 100) < tradeChance * 100

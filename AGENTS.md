@@ -70,6 +70,10 @@ pnpm dev:docker:down
   change can lint clean and still fail to build — `pnpm build` is what type-checks the ui.
 - **`pnpm test` needs a running stack.** It no longer starts or stops Docker itself, so bring
   the stack up first; leaving it up between runs is the point.
+- **Respect a developer-owned instance.** When the developer says their app is running or
+  starting, ask them to start or restart it and wait for the health check; do not launch a
+  competing API or replace their process. When the agent owns the local environment, use
+  `pnpm dev:docker:down`, `pnpm localdb dev`, then `pnpm dev`.
 - **Run these through the pnpm scripts.** Do not substitute `docker`, `vitest`, `tsc` or
   `psql` invocations of your own — if a script fails in your environment, say so rather than
   working around it, because a parallel setup diverges from what CI actually runs.
@@ -196,11 +200,12 @@ so a test must not assume it is alone:
 - **Future-date fixture tournaments.** `TEST_TOURNAMENT` is dated in 2100 so the
   scheduler never treats its matches as due. Only the scheduler suite dates
   fixtures in the past, deliberately, for the matches it wants picked up.
-- **Do not compare two reads of a list.** Other suites create and delete rows
-  between them. Assert the property that has to hold — a page keeps the
-  leaderboard's relative order — rather than exact identity against a snapshot.
-- **Bound rate assertions by sampling error.** Simulation is random; use
-  `rateLowerBound` rather than a hardcoded threshold, or the test fails on noise.
+- **Isolate global list comparisons.** Bootstrap rows are always present, and other suites
+  create and delete additional rows. Tests that compare exact pages from multiple reads must
+  run in the isolated pagination phase, after the parallel integration suites finish.
+- **Test probability mechanics deterministically.** Assert the exact attribute scores,
+  role buffs, weighted selection pools, and trade chances in unit tests. Keep API tests for
+  round/game orchestration and persistence; do not make correctness depend on random samples.
 
 ### `common-*.ts` files
 

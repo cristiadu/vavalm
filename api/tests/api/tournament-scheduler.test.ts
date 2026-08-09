@@ -36,13 +36,11 @@ describe('Tournament scheduling generation', () => {
   const fixtureTournaments: TournamentScheduleFixture[] = []
 
   beforeAll(async () => {
-    const suffix = `${Date.now()}_${Math.floor(Math.random() * 10000)}`
-
     // GIVEN: two teams with full rosters; reused across multiple tournaments.
     for (let index = 1; index <= 2; index += 1) {
       const team = await givenTeamExists({
-        short_name: `TS${index}${suffix.slice(-3)}`,
-        full_name: `Tournament Scheduler Team ${index} ${suffix}`,
+        short_name: `TSFIX${index}`,
+        full_name: `Tournament Scheduler Fixture Team ${index}`,
         country: index % 2 === 0 ? 'Brazil' : 'Argentina',
       })
       teamIds.push(team.id!)
@@ -50,7 +48,7 @@ describe('Tournament scheduling generation', () => {
 
       for (let playerIndex = 1; playerIndex <= 5; playerIndex += 1) {
         const player = await givenPlayerExists(team.id!, {
-          nickname: `sched_${index}_${playerIndex}_${suffix}`,
+          nickname: `scheduler_fixture_${index}_${playerIndex}`,
           player_attributes: TEST_PLAYER_ATTRIBUTES,
         })
         playerIds.push(player.id!)
@@ -60,24 +58,24 @@ describe('Tournament scheduling generation', () => {
 
     fixtureTournaments.push(
       {
-        name: `Scheduler Past Tournament A ${suffix}`,
-        description: `Scheduler Past Tournament A ${suffix} fixture`,
+        name: 'Scheduler Past Tournament A Fixture',
+        description: 'Scheduler Past Tournament A fixture',
         startDate: new Date('1900-01-01T00:00:00.000Z'),
         endDate: new Date('1900-01-02T00:00:00.000Z'),
         teamIds: [teamIds[0], teamIds[1]],
         shouldBePickedNow: true,
       },
       {
-        name: `Scheduler Past Tournament B ${suffix}`,
-        description: `Scheduler Past Tournament B ${suffix} fixture`,
+        name: 'Scheduler Past Tournament B Fixture',
+        description: 'Scheduler Past Tournament B fixture',
         startDate: new Date('1900-01-03T00:00:00.000Z'),
         endDate: new Date('1900-01-04T00:00:00.000Z'),
         teamIds: [teamIds[0], teamIds[1]],
         shouldBePickedNow: true,
       },
       {
-        name: `Scheduler Future Tournament ${suffix}`,
-        description: `Scheduler Future Tournament ${suffix} fixture`,
+        name: 'Scheduler Future Tournament Fixture',
+        description: 'Scheduler Future Tournament fixture',
         startDate: new Date('2100-03-10T00:00:00.000Z'),
         endDate: new Date('2100-03-11T00:00:00.000Z'),
         teamIds: [teamIds[0], teamIds[1]],
