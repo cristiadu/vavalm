@@ -11,12 +11,14 @@ import {
 } from '@/models/RestCountries'
 import CacheService from '@/services/CacheService'
 
-const SPECIAL_COUNTRIES = [
+/** Additional regions that are not part of the REST Countries dataset. */
+const SPECIAL_COUNTRIES: CountryApiModel[] = [
   new CountryApiModel('eu', 'Europe', 'https://flagpedia.net/data/org/w580/eu.webp'),
   new CountryApiModel('en', 'England', 'https://flagpedia.net/data/flags/w580/gb-eng.webp'),
   new CountryApiModel('un', 'International', 'https://flagpedia.net/data/org/w580/un.webp'),
 ]
 
+/** Fetches one page from REST Countries v5. */
 const fetchCountryPage = async (apiKey: string, offset: number): Promise<RestCountriesResponse> => {
   const query = new URLSearchParams({
     limit: String(REST_COUNTRIES_PAGE_SIZE),
@@ -37,12 +39,8 @@ const fetchCountryPage = async (apiKey: string, offset: number): Promise<RestCou
   return await response.json() as RestCountriesResponse
 }
 
-const fetchAllCountries = async (): Promise<CountryApiModel[]> => {
-  const apiKey = process.env.REST_COUNTRIES_API_KEY
-  if (!apiKey) {
-    throw new Error('REST_COUNTRIES_API_KEY is not configured')
-  }
-
+/** Fetches and maps every page from REST Countries v5. */
+const fetchAllCountries = async (apiKey: string): Promise<CountryApiModel[]> => {
   const countries: CountryApiModel[] = []
   let offset = 0
   let hasMore = true
@@ -64,7 +62,7 @@ const fetchAllCountries = async (): Promise<CountryApiModel[]> => {
     offset += payload.data.meta.count
   }
 
-  return [...countries, ...SPECIAL_COUNTRIES]
+  return countries
 }
 
 /** Fetches and caches all countries exposed by REST Countries v5. */
@@ -74,9 +72,21 @@ export const getCountries = async (): Promise<CountryApiModel[]> => {
     return cachedCountries
   }
 
-  const countries = await fetchAllCountries()
-  CacheService.set(REST_COUNTRIES_CACHE_KEY, countries, REST_COUNTRIES_CACHE_TTL_SECONDS)
-  return countries
+  let countries: CountryApiModel[] = []
+  const apiKey = process.env.REST_COUNTRIES_API_KEY
+  if (apiKey) {
+    try {
+      countries = await fetchAllCountries(apiKey)
+    } catch {
+      console.error('Error fetching countries')
+    }
+  }
+
+  const countriesWithSpecialRegions = [...countries, ...SPECIAL_COUNTRIES]
+  if (countries.length > 0) {
+    CacheService.set(REST_COUNTRIES_CACHE_KEY, countriesWithSpecialRegions, REST_COUNTRIES_CACHE_TTL_SECONDS)
+  }
+  return countriesWithSpecialRegions
 }
 
 /** Resolves a two-letter country code using the shared countries dataset. */
@@ -84,8 +94,8 @@ export const countryCodeToCountryName = async (countryCode: string): Promise<str
   try {
     const countries = await getCountries()
     return countries.find(country => country.code === countryCode.toLowerCase())?.name ?? countryCode
-  } catch (error) {
-    console.error('Error resolving country code:', error)
+  } catch {
+    console.error('Error resolving country code')
     return countryCode
   }
 }

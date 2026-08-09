@@ -2,14 +2,14 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchTeamsStats } from '@/api/TeamsApi'
-import { fetchCountries } from '@/api/CountryApi'
+import { fetchCountries, mapCountryFlagsByName } from '@/api/CountryApi'
 import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
 import Pagination from '@/components/common/Pagination'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
-import { TeamStats } from '@/api/generated'
+import { CountryApiModel, TeamStats } from '@/api/generated'
 import { Threshold } from '@/common/CommonModels'
 
 const thresholds: Record<string, Threshold> = {
@@ -34,15 +34,12 @@ const TeamsStatsPage = (): React.ReactNode => {
   const [totalItems, setTotalItems] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
+  const updateCountryFlags = useCallback((countries: CountryApiModel[]): void => {
+    setCountriesToFlagMap(mapCountryFlagsByName(countries))
+  }, [])
+
   const loadData = useCallback(async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = 0) => {
     setIsLoading(true)
-    void fetchCountries((countries) => {
-      const flagMap: Record<string, string> = {}
-      countries.forEach((country) => {
-        flagMap[country.name] = country.flag
-      })
-      setCountriesToFlagMap(flagMap)
-    })
 
     try {
       const statsData = await fetchTeamsStats(() => {}, limit, offset)
@@ -57,6 +54,10 @@ const TeamsStatsPage = (): React.ReactNode => {
       setIsLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    void fetchCountries(updateCountryFlags)
+  }, [updateCountryFlags])
 
   useEffect(() => {
     loadData()

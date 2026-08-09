@@ -1,25 +1,7 @@
 import { CountryApiModel } from '@/api/generated'
 import { VavalMApiClient } from '@/api/client'
 
-const fallbackCountries: CountryApiModel[] = [
-  {
-    code: 'eu',
-    name: 'Europe',
-    flag: 'https://flagpedia.net/data/org/w580/eu.webp',
-  },
-  {
-    code: 'en',
-    name: 'England',
-    flag: 'https://flagpedia.net/data/flags/w580/gb-eng.webp',
-  },
-  {
-    code: 'un',
-    name: 'International',
-    flag: 'https://flagpedia.net/data/org/w580/un.webp',
-  },
-]
-
-/** Fetches country options through the generated API client and falls back to special regions. */
+/** Fetches country options through the generated API client. */
 export const fetchCountries = async (closure: (_countryData: CountryApiModel[]) => void): Promise<CountryApiModel[]> => {
   try {
     const countryData = await VavalMApiClient.default.getCountries()
@@ -29,8 +11,13 @@ export const fetchCountries = async (closure: (_countryData: CountryApiModel[]) 
     return countryData
   } catch {
     console.error('Error fetching countries')
-    const countries = [...fallbackCountries]
-    closure(countries)
-    return countries
+    const emptyResult: CountryApiModel[] = []
+    closure(emptyResult)
+    return emptyResult
   }
+}
+
+/** Indexes country flag URLs by country display name. */
+export const mapCountryFlagsByName = (countries: CountryApiModel[]): Record<string, string> => {
+  return Object.fromEntries(countries.map(country => [country.name, country.flag]))
 }

@@ -2,8 +2,8 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { fetchCountries } from '@/api/CountryApi'
+import { useCallback, useEffect, useState } from 'react'
+import { fetchCountries, mapCountryFlagsByName } from '@/api/CountryApi'
 import { fetchTeams, deleteTeam } from '@/api/TeamsApi'
 import TeamActionModal from '@/components/TeamActionModal'
 import { getRoleBgColor } from '@/api/models/helpers'
@@ -25,19 +25,11 @@ export default function ListTeams(): React.ReactNode {
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [totalItems, setTotalItems] = useState(0)
 
-  useEffect(() => {
-    fetchCountriesAndTeams()
+  const updateCountryFlags = useCallback((countries: CountryApiModel[]): void => {
+    setCountriesToFlagMap(mapCountryFlagsByName(countries))
   }, [])
 
-  const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<void> => {
-    void fetchCountries((countries) => {
-      const flagMap: Record<string, string> = {}
-      countries.forEach((country: CountryApiModel) => {
-        flagMap[country.name] = country.flag
-      })
-      setCountriesToFlagMap(flagMap)
-    })
-
+  const fetchTeamsList = useCallback(async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<void> => {
     try {
       const teamsData = await fetchTeams(() => {
         // handle team data
@@ -48,7 +40,15 @@ export default function ListTeams(): React.ReactNode {
     } catch (error) {
       console.error('Error fetching teams:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    void fetchCountries(updateCountryFlags)
+  }, [updateCountryFlags])
+
+  useEffect(() => {
+    void fetchTeamsList()
+  }, [fetchTeamsList])
 
   const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
     e.preventDefault()
@@ -60,7 +60,7 @@ export default function ListTeams(): React.ReactNode {
     setIsEditActionOpened(false)
     setTeamActionModalOpened(false)
     setTeamToEdit(null)
-    fetchCountriesAndTeams()
+    void fetchTeamsList()
   }
 
   const handleView = (team: TeamApiModel): void => {
@@ -82,13 +82,13 @@ export default function ListTeams(): React.ReactNode {
     if(!confirmed) return
 
     deleteTeam(team, () => {
-      fetchCountriesAndTeams()
+      void fetchTeamsList()
     })
     
   }
 
   const handlePageChange = (limit: number, offset: number): void => {
-    fetchCountriesAndTeams(limit, offset)
+    void fetchTeamsList(limit, offset)
   }
 
   // List all teams in a table/grid
