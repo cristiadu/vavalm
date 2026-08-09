@@ -5,7 +5,7 @@
 export const CACHE_TTL = {
   GAME: 60,        // 1 minute
   GAME_STATS: 120, // 2 minutes
-  ALL_STATS: 30,   // 30 seconds — short-lived; expires quickly enough that explicit invalidation is unnecessary
+  ALL_STATS: 300,  // 5 minutes — model hooks drop these keys whenever a row behind them changes, so the ttl is only a backstop
 }
 
 export const CACHE_KEYS = {
