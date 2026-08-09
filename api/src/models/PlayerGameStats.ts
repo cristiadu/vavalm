@@ -42,6 +42,24 @@ class PlayerGameStats extends Model implements BaseEntityModel {
   toEntityModel(): PlayerGameStats {
     return this
   }
+
+  /**
+   * Returns the game stats this row belongs to, whichever side the player took.
+   */
+  playedGameStats(): GameStats | undefined {
+    return this.game_stats_player1 ?? this.game_stats_player2
+  }
+
+  /**
+   * Returns the id of the team the player actually played for in this game.
+   *
+   * A row linked through game_stats_player1 was played for that game's team1,
+   * one linked through game_stats_player2 for its team2. Reading the side keeps
+   * historical results correct when a player later transfers.
+   */
+  playedForTeamId(): number | undefined {
+    return this.game_stats_player1?.team1_id ?? this.game_stats_player2?.team2_id
+  }
 }
 
 PlayerGameStats.init({
