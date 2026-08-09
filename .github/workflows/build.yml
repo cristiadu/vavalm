@@ -9,6 +9,12 @@ on:
 permissions:
   contents: read
 
+# One run per branch: pushing again cancels the run still in flight, since its
+# result is already out of date.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
