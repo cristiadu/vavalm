@@ -11,6 +11,7 @@ import GameStats from '@/models/GameStats'
 import Team from '@/models/Team'
 import CacheService from '@/services/CacheService'
 import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
+import { fetchTeamStatsTotals, TeamStatsTotals } from '@/services/StatsAggregationService'
 
 /**
  * Upserts a team entry based on the team data.
@@ -36,19 +37,68 @@ export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
 }
 
 
+/**
+ * Fetches stats for every team, ordered for the leaderboard and paginated.
+ *
+ * Totals come from one aggregate query rather than one query per team, and
+ * only the requested page is hydrated into api models — the cached value is a
+ * small array of counts, not a list of teams carrying their logos.
+ *
+ * @param limit - The number of items to fetch.
+ * @param offset - The number of items to skip.
+ * @returns {Promise<ItemsWithPagination<TeamStats>>} - The requested page of team stats.
+ */
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
   const cacheKey = CACHE_KEYS.ALL_TEAM_STATS
-  let allSorted = CacheService.get<TeamStats[]>(cacheKey)
+  let totals = CacheService.get<TeamStatsTotals[]>(cacheKey)
 
-  if (!allSorted) {
-    const teams = await Team.findAll()
-    allSorted = (await Promise.all(teams.map(team => getAllStatsForTeam(team.id as number)))).sort(sortTeamsByStats)
-    CacheService.set(cacheKey, allSorted, CACHE_TTL.ALL_STATS)
+  if (!totals) {
+    totals = await fetchTeamStatsTotals()
+    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
   }
 
-  const paginatedTeamsStats = allSorted.slice(offset, offset + limit)
+  const page = totals.slice(offset, offset + limit)
+  const teams = await Team.findAll({ where: { id: page.map(entry => entry.teamId) } })
+  const teamsById = new Map(teams.map(team => [team.id, team]))
 
-  return new ItemsWithPagination<TeamStats>(paginatedTeamsStats, allSorted.length)
+  const items = page
+    .map(entry => {
+      const team = teamsById.get(entry.teamId)
+      return team ? buildTeamStats(team, entry) : null
+    })
+    .filter((stats): stats is TeamStats => stats !== null)
+
+  return new ItemsWithPagination<TeamStats>(items, totals.length)
+}
+
+/**
+ * Builds the api-facing stats object from a team and its aggregated totals.
+ *
+ * @param team  The team the totals belong to
+ * @param totals  Aggregated counts for that team
+ * @returns {TeamStats} - The team statistics.
+ */
+const buildTeamStats = (team: Team, totals: TeamStatsTotals): TeamStats => {
+  const winrate = totals.matchesPlayed === 0
+    ? 0
+    : parseFloat(((totals.matchesWon / totals.matchesPlayed) * 100).toFixed(2))
+  const mapWinrate = totals.mapsPlayed === 0
+    ? 0
+    : parseFloat(((totals.mapsWon / totals.mapsPlayed) * 100).toFixed(2))
+
+  return new TeamStats(
+    team.toApiModel(),
+    totals.tournamentsWon,
+    totals.tournamentsPlayed,
+    winrate,
+    totals.matchesPlayed,
+    totals.matchesWon,
+    totals.matchesPlayed - totals.matchesWon,
+    mapWinrate,
+    totals.mapsPlayed,
+    totals.mapsWon,
+    totals.mapsPlayed - totals.mapsWon,
+  )
 }
 
 /**
@@ -137,34 +187,4 @@ export const getAllStatsForTeam = async (teamId: number): Promise<TeamStats> => 
     totalMapsWon,
     totalMapsLost,
   )
-}
-
-/**
- * Sorts teams by their statistics.
- * 
- * @param a  The first team statistics
- * @param b  The second team statistics
- * @returns {number} - The comparison result.
-  */
-export const sortTeamsByStats = (a: TeamStats, b: TeamStats): number => {
-  // Sort by following criteria:
-  const criteria: [keyof TeamStats, boolean][] = [
-    ['tournamentsWon', false],
-    ['winrate', false],
-    ['mapWinrate', false],
-    ['totalMatchesWon', false],
-    ['totalMapsWon', false],
-    ['totalMatchesLost', true],
-    ['totalMapsLost', true],
-    ['totalMatchesPlayed', false],
-    ['totalMapsPlayed', false],
-  ]
-
-  for (const [key, reverse] of criteria) {
-    if (a[key] !== b[key]) {
-      return reverse ? Number(a[key]) - Number(b[key]) : Number(b[key]) - Number(a[key])
-    }
-  }
-
-  return 0
 }

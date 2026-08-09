@@ -8,6 +8,7 @@ import GameStats from '@/models/GameStats'
 import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
 import CacheService from '@/services/CacheService'
 import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
+import { fetchPlayerStatsTotals, PlayerStatsTotals } from '@/services/StatsAggregationService'
 
 /**
  * Updates or creates a player based on the player data and team.
@@ -170,51 +171,62 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
 **/
 export const getAllStatsForAllPlayers = async (limit: number, offset: number): Promise<ItemsWithPagination<AllPlayerStats>> => {
   const cacheKey = CACHE_KEYS.ALL_PLAYER_STATS
-  let allSorted = CacheService.get<AllPlayerStats[]>(cacheKey)
+  let totals = CacheService.get<PlayerStatsTotals[]>(cacheKey)
 
-  if (!allSorted) {
-    const players = await Player.findAll()
-    allSorted = (await Promise.all(players.map(player => getAllStatsForPlayer(player.id)))).sort(sortPlayersByStats)
-    CacheService.set(cacheKey, allSorted, CACHE_TTL.ALL_STATS)
+  if (!totals) {
+    totals = await fetchPlayerStatsTotals()
+    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
   }
 
-  const paginatedPlayerStats = allSorted.slice(offset, offset + limit)
+  const page = totals.slice(offset, offset + limit)
+  const players = await Player.findAll({
+    where: { id: page.map(entry => entry.playerId) },
+    include: [{ model: Team, as: 'team' }],
+  })
+  const playersById = new Map(players.map(player => [player.id, player]))
 
-  return new ItemsWithPagination<AllPlayerStats>(
-    paginatedPlayerStats,
-    allSorted.length,
-  )
+  const items = page
+    .map(entry => {
+      const player = playersById.get(entry.playerId)
+      return player ? buildPlayerStats(player, entry) : null
+    })
+    .filter((stats): stats is AllPlayerStats => stats !== null)
+
+  return new ItemsWithPagination<AllPlayerStats>(items, totals.length)
 }
 
 /**
- *  Sorts players by their statistics.
- * 
- * @param a  The first player statistics
- * @param b  The second player statistics
- * @returns {number} - The comparison result.
-**/
-export const sortPlayersByStats = (a: AllPlayerStats, b: AllPlayerStats): number => {
-  // Sort by following criteria:
-  const criteria: [keyof AllPlayerStats, boolean][] = [
-    ['kda', false],
-    ['totalKills', false],
-    ['winrate', false],
-    ['mapWinrate', false],
-    ['totalAssists', false],
-    ['totalMatchesWon', false],
-    ['totalMapsWon', false],
-    ['totalDeaths', true],
-    ['totalMatchesLost', true],
-    ['totalMapsLost', true],
-    ['totalMatchesPlayed', false],
-    ['totalMapsPlayed', false],
-  ]
+ * Builds the api-facing stats object from a player and their aggregated totals.
+ *
+ * @param player  The player the totals belong to, with their team loaded
+ * @param totals  Aggregated counts for that player
+ * @returns {AllPlayerStats} - The player statistics.
+ */
+const buildPlayerStats = (player: Player, totals: PlayerStatsTotals): AllPlayerStats => {
+  const kda = totals.deaths === 0
+    ? 0
+    : parseFloat(((totals.kills + totals.assists) / totals.deaths).toFixed(2))
+  const winrate = totals.matchesPlayed === 0
+    ? 0
+    : parseFloat(((totals.matchesWon / totals.matchesPlayed) * 100).toFixed(2))
+  const mapWinrate = totals.mapsPlayed === 0
+    ? 0
+    : parseFloat(((totals.mapsWon / totals.mapsPlayed) * 100).toFixed(2))
 
-  for (const [key, reverse] of criteria) {
-    if (a[key] !== b[key]) {
-      return reverse ? Number(a[key]) - Number(b[key]) : Number(b[key]) - Number(a[key])
-    }
-  }
-
-  return 0
+  return new AllPlayerStats(
+    player.toApiModel(),
+    kda,
+    winrate,
+    mapWinrate,
+    totals.matchesPlayed,
+    totals.matchesWon,
+    totals.matchesPlayed - totals.matchesWon,
+    totals.mapsPlayed,
+    totals.mapsWon,
+    totals.mapsPlayed - totals.mapsWon,
+    totals.kills,
+    totals.deaths,
+    totals.assists,
+    player.team?.toApiModel(),
+  )
 }
