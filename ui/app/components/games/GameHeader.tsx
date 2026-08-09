@@ -13,11 +13,11 @@ interface GameHeaderProps {
 const GameHeader: React.FC<GameHeaderProps> = ({ stats, team1Country, team2Country }) => {
   const team1LogoUrl = useMemo(() => {
     return teamLogoURLObjectOrDefault(stats?.team1 as TeamApiModel)
-  }, [stats?.team1?.logo_image_file])
+  }, [stats?.team1?.logo_url])
 
   const team2LogoUrl = useMemo(() => {
     return teamLogoURLObjectOrDefault(stats?.team2 as TeamApiModel)
-  }, [stats?.team2?.logo_image_file])
+  }, [stats?.team2?.logo_url])
 
   return (
     <div className="flex items-center justify-between bg-blue-200 p-2 rounded mb-4">

@@ -142,7 +142,7 @@ const PlayersStatsPage = (): React.ReactNode => {
                     {stats.team ? (
                       <div className="flex items-center gap-2">
                         <ImageAutoSize
-                          imageFile={stats.team.logo_image_file as File}
+                          src={stats.team.logo_url ?? undefined}
                           fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                           alt={stats.team.short_name || ''}
                           width={24}

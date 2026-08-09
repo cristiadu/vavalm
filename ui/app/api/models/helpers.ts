@@ -1,7 +1,6 @@
 import { GameStatsApiModel, MatchApiModel, PlayerGameStatsApiModel, PlayerRole, TeamApiModel } from "@/api/generated"
 import { ASSISTS_HALF_MULTIPLIER, DEFAULT_TEAM_LOGO_IMAGE_PATH } from "@/api/models/constants"
 import { calculatePlayerRating } from "@/common/NumberUtils"
-import { TeamWithLogoImageData } from "@/api/models/types"
 
 /**
  * Get the background color for how high the attribute value is
@@ -46,54 +45,12 @@ export const getRoleBgColor = (role: PlayerRole): string => {
 }
 
 /**
- * Parse to File the logo image file for a team
- * @param team - The team to parse the logo image file for
- * @returns The team with the parsed logo image file
- */
-export const parseLogoImageFile = <T>(team: TeamWithLogoImageData): T => {
-  // Skip processing if no logo or already a File
-  if (!team.logo_image_file || team.logo_image_file instanceof File) {
-    return team as T
-  }
-
-  // Handle base64 string format (from API)
-  if (typeof team.logo_image_file === 'string' && team.logo_image_file.startsWith('data:')) {
-    try {
-      // Convert base64 to blob then to File
-      const parts = team.logo_image_file.split(';base64,')
-      const contentType = parts[0].replace('data:', '') || 'image/png'
-      const base64 = parts[1]
-      const byteCharacters = atob(base64)
-      const byteArrays = []
-
-      for (let i = 0; i < byteCharacters.length; i += 1024) {
-        const slice = byteCharacters.slice(i, i + 1024)
-        const byteNumbers = new Array(slice.length)
-
-        for (let j = 0; j < slice.length; j++) {
-          byteNumbers[j] = slice.charCodeAt(j)
-        }
-
-        byteArrays.push(new Uint8Array(byteNumbers))
-      }
-
-      const blob = new Blob(byteArrays, { type: contentType })
-      team.logo_image_file = new File([blob], `logo-team-${team.id}.png`, { type: contentType })
-    } catch (e) {
-      console.error('Error converting base64 to File:', e)
-    }
-  }
-
-  return team as T
-}
-
-/**
  * Get a local client URL of the logo image file for a team
  * @param team - The team to get the URL of the logo image file for
  * @returns The URL of the logo image file for the team
  */
 export const teamLogoURLObjectOrDefault = (team: TeamApiModel | null): string => {
-  return objectURLOrDefault(team?.logo_image_file as File | null, DEFAULT_TEAM_LOGO_IMAGE_PATH) as string
+  return team?.logo_url ?? DEFAULT_TEAM_LOGO_IMAGE_PATH
 }
 
 /**

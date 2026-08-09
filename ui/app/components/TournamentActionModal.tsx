@@ -207,7 +207,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
             selectedItems={selectedTeams}
             onSelect={handleTeamSelect}
             displayKey="short_name"
-            imageKey="logo_image_file"
+            imageKey="logo_url"
             placeholder="Select teams"
             isMultiSelect={true} 
           />

@@ -92,7 +92,7 @@ export default function ViewPlayer(props: { params: Params }): React.ReactNode {
             <strong>Team:</strong> {team ? (
               <span className="flex items-center ml-2">
                 <ImageAutoSize 
-                  imageFile={team.logo_image_file as File} 
+                  src={team.logo_url ?? undefined} 
                   fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH} 
                   alt={team.short_name || ''} 
                   width={32} 

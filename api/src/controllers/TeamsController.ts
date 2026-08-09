@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, FormField, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { Body, Controller, Delete, FormField, Get, OperationId, Path, Post, Produces, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { Readable } from "stream"
 import { ItemsWithPagination } from "@/base/types"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
@@ -6,6 +7,7 @@ import { TeamStats } from "@/base/types"
 import Team from "@/models/Team"
 import Player from "@/models/Player"
 import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamStatsService"
+import { fetchTeamLogo, replaceTeamLogo, LOGO_CACHE_SECONDS } from "@/services/TeamService"
 import { Op } from "sequelize"
 
 @Route("teams")
@@ -103,6 +105,36 @@ export class TeamsController extends Controller {
   @OperationId("getTeamStats")
   public async getTeamStats(@Path() teamId: number): Promise<TeamStats> {
     return (await getAllStatsForTeam(teamId)).toApiModel()
+  }
+
+  /**
+   * Downloads a team's logo image.
+   * @param teamId The team whose logo to download
+   */
+  @Get("{teamId}/logo")
+  @OperationId("getTeamLogo")
+  @Produces("image/png")
+  public async getTeamLogo(@Path() teamId: number): Promise<Readable> {
+    const logo = await fetchTeamLogo(teamId)
+
+    this.setHeader('Cache-Control', `public, max-age=${LOGO_CACHE_SECONDS}`)
+    return Readable.from(logo)
+  }
+
+  /**
+   * Uploads a new logo image for a team, replacing any existing one.
+   * @param teamId The team to set the logo on
+   * @param logo_image_file The image to store
+   */
+  @Post("{teamId}/logo")
+  @OperationId("uploadTeamLogo")
+  @SuccessResponse("204", "Logo stored")
+  public async uploadTeamLogo(
+    @Path() teamId: number,
+    @UploadedFile() logo_image_file: Buffer<ArrayBufferLike>,
+  ): Promise<void> {
+    await replaceTeamLogo(teamId, logo_image_file)
+    this.setStatus(204)
   }
 
   /**

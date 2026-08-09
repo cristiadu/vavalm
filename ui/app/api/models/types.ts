@@ -51,12 +51,11 @@ export interface PlayerWithFlag extends PlayerApiModel {
 }
 
 /**
- * A type that represents a team with a logo image file
- * The logo_image_file can be:
- * - string: base64-encoded image data (from API)
- * - File: when uploaded by user
- * - null: when no image exists
+ * A team plus the logo image the user picked in the form.
+ *
+ * The api never sends image data — reads go through logo_url — so this only
+ * ever holds a File on its way to the multipart upload, or null.
  */
-export interface TeamWithLogoImageData extends Omit<TeamApiModel, 'logo_image_file'> {
-  logo_image_file?: string | File | null
+export interface TeamWithLogoImageData extends TeamApiModel {
+  logo_image_file?: File | null
 }

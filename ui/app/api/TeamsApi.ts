@@ -1,5 +1,4 @@
 import { LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from "@/api/models/constants"
-import { parseLogoImageFile } from "@/api/models/helpers"
 import { TeamWithLogoImageData } from "@/api/models/types"
 import { ItemsWithPagination_TeamApiModel_, ItemsWithPagination_TeamStats_, TeamApiModel, TeamStats } from "@/api/generated"
 import { VavalMApiClient } from "@/api/client"
@@ -14,9 +13,7 @@ export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void
       return emptyResult
     }
     
-    const teamsWithParsedLogos = response.items.map((team) => {
-      return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
-    })
+    const teamsWithParsedLogos = response.items
     
     closure(teamsWithParsedLogos)
     return teamsWithParsedLogos
@@ -37,9 +34,7 @@ export const fetchTeams = async (closure: (_teamData: ItemsWithPagination_TeamAp
       throw new Error("No teams data received")
     }
     
-    const teamsWithParsedLogos = response.items.map((team) => {
-      return parseLogoImageFile<TeamApiModel>(team as TeamWithLogoImageData)
-    })
+    const teamsWithParsedLogos = response.items
     
     const result = { total: response.total || 0, items: teamsWithParsedLogos }
     closure(result)
@@ -61,7 +56,7 @@ export const fetchTeamsStats = async (closure: (_teamData: ItemsWithPagination_T
     }
     
     const teamsWithParsedLogos = response.items.map((item: TeamStats) => {
-      return { ...item, team: parseLogoImageFile<TeamApiModel>(item.team as TeamWithLogoImageData) }
+      return item
     })
     
     const result = { total: response.total || 0, items: teamsWithParsedLogos }
@@ -85,7 +80,7 @@ export const fetchTeam = async (teamId: number, closure: (_teamData: TeamApiMode
       return null
     }
     
-    const team = parseLogoImageFile<TeamApiModel>(response as TeamWithLogoImageData)
+    const team = response
     closure(team)
     return team
   } catch (error) {
@@ -105,7 +100,7 @@ export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamSt
       return null
     }
     
-    const teamWithLogoImageData = parseLogoImageFile<TeamApiModel>(response.team as TeamWithLogoImageData)
+    const teamWithLogoImageData = response.team
     const result = { ...response, team: teamWithLogoImageData }
     closure(result)
     return result
@@ -116,7 +111,7 @@ export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamSt
   }
 }
   
-export const newTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
+export const newTeam = async (team: TeamWithLogoImageData, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
   try {
     if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
       throw new Error('Missing required fields')
@@ -127,7 +122,7 @@ export const newTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiMo
       full_name: team.full_name,
       description: team.description || '',
       country: team.country,
-      logo_image_file: team.logo_image_file as File,
+      logo_image_file: team.logo_image_file ?? undefined,
     })
 
     closure(response)
@@ -138,7 +133,7 @@ export const newTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiMo
   }
 }
   
-export const editTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
+export const editTeam = async (team: TeamWithLogoImageData, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
   if (!team.id) {
     throw new Error('Team ID is required')
   }
@@ -153,7 +148,7 @@ export const editTeam = async (team: TeamApiModel, closure: (_teamData: TeamApiM
       full_name: team.full_name,
       description: team.description || '',
       country: team.country,
-      logo_image_file: team.logo_image_file as File,
+      logo_image_file: team.logo_image_file ?? undefined,
     })
 
     closure(response)

@@ -20,17 +20,20 @@ class Team extends Model {
     players: Association<Team, Player>
   }
 
+  /**
+   * Converts to the api shape.
+   *
+   * The logo is referenced by url rather than embedded: inlining the blob as
+   * base64 made every response carrying a team tens of kilobytes larger, and a
+   * url is cacheable and fetched only when a logo is actually shown.
+   */
   toApiModel(): TeamApiModel {
-    const logoBase64 = this.logo_image_file 
-      ? `data:image/png;base64,${Buffer.from(this.logo_image_file).toString('base64')}` 
-      : null
-      
     return new TeamApiModel(
       this.short_name,
       this.full_name,
       this.description,
       this.country,
-      logoBase64,
+      this.id ? `/api/teams/${this.id}/logo` : null,
       this.id,
       this.players?.map(player => player.toApiModel()),
     )
