@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, FormField, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { Body, Controller, Delete, FormField, Get, OperationId, Path, Post, Produces, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { Readable } from "stream"
 import { ItemsWithPagination } from "@/base/types"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
@@ -7,6 +8,9 @@ import Team from "@/models/Team"
 import Player from "@/models/Player"
 import { getAllStatsForAllTeams, getAllStatsForTeam } from "@/services/TeamStatsService"
 import { Op } from "sequelize"
+
+/** Logos only change when a team is edited, so let clients hold them for a day. */
+const LOGO_CACHE_SECONDS = 60 * 60 * 24
 
 @Route("teams")
 export class TeamsController extends Controller {
@@ -103,6 +107,53 @@ export class TeamsController extends Controller {
   @OperationId("getTeamStats")
   public async getTeamStats(@Path() teamId: number): Promise<TeamStats> {
     return (await getAllStatsForTeam(teamId)).toApiModel()
+  }
+
+  /**
+   * Streams a team's logo image.
+   *
+   * Logos are bytes, so they are served here rather than embedded in every
+   * response that carries a team.
+   *
+   * @param teamId The team whose logo is wanted
+   */
+  @Get("{teamId}/logo")
+  @OperationId("getTeamLogo")
+  @Produces("image/png")
+  public async getTeamLogo(@Path() teamId: number): Promise<Readable> {
+    const team = await Team.findByPk(teamId, { attributes: ['id', 'logo_image_file'] })
+
+    if (!team?.logo_image_file) {
+      this.setStatus(404)
+      throw new Error("Team logo not found")
+    }
+
+    this.setHeader('Cache-Control', `public, max-age=${LOGO_CACHE_SECONDS}`)
+    return Readable.from(team.logo_image_file)
+  }
+
+  /**
+   * Replaces a team's logo image.
+   *
+   * @param teamId The team to set the logo on
+   * @param logo_image_file The image to store
+   */
+  @Post("{teamId}/logo")
+  @OperationId("uploadTeamLogo")
+  @SuccessResponse("204", "Logo stored")
+  public async uploadTeamLogo(
+    @Path() teamId: number,
+    @UploadedFile() logo_image_file: Buffer<ArrayBufferLike>,
+  ): Promise<void> {
+    const team = await Team.findByPk(teamId)
+
+    if (!team) {
+      this.setStatus(404)
+      throw new Error("Team not found")
+    }
+
+    await team.update({ logo_image_file })
+    this.setStatus(204)
   }
 
   /**

@@ -12,12 +12,13 @@ import 'react-quill-new/dist/quill.snow.css'
 import { quill_config } from '@/common/UIUtils'
 import DropdownSelect from '@/components/common/DropdownSelect'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 import { TeamApiModel } from '@/api/generated'
+import { TeamWithLogoImageData } from '@/api/models/types'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
-const initialState : TeamApiModel = {
+const initialState : TeamWithLogoImageData = {
   short_name: '',
   logo_image_file: null,
   full_name: '',
@@ -28,7 +29,7 @@ const initialState : TeamApiModel = {
 const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
   const team = object as TeamApiModel
   const [validationError, setValidationError] = useState<string | null>(null)
-  const [teamState, setTeamState] = useState<TeamApiModel>(initialState)
+  const [teamState, setTeamState] = useState<TeamWithLogoImageData>(initialState)
   const [imageSrc, setImageSrc] = useState('images/nologo.svg')
   const [countries, setCountries] = useState<Country[]>([])
   const selectedCountry = countries.find(country => country.name === teamState.country) || null
@@ -39,7 +40,8 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
         full_name: team.full_name,
         short_name: team.short_name,
         description: team.description,
-        logo_image_file: team.logo_image_file,
+        // No file is picked yet; the existing logo shows via its url until one is.
+        logo_url: team.logo_url,
         country: team.country,
       })
     } else {
@@ -85,10 +87,10 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
 
-    const requestTeam: TeamApiModel = {
+    const requestTeam: TeamWithLogoImageData = {
       id: team?.id,
       short_name: teamState.short_name,
-      logo_image_file: teamState.logo_image_file as unknown as string,
+      logo_image_file: teamState.logo_image_file,
       full_name: teamState.full_name,
       description: teamState.description,
       country: selectedCountry?.name || '',
@@ -124,8 +126,8 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                 width={256}
                 height={256}
                 className="w-full h-auto max-w-screen-sm max-h-80"
-                imageFile={teamState.logo_image_file instanceof File ? teamState.logo_image_file : undefined}
-                src={!(teamState.logo_image_file instanceof File) && teamState.id ? teamLogoUrl(teamState.id) : undefined}
+                imageFile={teamState.logo_image_file ?? undefined}
+                src={!teamState.logo_image_file ? teamState.logo_url ?? undefined : undefined}
                 fallbackSrc={imageSrc}
                 alt="Team Logo"
               />

@@ -202,14 +202,14 @@ describe('Teams', () => {
     }, STATS_LIST_TIMEOUT_MS)
 
 
-    it('does not inline the logo into the payload', async () => {
+    it('references the logo by url instead of embedding it', async () => {
       const listed = (await apiClient.default.getTeamsStats(WHOLE_TEAM_LIST, 0)).items as TeamStats[]
+      const entry = listed.find(item => item.team.id === teamId)!
 
-      // Logos are served from /api/teams/{id}/logo instead, so a stats row
-      // carries a team without tens of kilobytes of base64 attached.
-      for (const entry of listed) {
-        expect(entry.team.logo_image_file ?? null).toBeNull()
-      }
+      // The blob is no longer on the contract at all; a row points at the logo
+      // endpoint rather than carrying tens of kilobytes of base64.
+      expect(entry.team.logo_url).toBe(`/api/teams/${teamId}/logo`)
+      expect(JSON.stringify(entry.team)).not.toContain('data:image')
     })
 
     it('reports the same totals as GET /teams/:id/stats', async () => {

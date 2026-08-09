@@ -8,7 +8,7 @@ import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
 import Pagination from '@/components/common/Pagination'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH, teamLogoUrl } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
 import { TeamStats } from '@/api/generated'
 import { Threshold } from '@/common/CommonModels'
 
@@ -124,7 +124,7 @@ const TeamsStatsPage = (): React.ReactNode => {
                         <ImageAutoSize src={countriesToFlagMap[stats.team.country]} alt={stats.team.country} width={20} height={14} className="shrink-0" />
                       )}
                       <ImageAutoSize
-                        src={teamLogoUrl(stats.team.id!)}
+                        src={stats.team.logo_url ?? undefined}
                         fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                         alt={stats.team.short_name ?? ''}
                         width={28}

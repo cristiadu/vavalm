@@ -8,7 +8,7 @@ import { fetchTeams, deleteTeam } from '@/api/TeamsApi'
 import TeamActionModal from '@/components/TeamActionModal'
 import { getRoleBgColor } from '@/api/models/helpers'
 import Pagination from '@/components/common/Pagination'
-import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE, teamLogoUrl } from '@/api/models/constants'
+import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { Country, PlayerWithFlag } from '@/api/models/types'
@@ -129,7 +129,7 @@ export default function ListTeams(): React.ReactNode {
                       <ImageAutoSize
                         width={48}
                         height={48}
-                        src={teamLogoUrl(team.id!)}
+                        src={team.logo_url ?? undefined}
                         fallbackSrc={DEFAULT_TEAM_LOGO_IMAGE_PATH}
                         alt={`${team.short_name} logo`}
                         className="rounded-lg shadow-sm mr-3"

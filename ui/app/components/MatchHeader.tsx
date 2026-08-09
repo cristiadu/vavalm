@@ -13,11 +13,11 @@ interface MatchHeaderProps {
 const MatchHeader: React.FC<MatchHeaderProps> = ({ match, team1Country, team2Country }) => {
   const team1LogoUrl = useMemo(() => {
     return teamLogoURLObjectOrDefault(match.team1 as TeamApiModel)
-  }, [match.team1?.id])
+  }, [match.team1?.logo_url])
 
   const team2LogoUrl = useMemo(() => {
     return teamLogoURLObjectOrDefault(match.team2 as TeamApiModel)
-  }, [match.team2?.id])
+  }, [match.team2?.logo_url])
 
   return (
     <div className="flex items-center justify-between bg-blue-400 p-4 rounded mb-4">

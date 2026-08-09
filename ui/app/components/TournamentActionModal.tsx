@@ -14,7 +14,6 @@ import 'react-quill-new/dist/quill.snow.css'
 import DropdownSelect from '@/components/common/DropdownSelect'
 import dynamic from 'next/dynamic'
 import { TeamApiModel, TournamentApiModel, TournamentType } from '@/api/generated'
-import { teamLogoUrl } from '@/api/models/constants'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 
@@ -208,7 +207,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
             selectedItems={selectedTeams}
             onSelect={handleTeamSelect}
             displayKey="short_name"
-            imageUrlFor={(team) => team.id ? teamLogoUrl(team.id) : undefined}
+            imageKey="logo_url"
             placeholder="Select teams"
             isMultiSelect={true} 
           />

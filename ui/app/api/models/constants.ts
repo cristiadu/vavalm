@@ -4,17 +4,6 @@ export const MAXIMUM_PAGE_SIZE: number = 100
 export const CACHE_DURATION_MS: number = 60000 // 1 minute
 
 /**
- * URL of a team's logo image.
- *
- * Logos are served as bytes from their own cacheable endpoint rather than
- * inlined as base64 into every response that embeds a team.
- *
- * @param teamId - The team whose logo is wanted.
- * @returns An absolute URL an img tag can load.
- */
-export const teamLogoUrl = (teamId: number): string => `${getApiBaseUrl()}/teams/${teamId}/logo`
-
-/**
  * Get the base URL of the API
  * @returns The base URL of the API
  */
