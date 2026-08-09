@@ -121,7 +121,10 @@ describe('Tournament scheduling generation', () => {
 
   it('creates one generated match per two-team tournament with dates inside each tournament window', async () => {
     // WHEN / THEN: every fixture tournament produces one schedulable match in-range.
-    for (const tournamentFixture of fixtureTournaments) {
+    // Only the future-dated fixtures are checked: the past-dated ones are what
+    // the scheduler is meant to pick up, so asserting they are still untouched
+    // is a race against its polling interval.
+    for (const tournamentFixture of fixtureTournaments.filter(fixture => !fixture.shouldBePickedNow)) {
       const schedule = await apiClient.default.getTournamentSchedule(
         tournamentFixture.tournamentId!,
         10,
@@ -157,7 +160,9 @@ describe('Tournament scheduling generation', () => {
   })
 
   it('returns all tournament and detailed match fields before scheduler processing', async () => {
-    for (const tournamentFixture of fixtureTournaments) {
+    // Same reasoning as above — "before scheduler processing" only holds for
+    // fixtures the scheduler will not act on.
+    for (const tournamentFixture of fixtureTournaments.filter(fixture => !fixture.shouldBePickedNow)) {
       const tournament = await apiClient.default.getTournament(tournamentFixture.tournamentId!) as TournamentApiModel
       expect(tournament.id).toBe(tournamentFixture.tournamentId)
       expect(tournament.name).toBe(tournamentFixture.name)

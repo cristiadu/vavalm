@@ -8,6 +8,16 @@ import { apiClient } from '@tests/setup'
 import { describe, expect, it, beforeAll, afterAll } from 'vitest'
 import { givenTeamExists, cleanupTeam, TEST_TEAM } from '@tests/api/common-teams'
 import { givenPlayerExists, cleanupPlayer } from '@tests/api/common-players'
+import { waitForListEntry } from '@tests/api/common-utils'
+
+/** Entities other suites may create or delete between two reads of a list. */
+const TOTAL_DRIFT_TOLERANCE = 40
+
+/** Longer than the stats cache ttl, so a freshly created fixture becomes visible. */
+const STATS_LIST_TIMEOUT_MS = 45_000
+/** How often to re-read the stats list while waiting. */
+const STATS_LIST_POLL_EVERY_MS = 2_000
+
 
 describe('Teams', () => {
   let teamId: number
@@ -54,8 +64,9 @@ describe('Teams', () => {
         expect(page1.items).toHaveLength(1)
         expect(page2.items).toHaveLength(1)
         expect(page1.items[0].id).not.toBe(page2.items[0].id)
-        // totals may differ slightly due to parallel test concurrency
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(5)
+        // Both pages come from one ordering, so their totals agree unless
+        // another suite mutated data between the two reads.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
       }
     })
 
@@ -166,8 +177,12 @@ describe('Teams', () => {
     })
 
     it('fixture team appears with zero stats', async () => {
-      const stats = await apiClient.default.getTeamsStats(100, 0) as ItemsWithPagination_TeamStats_
-      const entry = stats.items.find((s: TeamStats) => s.team.id === teamId)!
+      const entry = await waitForListEntry(
+        async () => ((await apiClient.default.getTeamsStats(100, 0)) as ItemsWithPagination_TeamStats_).items,
+        (s: TeamStats) => s.team.id === teamId,
+        STATS_LIST_TIMEOUT_MS,
+        STATS_LIST_POLL_EVERY_MS,
+      ) as TeamStats
       expect(entry).toBeDefined()
       expect(entry.team.short_name).toBe(TEST_TEAM.short_name)
       expect(entry.winrate).toBe(0)
@@ -180,7 +195,7 @@ describe('Teams', () => {
       expect(entry.totalMapsLost).toBe(0)
       expect(entry.tournamentsWon).toBe(0)
       expect(entry.tournamentsParticipated).toBe(0)
-    })
+    }, STATS_LIST_TIMEOUT_MS)
 
     it('all items have non-negative stats and satisfy win+loss invariants', async () => {
       const stats = await apiClient.default.getTeamsStats(50, 0) as ItemsWithPagination_TeamStats_
@@ -214,8 +229,9 @@ describe('Teams', () => {
       if (all.total > 2) {
         const page1 = await apiClient.default.getTeamsStats(2, 0) as ItemsWithPagination_TeamStats_
         const page2 = await apiClient.default.getTeamsStats(2, 2) as ItemsWithPagination_TeamStats_
-        // totals may differ slightly due to parallel test concurrency
-        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(5)
+        // Both pages come from one ordering, so their totals agree unless
+        // another suite mutated data between the two reads.
+        expect(Math.abs(page1.total - page2.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
         const page1Ids = page1.items.map(s => s.team.id)
         const page2Ids = page2.items.map(s => s.team.id)
         expect(page1Ids).not.toEqual(page2Ids)
