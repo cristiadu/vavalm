@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react'
 import { getWinOrLossColor, teamLogoURLObjectOrDefault } from '@/api/models/helpers'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { GameStatsApiModel, TeamApiModel } from '@/api/generated'
 
 interface GameHeaderProps {
   stats: GameStatsApiModel
-  team1Country: Country | undefined
-  team2Country: Country | undefined
+  team1Country: CountryApiModel | undefined
+  team2Country: CountryApiModel | undefined
 }
 
 const GameHeader: React.FC<GameHeaderProps> = ({ stats, team1Country, team2Country }) => {

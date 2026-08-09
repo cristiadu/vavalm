@@ -21,18 +21,6 @@ export interface ItemsWithPagination<T> {
 }
 
 /**
- * A type that represents a country fetched from the Country API
- * @param code - The code of the country
- * @param name - The name of the country
- * @param flag - The flag of the country
- */
-export interface Country {
-  code?: string
-  name: string
-  flag: string
-}
-
-/**
  * A type that represents a game log with fetched players
  * @param player1 - The first player
  * @param player2 - The second player

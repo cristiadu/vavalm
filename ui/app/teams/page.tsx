@@ -11,8 +11,7 @@ import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { Country, PlayerWithFlag } from '@/api/models/types'
-import { PlayerApiModel, TeamApiModel } from '@/api/generated'
+import { CountryApiModel, TeamApiModel } from '@/api/generated'
 import { stripHtmlTags } from '@/common/StringUtils'
 
 export default function ListTeams(): React.ReactNode {
@@ -31,35 +30,23 @@ export default function ListTeams(): React.ReactNode {
   }, [])
 
   const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<void> => {
-    try {
-      const countries = await fetchCountries(() => {
-        // handle country data
-      }) ?? []
-
-      const countriesToFlagMap: Record<string, string> = {}
-      countries.forEach((country: Country) => {
-        countriesToFlagMap[country.name] = country.flag
+    void fetchCountries((countries) => {
+      const flagMap: Record<string, string> = {}
+      countries.forEach((country: CountryApiModel) => {
+        flagMap[country.name] = country.flag
       })
-      setCountriesToFlagMap(countriesToFlagMap)
+      setCountriesToFlagMap(flagMap)
+    })
 
+    try {
       const teamsData = await fetchTeams(() => {
         // handle team data
       }, limit, offset)
 
       setTotalItems(teamsData.total)
-
-      // Players are now embedded in each team via the getTeams endpoint
-      const teamsWithPlayersFlags = teamsData.items.map((team: TeamApiModel) => {
-        const playersWithFlags = (team.players || []).map((player: PlayerApiModel) => ({
-          ...player,
-          countryFlag: countriesToFlagMap[player.country] || null,
-        } as PlayerWithFlag))
-        return { ...team, players: playersWithFlags }
-      })
-
-      setTeams(teamsWithPlayersFlags)
+      setTeams(teamsData.items)
     } catch (error) {
-      console.error('Error fetching countries or teams:', error)
+      console.error('Error fetching teams:', error)
     }
   }
 
@@ -150,12 +137,12 @@ export default function ListTeams(): React.ReactNode {
                   </td>
                   <td className="px-5 py-4">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                      {team.players && team.players.map((player: PlayerWithFlag) => (
+                      {team.players && team.players.map(player => (
                         <div key={`team-${team.id}-player-${player.id}`} className="flex items-center gap-2">
                           <span className={`inline-flex items-center justify-center w-[82px] px-1.5 py-0.5 rounded text-xs font-medium text-white text-center shrink-0 ${getRoleBgColor(player.role)}`}>
                             {player.role}
                           </span>
-                          {player.countryFlag && <ImageAutoSize src={player.countryFlag} alt={player.country} width={20} height={14} className="shrink-0 self-center" />}
+                          {countriesToFlagMap[player.country] && <ImageAutoSize src={countriesToFlagMap[player.country]} alt={player.country} width={20} height={14} className="shrink-0 self-center" />}
                           <div className="flex flex-col leading-tight min-w-0">
                             <span className="text-sm font-semibold text-gray-900 truncate">{player.nickname}</span>
                             <span className="text-[11px] text-gray-400 truncate">{player.full_name}</span>

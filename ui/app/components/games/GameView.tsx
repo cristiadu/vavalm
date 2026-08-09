@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Country } from "@/api/models/types"
+import { CountryApiModel } from '@/api/generated'
 import { getGame, getGameStats, playFullGame, getMatch } from "@/api/GameApi"
 import { getLastDuel } from "@/api/DuelApi"
 import { playFullRound, clearRoundCacheForGame } from "@/api/RoundApi"
@@ -13,10 +13,10 @@ import { GameApiModel, GameLogApiModel, GameStatsApiModel, MatchApiModel } from 
 
 type GameViewProps = {
   gameId: number
-  team1Country?: Country
-  team2Country?: Country
+  team1Country?: CountryApiModel
+  team2Country?: CountryApiModel
   match: MatchApiModel
-  countries: Country[]
+  countries: CountryApiModel[]
   updateMatchInfo: (_match: MatchApiModel) => void
   refreshMatchData: () => Promise<void>
 }

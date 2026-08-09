@@ -1,5 +1,5 @@
 import React from 'react'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { asFormattedDate } from '@/common/StringUtils'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { GameApiModel, TournamentApiModel } from '@/api/generated'
@@ -7,7 +7,7 @@ import { GameApiModel, TournamentApiModel } from '@/api/generated'
 interface GameDetailsProps {
     game: GameApiModel
     tournament: TournamentApiModel
-    tournamentCountry: Country
+    tournamentCountry: CountryApiModel
 }
 
 const GameDetails: React.FC<GameDetailsProps> = ({game, tournament, tournamentCountry}) => {

@@ -817,6 +817,21 @@ components:
         - indicators
       type: object
       additionalProperties: false
+    CountryApiModel:
+      description: Country option returned by the API.
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        flag:
+          type: string
+      required:
+        - code
+        - name
+        - flag
+      type: object
+      additionalProperties: false
   securitySchemes:
     BearerAuth:
       type: http
@@ -1865,6 +1880,22 @@ paths:
           schema:
             format: double
             type: number
+  /countries:
+    get:
+      operationId: getCountries
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/CountryApiModel"
+                type: array
+      description: Retrieves all countries and their flag URLs.
+      security:
+        - BearerAuth: []
+      parameters: []
 servers:
   - url: http://localhost:8000/.
 tags: []

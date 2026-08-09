@@ -39,19 +39,16 @@ const PlayersStatsPage = (): React.ReactNode => {
 
   const loadData = useCallback(async (limit: number = LIMIT_VALUE_PLAYER_LIST, offset: number = 0) => {
     setIsLoading(true)
-    try {
-      const [countries, statsData] = await Promise.all([
-        fetchCountries(() => {}),
-        fetchPlayersStats(() => {}, limit, offset),
-      ])
+    void fetchCountries((countries) => {
+      const flagMap: Record<string, string> = {}
+      countries.forEach((country) => {
+        flagMap[country.name] = country.flag
+      })
+      setCountriesToFlagMap(flagMap)
+    })
 
-      if (countries) {
-        const flagMap: Record<string, string> = {}
-        countries.forEach((country) => {
-          flagMap[country.name] = country.flag
-        })
-        setCountriesToFlagMap(flagMap)
-      }
+    try {
+      const statsData = await fetchPlayersStats(() => {}, limit, offset)
 
       if (statsData && statsData.total > 0) {
         setTotalItems(statsData.total)

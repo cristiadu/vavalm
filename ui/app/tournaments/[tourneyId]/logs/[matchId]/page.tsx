@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useMemo, useState } from "react"
 import { fetchCountries } from "@/api/CountryApi"
-import { Country } from "@/api/models/types"
+import { CountryApiModel } from '@/api/generated'
 import { getMatch } from "@/api/GameApi"
 import GamePicker from "@/components/games/GamePicker"
 import SectionHeader from "@/components/common/SectionHeader"
@@ -22,7 +22,7 @@ export default function ViewMatch(props: { params: ViewMatchParams }): React.Rea
   const params = use(props.params)
   const matchId = Number(params.matchId)
   const [match, setMatch] = useState<MatchApiModel | null>(null)
-  const [countries, setCountries] = useState<Country[]>([])
+  const [countries, setCountries] = useState<CountryApiModel[]>([])
   const [selectedGameId, setSelectedGameId] = useState<number>(0)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
