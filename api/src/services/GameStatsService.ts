@@ -2,7 +2,8 @@ import GameLog from '@/models/GameLog'
 import GameStats from '@/models/GameStats'
 import Player from '@/models/Player'
 import PlayerGameStats from '@/models/PlayerGameStats'
-import GameService from '@/services/GameService'
+
+type GameStatsTeam = 1 | 2
 
 const GameStatsService = {
   /**
@@ -46,6 +47,7 @@ const GameStatsService = {
 
     let team1_rounds = 0
     let team2_rounds = 0
+    const processedLogIds: number[] = []
     for (const log of gameLogs) {
       if (log.round_state.team_won) {
         if (log.round_state.team_won.id === gameStats.team1_id) {
@@ -53,8 +55,9 @@ const GameStatsService = {
         } else if (log.round_state.team_won.id === gameStats.team2_id) {
           team2_rounds++
         }
-        log.included_on_team_stats = true
-        await log.save()
+        if (log.id !== undefined) {
+          processedLogIds.push(log.id)
+        }
       }
     }
 
@@ -73,7 +76,13 @@ const GameStatsService = {
         }
       }
 
-      await gameStats.save()
+      await Promise.all([
+        gameStats.save(),
+        GameLog.update(
+          { included_on_team_stats: true },
+          { where: { id: processedLogIds } },
+        ),
+      ])
     }
   },
 
@@ -83,29 +92,34 @@ const GameStatsService = {
    * 
    * @param {Player[]} players - The list of players to initialize stats for.
    * @param {number} gameStatsId - The ID of the game stats.
-   * @param {number} team1Or2 - The team number (1 or 2) to initialize stats for.
+   * @param {GameStatsTeam} team1Or2 - The team number (1 or 2) to initialize stats for.
    * @returns {Promise<Map<number, PlayerGameStats>>} A map of player IDs to their game stats.
    */
-  getPlayerIdToStatsMap: async (players: Player[], gameStatsId: number, team1Or2: number): Promise<Map<number, PlayerGameStats>> => {
-    const playerIdToStats: Map<number, PlayerGameStats> = new Map()
-    for (const player of players) {
-      const playerGameStats: PlayerGameStats = await PlayerGameStats.findOne({
-        where: {
+  getPlayerIdToStatsMap: async (players: Player[], gameStatsId: number, team1Or2: GameStatsTeam): Promise<Map<number, PlayerGameStats>> => {
+    const gameStatsForeignKey = team1Or2 === 1 ? 'game_stats_player1_id' : 'game_stats_player2_id'
+    const existingPlayerStats = await PlayerGameStats.findAll({
+      where: {
+        [gameStatsForeignKey]: gameStatsId,
+      },
+    })
+    const existingPlayerIds = new Set(existingPlayerStats.map(playerStats => playerStats.player_id))
+    const missingPlayerStats = await PlayerGameStats.bulkCreate(
+      players
+        .filter(player => !existingPlayerIds.has(player.id))
+        .map(player => ({
           player_id: player.id,
-          [team1Or2 === 1 ? 'game_stats_player1_id' : 'game_stats_player2_id']: gameStatsId,
-        },
-      })
-        || new PlayerGameStats({
-          player_id: player.id,
-          [team1Or2 === 1 ? 'game_stats_player1_id' : 'game_stats_player2_id']: gameStatsId,
+          [gameStatsForeignKey]: gameStatsId,
           kills: 0,
           deaths: 0,
           assists: 0,
-        })
+        })),
+    )
 
-      await playerGameStats.save()
-      playerIdToStats.set(player.id, playerGameStats)
+    const playerIdToStats: Map<number, PlayerGameStats> = new Map()
+    for (const playerGameStats of [...existingPlayerStats, ...missingPlayerStats]) {
+      playerIdToStats.set(playerGameStats.player_id, playerGameStats)
     }
+
     return playerIdToStats
   },
 
@@ -116,25 +130,21 @@ const GameStatsService = {
    */
   updatePlayerStats: async (game_id: number): Promise<void> => {
     try {
-      const gameStatsResponse = await GameService.getGameFullStatsWithPlayersAndTeams(game_id)
-      const gameStats = gameStatsResponse.data
+      const gameStats = await GameStats.findOne({ where: { game_id } })
 
       if (!gameStats) {
         throw new Error('Game stats not found for updating player stats for each team. game_id:' + game_id)
       }
 
-      // Create the PlayerGameStats object for all players involved in this game
-      const playerIdToStatsTeam1 = await GameStatsService.getPlayerIdToStatsMap(
-        await Player.findAll({ where: { team_id: gameStats.team1_id } }),
-        gameStats.id as number, 
-        1,
-      )
-      
-      const playerIdToStatsTeam2 = await GameStatsService.getPlayerIdToStatsMap(
-        await Player.findAll({ where: { team_id: gameStats.team2_id } }),
-        gameStats.id as number, 
-        2,
-      )
+      const [team1Players, team2Players] = await Promise.all([
+        Player.findAll({ where: { team_id: gameStats.team1_id } }),
+        Player.findAll({ where: { team_id: gameStats.team2_id } }),
+      ])
+
+      const [playerIdToStatsTeam1, playerIdToStatsTeam2] = await Promise.all([
+        GameStatsService.getPlayerIdToStatsMap(team1Players, gameStats.id as number, 1),
+        GameStatsService.getPlayerIdToStatsMap(team2Players, gameStats.id as number, 2),
+      ])
 
       // Get all the game logs that haven't been included in player stats yet
       const gameLogs = await GameLog.findAll({
@@ -149,6 +159,7 @@ const GameStatsService = {
         ],
       })
 
+      const processedLogIds: number[] = []
       for (const log of gameLogs) {
         // Get the PlayerGameStats for players involved in this game
         const playerStatsTeam1 = playerIdToStatsTeam1.get(log.team1_player_id)
@@ -172,21 +183,22 @@ const GameStatsService = {
             }
           }
 
-          log.included_on_player_stats = true
-          await log.save()
+          if (log.id !== undefined) {
+            processedLogIds.push(log.id)
+          }
         } else {
           console.error('Internal Error while updating player stats for game:', gameStats.game_id)
         }
       }
 
-      // Save all player stats
-      for (const playerStats of playerIdToStatsTeam1.values()) {
-        await playerStats.save()
-      }
-
-      for (const playerStats of playerIdToStatsTeam2.values()) {
-        await playerStats.save()
-      }
+      await Promise.all([
+        ...Array.from(playerIdToStatsTeam1.values(), playerStats => playerStats.save()),
+        ...Array.from(playerIdToStatsTeam2.values(), playerStats => playerStats.save()),
+        GameLog.update(
+          { included_on_player_stats: true },
+          { where: { id: processedLogIds } },
+        ),
+      ])
     } catch (error) {
       console.error('Error updating player stats:', error)
     }
