@@ -50,6 +50,8 @@ jobs:
         pnpm create-env-file
 
     - name: Start Docker stack
+      env:
+        REST_COUNTRIES_API_KEY: ${{ secrets.REST_COUNTRIES_API_KEY }}
       run: |
         pnpm dev:docker:up
 

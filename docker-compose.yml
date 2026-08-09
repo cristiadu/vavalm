@@ -33,6 +33,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8000
+      REST_COUNTRIES_API_KEY: ${REST_COUNTRIES_API_KEY:-}
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8000/api/health || exit 1"]
       interval: 10s
