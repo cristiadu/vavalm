@@ -13,7 +13,6 @@ import SchedulerService from '@/services/SchedulerService'
 import rateLimit from 'express-rate-limit'
 import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
 import { errorHandler } from '@/middleware/errorHandler'
-import { registerStatsCacheInvalidation } from '@/models/StatsCacheInvalidation'
 
 const app = express()
 const port = process.env.PORT || 8000
@@ -113,9 +112,6 @@ const initializeApp = async (): Promise<void> => {
     // Sync database schema
     await db.sequelize.sync({ force: forceSync })
     console.log('Database schema synchronized.')
-
-    // Keep the aggregate stats caches honest as rows behind them change
-    registerStatsCacheInvalidation()
 
     // Setup test data
     await setupTestData()

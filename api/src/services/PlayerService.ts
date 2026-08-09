@@ -5,9 +5,7 @@ import { VlrPlayer } from '@/models/Vlr'
 import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
-import { AllPlayerStats, expectedPageSize, ItemsWithPagination } from '@/base/types'
-import CacheService from '@/services/CacheService'
-import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
+import { AllPlayerStats, ItemsWithPagination } from '@/base/types'
 import { fetchPlayerStatsTotals, PlayerStatsTotals } from '@/services/PlayerStatsAggregationService'
 
 /**
@@ -170,24 +168,8 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
  * 
 **/
 export const getAllStatsForAllPlayers = async (limit: number, offset: number): Promise<ItemsWithPagination<AllPlayerStats>> => {
-  const cacheKey = CACHE_KEYS.ALL_PLAYER_STATS
-  let totals = CacheService.get<PlayerStatsTotals[]>(cacheKey)
-
-  if (!totals) {
-    totals = await fetchPlayerStatsTotals()
-    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
-  }
-
-  let items = await hydratePlayerStatsPage(totals, limit, offset)
-
-  // A cached ordering can name a player deleted since it was built, which would
-  // report a total the page cannot fill. Treat that as a stale cache and
-  // recompute once so items and total come from the same snapshot.
-  if (items.length < expectedPageSize(totals.length, limit, offset)) {
-    totals = await fetchPlayerStatsTotals()
-    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
-    items = await hydratePlayerStatsPage(totals, limit, offset)
-  }
+  const totals = await fetchPlayerStatsTotals()
+  const items = await hydratePlayerStatsPage(totals, limit, offset)
 
   return new ItemsWithPagination<AllPlayerStats>(items, totals.length)
 }

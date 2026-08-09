@@ -2,15 +2,13 @@ import { Op } from "sequelize"
 
 import { downloadPNGImage } from '@/base/FileUtils'
 
-import { expectedPageSize, ItemsWithPagination, TeamStats } from '@/base/types'
+import { ItemsWithPagination, TeamStats } from '@/base/types'
 import { VlrTeam } from '@/models/Vlr'
 import Tournament from '@/models/Tournament'
 import Match from '@/models/Match'
 import Game from '@/models/Game'
 import GameStats from '@/models/GameStats'
 import Team from '@/models/Team'
-import CacheService from '@/services/CacheService'
-import { CACHE_TTL, CACHE_KEYS } from '@/base/CacheConstants'
 import { fetchTeamStatsTotals, TeamStatsTotals } from '@/services/TeamStatsAggregationService'
 
 /**
@@ -41,32 +39,15 @@ export const upsertTeamData = async (teamData: VlrTeam): Promise<Team> => {
  * Fetches stats for every team, ordered for the leaderboard and paginated.
  *
  * Totals come from one aggregate query rather than one query per team, and
- * only the requested page is hydrated into api models — the cached value is a
- * small array of counts, not a list of teams carrying their logos.
+ * only the requested page is hydrated into api models.
  *
  * @param limit - The number of items to fetch.
  * @param offset - The number of items to skip.
  * @returns {Promise<ItemsWithPagination<TeamStats>>} - The requested page of team stats.
  */
 export const getAllStatsForAllTeams = async (limit: number, offset: number): Promise<ItemsWithPagination<TeamStats>> => {
-  const cacheKey = CACHE_KEYS.ALL_TEAM_STATS
-  let totals = CacheService.get<TeamStatsTotals[]>(cacheKey)
-
-  if (!totals) {
-    totals = await fetchTeamStatsTotals()
-    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
-  }
-
-  let items = await hydrateTeamStatsPage(totals, limit, offset)
-
-  // A cached ordering can name a team deleted since it was built, which would
-  // report a total the page cannot fill. Treat that as a stale cache and
-  // recompute once so items and total come from the same snapshot.
-  if (items.length < expectedPageSize(totals.length, limit, offset)) {
-    totals = await fetchTeamStatsTotals()
-    CacheService.set(cacheKey, totals, CACHE_TTL.ALL_STATS)
-    items = await hydrateTeamStatsPage(totals, limit, offset)
-  }
+  const totals = await fetchTeamStatsTotals()
+  const items = await hydrateTeamStatsPage(totals, limit, offset)
 
   return new ItemsWithPagination<TeamStats>(items, totals.length)
 }

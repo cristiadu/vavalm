@@ -37,21 +37,6 @@ export class ItemsWithPagination<T extends BaseEntityModel> {
 }
 
 /**
- * How many rows a page should hold given the size of the whole result set.
- *
- * Lets a caller tell "this page is short because it is the last one" apart from
- * "this page is short because rows went missing".
- *
- * @param total - Size of the whole result set.
- * @param limit - Requested page size.
- * @param offset - Rows skipped before the page.
- * @returns The number of rows the page is expected to contain.
- */
-export const expectedPageSize = (total: number, limit: number, offset: number): number => {
-  return Math.max(Math.min(limit, total - offset), 0)
-}
-
-/**
  * @tsoaModel
  */
 export class AllPlayerStats extends BaseEntityModel {

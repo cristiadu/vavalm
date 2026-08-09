@@ -40,7 +40,7 @@ const readPlayerFromLeaderboard = async (playerId: number): Promise<AllPlayerSta
   return (page.items as AllPlayerStats[]).find(entry => entry.player.id === playerId)
 }
 
-describe('Aggregate stats cache invalidation', () => {
+describe('Stats leaderboard freshness', () => {
   let team1: TeamApiModel
   let team2: TeamApiModel
   let players: PlayerApiModel[]
@@ -56,7 +56,7 @@ describe('Aggregate stats cache invalidation', () => {
   }, HOOK_TIMEOUT_MS.FIXTURE_CLEANUP)
 
   beforeAll(async () => {
-    // GIVEN the leaderboards have been read, so any cache is populated
+    // GIVEN the leaderboards have already been read once
     await apiClient.default.getTeamsStats(WHOLE_LIST, 0)
     await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
     players = []
@@ -67,7 +67,7 @@ describe('Aggregate stats cache invalidation', () => {
     team1 = await givenTeamExists({ short_name: 'CINV1', full_name: 'Cache Invalidation 1', country: 'Brazil' })
     team2 = await givenTeamExists({ short_name: 'CINV2', full_name: 'Cache Invalidation 2', country: 'Argentina' })
 
-    // THEN it shows up without waiting for a cache entry to expire
+    // THEN it shows up on the next read
     expect(await readTeamFromLeaderboard(team1.id!)).toBeDefined()
     expect(await readTeamFromLeaderboard(team2.id!)).toBeDefined()
   }, HOOK_TIMEOUT_MS.FIXTURE_CLEANUP)
@@ -109,8 +109,7 @@ describe('Aggregate stats cache invalidation', () => {
       await apiClient.default.playGame(game.id!)
     }
 
-    // THEN the very next read reflects it, rather than serving the totals
-    // cached before the match was played
+    // THEN the very next read reflects it
     expect((await readTeamFromLeaderboard(team1.id!))!.totalMapsPlayed).toBeGreaterThan(0)
     expect((await readTeamFromLeaderboard(team2.id!))!.totalMapsPlayed).toBeGreaterThan(0)
     expect((await readPlayerFromLeaderboard(players[0].id!))!.totalMapsPlayed).toBeGreaterThan(0)
