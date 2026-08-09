@@ -11,6 +11,15 @@ import { formatPercentage, HOOK_TIMEOUT_MS } from '@tests/api/common-utils'
 
 /** Every fixture player took part in exactly one match: the one that was played. */
 const MATCHES_PLAYED = 1
+/** Large enough to hold every player the suite could encounter. */
+const WHOLE_LIST = 500
+/** Page size used for the pagination checks. */
+const PAGE_SIZE = 5
+/**
+ * Players other suites may create or delete between two reads. Nothing is
+ * cached, so each read sees live data and two reads need not agree exactly.
+ */
+const TOTAL_DRIFT_TOLERANCE = 40
 
 describe('GET /players/:id/stats', () => {
   // GIVEN two full rosters that have played every game of one match
@@ -195,6 +204,112 @@ describe('GET /players/:id/stats', () => {
         expect(after.totalMapsLost).toBe(before.totalMapsLost)
         expect(after.winrate).toBe(before.winrate)
         expect(after.mapWinrate).toBe(before.mapWinrate)
+      } finally {
+        await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: winningTeamId })
+      }
+    })
+  })
+
+  // ── GET /players/stats (leaderboard) ──────────────────────────────────────
+
+  describe('leaderboard', () => {
+    it('lists every fixture player with the same totals as the per-player endpoint', async () => {
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+
+      for (const player of allPlayers) {
+        const single = await apiClient.default.getPlayerStats(player.id!) as AllPlayerStats
+        const entry = listed.find(item => item.player.id === player.id)
+
+        expect(entry).toBeDefined()
+        expect(entry!.totalMapsPlayed).toBe(single.totalMapsPlayed)
+        expect(entry!.totalMapsWon).toBe(single.totalMapsWon)
+        expect(entry!.totalMapsLost).toBe(single.totalMapsLost)
+        expect(entry!.totalMatchesPlayed).toBe(single.totalMatchesPlayed)
+        expect(entry!.totalMatchesWon).toBe(single.totalMatchesWon)
+        expect(entry!.totalMatchesLost).toBe(single.totalMatchesLost)
+        expect(entry!.totalKills).toBe(single.totalKills)
+        expect(entry!.totalDeaths).toBe(single.totalDeaths)
+        expect(entry!.totalAssists).toBe(single.totalAssists)
+        expect(entry!.kda).toBe(single.kda)
+        expect(entry!.winrate).toBe(single.winrate)
+        expect(entry!.mapWinrate).toBe(single.mapWinrate)
+      }
+    })
+
+    it('orders players by the leaderboard criteria in priority order', async () => {
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+
+      for (let position = 1; position < listed.length; position++) {
+        const previous = listed[position - 1]
+        const current = listed[position]
+        const criteria: [number, number][] = [
+          [previous.kda, current.kda],
+          [previous.totalKills, current.totalKills],
+          [previous.winrate, current.winrate],
+          [previous.mapWinrate, current.mapWinrate],
+          [previous.totalAssists, current.totalAssists],
+        ]
+
+        const firstDifference = criteria.find(([earlier, later]) => earlier !== later)
+        if (firstDifference) {
+          expect(firstDifference[0]).toBeGreaterThan(firstDifference[1])
+        }
+      }
+    })
+
+    it('returns a page matching that slice of the full ordering', async () => {
+      const everything = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const page = await apiClient.default.getPlayersStats(PAGE_SIZE, PAGE_SIZE)
+      const expected = everything.slice(PAGE_SIZE, PAGE_SIZE * 2)
+
+      expect((page.items as AllPlayerStats[]).map(entry => entry.player.id)).toEqual(expected.map(entry => entry.player.id))
+    })
+
+    it('reports a total independent of the requested page size', async () => {
+      const singleRow = await apiClient.default.getPlayersStats(1, 0)
+      const everything = await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
+
+      expect(singleRow.items).toHaveLength(1)
+      expect(Math.abs(singleRow.total - everything.total)).toBeLessThanOrEqual(TOTAL_DRIFT_TOLERANCE)
+    })
+
+    it('returns an empty page past the end', async () => {
+      const everything = await apiClient.default.getPlayersStats(WHOLE_LIST, 0)
+      const page = await apiClient.default.getPlayersStats(PAGE_SIZE, everything.total + TOTAL_DRIFT_TOLERANCE)
+
+      expect(page.items).toHaveLength(0)
+    })
+
+    it('embeds the player team so the ui needs no second call', async () => {
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const entry = listed.find(item => item.player.id === fixture.team1Players[0].id)!
+
+      expect(entry.team).toBeDefined()
+      expect(entry.team!.id).toBe(fixture.match.team1_id)
+    })
+  })
+
+  // ── Freshness ─────────────────────────────────────────────────────────────
+
+  describe('freshness', () => {
+    it('reflects the played match without waiting for a cache to expire', async () => {
+      const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+      const entry = listed.find(item => item.player.id === allPlayers[0].id)!
+
+      expect(entry.totalMapsPlayed).toBeGreaterThan(0)
+    })
+
+    it('reflects a transfer on the next read', async () => {
+      const { winningTeamId, losingTeamId, winningPlayers } = splitByMatchResult(fixture)
+      const transferring = winningPlayers[0]
+      const player = await apiClient.default.getPlayer(transferring.id!) as PlayerApiModel
+
+      await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: losingTeamId })
+
+      try {
+        const listed = (await apiClient.default.getPlayersStats(WHOLE_LIST, 0)).items as AllPlayerStats[]
+        const entry = listed.find(item => item.player.id === transferring.id)!
+        expect(entry.team!.id).toBe(losingTeamId)
       } finally {
         await apiClient.default.updatePlayer(transferring.id!, { ...player, team_id: winningTeamId })
       }

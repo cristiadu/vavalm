@@ -3,8 +3,7 @@ import { ItemsWithPagination } from "@/base/types"
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 import { AllPlayerStats } from "@/base/types"
 import Player from "@/models/Player"
-import { getAllStatsForPlayer } from "@/services/PlayerService"
-import { getAllStatsForAllPlayers } from "@/services/PlayerService"
+import { getAllStatsForPlayer, getAllStatsForAllPlayers } from "@/services/PlayerStatsService"
 
 @Route("players")
 export class PlayersController extends Controller {
