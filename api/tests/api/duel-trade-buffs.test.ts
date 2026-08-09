@@ -166,8 +166,9 @@ const createMatchFixture = async (
   const tournament = await givenTournamentExists([team1.teamId, team2.teamId], {
     name: `${fixtureLabel} Tournament ${suffix}`,
     description: `${fixtureLabel} integration fixture`,
-    start_date: '2026-01-01T00:00:00.000Z',
-    end_date: '2026-12-31T00:00:00.000Z',
+    // Future-dated so the scheduler never plays these rounds underneath the test.
+    start_date: '2100-01-01T00:00:00.000Z',
+    end_date: '2100-12-31T00:00:00.000Z',
   })
 
   const schedule = await apiClient.default.getTournamentSchedule(tournament.id!, 10, 0) as ItemsWithPagination_MatchApiModel_

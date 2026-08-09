@@ -10,7 +10,13 @@ export const MAX_CONCURRENT_MATCHES = 20
 export const MATCH_WORKER_POOL_MAX = 2
 
 // Scheduler configuration
-export const STANDARD_CHECK_INTERVAL = 60000 // 1 minute between checks
-export const REDUCED_CHECK_INTERVAL = 120000 // 2 minutes when under stress
+// How often the scheduler looks for matches that are due. Configurable because
+// tests otherwise spend a whole polling cycle waiting for the first tick — the
+// behaviour under test is "due matches get picked up, future ones do not",
+// which holds at any cadence.
+export const STANDARD_CHECK_INTERVAL = Number(process.env.SCHEDULER_CHECK_INTERVAL ?? 60000)
+
+// Backs off to twice the normal interval once errors appear.
+export const REDUCED_CHECK_INTERVAL = STANDARD_CHECK_INTERVAL * 2
 export const CIRCUIT_BREAKER_THRESHOLD = 5 // Number of consecutive errors before circuit breaks
 export const CIRCUIT_BREAKER_RESET_TIME = 60000 // 1 minute until circuit resets
