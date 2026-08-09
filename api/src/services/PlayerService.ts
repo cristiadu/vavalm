@@ -112,35 +112,35 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
     )
   }
 
-  // Get all maps the specific player has won and played
-  const totalMapWins = playerStats.reduce((acc, stats) => {
-    if (stats.player.team_id === stats.game_stats_player1?.winner_id || stats.player.team_id === stats.game_stats_player2?.winner_id) {
-      return acc + 1
-    }
-    return acc
-  }
-  , 0)
+  // Results are credited to the side the player took in each game, not to the
+  // team they belong to now, so a transfer does not rewrite their history.
+  const totalMapWins = playerStats.filter(stats => {
+    const teamId = stats.playedForTeamId()
+    return teamId !== undefined && stats.playedGameStats()?.winner_id === teamId
+  }).length
   const totalMaps = playerStats.length
 
-  // Get all Matches then filter by distinct matches
-  // Compare with the team_id of the player at the time of the match
-  const distinctMatches = playerStats
-    .map(stats => stats.game_stats_player1?.game.match || stats.game_stats_player2?.game.match)
-    .filter((match, index, self) => match && index === self.findIndex(t => t?.id === match.id))
-  const totalMatchesWon = distinctMatches.reduce((acc, match) => {
-    if (match && playerStats.some(stats => stats.player.team_id === match.winner_id)) {
-      return acc + 1
+  // A match spans several games, so collapse to distinct matches, keeping the
+  // side the player took in each one.
+  const matchesPlayed = new Map<number, { match: Match, teamId: number }>()
+  for (const stats of playerStats) {
+    const match = stats.playedGameStats()?.game?.match
+    const matchId = match?.id
+    const teamId = stats.playedForTeamId()
+    if (match && matchId !== undefined && teamId !== undefined && !matchesPlayed.has(matchId)) {
+      matchesPlayed.set(matchId, { match, teamId })
     }
-    return acc
   }
-  , 0)
+  const totalMatchesPlayed = matchesPlayed.size
+  const totalMatchesWon = Array.from(matchesPlayed.values())
+    .filter(({ match, teamId }) => match.winner_id === teamId).length
 
   const totalKills = playerStats.reduce((acc, stats) => acc + stats.kills, 0)
   const totalDeaths = playerStats.reduce((acc, stats) => acc + stats.deaths, 0)
   const totalAssists = playerStats.reduce((acc, stats) => acc + stats.assists, 0)
   const kda = totalDeaths === 0 ? 0 : parseFloat(((totalKills + totalAssists) / totalDeaths).toFixed(2))
 
-  const winrate = parseFloat(((totalMatchesWon / distinctMatches.length) * 100).toFixed(2))
+  const winrate = parseFloat(((totalMatchesWon / totalMatchesPlayed) * 100).toFixed(2))
   const mapWinrate = parseFloat(((totalMapWins / totalMaps) * 100).toFixed(2))
 
   return new AllPlayerStats(
@@ -148,9 +148,9 @@ export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerS
     kda,
     winrate,
     mapWinrate,
-    distinctMatches.length,               // totalMatchesPlayed
+    totalMatchesPlayed,                    // totalMatchesPlayed
     totalMatchesWon,                       // totalMatchesWon
-    distinctMatches.length - totalMatchesWon, // totalMatchesLost
+    totalMatchesPlayed - totalMatchesWon,  // totalMatchesLost
     totalMaps,                            // totalMapsPlayed
     totalMapWins,                         // totalMapsWon
     totalMaps - totalMapWins,             // totalMapsLost
