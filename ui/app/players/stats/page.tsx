@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { getRoleBgColor } from '@/api/models/helpers'
-import { fetchCountries } from '@/api/CountryApi'
+import { fetchCountries, mapCountryFlagsByName } from '@/api/CountryApi'
 import { fetchPlayersStats } from '@/api/PlayersApi'
 import { useRouter } from 'next/navigation'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
@@ -10,7 +10,7 @@ import Pagination from '@/components/common/Pagination'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH } from '@/api/models/constants'
-import { AllPlayerStats, PlayerApiModel } from '@/api/generated'
+import { AllPlayerStats, CountryApiModel, PlayerApiModel } from '@/api/generated'
 import { Threshold } from '@/common/CommonModels'
 
 const thresholds = {
@@ -37,21 +37,15 @@ const PlayersStatsPage = (): React.ReactNode => {
   const [totalItems, setTotalItems] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
 
+  const updateCountryFlags = useCallback((countries: CountryApiModel[]): void => {
+    setCountriesToFlagMap(mapCountryFlagsByName(countries))
+  }, [])
+
   const loadData = useCallback(async (limit: number = LIMIT_VALUE_PLAYER_LIST, offset: number = 0) => {
     setIsLoading(true)
-    try {
-      const [countries, statsData] = await Promise.all([
-        fetchCountries(() => {}),
-        fetchPlayersStats(() => {}, limit, offset),
-      ])
 
-      if (countries) {
-        const flagMap: Record<string, string> = {}
-        countries.forEach((country) => {
-          flagMap[country.name] = country.flag
-        })
-        setCountriesToFlagMap(flagMap)
-      }
+    try {
+      const statsData = await fetchPlayersStats(() => {}, limit, offset)
 
       if (statsData && statsData.total > 0) {
         setTotalItems(statsData.total)
@@ -63,6 +57,10 @@ const PlayersStatsPage = (): React.ReactNode => {
       setIsLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    void fetchCountries(updateCountryFlags)
+  }, [updateCountryFlags])
 
   useEffect(() => {
     loadData()

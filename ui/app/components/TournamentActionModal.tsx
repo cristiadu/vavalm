@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Modal from '@/components/common/Modal'
 import { fetchCountries } from '@/api/CountryApi'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { fetchAllTeams } from '@/api/TeamsApi'
 import { ItemActionModalProps } from '@/common/CommonModels'
 import AlertMessage, { AlertType } from '@/components/common/AlertMessage'
@@ -33,7 +33,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
   const tournament = object ? object as TournamentApiModel : null
   const [tournamentState, setTournamentState] = useState(initialTournamentState)
   const [teams, setTeams] = useState<TeamApiModel[]>([])
-  const [countries, setCountries] = useState<Country[]>([])
+  const [countries, setCountries] = useState<CountryApiModel[]>([])
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
@@ -67,7 +67,7 @@ const TournamentActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose
     }
   }, [tournament, isEdit, setInitialValues])
 
-  const handleCountrySelect = (country: Country): void => {
+  const handleCountrySelect = (country: CountryApiModel): void => {
     setTournamentState(prevState => ({ ...prevState, country: country.name }))
   }
 

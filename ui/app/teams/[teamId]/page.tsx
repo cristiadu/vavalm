@@ -5,7 +5,7 @@ import { fetchPlayersByTeam } from '@/api/PlayersApi'
 import { getRoleBgColor } from '@/api/models/helpers'
 import { PlayerWithFlag } from '@/api/models/types'
 import { fetchCountries } from '@/api/CountryApi'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { fetchTeam, fetchTeamStats } from '@/api/TeamsApi'
 import { teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import { getBgColorBasedOnThreshold } from '@/common/UIUtils'
@@ -47,13 +47,13 @@ export default function ViewTeam(props: { params: Params }): React.ReactNode {
 
       const countries = await fetchCountries(() => {})
       if (teamData?.country) {
-        setCountryFlag(countries?.find((c: Country) => c.name === teamData.country)?.flag || null)
+        setCountryFlag(countries?.find((c: CountryApiModel) => c.name === teamData.country)?.flag || null)
       }
   
       fetchPlayersByTeam(Number(params.teamId), (data) => {
         const playersWithFlags = data.map(player => ({
           ...player,
-          countryFlag: countries?.find((c: Country) => c.name === player.country)?.flag || null,
+          countryFlag: countries?.find((c: CountryApiModel) => c.name === player.country)?.flag || null,
         }))
         setPlayers(playersWithFlags)
       })

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { getRoleBgColor } from '@/api/models/helpers'
 import { ASSISTS_HALF_MULTIPLIER } from '@/api/models/constants'
 import { calculatePlayerRating } from '@/common/NumberUtils'
@@ -10,7 +10,7 @@ import { PlayerGameStatsApiModel } from '@/api/generated'
 interface GameTeamStatsProps {
   teamName: string
   playerStats: PlayerGameStatsApiModel[]
-  countries: Country[]
+  countries: CountryApiModel[]
 }
 
 const GameTeamStats: React.FC<GameTeamStatsProps> = ({ teamName, playerStats, countries }) => {

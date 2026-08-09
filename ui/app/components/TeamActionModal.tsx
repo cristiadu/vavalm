@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { fetchCountries } from '@/api/CountryApi'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { editTeam, newTeam } from '@/api/TeamsApi'
 import Modal from '@/components/common/Modal'
 import { ItemActionModalProps } from '@/common/CommonModels'
@@ -31,7 +31,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
   const [validationError, setValidationError] = useState<string | null>(null)
   const [teamState, setTeamState] = useState<TeamWithLogoImageData>(initialState)
   const [imageSrc, setImageSrc] = useState('images/nologo.svg')
-  const [countries, setCountries] = useState<Country[]>([])
+  const [countries, setCountries] = useState<CountryApiModel[]>([])
   const selectedCountry = countries.find(country => country.name === teamState.country) || null
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
@@ -80,7 +80,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
     setValidationError(null)
   }
 
-  const handleCountrySelect = (country: Country): void => {
+  const handleCountrySelect = (country: CountryApiModel): void => {
     setTeamState({ ...teamState, country: country.name })
   }
 

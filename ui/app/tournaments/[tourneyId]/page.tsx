@@ -11,7 +11,7 @@ import { sortByDate } from '@/common/UIUtils'
 import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, LIMIT_PER_PAGE_INITIAL_VALUE, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { MatchApiModel, TournamentApiModel, TeamApiModel, StandingsApiModel } from '@/api/generated'
 
 type Params = Promise<{ tourneyId: string }>
@@ -55,7 +55,7 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
 
     const countries = await fetchCountries(() => {})
     if (tournamentData?.country) {
-      setCountryFlag(countries?.find((c: Country) => c.name === tournamentData.country)?.flag || null)
+      setCountryFlag(countries?.find((c: CountryApiModel) => c.name === tournamentData.country)?.flag || null)
     }
   }, [params.tourneyId])
 

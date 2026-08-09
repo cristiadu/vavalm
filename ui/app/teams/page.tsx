@@ -2,8 +2,8 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { fetchCountries } from '@/api/CountryApi'
+import { useCallback, useEffect, useState } from 'react'
+import { fetchCountries, mapCountryFlagsByName } from '@/api/CountryApi'
 import { fetchTeams, deleteTeam } from '@/api/TeamsApi'
 import TeamActionModal from '@/components/TeamActionModal'
 import { getRoleBgColor } from '@/api/models/helpers'
@@ -11,8 +11,7 @@ import Pagination from '@/components/common/Pagination'
 import { DEFAULT_TEAM_LOGO_IMAGE_PATH, PAGE_OFFSET_INITIAL_VALUE } from '@/api/models/constants'
 import SectionHeader from '@/components/common/SectionHeader'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
-import { Country, PlayerWithFlag } from '@/api/models/types'
-import { PlayerApiModel, TeamApiModel } from '@/api/generated'
+import { CountryApiModel, TeamApiModel } from '@/api/generated'
 import { stripHtmlTags } from '@/common/StringUtils'
 
 export default function ListTeams(): React.ReactNode {
@@ -26,42 +25,30 @@ export default function ListTeams(): React.ReactNode {
   const [countriesToFlagMap, setCountriesToFlagMap] = useState<Record<string, string>>({})
   const [totalItems, setTotalItems] = useState(0)
 
-  useEffect(() => {
-    fetchCountriesAndTeams()
+  const updateCountryFlags = useCallback((countries: CountryApiModel[]): void => {
+    setCountriesToFlagMap(mapCountryFlagsByName(countries))
   }, [])
 
-  const fetchCountriesAndTeams = async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<void> => {
+  const fetchTeamsList = useCallback(async (limit: number = LIMIT_VALUE_TEAM_LIST, offset: number = PAGE_OFFSET_INITIAL_VALUE): Promise<void> => {
     try {
-      const countries = await fetchCountries(() => {
-        // handle country data
-      }) ?? []
-
-      const countriesToFlagMap: Record<string, string> = {}
-      countries.forEach((country: Country) => {
-        countriesToFlagMap[country.name] = country.flag
-      })
-      setCountriesToFlagMap(countriesToFlagMap)
-
       const teamsData = await fetchTeams(() => {
         // handle team data
       }, limit, offset)
 
       setTotalItems(teamsData.total)
-
-      // Players are now embedded in each team via the getTeams endpoint
-      const teamsWithPlayersFlags = teamsData.items.map((team: TeamApiModel) => {
-        const playersWithFlags = (team.players || []).map((player: PlayerApiModel) => ({
-          ...player,
-          countryFlag: countriesToFlagMap[player.country] || null,
-        } as PlayerWithFlag))
-        return { ...team, players: playersWithFlags }
-      })
-
-      setTeams(teamsWithPlayersFlags)
+      setTeams(teamsData.items)
     } catch (error) {
-      console.error('Error fetching countries or teams:', error)
+      console.error('Error fetching teams:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    void fetchCountries(updateCountryFlags)
+  }, [updateCountryFlags])
+
+  useEffect(() => {
+    void fetchTeamsList()
+  }, [fetchTeamsList])
 
   const openNewTeamModal = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
     e.preventDefault()
@@ -73,7 +60,7 @@ export default function ListTeams(): React.ReactNode {
     setIsEditActionOpened(false)
     setTeamActionModalOpened(false)
     setTeamToEdit(null)
-    fetchCountriesAndTeams()
+    void fetchTeamsList()
   }
 
   const handleView = (team: TeamApiModel): void => {
@@ -95,13 +82,13 @@ export default function ListTeams(): React.ReactNode {
     if(!confirmed) return
 
     deleteTeam(team, () => {
-      fetchCountriesAndTeams()
+      void fetchTeamsList()
     })
     
   }
 
   const handlePageChange = (limit: number, offset: number): void => {
-    fetchCountriesAndTeams(limit, offset)
+    void fetchTeamsList(limit, offset)
   }
 
   // List all teams in a table/grid
@@ -150,12 +137,12 @@ export default function ListTeams(): React.ReactNode {
                   </td>
                   <td className="px-5 py-4">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                      {team.players && team.players.map((player: PlayerWithFlag) => (
+                      {team.players && team.players.map(player => (
                         <div key={`team-${team.id}-player-${player.id}`} className="flex items-center gap-2">
                           <span className={`inline-flex items-center justify-center w-[82px] px-1.5 py-0.5 rounded text-xs font-medium text-white text-center shrink-0 ${getRoleBgColor(player.role)}`}>
                             {player.role}
                           </span>
-                          {player.countryFlag && <ImageAutoSize src={player.countryFlag} alt={player.country} width={20} height={14} className="shrink-0 self-center" />}
+                          {countriesToFlagMap[player.country] && <ImageAutoSize src={countriesToFlagMap[player.country]} alt={player.country} width={20} height={14} className="shrink-0 self-center" />}
                           <div className="flex flex-col leading-tight min-w-0">
                             <span className="text-sm font-semibold text-gray-900 truncate">{player.nickname}</span>
                             <span className="text-[11px] text-gray-400 truncate">{player.full_name}</span>

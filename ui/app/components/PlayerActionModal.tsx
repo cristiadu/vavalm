@@ -3,7 +3,7 @@ import { editPlayer, newPlayer } from '@/api/PlayersApi'
 import { getRoleBgColor } from '@/api/models/helpers'
 import Modal from '@/components/common/Modal'
 import { fetchCountries } from '@/api/CountryApi'
-import {Country} from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { fetchAllTeams } from '@/api/TeamsApi'
 import { ItemActionModalProps } from '@/common/CommonModels'
 import AlertMessage, { AlertType } from '@/components/common/AlertMessage'
@@ -37,14 +37,14 @@ const initialPlayerState = {
   role: null as PlayerRole | null,
   teamId: null as number | null,
   playerAttributes: defaultPlayerAttributes,
-  selectedCountry: null as Country | null,
+  selectedCountry: null as CountryApiModel | null,
 }
 
 const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEdit, object }) => {
   const player = object ? object as PlayerApiModel: null
   const [playerState, setPlayerState] = useState(initialPlayerState)
   const [teams, setTeams] = useState<TeamApiModel[]>([])
-  const [countries, setCountries] = useState<Country[]>([])
+  const [countries, setCountries] = useState<CountryApiModel[]>([])
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const setInitialValues = useCallback((cleanup: boolean = false) => {
@@ -80,7 +80,7 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
     setPlayerState(prevState => ({ ...prevState, teamId: team.id ?? null }))
   }
 
-  const handleCountrySelect = (country: Country): void => {
+  const handleCountrySelect = (country: CountryApiModel): void => {
     setPlayerState(prevState => ({ ...prevState, selectedCountry: country }))
   }
 

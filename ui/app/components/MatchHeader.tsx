@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react'
 import { MatchApiModel, TeamApiModel } from '@/api/generated'
-import { Country } from '@/api/models/types'
+import { CountryApiModel } from '@/api/generated'
 import { getWinOrLossColor, teamLogoURLObjectOrDefault } from '@/api/models/helpers'
 import ImageAutoSize from '@/components/common/ImageAutoSize'
 
 interface MatchHeaderProps {
   match: MatchApiModel;
-  team1Country: Country | undefined;
-  team2Country: Country | undefined;
+  team1Country: CountryApiModel | undefined;
+  team2Country: CountryApiModel | undefined;
 }
 
 const MatchHeader: React.FC<MatchHeaderProps> = ({ match, team1Country, team2Country }) => {

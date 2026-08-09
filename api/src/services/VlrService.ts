@@ -2,7 +2,7 @@ import { Cheerio, CheerioAPI } from 'cheerio'
 import * as cheerio from 'cheerio'
 import { Element } from 'domhandler'
 import { VLR_URL, VlrPlayer, VlrTeam } from '@/models/Vlr'
-import { countryCodeToCountryName } from '@/base/StringUtils'
+import { countryCodeToCountryName } from '@/services/CountryService'
 import { PlayerRole } from '@/models/enums'
 
 import { upsertTeamData } from '@/services/TeamService'

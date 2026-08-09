@@ -20,6 +20,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'flagpedia.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'flags.restcountries.com',
+      },
     ],
   },
 }
