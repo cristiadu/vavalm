@@ -122,7 +122,13 @@ const GameLogsTable = ({ gameId, initialRound, maxRoundNumber }: GameLogsTablePr
         <div className="text-center p-4">No logs available for this round</div>
       ) : (
         <div className="overflow-auto max-h-[60vh]">
-          <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+          <table className="w-full min-w-[700px] table-fixed bg-white shadow-md rounded-lg overflow-hidden">
+            <colgroup>
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '60%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+            </colgroup>
             <thead className="bg-gray-800 text-white sticky top-0">
               <tr>
                 <th className="py-2 px-4 border-b border-gray-200">Round</th>

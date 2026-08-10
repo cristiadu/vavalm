@@ -93,7 +93,16 @@ export default function ListTournaments(): React.ReactNode {
       <div className="flex min-h-screen flex-col items-center p-24">
         <SectionHeader title="Tournaments" action={openNewTournamentModal} actionText="New Tournament" />
         <div className="w-full overflow-x-auto rounded-lg shadow">
-          <table className="min-w-full">
+          <table className="w-full min-w-[1000px] table-fixed">
+            <colgroup>
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '30%' }} />
+              <col style={{ width: '8%' }} />
+            </colgroup>
             <thead>
               <tr className="bg-gray-800 text-white">
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Tournament</th>

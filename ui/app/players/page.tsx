@@ -126,7 +126,16 @@ export default function ListPlayers(): React.ReactNode {
         />
         
         <div className="w-full overflow-x-auto rounded-lg shadow">
-          <table className="min-w-full">
+          <table className="w-full min-w-[1200px] table-fixed">
+            <colgroup>
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '5%' }} />
+              <col style={{ width: '11%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '42%' }} />
+              <col style={{ width: '8%' }} />
+            </colgroup>
             <thead>
               <tr className="bg-gray-800 text-white">
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Player</th>

@@ -89,7 +89,12 @@ const TeamsStatsPage = (): React.ReactNode => {
     <div className="flex min-h-screen flex-col items-center p-24">
       <SectionHeader title="Teams Stats" />
       <div className="w-full overflow-x-auto rounded-lg shadow">
-        <table className="min-w-full">
+        <table className="w-full min-w-[900px] table-fixed">
+          <colgroup>
+            <col style={{ width: '22%' }} />
+            <col span={statColumns.length} style={{ width: '7.2%' }} />
+            <col style={{ width: '6%' }} />
+          </colgroup>
           <thead>
             <tr className="bg-gray-800 text-white">
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Team</th>
