@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Additional custom styles */
 body {
   font-family: ui-sans-serif, system-ui, sans-serif;
