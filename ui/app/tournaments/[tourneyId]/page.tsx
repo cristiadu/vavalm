@@ -165,7 +165,12 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <h3 className="text-xl font-bold mb-2">Standings</h3>
           <hr className="mb-2" />
           <div className="overflow-x-auto">
-            <table className="min-w-full rounded-lg overflow-hidden shadow">
+            <table className="w-full min-w-[700px] table-fixed rounded-lg overflow-hidden shadow">
+              <colgroup>
+                <col style={{ width: '6%' }} />
+                <col style={{ width: '24%' }} />
+                <col span={6} style={{ width: '11.7%' }} />
+              </colgroup>
               <thead>
                 <tr className="bg-gray-800 text-white">
                   <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wider">#</th>
@@ -210,7 +215,14 @@ export default function ViewTournament(props: { params: Params }): React.ReactNo
           <h3 className="text-xl font-bold mb-2">Matches Schedule</h3>
           <hr className="mb-2" />
           <div className="overflow-x-auto">
-            <table className="min-w-full rounded-lg overflow-hidden shadow">
+            <table className="w-full min-w-[700px] table-fixed rounded-lg overflow-hidden shadow">
+              <colgroup>
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '25%' }} />
+                <col style={{ width: '25%' }} />
+                <col style={{ width: '20%' }} />
+              </colgroup>
               <thead>
                 <tr className="bg-gray-800 text-white">
                   <th className="py-2 px-3 text-center text-xs font-semibold uppercase tracking-wider">Date</th>

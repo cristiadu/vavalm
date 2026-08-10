@@ -98,7 +98,14 @@ export default function ListTeams(): React.ReactNode {
       <div className="flex min-h-screen flex-col items-center p-24">
         <SectionHeader title="Teams" action={openNewTeamModal} actionText="New Team" />
         <div className="w-full overflow-x-auto rounded-lg shadow">
-          <table className="min-w-full">
+          <table className="w-full min-w-[1000px] table-fixed">
+            <colgroup>
+              <col style={{ width: '16%' }} />
+              <col style={{ width: '14%' }} />
+              <col style={{ width: '44%' }} />
+              <col style={{ width: '18%' }} />
+              <col style={{ width: '8%' }} />
+            </colgroup>
             <thead>
               <tr className="bg-gray-800 text-white">
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">Team</th>
