@@ -1,5 +1,9 @@
 // Worker configuration
-export const MAX_CONCURRENT_MATCHES = 20
+// Each concurrent match is a worker thread with its own Sequelize pool, so this
+// is the knob that decides how much memory and CPU the scheduler can claim.
+// Configurable because a small deployment target (a 512 MB container) cannot
+// hold 20 simultaneous match workers.
+export const MAX_CONCURRENT_MATCHES = Number(process.env.MAX_CONCURRENT_MATCHES ?? 20)
 
 // A match worker plays one match at a time, so it needs a couple of
 // connections rather than a full request-serving pool. Every worker thread
