@@ -21,10 +21,8 @@ services:
 
   backend:
     build:
-      context: ./api
-      dockerfile: Dockerfile
-      additional_contexts:
-         parent_dir: ./
+      context: .
+      dockerfile: api/Dockerfile
     restart: always
     ports:
       - "8000:8000"
