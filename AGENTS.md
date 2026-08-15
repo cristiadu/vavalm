@@ -316,7 +316,7 @@ After 5 consecutive errors the scheduler worker pauses for 60 s before resuming.
 
 | Constant | Default | Meaning |
 |---|---|---|
-| `MAX_CONCURRENT_MATCHES` | 20 | Max matches fetched per cycle and max simultaneous `playScheduledMatchWorker` threads |
+| `MAX_CONCURRENT_MATCHES` | 20 | Max matches fetched per cycle and max simultaneous `playScheduledMatchWorker` threads. Override with `MAX_CONCURRENT_MATCHES`; each match is a CPU-bound worker thread, so dev and CI set 4 to avoid oversubscribing a small runner |
 | `MATCH_WORKER_POOL_MAX` | 2 | Database connections a match worker may hold. Each worker thread builds its own Sequelize pool, so the main thread's size would otherwise be multiplied by the worker count |
 | `STANDARD_CHECK_INTERVAL` | 60 000 ms | Polling interval under normal conditions. Override with `SCHEDULER_CHECK_INTERVAL`; dev and CI set 2 000 ms so tests do not sit through a cycle |
 | `REDUCED_CHECK_INTERVAL` | 2× standard | Polling interval when errors are detected |
