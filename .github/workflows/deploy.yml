@@ -53,11 +53,11 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-    # workflow_run checks out the default branch tip by default, which can have
-    # moved past the commit that passed CI.
+    # In workflow_run context, avoid checking out event-provided SHAs; deploy only
+    # from a trusted branch ref.
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
-        ref: ${{ github.event.workflow_run.head_sha }}
+        ref: refs/heads/main
 
     - name: Install pnpm
       uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
