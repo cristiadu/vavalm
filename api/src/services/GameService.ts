@@ -1,6 +1,6 @@
 import { getRandomTimeBetweenHourInterval } from "@/base/DateUtils"
 
-import Team from "@/models/Team"
+import Team, { TEAM_ATTRIBUTES_WITHOUT_LOGO } from "@/models/Team"
 import Player from "@/models/Player"
 import Match from "@/models/Match"
 import Game from "@/models/Game"
@@ -77,9 +77,9 @@ const GameService = {
           model: GameStats,
           as: 'stats',
           include: [
-            { model: Team, as: 'team1' },
-            { model: Team, as: 'team2' },
-            { model: Team, as: 'winner' },
+            { model: Team, as: 'team1', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
+            { model: Team, as: 'team2', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
+            { model: Team, as: 'winner', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
             { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
             { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
           ],
@@ -277,9 +277,9 @@ const GameService = {
     const gameStats = await GameStats.findOne({
       where: { game_id: game_id },
       include: [
-        { model: Team, as: 'team1' },
-        { model: Team, as: 'team2' },
-        { model: Team, as: 'winner' },
+        { model: Team, as: 'team1', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
+        { model: Team, as: 'team2', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
+        { model: Team, as: 'winner', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
         { model: PlayerGameStats, as: 'players_stats_team1', include: [{ model: Player, as: 'player' }] },
         { model: PlayerGameStats, as: 'players_stats_team2', include: [{ model: Player, as: 'player' }] },
       ],
@@ -323,9 +323,9 @@ const GameService = {
     const data = await GameStats.findOne({
       where: { game_id: game_id },
       include: [
-        { model: Team, as: 'team1', include: [{ model: Player, as: 'players' }] },
-        { model: Team, as: 'team2', include: [{ model: Player, as: 'players' }] },
-        { model: Team, as: 'winner' },
+        { model: Team, as: 'team1', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO, include: [{ model: Player, as: 'players' }] },
+        { model: Team, as: 'team2', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO, include: [{ model: Player, as: 'players' }] },
+        { model: Team, as: 'winner', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO },
         {
           model: PlayerGameStats,
           as: 'players_stats_team1',

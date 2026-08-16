@@ -34,7 +34,7 @@ export class TournamentController extends Controller {
         { 
           model: Team, 
           as: "teams", 
-          attributes: ["id", "short_name", "logo_image_file", "country"],
+          attributes: ["id", "short_name", "country"],
         },
       ],
     })
