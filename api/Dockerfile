@@ -46,14 +46,13 @@ COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/docs/openapi.yaml /app/docs/openapi.yaml
 COPY --from=builder /app/node_modules /app/node_modules
 
-# copy config files root api folder.
+# webpack emits an ES module, so package.json ships for its "type": "module".
+# The lockfile and workspace config deliberately do not: pnpm verifies
+# node_modules against them before running a script, decides a runtime-only
+# tree is out of sync, and re-runs `pnpm install` — which fires the api's
+# postinstall and fails on the tsoa config that this stage has no reason to
+# carry. Nothing here needs a package manager.
 COPY api/package.json /app/package.json
-# use the builder's lockfile/workspace config so they match the installed node_modules
-COPY --from=builder /app/pnpm-lock.yaml /app/pnpm-lock.yaml
-COPY --from=builder /app/pnpm-workspace.yaml /app/pnpm-workspace.yaml
-
-# install pnpm globally, pinned to the workspace's packageManager version
-RUN npm install -g pnpm@11.9.0
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -71,6 +70,7 @@ EXPOSE $PORT
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=10 \
     CMD wget -q -O - http://localhost:$PORT/api/health || exit 1
 
-# start the application with the original start script
-# the bundle.js should already exist, so wait-on should pass immediately
-CMD ["pnpm", "start"]
+# Run the bundle directly. `pnpm start` would re-verify dependencies on every
+# boot, and its wait-on guard buys nothing here — the build stage already
+# proved dist/bundle.js exists. The heap cap comes from NODE_OPTIONS above.
+CMD ["node", "dist/bundle.js"]
