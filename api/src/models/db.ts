@@ -28,23 +28,51 @@ export const resolvePoolBounds = (onMainThread: boolean): { max: number, min: nu
 
 const poolBounds = resolvePoolBounds(isMainThread)
 
-const sequelize = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
-  {
-    host: dbConfig.host,
-    dialect: dbConfig.dialect as Dialect,
-    pool: {
-      max: poolBounds.max,
-      min: poolBounds.min,
-      acquire: dbConfig.pool.acquire,
-      idle: dbConfig.pool.idle,
-      evict: dbConfig.pool.evict,
+const poolOptions = {
+  max: poolBounds.max,
+  min: poolBounds.min,
+  acquire: dbConfig.pool.acquire,
+  idle: dbConfig.pool.idle,
+  evict: dbConfig.pool.evict,
+}
+
+/**
+ * Managed Postgres providers hand out a single connection string rather than
+ * discrete credentials, so a deployed environment sets DATABASE_URL and the
+ * config.json entry for its NODE_ENV is ignored. Local development, the docker
+ * compose stack and the test suite leave it unset and keep using config.json.
+ *
+ * TLS verification stays on: hosted providers present certificates from public
+ * CAs. A provider with a private CA needs its certificate supplied here, not
+ * rejectUnauthorized turned off.
+ *
+ * An sslmode in the connection string overrides the ssl options below, so the
+ * URL must not carry `sslmode=require` — pg currently aliases it to verify-full
+ * but is migrating it to libpq semantics, which encrypt without verifying. Omit
+ * sslmode and let this apply, or set `sslmode=verify-full` explicitly.
+ */
+const databaseUrl = process.env.DATABASE_URL
+
+const sequelize = databaseUrl
+  ? new Sequelize(databaseUrl, {
+    dialect: 'postgres',
+    pool: poolOptions,
+    dialectOptions: {
+      ssl: { require: true, rejectUnauthorized: true },
     },
     logging: false,
-  },
-)
+  })
+  : new Sequelize(
+    dbConfig.database,
+    dbConfig.username,
+    dbConfig.password,
+    {
+      host: dbConfig.host,
+      dialect: dbConfig.dialect as Dialect,
+      pool: poolOptions,
+      logging: false,
+    },
+  )
 
 // Add connection validation with retries
 const validateConnection = async (attempts = 3): Promise<void> => {

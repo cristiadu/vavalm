@@ -1,0 +1,16 @@
+# The api image builds from the repository root, so keep build artifacts,
+# dependencies and secrets out of the context that gets sent to the daemon.
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/tests/coverage
+**/tests/generated
+.git
+.github
+artifacts
+
+# never ship a real environment file into an image; templates are enough
+**/.env
+**/.env.*
+!**/.env.template
