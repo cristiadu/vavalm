@@ -18,14 +18,61 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy-api:
+  # The image is built here rather than on the host. Render bills
+  # service-initiated fetches, so building there paid for the base image and a
+  # full dependency install on every deploy; Actions minutes and bandwidth are
+  # free on a public repository. It also means the artifact that ships is the
+  # one that was built, not a rebuild that happens to use the same inputs.
+  build-image:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.build.outputs.image }}
     steps:
+    # workflow_run grants the base repository's token, so check out a trusted
+    # ref rather than an event-provided sha.
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: refs/heads/main
+
+    - name: Build and push image
+      id: build
+      env:
+        REGISTRY_USER: ${{ github.repository_owner }}
+        REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPOSITORY: ${{ github.repository }}
+      run: |
+        # Tag by the commit actually checked out, so the tag names the build's
+        # input rather than whatever main pointed at when the job was queued.
+        sha="$(git rev-parse HEAD)"
+        name="ghcr.io/$(echo "$REPOSITORY" | tr '[:upper:]' '[:lower:]')/api"
+
+        echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
+
+        docker build -f api/Dockerfile -t "$name:$sha" -t "$name:latest" .
+        docker push "$name:$sha"
+        docker push "$name:latest"
+
+        echo "image=$name:$sha" >> "$GITHUB_OUTPUT"
+
+  deploy-api:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
+    # imgURL points the service at this exact tag. Image-backed services do not
+    # redeploy on their own when a tag moves, so the hook is what releases it.
     - name: Trigger Render deploy
       env:
         RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-      run: curl --fail --silent --show-error "$RENDER_DEPLOY_HOOK_URL"
+        IMAGE: ${{ needs.build-image.outputs.image }}
+      run: |
+        curl --get --fail --silent --show-error \
+          "$RENDER_DEPLOY_HOOK_URL" \
+          --data-urlencode "imgURL=$IMAGE"
 
     # The deploy hook returns as soon as the build is queued, and a free instance
     # takes minutes to build and cold-start. The UI build bakes in the API URL,
