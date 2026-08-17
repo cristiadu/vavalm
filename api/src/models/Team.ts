@@ -44,6 +44,20 @@ class Team extends Model {
   }
 }
 
+/**
+ * Team columns for every read except the logo endpoint itself.
+ *
+ * toApiModel() exposes the logo as a url, so no response needs the bytes, but a
+ * bare `include: [{ model: Team }]` still selects them and drags the image
+ * through every join that touches a team. It is worst in the round simulation,
+ * where the loaded team ends up inside GameLog.round_state — a JSON column, so
+ * the Buffer is stored as a decimal array several times larger than the image,
+ * once per duel.
+ *
+ * Pair this with fetchTeamLogo, which selects logo_image_file explicitly.
+ */
+export const TEAM_ATTRIBUTES_WITHOUT_LOGO = { exclude: ['logo_image_file'] }
+
 Team.init({
   short_name: {
     type: DataTypes.STRING,

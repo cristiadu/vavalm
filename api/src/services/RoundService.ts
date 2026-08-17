@@ -1,4 +1,4 @@
-import Team from '@/models/Team'
+import Team, { TEAM_ATTRIBUTES_WITHOUT_LOGO } from '@/models/Team'
 import Player, { PlayerDuelResults } from '@/models/Player'
 import GameLog, { RoundState } from '@/models/GameLog'
 import GameStats from '@/models/GameStats'
@@ -179,9 +179,9 @@ const RoundService = {
         },
         order: [['id', 'DESC']],
         include: [
-          { model: Player, as: 'team1_player', include: [{ model: Team, as: 'team' }] },
-          { model: Player, as: 'team2_player', include: [{ model: Team, as: 'team' }] },
-          { model: Player, as: 'player_killed', include: [{ model: Team, as: 'team' }] },
+          { model: Player, as: 'team1_player', include: [{ model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO }] },
+          { model: Player, as: 'team2_player', include: [{ model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO }] },
+          { model: Player, as: 'player_killed', include: [{ model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO }] },
         ],
       })
 
@@ -244,8 +244,8 @@ const RoundService = {
     const gameStats = await GameStats.findOne({
       where: {game_id: game_id}, 
       include: [
-        {model: Team, as: 'team1', include: [{model: Player, as: 'players', include: [{model: Team, as: 'team'}]}]}, 
-        {model: Team, as: 'team2', include: [{model: Player, as: 'players', include: [{model: Team, as: 'team'}]}]},
+        {model: Team, as: 'team1', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO, include: [{model: Player, as: 'players', include: [{model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO}]}]},
+        {model: Team, as: 'team2', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO, include: [{model: Player, as: 'players', include: [{model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO}]}]},
       ],
     })
 
@@ -286,7 +286,7 @@ const RoundService = {
 
     const players = await Player.findAll({
       where: { id: allIds },
-      include: [{ model: Team, as: 'team' }],
+      include: [{ model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO }],
     })
     const playerMap = new Map(players.map(p => [p.id, p]))
 

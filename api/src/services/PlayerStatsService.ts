@@ -1,7 +1,7 @@
 import { QueryTypes } from 'sequelize'
 
 import db from '@/models/db'
-import Team from '@/models/Team'
+import Team, { TEAM_ATTRIBUTES_WITHOUT_LOGO } from '@/models/Team'
 import Player from '@/models/Player'
 import Game from '@/models/Game'
 import Match from '@/models/Match'
@@ -156,7 +156,7 @@ export const fetchPlayerStatsTotals = async (playerId?: number): Promise<PlayerS
  */
 export const getAllStatsForPlayer = async (playerId: number): Promise<AllPlayerStats> => {
   const player = await Player.findByPk(playerId, {
-    include: [{ model: Team, as: 'team' }],
+    include: [{ model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO }],
   })
 
   if (!player) {
@@ -194,7 +194,7 @@ const hydratePlayerStatsPage = async (totals: PlayerStatsTotals[], limit: number
   const page = totals.slice(offset, offset + limit)
   const players = await Player.findAll({
     where: { id: page.map(entry => entry.playerId) },
-    include: [{ model: Team, as: 'team' }],
+    include: [{ model: Team, as: 'team', attributes: TEAM_ATTRIBUTES_WITHOUT_LOGO }],
   })
   const playersById = new Map(players.map(player => [player.id, player]))
 

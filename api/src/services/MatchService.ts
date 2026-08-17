@@ -187,12 +187,12 @@ const MatchService = {
         {
           model: Team,
           as: "team1",
-          attributes: ["id", "short_name", "logo_image_file"],
+          attributes: ["id", "short_name"],
         },
         {
           model: Team,
           as: "team2",
-          attributes: ["id", "short_name", "logo_image_file"],
+          attributes: ["id", "short_name"],
         },
       ],
     })
