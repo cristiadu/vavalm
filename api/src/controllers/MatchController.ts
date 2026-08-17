@@ -1,4 +1,4 @@
-import { Controller, Get, OperationId, Path, Query, Route } from "tsoa"
+import { Controller, Get, OperationId, Path, Query, Route } from "@tsoa/runtime"
 import MatchService from "@/services/MatchService"
 import { MatchApiModel } from "@/models/contract/MatchApiModel"
 import { ItemsWithPagination } from "@/base/types"

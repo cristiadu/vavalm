@@ -1,5 +1,5 @@
 import { importTeamsAndPlayersFromVLR } from '@/services/VlrService'
-import { Controller, OperationId, Post, Route } from 'tsoa'
+import { Controller, OperationId, Post, Route } from '@tsoa/runtime'
 import { VlrImportResponse } from '@/models/Vlr'
 
 

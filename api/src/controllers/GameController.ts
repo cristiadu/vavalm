@@ -1,4 +1,4 @@
-import { Controller, Get, OperationId, Path, Post, Route, SuccessResponse } from "tsoa"
+import { Controller, Get, OperationId, Path, Post, Route, SuccessResponse } from "@tsoa/runtime"
 import GameService from "@/services/GameService"
 import { GameApiModel } from "@/models/contract/GameApiModel"
 import { GameStatsApiModel } from "@/models/contract/GameStatsApiModel"

@@ -1,4 +1,4 @@
-import { Controller, Get, OperationId, Route } from 'tsoa'
+import { Controller, Get, OperationId, Route } from '@tsoa/runtime'
 
 import { CountryApiModel } from '@/models/contract/CountryApiModel'
 import { getCountries } from '@/services/CountryService'

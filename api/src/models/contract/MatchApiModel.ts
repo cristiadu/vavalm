@@ -1,5 +1,5 @@
 import { BaseEntityModel } from "@/base/types"
-import { Hidden } from "tsoa"
+import { Hidden } from "@tsoa/runtime"
 import Match from "@/models/Match"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
 import { GameApiModel } from "@/models/contract/GameApiModel"

@@ -1,5 +1,5 @@
 import { BaseEntityModel } from "@/base/types"
-import { Hidden } from "tsoa"
+import { Hidden } from "@tsoa/runtime"
 import { PlayerRole } from "@/models/enums"
 import Player, { PlayerAttributes } from "@/models/Player"
 

@@ -1,4 +1,4 @@
-import { Controller, Get, OperationId, Path, Post, Route } from 'tsoa'
+import { Controller, Get, OperationId, Path, Post, Route } from '@tsoa/runtime'
 import TournamentService from '@/services/TournamentService'
 import MatchService from '@/services/MatchService'
 import GameStatsService from '@/services/GameStatsService'
