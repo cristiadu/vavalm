@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FormField, Get, NoSecurity, OperationId, Path, Post, Produces, Put, Query, Route, SuccessResponse, UploadedFile } from "tsoa"
+import { Body, Controller, Delete, FormField, Get, NoSecurity, OperationId, Path, Post, Produces, Put, Query, Route, SuccessResponse, UploadedFile } from "@tsoa/runtime"
 import { Readable } from "stream"
 import { ItemsWithPagination } from "@/base/types"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
