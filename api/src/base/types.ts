@@ -1,6 +1,6 @@
 import { PlayerApiModel } from "@/models/contract/PlayerApiModel"
 import { TeamApiModel } from "@/models/contract/TeamApiModel"
-import { Hidden } from "tsoa"
+import { Hidden } from "@tsoa/runtime"
 
 export class BaseEntityModel {
   @Hidden()

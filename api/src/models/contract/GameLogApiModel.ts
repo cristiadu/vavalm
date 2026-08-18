@@ -1,5 +1,5 @@
 import { BaseEntityModel } from "@/base/types"
-import { Hidden } from "tsoa"
+import { Hidden } from "@tsoa/runtime"
 import GameLog, { RoundState } from "@/models/GameLog"
 import { Weapon } from "@/models/enums"
 import type { PlayerDuelResults } from "@/models/Player"
