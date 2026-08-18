@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "tsoa"
+import { Body, Controller, Delete, Get, OperationId, Path, Post, Put, Query, Route, SuccessResponse } from "@tsoa/runtime"
 import { ItemsWithPagination } from "@/base/types"
 import { TournamentApiModel } from "@/models/contract/TournamentApiModel"
 import { MatchApiModel } from "@/models/contract/MatchApiModel"

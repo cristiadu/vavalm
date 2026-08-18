@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express'
 import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
-import { ValidateError } from 'tsoa'
+import { ValidateError } from '@tsoa/runtime'
 import { UniqueConstraintError, ValidationError as SequelizeValidationError } from 'sequelize'
 
 /**

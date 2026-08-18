@@ -24,6 +24,21 @@ RUN pnpm build
 # Verify the bundle exists
 RUN ls -la dist/ && test -f dist/bundle.js
 
+# Runtime dependencies only, resolved separately from the build toolchain.
+# The builder's tree carries webpack, vitest, eslint and typescript — none of
+# which run in production. Scripts are skipped because the api's postinstall
+# generates the spec and routes, which needs sources this stage does not have.
+FROM node:lts AS deps
+
+WORKDIR /deps
+
+COPY api/package.json /deps/package.json
+COPY pnpm-lock.yaml /deps/pnpm-lock.yaml
+COPY pnpm-workspace.yaml /deps/pnpm-workspace.yaml
+
+RUN npm install -g pnpm@11.9.0
+RUN pnpm install --prod --ignore-scripts
+
 # Use Alpine for smaller image size
 FROM node:lts-alpine AS runner
 
@@ -39,12 +54,13 @@ ENV NODE_ENV=production
 # overridden.
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# copy built files and node_modules
-# webpack marks pg, express and sequelize as externals, so the bundle alone is
-# not enough to boot — node_modules ships with it.
+# copy built files, and runtime dependencies rather than the builder's tree
+# webpack leaves express and sequelize as externals and sequelize loads pg
+# dynamically, so the bundle alone is not enough to boot — but only the
+# production tree is needed, not the toolchain that produced the bundle.
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/docs/openapi.yaml /app/docs/openapi.yaml
-COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=deps /deps/node_modules /app/node_modules
 
 # webpack emits an ES module, so package.json ships for its "type": "module".
 # The lockfile and workspace config deliberately do not: pnpm verifies
