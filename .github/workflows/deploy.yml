@@ -100,7 +100,7 @@ jobs:
     # so it must not start until the API is actually serving.
     - name: Wait for API health
       env:
-        API_BASE_URL: ${{ vars.API_BASE_URL }}
+        API_BASE_URL: ${{ secrets.API_BASE_URL }}
       run: |
         for attempt in $(seq 1 60); do
           status="$(curl --output /dev/null --silent --write-out '%{http_code}' --max-time 90 "$API_BASE_URL/health" || true)"
