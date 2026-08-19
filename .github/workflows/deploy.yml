@@ -1,12 +1,26 @@
 name: Deploy to Test Environment
 
-# Deploys only once the build workflow has gone green on main, so a failing test
-# suite can never reach the test environment.
+# Automatic deploys wait for the build workflow to go green on main, so a
+# failing test suite can never reach the test environment. Manual runs deploy
+# main as it stands and can target one service.
 on:
   workflow_run:
     workflows: ["Build and Test Project"]
     branches: [main]
     types: [completed]
+  # Manual runs deploy main as it stands, for when a service needs shipping
+  # without a code change — a changed secret on the host, or re-releasing after
+  # the other service was down.
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which services to deploy
+        type: choice
+        options:
+          - both
+          - api
+          - ui
+        default: both
 
 permissions:
   contents: read
@@ -24,7 +38,9 @@ jobs:
   # free on a public repository. It also means the artifact that ships is the
   # one that was built, not a rebuild that happens to use the same inputs.
   build-image:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      || (github.event_name == 'workflow_dispatch' && inputs.target != 'ui') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -59,7 +75,9 @@ jobs:
         echo "image=$name:$sha" >> "$GITHUB_OUTPUT"
 
   deploy-api:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      || (github.event_name == 'workflow_dispatch' && inputs.target != 'ui') }}
     needs: build-image
     runs-on: ubuntu-latest
     steps:
@@ -104,7 +122,14 @@ jobs:
         exit 1
 
   deploy-ui:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # A ui-only manual run leaves deploy-api skipped, which must not skip this
+    # too; an automatic run still waits for the api to come back healthy, since
+    # NEXT_PUBLIC_API_BASE_URL is baked in at build time.
+    if: >-
+      ${{ !cancelled()
+      && needs.deploy-api.result != 'failure'
+      && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      || (github.event_name == 'workflow_dispatch' && inputs.target != 'api')) }}
     needs: deploy-api
     runs-on: ubuntu-latest
     env:
