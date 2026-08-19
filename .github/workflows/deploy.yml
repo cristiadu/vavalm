@@ -70,7 +70,10 @@ jobs:
         RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         IMAGE: ${{ needs.build-image.outputs.image }}
       run: |
-        curl --get --fail --silent --show-error \
+        # --fail-with-body rather than --fail: on a rejection the status alone
+        # does not say whether the service is suspended, still repo-backed, or
+        # something else, and the body is where render explains itself.
+        curl --get --fail-with-body --silent --show-error \
           "$RENDER_DEPLOY_HOOK_URL" \
           --data-urlencode "imgURL=$IMAGE"
 
@@ -82,11 +85,19 @@ jobs:
         API_BASE_URL: ${{ vars.API_BASE_URL }}
       run: |
         for attempt in $(seq 1 60); do
-          if curl --fail --silent --max-time 90 "$API_BASE_URL/health"; then
+          status="$(curl --output /dev/null --silent --write-out '%{http_code}' --max-time 90 "$API_BASE_URL/health" || true)"
+          if [ "$status" = "200" ]; then
             echo "API healthy after ${attempt} attempt(s)"
             exit 0
           fi
-          echo "Attempt ${attempt}: API not healthy yet, retrying in 30s"
+          # A cold start holds the connection open and reports 000 on timeout; a
+          # prompt 503 is the host saying the service is not running at all, and
+          # no amount of waiting changes that.
+          if [ "$status" = "503" ] && [ "$attempt" -ge 3 ]; then
+            echo "API returned 503 on ${attempt} consecutive attempts — the service is not running, not starting"
+            exit 1
+          fi
+          echo "Attempt ${attempt}: API returned ${status}, retrying in 30s"
           sleep 30
         done
         echo "API did not become healthy within 30 minutes"
