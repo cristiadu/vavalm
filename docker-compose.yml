@@ -46,10 +46,8 @@ services:
 
   frontend:
     build:
-      context: ./ui
-      dockerfile: Dockerfile
-      additional_contexts:
-         parent_dir: ./
+      context: .
+      dockerfile: ui/Dockerfile
     restart: always
     ports:
       - "3000:3000"
