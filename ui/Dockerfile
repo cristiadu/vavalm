@@ -17,8 +17,9 @@ COPY pnpm-workspace.yaml /app/pnpm-workspace.yaml
 RUN npm install -g pnpm@11.9.0
 RUN pnpm install
 
-# build the application
-RUN pnpm build
+# build the application, opting in to next's traced server output — this is the
+# only build that wants it, so the setting lives here rather than in the config
+RUN NEXT_OUTPUT_STANDALONE=true pnpm build
 
 # Verify the standalone server exists
 RUN ls -la .next/standalone

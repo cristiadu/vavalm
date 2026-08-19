@@ -3,11 +3,14 @@
  */
 const apiBaseUrl = new URL(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api')
 
+// Next's traced server output is what keeps the container image small, but it
+// is only meaningful when self-hosting: Vercel builds from source with its own
+// output format and fails when the standalone setting is present. The container
+// build opts in, everything else builds normally.
+const standalone = process.env.NEXT_OUTPUT_STANDALONE === 'true'
+
 const nextConfig = {
-  // Emit a self-contained server so the runtime image carries only the traced
-  // dependencies rather than the full install. Vercel builds from source and is
-  // unaffected by this.
-  output: 'standalone',
+  ...(standalone ? { output: 'standalone' } : {}),
   images: {
     remotePatterns: [
       {
