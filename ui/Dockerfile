@@ -32,6 +32,12 @@ WORKDIR /app
 
 ENV PORT=3000
 ENV NODE_ENV=production
+# next's standalone server binds to HOSTNAME, and docker sets that to the
+# container id — so it would listen on the container's own name and nothing
+# inside the container could reach it. Binding ipv4 explicitly means the
+# healthcheck must use 127.0.0.1: `localhost` resolves to ::1 first, which
+# nothing is listening on.
+ENV HOSTNAME=0.0.0.0
 
 # next build --standalone traces the modules the server actually loads, so this
 # carries a fraction of the install rather than the whole toolchain. Static
@@ -43,7 +49,7 @@ COPY --from=builder /app/public /app/public
 EXPOSE $PORT
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD wget -q -O - http://localhost:$PORT || exit 1
+    CMD wget -q -O - http://127.0.0.1:$PORT || exit 1
 
 # Run the traced server directly. `pnpm start` would verify dependencies against
 # the lockfile on every boot and re-run an install the image has no need for —
