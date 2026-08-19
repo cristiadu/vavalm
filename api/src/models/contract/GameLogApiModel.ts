@@ -25,7 +25,8 @@ export class RoundStateApiModel extends BaseEntityModel {
   /**
    * Constructs a real RoundStateApiModel instance from a plain object
    * (e.g. a DataTypes.JSON column read from the DB, which has the right shape but no methods).
-   * alive-player arrays are not persisted — they are served as [].
+   * The alive-player arrays are persisted as ids and are not part of the
+   * response: no client has ever received them, so they are served as [].
    */
   static from(data: RoundState): RoundStateApiModel {
     return new RoundStateApiModel(

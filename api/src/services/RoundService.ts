@@ -280,8 +280,17 @@ const RoundService = {
    * @returns {Promise<RoundState>} - A RoundState with real Player model instances.
    */
   rehydrateRoundState: async (plainRound: RoundState): Promise<RoundState> => {
-    const team1Ids = (plainRound.team1_alive_players || []).map((p: Player) => p.id)
-    const team2Ids = (plainRound.team2_alive_players || []).map((p: Player) => p.id)
+    // Rows written before alive players were stored as ids still hold whole
+    // player objects, so accept either shape.
+    const alivePlayerId = (entry: Player | number): number | undefined =>
+      typeof entry === 'number' ? entry : entry?.id
+
+    const team1Entries: (Player | number)[] = plainRound.team1_alive_players || []
+    const team2Entries: (Player | number)[] = plainRound.team2_alive_players || []
+
+    const isId = (id: number | undefined): id is number => id != null
+    const team1Ids = team1Entries.map(alivePlayerId).filter(isId)
+    const team2Ids = team2Entries.map(alivePlayerId).filter(isId)
     const allIds = [...team1Ids, ...team2Ids]
 
     const players = await Player.findAll({

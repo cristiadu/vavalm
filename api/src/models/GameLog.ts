@@ -36,6 +36,31 @@ export class RoundState extends BaseEntityModel {
   toEntityModel(): RoundState {
     return this
   }
+
+  /**
+   * Persists the alive players as ids.
+   *
+   * The round needs real Player instances while it is being played — the duel
+   * maths reads their attributes — but nothing ever reads them back out of the
+   * stored row. rehydrateRoundState maps them straight to ids and reloads the
+   * players from the database, DuelService matches on id, RoundService only
+   * takes lengths, and RoundStateApiModel serves these arrays as []. Writing
+   * the whole player put roughly 5.7 kB of static, unread data on every duel.
+   *
+   * duel, previous_duel and team_won are left alone: those are served to
+   * clients, so they carry the state as it was at the time.
+   */
+  toJSON(): Record<string, unknown> {
+    return {
+      round: this.round,
+      duel: this.duel,
+      team1_alive_players: this.team1_alive_players.map(player => player.id),
+      team2_alive_players: this.team2_alive_players.map(player => player.id),
+      team_won: this.team_won,
+      finished: this.finished,
+      previous_duel: this.previous_duel,
+    }
+  }
 }
 
 class GameLog extends Model implements BaseEntityModel {
