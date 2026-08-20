@@ -111,10 +111,27 @@ export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamSt
   }
 }
   
+/**
+ * Names the required team fields that are still empty, so the message can say
+ * which one rather than that something is missing.
+ */
+const missingTeamFields = (team: TeamWithLogoImageData): string[] => {
+  const required: [string, unknown][] = [
+    ['full name', team.full_name],
+    ['short name', team.short_name],
+    ['country', team.country],
+    ['logo', team.logo_image_file],
+  ]
+  return required.filter(([, value]) => !value).map(([label]) => label)
+}
+
 export const newTeam = async (team: TeamWithLogoImageData, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
   try {
-    if (!team.short_name || !team.full_name || !team.country) {
-      throw new Error('Missing required fields')
+    // The logo is required in practice, not just by this check: toApiModel always
+    // hands the ui a logo_url, so a team stored without one renders an <img> that
+    // the endpoint cannot answer.
+    if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
+      throw new Error(`Missing required fields: ${missingTeamFields(team).join(', ')}`)
     }
 
     const response = await VavalMApiClient.default.createTeam({
@@ -138,8 +155,8 @@ export const editTeam = async (team: TeamWithLogoImageData, closure: (_teamData:
     throw new Error('Team ID is required')
   }
 
-  if (!team.short_name || !team.full_name || !team.country) {
-    throw new Error('Missing required fields')
+  if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
+    throw new Error(`Missing required fields: ${missingTeamFields(team).join(', ')}`)
   }
 
   try {
