@@ -113,7 +113,7 @@ export const fetchTeamStats = async (teamId: number, closure: (_teamData: TeamSt
   
 export const newTeam = async (team: TeamWithLogoImageData, closure: (_teamData: TeamApiModel) => void): Promise<TeamApiModel | null> => {
   try {
-    if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
+    if (!team.short_name || !team.full_name || !team.country) {
       throw new Error('Missing required fields')
     }
 
@@ -138,7 +138,7 @@ export const editTeam = async (team: TeamWithLogoImageData, closure: (_teamData:
     throw new Error('Team ID is required')
   }
 
-  if (!team.short_name || !team.full_name || !team.country || !team.logo_image_file) {
+  if (!team.short_name || !team.full_name || !team.country) {
     throw new Error('Missing required fields')
   }
 

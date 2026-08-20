@@ -9,7 +9,7 @@ import Standings from "@/models/Standings"
 import { MatchType } from "@/models/enums"
 import TournamentService from "@/services/TournamentService"
 import MatchService from "@/services/MatchService"
-import { TeamApiModel } from "@/models/contract/TeamApiModel"
+import { toTeamId } from "@/models/contract/TeamApiModel"
 
 @Route("tournaments")
 export class TournamentController extends Controller {
@@ -147,7 +147,7 @@ export class TournamentController extends Controller {
     
     // Associate existing teams with the new tournament
     if (teams && tournament.id && teams.length > 0) {
-      const teamIds = teams.map(teamOrId => teamOrId instanceof TeamApiModel ? teamOrId.id : teamOrId) as number[]
+      const teamIds = teams.map(toTeamId).filter((id): id is number => id != null)
       await tournament.addTeams(teamIds)
       
       // Create standings object for teams if they don't exist
@@ -188,10 +188,15 @@ export class TournamentController extends Controller {
       throw new Error("Tournament not found")
     }
     
-    const removedTeamIds: number[] = tournament.teams
-      .filter(team => team?.id !== null)
-      .filter(team => team?.id && !teams.map(t => t instanceof TeamApiModel ? t.id : t).includes(team.id))
-      .map(team => team.id) as number[]
+    // Resolve the requested teams once, and capture the current membership before
+    // setTeams replaces it — the removed and added sets are both differences
+    // against the membership as it was on entry.
+    const requestedTeamIds = teams.map(toTeamId).filter((id): id is number => id != null)
+    const existingTeamIds = tournament.teams
+      .map(team => team?.id)
+      .filter((id): id is number => id != null)
+
+    const removedTeamIds = existingTeamIds.filter(id => !requestedTeamIds.includes(id))
     
     await tournament.update({
       type,
@@ -203,7 +208,7 @@ export class TournamentController extends Controller {
     })
     
     // Associate teams with the tournament
-    await tournament.setTeams(teams.map(team => team instanceof TeamApiModel ? team.id : team) as number[])
+    await tournament.setTeams(requestedTeamIds)
     
     // Update standings and matches
     if (removedTeamIds && removedTeamIds.length > 0) {
@@ -212,8 +217,7 @@ export class TournamentController extends Controller {
     }
     
     // Create new standings and matches for new teams
-    const existingTeamIds = tournament.teams.map(team => team.id)
-    const newTeamIds = teams.filter(team => team instanceof TeamApiModel ? team.id : team && !existingTeamIds.includes(team)).map(team => team instanceof TeamApiModel ? team.id : team) as number[]
+    const newTeamIds = requestedTeamIds.filter(id => !existingTeamIds.includes(id))
     
     if (newTeamIds.length > 0) {
       await TournamentService.createStandingsForTeamsIfNeeded(newTeamIds, tournamentId)
