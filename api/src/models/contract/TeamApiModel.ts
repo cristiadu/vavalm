@@ -59,3 +59,15 @@ export class TeamApiModel extends BaseEntityModel {
     }
   }
 }
+
+/**
+ * Resolves a team reference to its id.
+ *
+ * A tournament's teams arrive either as ids or as whole team objects, and both
+ * mean the same team. `instanceof` cannot tell them apart: a request body is
+ * deserialized json, so its entries are plain objects and never instances of
+ * this class — the check silently reports false and the object flows on to a
+ * query expecting an integer.
+ */
+export const toTeamId = (team: TeamApiModel | number): number | undefined =>
+  typeof team === 'number' ? team : team?.id

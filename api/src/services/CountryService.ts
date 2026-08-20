@@ -47,14 +47,20 @@ const fetchAllCountries = async (apiKey: string): Promise<CountryApiModel[]> => 
 
   while (hasMore) {
     const payload = await fetchCountryPage(apiKey, offset)
-    countries.push(...payload.data.objects.map(country => {
-      const code = country.codes.alpha_2.toLowerCase()
-      return new CountryApiModel(
-        code,
-        country.names.common,
-        `${REST_COUNTRIES_FLAG_CDN_URL}/${code}.png`,
-      )
-    }))
+    countries.push(...payload.data.objects
+      // A country with no alpha-2 code has no flag to point at, and building the
+      // url anyway yields ".../w320/.png", which the ui's image optimizer fetches
+      // and 502s on. It is unusable as an option regardless, since code is what
+      // identifies it.
+      .filter(country => Boolean(country.codes?.alpha_2))
+      .map(country => {
+        const code = country.codes.alpha_2.toLowerCase()
+        return new CountryApiModel(
+          code,
+          country.names.common,
+          `${REST_COUNTRIES_FLAG_CDN_URL}/${code}.png`,
+        )
+      }))
     hasMore = payload.data.meta.more
     if (hasMore && payload.data.meta.count === 0) {
       throw new Error('REST Countries returned an empty page before pagination completed')
