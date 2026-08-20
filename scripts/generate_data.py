@@ -363,18 +363,34 @@ def generate_unique_short_name(base_name):
     return f"{short_name}{random_suffix}"
 
 def fetch_teams():
-    """Fetch teams from the API"""
+    """Fetch every team from the API.
+
+    The endpoint pages, so a request without limit and offset returns only the
+    first page — which meant tournaments were only ever built from the teams
+    that happened to come back first, never from ones generated later.
+    """
+    page_size = 100
+    offset = 0
+    teams = []
     try:
-        response = requests.get(f"{API_BASE_URL}/teams", headers=get_auth_headers())
-        if response.status_code == 200:
-            data = response.json()
-            return data.get("items", [])
-        else:
-            print(f"Error fetching teams: {response.status_code}")
-            return []
+        while True:
+            response = requests.get(
+                f"{API_BASE_URL}/teams",
+                params={"limit": page_size, "offset": offset},
+                headers=get_auth_headers(),
+            )
+            if response.status_code != 200:
+                print(f"Error fetching teams: {response.status_code}")
+                break
+            page = response.json().get("items", [])
+            teams.extend(page)
+            if len(page) < page_size:
+                break
+            offset += page_size
+        return teams
     except Exception as e:
         print(f"Error: {e}")
-        return []
+        return teams
 
 def generate_team_logo():
     """Generate a team logo using SVG designs"""

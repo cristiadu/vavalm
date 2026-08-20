@@ -3,25 +3,36 @@ import { TeamWithLogoImageData } from "@/api/models/types"
 import { ItemsWithPagination_TeamApiModel_, ItemsWithPagination_TeamStats_, TeamApiModel, TeamStats } from "@/api/generated"
 import { VavalMApiClient } from "@/api/client"
 
+/** Page size used to walk the paginated teams endpoint. */
+const ALL_TEAMS_PAGE_SIZE = 100
+
+/**
+ * Fetches every team, for the selectors that offer a team to pick.
+ *
+ * The endpoint pages and defaults to ten, so requesting it without a limit
+ * returned only the first ten teams — the rest were simply absent from the
+ * dropdowns, with nothing to indicate they had been cut off.
+ */
 export const fetchAllTeams = async (closure: (_teamData: TeamApiModel[]) => void): Promise<TeamApiModel[]> => {
+  const teams: TeamApiModel[] = []
+
   try {
-    const response = await VavalMApiClient.default.getTeams(undefined, undefined, undefined)
-    
-    if (!response || !response.items) {
-      const emptyResult: TeamApiModel[] = []
-      closure(emptyResult)
-      return emptyResult
+    for (;;) {
+      const response = await VavalMApiClient.default.getTeams(undefined, ALL_TEAMS_PAGE_SIZE, teams.length)
+      const page = response?.items ?? []
+      teams.push(...page)
+
+      if (page.length < ALL_TEAMS_PAGE_SIZE) {
+        break
+      }
     }
-    
-    const teamsWithParsedLogos = response.items
-    
-    closure(teamsWithParsedLogos)
-    return teamsWithParsedLogos
+
+    closure(teams)
+    return teams
   } catch (error) {
     console.error("Error fetching all teams:", error)
-    const emptyResult: TeamApiModel[] = []
-    closure(emptyResult)
-    return emptyResult
+    closure(teams)
+    return teams
   }
 }
 
