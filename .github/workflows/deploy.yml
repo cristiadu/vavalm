@@ -154,6 +154,15 @@ jobs:
         cache: pnpm
         cache-dependency-path: "pnpm-lock.yaml"
 
+    # A bad token and a token that cannot see the project fail several steps
+    # apart and read almost alike, so name the account the token belongs to
+    # before using it: a personal-scope token cannot reach a team's project,
+    # whatever the org and project ids say.
+    - name: Report the Vercel account this token belongs to
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      run: npx --yes vercel@59.1.3 whoami --token="$VERCEL_TOKEN"
+
     # The Vercel CLI is pinned so a CLI release cannot change deploy behaviour
     # without a commit here.
     - name: Deploy UI to Vercel
