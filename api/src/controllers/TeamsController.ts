@@ -117,7 +117,15 @@ export class TeamsController extends Controller {
   @OperationId("getTeamLogo")
   @Produces("image/png")
   public async getTeamLogo(@Path() teamId: number): Promise<Readable> {
-    const logo = await fetchTeamLogo(teamId)
+    const logo = await fetchTeamLogo(teamId).catch(() => null)
+
+    // Teams reach the database without a logo through imports and older rows,
+    // and toApiModel hands out a logo_url regardless — so this is a missing
+    // image rather than a failure, and answering 500 misreports it.
+    if (!logo) {
+      this.setStatus(404)
+      throw new Error(`Logo not found for team ${teamId}`)
+    }
 
     this.setHeader('Content-Type', detectImageMimeType(logo))
     this.setHeader('Cache-Control', `public, max-age=${LOGO_CACHE_SECONDS}`)
@@ -134,9 +142,9 @@ export class TeamsController extends Controller {
   @SuccessResponse("204", "Logo stored")
   public async uploadTeamLogo(
     @Path() teamId: number,
-    @UploadedFile() logo_image_file: Buffer<ArrayBufferLike>,
+    @UploadedFile() logo_image_file: Express.Multer.File,
   ): Promise<void> {
-    await replaceTeamLogo(teamId, logo_image_file)
+    await replaceTeamLogo(teamId, logo_image_file.buffer)
     this.setStatus(204)
   }
 
@@ -152,7 +160,7 @@ export class TeamsController extends Controller {
     @FormField() full_name: string,
     @FormField() description: string,
     @FormField() country: string,
-    @UploadedFile() logo_image_file?: Buffer<ArrayBufferLike>,
+    @UploadedFile() logo_image_file?: Express.Multer.File,
   ): Promise<TeamApiModel> {
     if (!short_name || !full_name || !country) {
       this.setStatus(400)
@@ -161,7 +169,7 @@ export class TeamsController extends Controller {
 
     let logoBuffer = null
     if (logo_image_file) {
-      logoBuffer = logo_image_file
+      logoBuffer = logo_image_file.buffer
     }
 
     const team = await Team.create({
@@ -188,7 +196,7 @@ export class TeamsController extends Controller {
     @FormField() full_name: string,
     @FormField() description: string,
     @FormField() country: string,
-    @UploadedFile() logo_image_file?: Buffer<ArrayBufferLike>,
+    @UploadedFile() logo_image_file?: Express.Multer.File,
   ): Promise<TeamApiModel> {
     const team = await Team.findByPk(teamId)
     if (!team) {
@@ -201,7 +209,7 @@ export class TeamsController extends Controller {
     team.description = description
     team.country = country
     if (logo_image_file) {
-      team.logo_image_file = logo_image_file
+      team.logo_image_file = logo_image_file.buffer
     }
     
     await team.save()

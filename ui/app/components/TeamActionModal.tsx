@@ -147,6 +147,7 @@ const TeamActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, isEd
                   hover:file:bg-blue-800"
                 id="team-logo"
                 type="file"
+                required
                 onChange={handleImageChange}
               />
             </div>
