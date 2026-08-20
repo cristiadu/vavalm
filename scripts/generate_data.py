@@ -25,8 +25,9 @@ except ImportError:
     print("- For Ubuntu/Debian: apt-get install libcairo2-dev")
     print("- For Windows: pip install cairosvg")
 
-# API base URL
-API_BASE_URL = "http://localhost:8000/api"
+# API base URL. Defaults to the local stack; override with --api-url or
+# API_BASE_URL to seed a deployed environment.
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api")
 
 # JWT token for authentication
 JWT_TOKEN = None
@@ -1062,10 +1063,16 @@ def main():
     
     # Authentication options
     parser.add_argument("--token", type=str, help="JWT token for API authentication")
+    parser.add_argument("--api-url", type=str, help="API base URL (default: $API_BASE_URL or http://localhost:8000/api)")
     
     args = parser.parse_args()
 
     dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), '../api/.env'))
+
+    if args.api_url:
+        global API_BASE_URL
+        API_BASE_URL = args.api_url.rstrip("/")
+    print(f"Targeting API: {API_BASE_URL}")
     
     # Set JWT token if provided
     if args.token:
