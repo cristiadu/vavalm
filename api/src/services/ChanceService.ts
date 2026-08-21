@@ -130,6 +130,7 @@ const ChanceService = {
 
   /**
    * Gets the buff to the percentage of being selected for a trade duel based on the player's role.
+   * It also increases the percentage chance of a trade duel occurring after a player wins a duel.
    *
    * @param {Player} player - The player whose role is used to determine the buff.
    * @returns {number} - The buff to the percentage (between 0.0 and 0.99) of being selected for a trade duel.
@@ -137,17 +138,17 @@ const ChanceService = {
   getTradeSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.DUELIST:
-      return 0.30
+      return 0.40
     case PlayerRole.CONTROLLER:
       return 0.15
     case PlayerRole.FLEX:
-      return 0.30
+      return 0.35
     case PlayerRole.INITIATOR:
       return 0.20
     case PlayerRole.IGL:
       return 0.15
     case PlayerRole.SENTINEL:
-      return 0.18
+      return 0.20
     default:
       return 0
     }
@@ -155,7 +156,6 @@ const ChanceService = {
 
   /**
    * Gets the buff to the percentage of being selected for a regular duel based on the player's role.
-   * Duelist/Initiator stay clearly ahead; IGL/Controller/Sentinel stay in the pool so they are not never picked.
    *
    * @param {Player} player - The player whose role is used to determine the buff.
    * @returns {number} - The buff to the percentage (between 0.0 and 0.99) of being selected for a regular duel.
@@ -163,17 +163,17 @@ const ChanceService = {
   getDuelSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.DUELIST:
-      return 0.30
+      return 0.40
     case PlayerRole.CONTROLLER:
-      return 0.10
+      return 0.05
     case PlayerRole.FLEX:
       return 0.15
     case PlayerRole.INITIATOR:
-      return 0.30
+      return 0.40
     case PlayerRole.IGL:
-      return 0.10
+      return 0.05
     case PlayerRole.SENTINEL:
-      return 0.10
+      return 0.05
     default:
       return 0
     }

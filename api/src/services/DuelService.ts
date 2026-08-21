@@ -5,18 +5,7 @@ import Player, { PlayerDuel, PlayerDuelResults } from "@/models/Player"
 import ChanceService from "@/services/ChanceService"
 import { Weapon } from "@/models/enums"
 
-/** Base chance a duel win starts a trade; the winner's trade select buff is added on top. */
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
-
-/**
- * Baseline added to the raw attribute score before the single applicable role win buff.
- * When attributes and roles both match, both sides still get the same weight (coin flip).
- * When attributes match but roles differ, the win buffs still change the odds a little.
- */
-const BASE_DUEL_CHANCE: number = 1
-
-/** Divisor used to turn a crypto integer into a random number in [0, 1). */
-const RANDOM_ZERO_TO_ONE_MAX: number = 1_000_000_000
 
 const DuelService = {
   /**
@@ -39,7 +28,7 @@ const DuelService = {
   /**
    * Calculates the chance that a duel winner starts a trade duel.
    *
-   * @param duelWinner - Winner of the prior duel; their trade select buff raises the trade-start chance.
+   * @param duelWinner - Player whose role supplies the trade selection buff.
    * @returns Trade probability from zero to one.
    */
   getTradeChance: (duelWinner: Player): number => {
@@ -179,11 +168,12 @@ const DuelService = {
 
   /**
    * Determines the winner of a duel between two players based on their chances and buffs.
-   *
-   * @param duel - The duel object containing the two players and whether this is a trade.
-   * @returns The results of the duel, including the winner, loser, and whether a trade duel should start.
+   * 
+   * @param duel - The duel object containing the two players and their respective chances.
+   * @returns {PlayerDuelResults} - The results of the duel, including the winner, loser, and whether a trade duel should start.
    */
   pickDuelWinner: (duel: PlayerDuel): PlayerDuelResults => {
+    // Retrieve the duel chances for both players, including any buffs
     const duelChances = DuelService.getDuelChancesWithBuffs(duel)
 
     if (!duelChances ||
@@ -192,14 +182,11 @@ const DuelService = {
       throw new Error('Invalid duel chances: chancesPlayer1 and chancesPlayer2 must be valid finite numbers')
     }
 
-    // Random number in [0, 1) so P(player1 wins) === chancesPlayer1 / total (no Math.ceil bias toward team1).
-    const randomZeroToOne = randomInt(0, RANDOM_ZERO_TO_ONE_MAX) / RANDOM_ZERO_TO_ONE_MAX
-    const winnerSide = DuelService.pickWinnerSide(
-      duelChances.chancesPlayer1,
-      duelChances.chancesPlayer2,
-      randomZeroToOne,
-    )
-    const winner = winnerSide === 1 ? duel.player1 : duel.player2
+    // Generate a random number between 0 and the sum of both players' chances
+    const randomNumber = randomInt(0, Math.ceil(duelChances.chancesPlayer1 + duelChances.chancesPlayer2))
+
+    // Determine the winner based on the random number
+    const winner = randomNumber < duelChances.chancesPlayer1 ? duel.player1 : duel.player2
     console.debug(`Player ${winner.nickname} won the duel against ${winner === duel.player1 ? duel.player2.nickname : duel.player1.nickname}!`)
     return {
       winner: winner.toApiModel(),
@@ -209,59 +196,51 @@ const DuelService = {
   },
 
   /**
-   * Picks player 1 or 2 from their chance weights and a random number in [0, 1).
-   *
-   * @param chancesPlayer1 - Win weight for player 1 after attributes and the single applicable win buff.
-   * @param chancesPlayer2 - Win weight for player 2 after attributes and the single applicable win buff.
-   * @param randomZeroToOne - Random number in [0, 1).
-   * @returns 1 if player 1 wins, 2 if player 2 wins.
-   */
-  pickWinnerSide: (
-    chancesPlayer1: number,
-    chancesPlayer2: number,
-    randomZeroToOne: number,
-  ): 1 | 2 => {
-    const total = chancesPlayer1 + chancesPlayer2
-    return randomZeroToOne < (chancesPlayer1 / total) ? 1 : 2
-  },
-
-  /**
    * Determines if a trade should happen after a player wins a duel.
-   *
+   * The decision is based on a base chance and an additional buff specific to the player's role.
+   * 
    * @param duelWinner - The player who won the duel.
-   * @returns True if a trade should happen, false otherwise.
+   * @returns {boolean} - True if a trade should happen, false otherwise.
    */
   shouldTradeHappen(duelWinner: Player): boolean {
+    // Calculate the total trade chance
     const tradeChance = DuelService.getTradeChance(duelWinner)
+
+    // Determine if a trade should happen based on the calculated chance
     return randomInt(0, 100) < tradeChance * 100
   },
 
   /**
-   * Calculates win weights for both players using attributes plus exactly one role win buff.
-   * Regular duels use only the duel win buff; trades use only the trade win buff.
+   * Calculates the chances of winning for each player in a duel, considering buffs based on player roles and whether the duel is a trade.
    *
-   * @param duel - The duel (players + whether it is a trade).
-   * @returns Win weights for player 1 and player 2.
+   * This function first determines the appropriate buffs for each player based on their roles and whether the duel is a trade.
+   * It then calculates the base chances of winning for each player using their attributes and applies the buffs to these chances.
+   *
+   * @param {PlayerDuel} duel - The duel object containing information about the players and whether the duel is a trade.
+   * @param {Player} duel.player1 - The first player in the duel.
+   * @param {Player} duel.player2 - The second player in the duel.
+   * @param {boolean} duel.isTrade - Indicates whether the duel is a trade.
+   * @returns {{chancesPlayer1: number, chancesPlayer2: number}} - An object containing the chances of winning for each player.
    */
   getDuelChancesWithBuffs: (duel: PlayerDuel): { chancesPlayer1: number, chancesPlayer2: number } => {
-    const winBuffFor = (player: Player): number => (
-      duel.isTrade
-        ? ChanceService.getTradeWinBuffByPlayerRole(player)
-        : ChanceService.getDuelWinBuffByPlayerRole(player)
-    )
+    const player1DuelBuff = !duel.isTrade ? ChanceService.getDuelWinBuffByPlayerRole(duel.player1) : 0
+    const player1TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player1) : 0
+    const player2DuelBuff = !duel.isTrade ? ChanceService.getDuelWinBuffByPlayerRole(duel.player2) : 0
+    const player2TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player2) : 0
 
-    const rawChances = ChanceService.getSumOfAttributesChances(duel.player1, duel.player2)
-    return {
-      chancesPlayer1: (BASE_DUEL_CHANCE + rawChances.chancesPlayer1) * (1 + winBuffFor(duel.player1)),
-      chancesPlayer2: (BASE_DUEL_CHANCE + rawChances.chancesPlayer2) * (1 + winBuffFor(duel.player2)),
-    }
+    const duelChances = ChanceService.getSumOfAttributesChances(duel.player1, duel.player2)
+    duelChances.chancesPlayer1 = Math.max(1, duelChances.chancesPlayer1 * (1 + player1DuelBuff + player1TradeBuff))
+    duelChances.chancesPlayer2 = Math.max(1, duelChances.chancesPlayer2 * (1 + player2DuelBuff + player2TradeBuff))
+
+    return duelChances
   },
 
   /**
    * Randomly selects a weapon from the list of available Valorant weapons.
-   *
-   * @returns The randomly selected Valorant weapon.
-   */
+   * 
+   * @returns {Weapon} - The randomly selected Valorant weapon.
+   * 
+   **/
   randomValorantWeapon: (): Weapon =>  {
     const weapons = Object.values(Weapon)
     return weapons[Math.floor(Math.random() * weapons.length)]
