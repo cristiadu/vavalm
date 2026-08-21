@@ -9,8 +9,9 @@ import { Weapon } from "@/models/enums"
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
 /**
- * Baseline added to the raw attribute score before role win buffs so equal-attribute
- * duels still reflect duel/trade win buffs instead of collapsing to a 1-vs-1 coin flip.
+ * Baseline added to the raw attribute score before the single applicable role win buff.
+ * When attributes and roles both match, both sides still get the same weight (coin flip).
+ * When attributes match but roles differ, the win buffs still change the odds a little.
  */
 const BASE_DUEL_CHANCE: number = 1
 

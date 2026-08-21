@@ -265,7 +265,7 @@ All 16 attribute contributions are summed to produce a raw win-chance score per 
 A single duel proceeds as follows:
 
 1. **Player selection** — Each alive player is duplicated in a weighted array by their select buff (`getDuelSelectBuffByPlayerRole` for regular, `getTradeSelectBuffByPlayerRole` for trades). A random index picks the duelling players.
-2. **Win-chance calculation** — Sum all attribute contributions for each player (attribute vs counter), add a baseline of 1, then multiply by `1 + duel_win_buff` on regular duels or `1 + trade_win_buff` on trades (never both). The baseline keeps role win buffs meaningful when attribute scores tie at zero.
+2. **Win-chance calculation** — Sum all attribute contributions for each player (attribute vs counter), add a baseline of 1, then multiply by `1 + duel_win_buff` on regular duels or `1 + trade_win_buff` on trades (never both). Matching attributes and roles stay a coin flip; matching attributes with different roles still apply the win buffs.
 3. **Winner draw** — A random number in `[0, 1)` decides the winner with probability `chancesPlayer1 / (chancesPlayer1 + chancesPlayer2)`. Team side does not add bias beyond those weights.
 4. **Loser removed** — The losing player is removed from that team's alive list.
 5. **Trade check** — Flat 10% chance a trade starts after a win. Trade select buffs only affect who is picked to answer that trade; trade win buffs only affect the trade duel odds.
