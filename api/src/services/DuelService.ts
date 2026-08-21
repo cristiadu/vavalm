@@ -192,11 +192,6 @@ const DuelService = {
       throw new Error('Invalid duel chances: chancesPlayer1 and chancesPlayer2 must be valid finite numbers')
     }
 
-    const total = duelChances.chancesPlayer1 + duelChances.chancesPlayer2
-    if (!(total > 0)) {
-      throw new Error('Invalid duel chances: total chance must be greater than zero')
-    }
-
     // Random number in [0, 1) so P(player1 wins) === chancesPlayer1 / total (no Math.ceil bias toward team1).
     const randomZeroToOne = randomInt(0, RANDOM_ZERO_TO_ONE_MAX) / RANDOM_ZERO_TO_ONE_MAX
     const winnerSide = DuelService.pickWinnerSide(
