@@ -233,7 +233,8 @@ Each player has a role that determines their probability weights during duels. R
 
 - **Duel win/select buff** — applied only to regular (non-trade) duels
 - **Trade win/select buff** — applied only when a trade duel is triggered (see below)
-- Select buffs weight who is picked; they do **not** change how often a trade starts
+- Select buffs weight who is picked for a duel or trade answer, and the winner's trade select buff also raises how often a trade starts
+
 
 ### Player Attributes
 
@@ -268,7 +269,7 @@ A single duel proceeds as follows:
 2. **Win-chance calculation** — Sum all attribute contributions for each player (attribute vs counter), add a baseline of 1, then multiply by `1 + duel_win_buff` on regular duels or `1 + trade_win_buff` on trades (never both). Matching attributes and roles stay a coin flip; matching attributes with different roles still apply the win buffs.
 3. **Winner draw** — A random number in `[0, 1)` decides the winner with probability `chancesPlayer1 / (chancesPlayer1 + chancesPlayer2)`. Team side does not add bias beyond those weights.
 4. **Loser removed** — The losing player is removed from that team's alive list.
-5. **Trade check** — Flat 10% chance a trade starts after a win. Trade select buffs only affect who is picked to answer that trade; trade win buffs only affect the trade duel odds.
+5. **Trade check** — Base trade chance is 10%, plus the winner's `getTradeSelectBuffByPlayerRole`. The next duel is a trade if that roll hits; trade select picks who answers, and only trade win buffs apply to that duel.
 
 ### Round & Game Scoring
 

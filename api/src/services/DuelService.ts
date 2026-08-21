@@ -5,7 +5,7 @@ import Player, { PlayerDuel, PlayerDuelResults } from "@/models/Player"
 import ChanceService from "@/services/ChanceService"
 import { Weapon } from "@/models/enums"
 
-/** Flat chance that any duel win starts a trade. Select buffs only affect who is picked for that trade. */
+/** Base chance a duel win starts a trade; the winner's trade select buff is added on top. */
 const BASE_TRADE_CHANCE_PERCENTAGE: number = 0.10
 
 /**
@@ -38,13 +38,12 @@ const DuelService = {
 
   /**
    * Calculates the chance that a duel winner starts a trade duel.
-   * Trade occurrence uses a flat base rate; trade select buffs only weight who answers the trade.
    *
-   * @param _duelWinner - Winner of the prior duel (reserved for callers; not used for rate).
+   * @param duelWinner - Winner of the prior duel; their trade select buff raises the trade-start chance.
    * @returns Trade probability from zero to one.
    */
-  getTradeChance: (_duelWinner: Player): number => {
-    return BASE_TRADE_CHANCE_PERCENTAGE
+  getTradeChance: (duelWinner: Player): number => {
+    return Math.min(BASE_TRADE_CHANCE_PERCENTAGE + ChanceService.getTradeSelectBuffByPlayerRole(duelWinner), 1)
   },
 
   /**

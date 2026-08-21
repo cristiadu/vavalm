@@ -97,11 +97,11 @@ describe('Duel mechanics', () => {
     })
   })
 
-  it('uses a flat base trade-start chance (select buffs do not change trade rate)', () => {
-    // WHEN / THEN
-    expect(DuelService.getTradeChance(duelist)).toBe(0.1)
-    expect(DuelService.getTradeChance(igl)).toBe(0.1)
-    expect(DuelService.getTradeChance(sentinel)).toBe(0.1)
+  it('calculates trade-start chance from the base rate plus the winner trade select buff', () => {
+    // WHEN / THEN — previous winner's role raises how often a trade starts
+    expect(DuelService.getTradeChance(duelist)).toBe(0.4)
+    expect(DuelService.getTradeChance(igl)).toBe(0.25)
+    expect(DuelService.getTradeChance(sentinel)).toBe(0.28)
   })
 
   it('resolves equal float chances without favoring player1', () => {
