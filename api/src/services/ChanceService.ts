@@ -163,17 +163,17 @@ const ChanceService = {
   getDuelSelectBuffByPlayerRole: (player: Player): number => {
     switch (player.role) {
     case PlayerRole.DUELIST:
-      return 0.40
+      return 0.30
     case PlayerRole.CONTROLLER:
-      return 0.05
+      return 0.10
     case PlayerRole.FLEX:
       return 0.15
     case PlayerRole.INITIATOR:
-      return 0.40
+      return 0.30
     case PlayerRole.IGL:
-      return 0.05
+      return 0.10
     case PlayerRole.SENTINEL:
-      return 0.05
+      return 0.10
     default:
       return 0
     }

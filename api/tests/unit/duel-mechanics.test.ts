@@ -61,14 +61,27 @@ describe('Duel mechanics', () => {
     })
     expect(DuelService.getDuelChancesWithBuffs({ player1: duelist, player2: igl, isTrade: true })).toEqual({
       chancesPlayer1: 67.19999999999999,
-      chancesPlayer2: 1,
+      chancesPlayer2: 1.1,
+    })
+  })
+
+  it('keeps role win buffs when raw attribute scores are zero', () => {
+    const equalDuelist = playerWith(10, PlayerRole.DUELIST, 2)
+    const equalSentinel = playerWith(11, PlayerRole.SENTINEL, 2)
+    expect(DuelService.getDuelChancesWithBuffs({
+      player1: equalDuelist,
+      player2: equalSentinel,
+      isTrade: false,
+    })).toEqual({
+      chancesPlayer1: 1.3,
+      chancesPlayer2: 1.05,
     })
   })
 
   it('builds exact regular and trade selection pools', () => {
     expect(countPlayers(DuelService.getPlayerSelectionPool([duelist, igl], false))).toEqual({
-      1: 40,
-      2: 5,
+      1: 30,
+      2: 10,
     })
     expect(countPlayers(DuelService.getPlayerSelectionPool([duelist, igl], true))).toEqual({
       1: 40,

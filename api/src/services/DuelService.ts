@@ -182,8 +182,10 @@ const DuelService = {
       throw new Error('Invalid duel chances: chancesPlayer1 and chancesPlayer2 must be valid finite numbers')
     }
 
-    // Generate a random number between 0 and the sum of both players' chances
-    const randomNumber = randomInt(0, Math.ceil(duelChances.chancesPlayer1 + duelChances.chancesPlayer2))
+    // Generate a random number in [0, total) so each side's share matches its chance weight.
+    // Avoid Math.ceil(total): equal float chances were biased toward player1 (~55/45).
+    const total = duelChances.chancesPlayer1 + duelChances.chancesPlayer2
+    const randomNumber = (randomInt(0, 1_000_000_000) / 1_000_000_000) * total
 
     // Determine the winner based on the random number
     const winner = randomNumber < duelChances.chancesPlayer1 ? duel.player1 : duel.player2
@@ -229,8 +231,10 @@ const DuelService = {
     const player2TradeBuff = duel.isTrade ? ChanceService.getTradeWinBuffByPlayerRole(duel.player2) : 0
 
     const duelChances = ChanceService.getSumOfAttributesChances(duel.player1, duel.player2)
-    duelChances.chancesPlayer1 = Math.max(1, duelChances.chancesPlayer1 * (1 + player1DuelBuff + player1TradeBuff))
-    duelChances.chancesPlayer2 = Math.max(1, duelChances.chancesPlayer2 * (1 + player2DuelBuff + player2TradeBuff))
+    // Floor raw at 1 before the buff so a zero attribute score still keeps role win buffs;
+    // equal attrs + equal roles stay equal (coin flip).
+    duelChances.chancesPlayer1 = Math.max(1, duelChances.chancesPlayer1) * (1 + player1DuelBuff + player1TradeBuff)
+    duelChances.chancesPlayer2 = Math.max(1, duelChances.chancesPlayer2) * (1 + player2DuelBuff + player2TradeBuff)
 
     return duelChances
   },
