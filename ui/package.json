@@ -22,6 +22,7 @@
     "generate:client": "pnpm openapi --input ../api/docs/openapi.yaml --output ./app/api/generated --client fetch --name VavalMApi --indent 2"
   },
   "dependencies": {
+    "@swc/helpers": "^0.5.23",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",

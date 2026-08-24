@@ -171,6 +171,9 @@ importers:
 
   ui:
     dependencies:
+      '@swc/helpers':
+        specifier: ^0.5.23
+        version: 0.5.23
       '@tailwindcss/postcss':
         specifier: ^4.3.3
         version: 4.3.3
