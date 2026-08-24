@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "desktop:build": "pnpm --filter @cristiadu/vavalm-api build && NEXT_OUTPUT_STANDALONE=true pnpm --filter @cristiadu/vavalm-ui build && pnpm --filter @cristiadu/vavalm-desktop build",
+    "desktop:package": "pnpm desktop:build && pnpm --filter @cristiadu/vavalm-desktop exec electron-builder",
+    "desktop:start": "pnpm --filter @cristiadu/vavalm-desktop start",
     "create-env-file": "turbo create-env-file",
     "start": "pnpm --parallel -r start",
     "dev:docker:build": "docker compose build",
@@ -30,9 +33,9 @@
   },
   "packageManager": "pnpm@11.9.0",
   "devDependencies": {
-    "@types/node": "^26.1.2",
-    "knip": "^6.31.0",
-    "turbo": "^2.10.8",
+    "@types/node": "^26.2.0",
+    "knip": "^6.32.2",
+    "turbo": "^2.10.11",
     "typescript": "^6.0.3"
   },
   "workspaces": [
