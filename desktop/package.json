@@ -55,6 +55,7 @@
     "appId": "com.cristiadu.vavalm",
     "productName": "VaValM",
     "executableName": "VaValM",
+    "artifactName": "VaValM-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "release"
     },
