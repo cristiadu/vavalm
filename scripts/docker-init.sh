@@ -11,4 +11,7 @@ fi
 
 # Build images if missing or outdated, then start and wait for health checks
 echo "Starting containers (building if needed)..."
-docker compose up -d --wait --build
+if ! docker compose up -d --wait --build; then
+  docker compose logs
+  exit 1
+fi
