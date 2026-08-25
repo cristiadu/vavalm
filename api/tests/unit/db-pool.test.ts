@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolvePoolBounds } from '@/models/db'
+import { resolveDatabaseDialectOptions, resolvePoolBounds } from '@/models/db'
 import { MATCH_WORKER_POOL_MAX, MAX_CONCURRENT_MATCHES } from '@/models/constants'
 import config from '@/config/config.json'
 
@@ -39,5 +39,34 @@ describe('Database connection pool sizing', () => {
     const worstCase = resolvePoolBounds(true).max + MAX_CONCURRENT_MATCHES * resolvePoolBounds(false).max
 
     expect(worstCase).toBeLessThan(DEFAULT_POSTGRES_MAX_CONNECTIONS)
+  })
+})
+
+describe('Database transport security', () => {
+  it('keeps verified TLS enabled by default', () => {
+    // GIVEN no desktop-specific database override
+    const databaseSsl = undefined
+
+    // WHEN database dialect options are resolved
+    const dialectOptions = resolveDatabaseDialectOptions(databaseSsl)
+
+    // THEN certificate verification remains required
+    expect(dialectOptions).toEqual({
+      ssl: {
+        require: true,
+        rejectUnauthorized: true,
+      },
+    })
+  })
+
+  it('disables TLS only for the embedded loopback database', () => {
+    // GIVEN the explicit desktop database override
+    const databaseSsl = 'false'
+
+    // WHEN database dialect options are resolved
+    const dialectOptions = resolveDatabaseDialectOptions(databaseSsl)
+
+    // THEN Sequelize receives no TLS options
+    expect(dialectOptions).toEqual({})
   })
 })

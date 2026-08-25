@@ -8,14 +8,16 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 /**
- * Webpack configuration function
- * @param {object} _env - Environment variables
- * @param {object} argv - CLI arguments
- * @returns {webpack.Configuration} Webpack configuration object
+ * Build the API Webpack configuration for development, production, or desktop packaging.
+ *
+ * @param {Record<string, boolean | string>} _env - Webpack environment variables.
+ * @param {{ mode?: 'development' | 'none' | 'production' }} argv - Webpack CLI arguments.
+ * @returns {webpack.Configuration} Webpack configuration object.
  */
 export default (_env, argv) => {
   const isProduction = argv.mode === 'production'
-  console.log(`Building in ${isProduction ? 'production' : 'development'} mode`)
+  const isDesktop = process.env.VAVALM_DESKTOP_BUILD === 'true'
+  console.info(`Building in ${isProduction ? 'production' : 'development'} mode`)
 
   return {
     entry: './src/index.ts',
@@ -50,7 +52,7 @@ export default (_env, argv) => {
         type: 'module',
       },
     },
-    externals: {
+    externals: isDesktop ? undefined : {
       pg: 'module pg',
       express: 'module express',
       sequelize: 'module sequelize',

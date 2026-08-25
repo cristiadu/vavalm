@@ -1,9 +1,16 @@
 import { Sequelize, Dialect } from 'sequelize'
 import { isMainThread } from 'worker_threads'
+import pg from 'pg'
 import config from '@/config/config.json'
 import { MATCH_WORKER_POOL_MAX } from '@/models/constants'
 
 type Environment = 'development' | 'test' | 'production'
+type DatabaseDialectOptions = {
+  ssl?: {
+    require: boolean
+    rejectUnauthorized: boolean
+  }
+}
 const env = (process.env.NODE_ENV || 'development') as Environment
 const dbConfig = config[env]
 
@@ -24,6 +31,20 @@ export const resolvePoolBounds = (onMainThread: boolean): { max: number, min: nu
   }
 
   return { max: Math.min(MATCH_WORKER_POOL_MAX, dbConfig.pool.max), min: 0 }
+}
+
+/**
+ * Resolve verified TLS for remote databases or plaintext for the loopback desktop database.
+ *
+ * @param databaseSsl - Raw DATABASE_SSL environment value.
+ * @returns Sequelize dialect options for the requested transport security.
+ */
+export const resolveDatabaseDialectOptions = (databaseSsl: string | undefined): DatabaseDialectOptions => {
+  if (databaseSsl === 'false') {
+    return {}
+  }
+
+  return { ssl: { require: true, rejectUnauthorized: true } }
 }
 
 const poolBounds = resolvePoolBounds(isMainThread)
@@ -52,14 +73,14 @@ const poolOptions = {
  * sslmode and let this apply, or set `sslmode=verify-full` explicitly.
  */
 const databaseUrl = process.env.DATABASE_URL
+const databaseDialectOptions = resolveDatabaseDialectOptions(process.env.DATABASE_SSL)
 
 const sequelize = databaseUrl
   ? new Sequelize(databaseUrl, {
     dialect: 'postgres',
+    dialectModule: pg,
     pool: poolOptions,
-    dialectOptions: {
-      ssl: { require: true, rejectUnauthorized: true },
-    },
+    dialectOptions: databaseDialectOptions,
     logging: false,
   })
   : new Sequelize(
@@ -69,17 +90,22 @@ const sequelize = databaseUrl
     {
       host: dbConfig.host,
       dialect: dbConfig.dialect as Dialect,
+      dialectModule: pg,
       pool: poolOptions,
       logging: false,
     },
   )
 
-// Add connection validation with retries
+/**
+ * Validate the database connection with bounded exponential-backoff retries.
+ *
+ * @param attempts - Maximum number of authentication attempts.
+ */
 const validateConnection = async (attempts = 3): Promise<void> => {
   for (let i = 0; i < attempts; i++) {
     try {
       await sequelize.authenticate()
-      console.log('Database connection established successfully.')
+      console.info('Database connection established successfully.')
       return
     } catch (error) {
       console.error(`Unable to connect to the database (attempt ${i + 1}/${attempts}):`, error)
@@ -93,21 +119,21 @@ const validateConnection = async (attempts = 3): Promise<void> => {
   }
 }
 
-// Add connection pool monitoring
+/** Report whether a connection can be borrowed from the Sequelize pool. */
 const monitorPool = (): void => {
   setInterval(async () => {
     const pool = sequelize.connectionManager
     try {
       const connection = await pool.getConnection({ type: 'read' })
-      console.log('Pool status - Connection available')
+      console.info('Pool status - Connection available')
       pool.releaseConnection(connection)
     } catch {
-      console.log('Pool status - No connection available')
+      console.info('Pool status - No connection available')
     }
   }, 60000) // Log every minute
 }
 
-// Initialize connection and monitoring
+/** Validate the initial database connection and start pool monitoring. */
 const initializeDatabase = async (): Promise<void> => {
   try {
     await validateConnection()
@@ -118,19 +144,19 @@ const initializeDatabase = async (): Promise<void> => {
   }
 }
 
-// Graceful shutdown
+/** Close the Sequelize connection during process shutdown. */
 const shutdown = async (): Promise<void> => {
   try {
     await sequelize.close()
-    console.log('Database connection closed.')
+    console.info('Database connection closed.')
   } catch (error) {
     console.error('Error closing database connection:', error)
   }
 }
 
 // Handle process termination
-process.on('SIGINT', shutdown)
-process.on('SIGTERM', shutdown)
+process.on('SIGINT', () => void shutdown())
+process.on('SIGTERM', () => void shutdown())
 
 const db = {
   sequelize,
