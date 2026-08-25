@@ -113,6 +113,12 @@
         "nsis",
         "portable"
       ]
+    },
+    "nsis": {
+      "artifactName": "VaValM-${version}-${os}-${arch}-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "VaValM-${version}-${os}-${arch}-portable.${ext}"
     }
   }
 }

@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   package:
+    name: package (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -24,9 +25,11 @@ jobs:
           - os: macos-latest
             artifact_path: 'desktop/release/*.dmg'
           - os: ubuntu-latest
-            artifact_path: 'desktop/release/**'
+            artifact_path: |
+              desktop/release/*.AppImage
+              desktop/release/*.deb
           - os: windows-latest
-            artifact_path: 'desktop/release/**'
+            artifact_path: 'desktop/release/*.exe'
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
