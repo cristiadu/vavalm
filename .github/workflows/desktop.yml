@@ -2,6 +2,8 @@ name: Build Desktop Apps
 
 on:
   workflow_dispatch:
+  release:
+    types: [published]
   pull_request:
     paths:
       - 'api/**'
@@ -47,6 +49,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
+      - name: Verify release version
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        shell: bash
+        run: |
+          package_version="$(node -p "require('./desktop/package.json').version")"
+          test "$RELEASE_TAG" = "v$package_version"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -64,3 +75,24 @@ jobs:
           name: vavalm-${{ runner.os }}-${{ runner.arch }}
           path: ${{ matrix.artifact_path }}
           if-no-files-found: error
+
+  release:
+    name: upload GitHub Release assets
+    if: github.event_name == 'release'
+    needs: package
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: vavalm-*
+          path: release
+          merge-multiple: true
+
+      - name: Upload installers to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" release/* --clobber
