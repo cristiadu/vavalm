@@ -8,7 +8,7 @@ import EmbeddedPostgres from 'embedded-postgres'
 import {
   createDesktopServerConfig,
   resolveDesktopServerPaths,
-} from '@/runtime-config.js'
+} from '@/runtime-config'
 
 const LOOPBACK_HOST = '127.0.0.1'
 const DATABASE_NAME = 'vavalm'

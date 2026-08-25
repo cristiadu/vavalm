@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createDesktopServerConfig,
   resolveDesktopServerPaths,
-} from '@/runtime-config.js'
+} from '@/runtime-config'
 
 describe('Desktop runtime configuration', () => {
   it('resolves packaged server resources', () => {

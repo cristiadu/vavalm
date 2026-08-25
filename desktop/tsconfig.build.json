@@ -3,5 +3,9 @@
   "compilerOptions": {
     "rootDir": "src"
   },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "resolveFullExtension": ".js"
+  },
   "include": ["src/**/*.ts"]
 }
