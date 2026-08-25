@@ -53,6 +53,7 @@
   "build": {
     "appId": "com.cristiadu.vavalm",
     "productName": "VaValM",
+    "executableName": "VaValM",
     "directories": {
       "output": "release"
     },

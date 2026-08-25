@@ -8,7 +8,7 @@ import {
 describe('Desktop runtime configuration', () => {
   it('resolves packaged server resources', () => {
     // GIVEN a packaged application resource directory
-    const resourcesPath = path.join(path.sep, 'opt', 'VaValM', 'resources')
+    const resourcesPath = path.resolve('opt', 'VaValM', 'resources')
 
     // WHEN its bundled server paths are resolved
     const paths = resolveDesktopServerPaths(true, resourcesPath, path.join(path.sep, 'unused'))
@@ -22,15 +22,16 @@ describe('Desktop runtime configuration', () => {
 
   it('resolves development build resources', () => {
     // GIVEN the compiled desktop module directory
-    const moduleDirectory = path.join(path.sep, 'workspace', 'desktop', 'dist')
+    const workspaceDirectory = path.resolve('workspace')
+    const moduleDirectory = path.join(workspaceDirectory, 'desktop', 'dist')
 
     // WHEN its local server paths are resolved
     const paths = resolveDesktopServerPaths(false, path.join(path.sep, 'unused'), moduleDirectory)
 
     // THEN both servers point at their workspace build outputs
     expect(paths).toEqual({
-      apiRoot: path.join(path.sep, 'workspace', 'api'),
-      uiRoot: path.join(path.sep, 'workspace', 'ui', '.next', 'standalone', 'ui'),
+      apiRoot: path.join(workspaceDirectory, 'api'),
+      uiRoot: path.join(workspaceDirectory, 'ui', '.next', 'standalone', 'ui'),
     })
   })
 
