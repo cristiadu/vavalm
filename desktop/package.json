@@ -8,7 +8,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "pnpm tsc --project tsconfig.build.json && pnpm tsc-alias --project tsconfig.build.json",
-    "build:resources": "pnpm --dir .. create-env-file && pnpm --filter @cristiadu/vavalm-api build:desktop && cross-env NEXT_OUTPUT_STANDALONE=true NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:18000/api pnpm --filter @cristiadu/vavalm-ui build:desktop",
+    "build:resources": "pnpm --dir .. create-env-file && pnpm --filter @cristiadu/vavalm-api build:desktop && cross-env NEXT_OUTPUT_STANDALONE=true NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:18000/api pnpm --filter @cristiadu/vavalm-ui build",
     "dev": "pnpm build:resources && pnpm build && electron .",
     "dist": "pnpm build:resources && pnpm build && electron-builder --publish never",
     "lint": "pnpm eslint . --config eslint.config.js && pnpm tsc --project tsconfig.json --noEmit",
