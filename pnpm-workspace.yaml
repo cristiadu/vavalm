@@ -1,8 +1,18 @@
 packages:
   - 'api'
+  - 'desktop'
   - 'ui'
 allowBuilds:
+  '@embedded-postgres/darwin-arm64': true
+  '@embedded-postgres/darwin-x64': true
+  '@embedded-postgres/linux-arm': true
+  '@embedded-postgres/linux-arm64': true
+  '@embedded-postgres/linux-ia32': true
+  '@embedded-postgres/linux-ppc64': true
+  '@embedded-postgres/linux-x64': true
+  '@embedded-postgres/windows-x64': true
   '@scarf/scarf': false
+  electron-winstaller: true
   sharp: true
 # only install package versions published at least 3 days ago (supply-chain protection)
 minimumReleaseAge: 4320

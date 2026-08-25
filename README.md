@@ -87,6 +87,25 @@ pnpm localdb dev
 - `pnpm generate:spec` - Generate OpenAPI specification
 - `pnpm generate:client` - Regenerate TypeScript clients from OpenAPI spec (run after schema changes)
 
+## Desktop App
+
+The Electron app packages the UI, API, and a private PostgreSQL 18 runtime into
+one desktop application. It does not require Docker, Node.js, pnpm, or a system
+PostgreSQL installation on the destination computer. Database files persist in
+the operating system's per-user VaValM application-data directory.
+
+- `pnpm desktop:dev` - Build the desktop resources and open the Electron app
+- `pnpm desktop:dist` - Create an installer for the current operating system
+
+Desktop builds use `127.0.0.1:13000` for the bundled UI and
+`127.0.0.1:18000` for the bundled API, leaving the normal development ports
+`3000` and `8000` untouched. The embedded database selects an available private
+port automatically and is started and stopped with the app.
+
+Installers are written to `desktop/release/`. Build each target on its native
+operating system; the desktop GitHub Actions workflow produces macOS, Linux,
+and Windows artifacts in parallel.
+
 ## Game Simulation
 
 VaValM simulates Valorant matches using player **attributes** and **roles** to determine outcomes probabilistically.

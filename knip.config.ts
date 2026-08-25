@@ -7,7 +7,10 @@ const config = {
     'api': {
       project: ['src/**/*.{ts,js}', 'tests/**/*.{ts,js,tsx,jsx}'],
       entry: ['src/workers/*.{ts,js}'],
-      ignoreDependencies: ['pg', 'multer', '@types/multer'],
+      ignoreDependencies: ['pg', 'pg-hstore', 'multer', '@types/multer'],
+    },
+    'desktop': {
+      project: ['src/**/*.ts', 'tests/**/*.test.ts'],
     },
     'ui': {
       project: ['**/*.{ts,js,tsx,jsx}'],

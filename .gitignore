@@ -1,5 +1,6 @@
 # dependencies
 node_modules
+/.pnpm-store
 node-compile-cache
 /.pnp
 .pnp.js
@@ -14,6 +15,7 @@ out
 
 # production
 /build
+/desktop/release
 
 # misc
 .DS_Store

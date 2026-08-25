@@ -15,7 +15,8 @@ import { ErrorApiModel } from '@/models/contract/ErrorApiModel'
 import { errorHandler } from '@/middleware/errorHandler'
 
 const app = express()
-const port = process.env.PORT || 8000
+const port = Number(process.env.PORT ?? 8000)
+const host = process.env.HOST || '0.0.0.0'
 
 dotenv.config()
 
@@ -50,7 +51,7 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - startTime
     const sanitizedUrl = req.originalUrl.replace(/\n|\r/g, "")
-    console.log(`${req.method} ${sanitizedUrl} ${res.statusCode} ${duration}ms`)
+    console.info(`${req.method} ${sanitizedUrl} ${res.statusCode} ${duration}ms`)
   })
   
   next()
@@ -82,28 +83,27 @@ app.get('/swagger.yaml', (_req, res) => {
   res.sendFile(path.join(__dirname, '../docs/openapi.yaml'))
 })
 
-// Graceful shutdown
-const gracefulShutdown = (): void => {
-  console.log('Received shutdown signal, closing connections...')
+/** Stop scheduler workers and close database connections on process shutdown. */
+const gracefulShutdown = async (): Promise<void> => {
+  console.info('Received shutdown signal, closing connections...')
 
   // Stop scheduler
   SchedulerService.cleanupWorkers()
 
-  // Close database connection, then let the process end naturally
-  db.sequelize.close()
-    .then(() => {
-      console.log('Database connections closed')
-    })
-    .catch((err: Error) => {
-      console.error('Error closing database connections:', err)
-    })
+  try {
+    await db.sequelize.close()
+    console.info('Database connections closed')
+  } catch (error) {
+    console.error('Error closing database connections:', error)
+  }
 }
 
 // Listen for shutdown signals
-process.on('SIGTERM', gracefulShutdown)
-process.on('SIGINT', gracefulShutdown)
+process.on('SIGTERM', () => void gracefulShutdown())
+process.on('SIGINT', () => void gracefulShutdown())
 
-const initializeApp = async (): Promise<void> => {  
+/** Initialize database state and start the HTTP server. */
+const initializeApp = async (): Promise<void> => {
   try {
     const forceSync = process.env.FORCE_SYNC === 'true'
     
@@ -111,17 +111,17 @@ const initializeApp = async (): Promise<void> => {
     
     // Sync database schema
     await db.sequelize.sync({ force: forceSync })
-    console.log('Database schema synchronized.')
+    console.info('Database schema synchronized.')
 
     // Setup test data
     await setupTestData()
-    console.log('Test data has been created successfully.')
+    console.info('Test data has been created successfully.')
     
     // Start the server
-    app.listen(port, () => {
-      console.info(`Server is running on port ${port}`)
+    app.listen(port, host, () => {
+      console.info(`Server is running on ${host}:${port}`)
       const shouldStartScheduler = process.env.START_SCHEDULER != 'false'
-      console.log('shouldStartScheduler', shouldStartScheduler)
+      console.info('shouldStartScheduler', shouldStartScheduler)
       if (shouldStartScheduler) {
         console.info('Starting match scheduler...')
         SchedulerService.startScheduler()
@@ -133,4 +133,4 @@ const initializeApp = async (): Promise<void> => {
   }
 }
 
-initializeApp()
+void initializeApp()
