@@ -18,7 +18,6 @@
     "build:desktop": "cross-env VAVALM_DESKTOP_BUILD=true pnpm build",
     "start": "wait-on dist/bundle.js && node dist/bundle.js",
     "test": "vitest run --exclude tests/api/pagination.test.ts && vitest run tests/api/pagination.test.ts",
-    "test:unit": "vitest run tests/unit",
     "check-health": "wait-on -t 60000 http://localhost:8000/api/health",
     "test:coverage": "vitest run --coverage",
     "lint": "pnpm eslint . --config  ./eslint.config.js",

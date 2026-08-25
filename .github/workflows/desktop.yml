@@ -42,9 +42,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Test desktop runtime
-        run: |
-          pnpm --filter @cristiadu/vavalm-api test:unit
-          pnpm --filter @cristiadu/vavalm-desktop test
+        run: pnpm --filter @cristiadu/vavalm-desktop test
 
       - name: Build installer
         run: pnpm desktop:dist
