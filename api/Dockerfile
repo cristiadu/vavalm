@@ -84,7 +84,7 @@ EXPOSE $PORT
 
 # Set healthcheck
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=10 \
-    CMD wget -q -O - http://localhost:$PORT/api/health || exit 1
+    CMD wget -q -O - http://127.0.0.1:$PORT/api/health || exit 1
 
 # Run the bundle directly. `pnpm start` would re-verify dependencies on every
 # boot, and its wait-on guard buys nothing here — the build stage already
