@@ -10,8 +10,7 @@ const config = {
       ignoreDependencies: ['pg', 'pg-hstore', 'multer', '@types/multer'],
     },
     'desktop': {
-      entry: ['scripts/**/*.ts'],
-      project: ['scripts/**/*.ts', 'src/**/*.ts', 'tests/**/*.ts', '*.{js,ts}'],
+      project: ['src/**/*.ts', 'tests/**/*.test.ts'],
     },
     'ui': {
       project: ['**/*.{ts,js,tsx,jsx}'],
