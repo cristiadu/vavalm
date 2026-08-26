@@ -105,12 +105,12 @@ port automatically and is started and stopped with the app.
 Installers are written to `desktop/release/`. Build each target on its native
 operating system; the desktop GitHub Actions workflow produces macOS, Linux,
 and Windows artifacts in parallel. Publish a GitHub Release with a tag matching
-`desktop/package.json` (for example, `v2.0.0`) to build and attach those
+`desktop/package.json` (for example, `v1.0.0`) to build and attach those
 installers to the release. The release command creates the tag when it does not
 already exist:
 
 ```bash
-gh release create v2.0.0 --generate-notes --title "VaValM v2.0.0"
+gh release create v1.0.0 --generate-notes --title "VaValM v1.0.0"
 ```
 
 ## Game Simulation
