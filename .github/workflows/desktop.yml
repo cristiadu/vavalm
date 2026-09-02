@@ -78,7 +78,11 @@ jobs:
             pnpm desktop:test
           fi
 
+      # Kept available when the desktop tests fail so the packaged tree can be
+      # inspected. Release assets come from the release job, which only runs
+      # once this one has succeeded.
       - name: Upload installer
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: vavalm-${{ runner.os }}-${{ runner.arch }}
