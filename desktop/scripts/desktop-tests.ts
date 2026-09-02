@@ -1,9 +1,12 @@
 import { spawn } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
   API_HEALTH_URL,
   APPLICATION_NAME,
+  createDesktopServerConfig,
+  resolveDesktopServerPaths,
   STARTUP_LOG_NAME,
   UI_URL,
 } from '../src/runtime-config.ts'
@@ -23,13 +26,18 @@ const STARTUP_LOG_PATHS = [
   path.join(process.env.APPDATA ?? '', APPLICATION_NAME, 'logs', STARTUP_LOG_NAME),
 ]
 
+type PackagedApplication = {
+  executable: string
+  resourcesPath: string
+}
+
 /**
- * Locate the executable in the unpacked build that electron-builder produced.
+ * Locate the unpacked build that electron-builder produced.
  *
  * @param releaseDirectory - Directory holding the electron-builder output.
- * @returns Path to the packaged executable.
+ * @returns The packaged executable and the resources it was bundled with.
  */
-const resolveExecutable = async (releaseDirectory: string): Promise<string> => {
+const resolvePackagedApplication = async (releaseDirectory: string): Promise<PackagedApplication> => {
   const entries = await readdir(releaseDirectory, { withFileTypes: true })
   const unpacked = entries.find(entry => entry.isDirectory() && (
     entry.name === 'win-unpacked' || entry.name.startsWith('linux-') || entry.name.startsWith('mac')
@@ -41,13 +49,14 @@ const resolveExecutable = async (releaseDirectory: string): Promise<string> => {
 
   const directory = path.join(releaseDirectory, unpacked.name)
   if (unpacked.name === 'win-unpacked') {
-    return path.join(directory, 'VaValM.exe')
+    return { executable: path.join(directory, 'VaValM.exe'), resourcesPath: path.join(directory, 'resources') }
   }
   if (unpacked.name.startsWith('mac')) {
-    return path.join(directory, 'VaValM.app', 'Contents', 'MacOS', 'VaValM')
+    const contents = path.join(directory, 'VaValM.app', 'Contents')
+    return { executable: path.join(contents, 'MacOS', 'VaValM'), resourcesPath: path.join(contents, 'Resources') }
   }
 
-  return path.join(directory, 'VaValM')
+  return { executable: path.join(directory, 'VaValM'), resourcesPath: path.join(directory, 'resources') }
 }
 
 /**
@@ -81,7 +90,52 @@ const isAnswering = async (url: string): Promise<boolean> => {
   }
 }
 
-const executable = await resolveExecutable(path.resolve(import.meta.dirname, '..', 'release'))
+const { executable, resourcesPath } = await resolvePackagedApplication(
+  path.resolve(import.meta.dirname, '..', 'release'),
+)
+
+// The embedded database refuses to run under an elevated account, which is the
+// only kind a Windows CI runner offers. Serving the packaged UI still proves
+// that the traced Next.js runtime survived packaging, which is what the
+// installer rewrites.
+if (process.argv.includes('--ui-only')) {
+  const { uiRoot } = resolveDesktopServerPaths(true, resourcesPath, import.meta.dirname)
+  const { uiEnvironment } = createDesktopServerConfig(process.env, 'postgres://unused', randomUUID())
+  console.info(`Serving ${path.join(uiRoot, 'server.js')}`)
+
+  const uiServer = spawn(process.execPath, [path.join(uiRoot, 'server.js')], {
+    cwd: uiRoot,
+    env: uiEnvironment,
+    stdio: ['ignore', 'inherit', 'inherit'],
+  })
+
+  let uiExitCode: number | undefined
+  uiServer.once('exit', code => {
+    uiExitCode = code ?? undefined
+  })
+
+  const uiDeadline = Date.now() + READY_TIMEOUT_MS
+  let uiReady = false
+  while (!uiReady && uiExitCode === undefined && Date.now() < uiDeadline) {
+    uiReady = await isAnswering(UI_URL)
+    if (!uiReady) {
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+    }
+  }
+
+  uiServer.kill()
+  if (!uiReady) {
+    const reason = uiExitCode === undefined
+      ? `no response from ${UI_URL} within ${READY_TIMEOUT_MS / 1000}s`
+      : `the UI server exited with code ${uiExitCode}`
+    console.error(`Desktop tests failed: ${reason}`)
+    process.exit(1)
+  }
+
+  console.info(`Desktop tests passed: the packaged UI answered on ${UI_URL}.`)
+  process.exit(0)
+}
+
 console.info(`Launching ${executable}`)
 
 // The application appends to its log across launches, so only what follows

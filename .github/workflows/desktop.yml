@@ -68,15 +68,17 @@ jobs:
 
       # Packaging succeeds even when the packaged servers cannot start, so the
       # installer is only uploaded once the application has actually launched.
-      # A runner has no display, so the packaged application needs a virtual one.
+      # A Linux runner has no display, and the embedded database refuses to run
+      # under the elevated account a Windows runner provides, so Windows checks
+      # that the packaged UI serves instead of launching the whole application.
       - name: Desktop tests
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            xvfb-run --auto-servernum pnpm desktop:test
-          else
-            pnpm desktop:test
-          fi
+          case "$RUNNER_OS" in
+            Linux) xvfb-run --auto-servernum pnpm desktop:test ;;
+            Windows) pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged -- --ui-only ;;
+            *) pnpm desktop:test ;;
+          esac
 
       # Kept available when the desktop tests fail so the packaged tree can be
       # inspected. Release assets come from the release job, which only runs
