@@ -15,6 +15,7 @@
     "lint": "pnpm eslint . --config eslint.config.js && pnpm tsc --project tsconfig.json --noEmit",
     "test": "vitest run",
     "test:packaged": "node scripts/desktop-tests.ts",
+    "test:packaged:ui": "node scripts/desktop-tests.ts --ui-only",
     "test:coverage": "vitest run --coverage",
     "clean": "rimraf dist release",
     "create-env-file": "echo 'Desktop configuration is managed by Electron'",

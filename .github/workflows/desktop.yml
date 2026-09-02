@@ -76,7 +76,7 @@ jobs:
         run: |
           case "$RUNNER_OS" in
             Linux) xvfb-run --auto-servernum pnpm desktop:test ;;
-            Windows) pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged -- --ui-only ;;
+            Windows) pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged:ui ;;
             *) pnpm desktop:test ;;
           esac
 

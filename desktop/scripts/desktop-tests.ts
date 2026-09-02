@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcess } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -90,6 +90,32 @@ const isAnswering = async (url: string): Promise<boolean> => {
   }
 }
 
+/**
+ * Stop a server and wait for it to release the loopback ports.
+ *
+ * Exiting while the process is still closing faults libuv on Windows, and a
+ * later run would otherwise probe the previous server as it dies. A failed
+ * launch waits on a modal dialog that can outlive the term signal.
+ *
+ * @param child - Process to stop.
+ * @param hasExited - Whether the process has already reported its exit.
+ */
+const stopServer = async (child: ChildProcess, hasExited: () => boolean): Promise<void> => {
+  if (hasExited()) {
+    return
+  }
+
+  child.kill()
+  await Promise.race([
+    new Promise<void>(resolve => child.once('exit', () => resolve())),
+    new Promise<void>(resolve => setTimeout(resolve, SHUTDOWN_TIMEOUT_MS)),
+  ])
+
+  if (!hasExited()) {
+    child.kill('SIGKILL')
+  }
+}
+
 const { executable, resourcesPath } = await resolvePackagedApplication(
   path.resolve(import.meta.dirname, '..', 'release'),
 )
@@ -123,7 +149,8 @@ if (process.argv.includes('--ui-only')) {
     }
   }
 
-  uiServer.kill()
+  await stopServer(uiServer, () => uiExitCode !== undefined)
+
   if (!uiReady) {
     const reason = uiExitCode === undefined
       ? `no response from ${UI_URL} within ${READY_TIMEOUT_MS / 1000}s`
@@ -177,20 +204,7 @@ while (!ready && failure === undefined && Date.now() < deadline) {
 
 console.info((await readStartupLog()).slice(priorLog.length) || 'No startup.log was written.')
 
-// The managed servers hold the loopback ports until the application has fully
-// stopped, so a later run would otherwise probe the previous one as it dies. A
-// failed launch waits on a modal dialog that can outlive the term signal.
-if (exitCode === undefined) {
-  application.kill()
-  await Promise.race([
-    new Promise<void>(resolve => application.once('exit', () => resolve())),
-    new Promise<void>(resolve => setTimeout(resolve, SHUTDOWN_TIMEOUT_MS)),
-  ])
-
-  if (exitCode === undefined) {
-    application.kill('SIGKILL')
-  }
-}
+await stopServer(application, () => exitCode !== undefined)
 
 if (!ready) {
   const timedOut = `no response from ${UI_URL} or ${API_HEALTH_URL} within ${READY_TIMEOUT_MS / 1000}s`
