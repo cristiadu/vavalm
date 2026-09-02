@@ -61,13 +61,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Test desktop runtime
-        run: pnpm --filter @cristiadu/vavalm-desktop test
-
       - name: Build installer
         run: pnpm desktop:dist
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      # Packaging succeeds even when the packaged servers cannot start, so the
+      # installer is only uploaded once the application has actually launched.
+      # A runner has no display, so the packaged application needs a virtual one.
+      - name: Desktop tests
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run --auto-servernum pnpm desktop:test
+          else
+            pnpm desktop:test
+          fi
 
       - name: Upload installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -2,6 +2,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   createDesktopServerConfig,
+  redactSecrets,
   resolveDesktopServerPaths,
 } from '@/runtime-config'
 
@@ -68,5 +69,27 @@ describe('Desktop runtime configuration', () => {
       },
       uiUrl: 'http://127.0.0.1:13000',
     })
+  })
+
+  it('redacts every per-launch secret a managed server reports', () => {
+    // GIVEN server output quoting both the database password and the JWT secret
+    const message = 'connect failed for postgres://vavalm:vavalm-desktop@127.0.0.1:15432/vavalm using fixed-test-secret'
+
+    // WHEN the secrets are redacted
+    const redacted = redactSecrets(message, ['vavalm-desktop', 'fixed-test-secret'])
+
+    // THEN neither value survives and the rest of the message is intact
+    expect(redacted).toBe('connect failed for postgres://vavalm:[redacted]@127.0.0.1:15432/vavalm using [redacted]')
+  })
+
+  it('leaves a message untouched when a secret is empty', () => {
+    // GIVEN an empty secret, which would otherwise match at every position
+    const message = 'The api server stopped during startup with exit code 1'
+
+    // WHEN the secrets are redacted
+    const redacted = redactSecrets(message, [''])
+
+    // THEN the message is unchanged
+    expect(redacted).toBe(message)
   })
 })

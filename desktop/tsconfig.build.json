@@ -1,11 +1,14 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "src"
+    "rootDir": "src",
+    "allowImportingTsExtensions": false
   },
   "tsc-alias": {
     "resolveFullPaths": true,
     "resolveFullExtension": ".js"
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }

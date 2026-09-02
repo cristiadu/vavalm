@@ -7,6 +7,7 @@
     "build": "turbo build",
     "desktop:dev": "pnpm --filter @cristiadu/vavalm-desktop dev",
     "desktop:dist": "pnpm --filter @cristiadu/vavalm-desktop dist",
+    "desktop:test": "pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged",
     "create-env-file": "node desktop/scripts/create-env-files.ts",
     "start": "pnpm --parallel -r start",
     "dev:docker:build": "docker compose build",

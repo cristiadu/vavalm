@@ -5,6 +5,23 @@ const API_PORT = 18000
 const UI_HOST = '127.0.0.1'
 const UI_PORT = 13000
 
+/** Health address of the managed API server. */
+export const API_HEALTH_URL = `http://${API_HOST}:${API_PORT}/api/health`
+
+/** Address the managed UI server serves the application on. */
+export const UI_URL = `http://${UI_HOST}:${UI_PORT}`
+
+/** Log file collecting managed service output. */
+export const STARTUP_LOG_NAME = 'startup.log'
+
+/**
+ * Application name Electron derives its user data and log directories from.
+ *
+ * Electron takes this from the package name, so it also names the directory
+ * that a process outside the application has to look in for the startup log.
+ */
+export const APPLICATION_NAME = '@cristiadu/vavalm-desktop'
+
 type DesktopServerPaths = {
   apiRoot: string
   uiRoot: string
@@ -16,6 +33,29 @@ type DesktopServerConfig = {
   ports: readonly [number, number]
   uiEnvironment: NodeJS.ProcessEnv
   uiUrl: string
+}
+
+/**
+ * Remove per-launch secrets from text before it is recorded or displayed.
+ *
+ * The database password and the per-launch JWT secret reach the managed
+ * servers as environment variables, so anything those servers report can quote
+ * them back.
+ *
+ * @param message - Text that may contain a secret.
+ * @param secrets - Secret values to replace.
+ * @returns The message with every secret replaced.
+ */
+export const redactSecrets = (message: string, secrets: Iterable<string>): string => {
+  let redacted = message
+  for (const secret of secrets) {
+    // An empty secret would match at every position and mangle the message.
+    if (secret) {
+      redacted = redacted.replaceAll(secret, '[redacted]')
+    }
+  }
+
+  return redacted
 }
 
 /**
@@ -65,7 +105,7 @@ export const createDesktopServerConfig = (
     NODE_ENV: 'production',
     PORT: String(API_PORT),
   },
-  apiHealthUrl: `http://${API_HOST}:${API_PORT}/api/health`,
+  apiHealthUrl: API_HEALTH_URL,
   ports: [API_PORT, UI_PORT],
   uiEnvironment: {
     ...parentEnvironment,
@@ -74,5 +114,5 @@ export const createDesktopServerConfig = (
     NODE_ENV: 'production',
     PORT: String(UI_PORT),
   },
-  uiUrl: `http://${UI_HOST}:${UI_PORT}`,
+  uiUrl: UI_URL,
 })
