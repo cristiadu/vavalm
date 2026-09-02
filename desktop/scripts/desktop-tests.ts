@@ -1,6 +1,8 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { readdir, readFile } from 'node:fs/promises'
+import { cp, readdir, readFile, rm } from 'node:fs/promises'
+import { get } from 'node:http'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import {
   API_HEALTH_URL,
@@ -79,23 +81,33 @@ const readStartupLog = async (): Promise<string> => {
 /**
  * Report whether a server answers successfully.
  *
+ * Probing over `node:http` without a shared agent leaves no pooled socket
+ * behind, which keeps the process from faulting as it exits on Windows.
+ *
  * @param url - Address to probe.
  * @returns Whether the server answered with a successful status.
  */
 const isAnswering = async (url: string): Promise<boolean> => {
-  try {
-    return (await fetch(url)).ok
-  } catch {
-    return false
-  }
+  return new Promise(resolve => {
+    const request = get(url, { agent: false }, response => {
+      response.resume()
+      const status = response.statusCode ?? 0
+      resolve(status >= 200 && status < 300)
+    })
+
+    request.once('error', () => resolve(false))
+    request.setTimeout(POLL_INTERVAL_MS, () => {
+      request.destroy()
+      resolve(false)
+    })
+  })
 }
 
 /**
  * Stop a server and wait for it to release the loopback ports.
  *
- * Exiting while the process is still closing faults libuv on Windows, and a
- * later run would otherwise probe the previous server as it dies. A failed
- * launch waits on a modal dialog that can outlive the term signal.
+ * A later run would otherwise probe the previous server as it dies, and a
+ * failed launch waits on a modal dialog that can outlive the term signal.
  *
  * @param child - Process to stop.
  * @param hasExited - Whether the process has already reported its exit.
@@ -116,100 +128,133 @@ const stopServer = async (child: ChildProcess, hasExited: () => boolean): Promis
   }
 }
 
-const { executable, resourcesPath } = await resolvePackagedApplication(
-  path.resolve(import.meta.dirname, '..', 'release'),
-)
-
-// The embedded database refuses to run under an elevated account, which is the
-// only kind a Windows CI runner offers. Serving the packaged UI still proves
-// that the traced Next.js runtime survived packaging, which is what the
-// installer rewrites.
-if (process.argv.includes('--ui-only')) {
+/**
+ * Serve the packaged UI and require it to answer.
+ *
+ * The embedded database refuses to run under an elevated account, which is the
+ * only kind a Windows runner offers. Serving the UI on its own needs no
+ * database, display or privileges, and still exercises the traced Next.js
+ * runtime that packaging rewrites.
+ *
+ * @param resourcesPath - Resources directory of the unpacked build.
+ * @returns Whether the packaged UI answered.
+ */
+const checkPackagedUi = async (resourcesPath: string): Promise<boolean> => {
   const { uiRoot } = resolveDesktopServerPaths(true, resourcesPath, import.meta.dirname)
   const { uiEnvironment } = createDesktopServerConfig(process.env, 'postgres://unused', randomUUID())
-  console.info(`Serving ${path.join(uiRoot, 'server.js')}`)
 
-  const uiServer = spawn(process.execPath, [path.join(uiRoot, 'server.js')], {
-    cwd: uiRoot,
+  // The build output sits inside the repository, so Node would resolve a
+  // dependency missing from the package against the repository's own
+  // node_modules and pass regardless. An installed application has no such
+  // parent, so the check only means anything outside the working tree.
+  const isolated = path.join(tmpdir(), `vavalm-desktop-tests-${randomUUID()}`)
+  await cp(path.dirname(uiRoot), isolated, { recursive: true, verbatimSymlinks: true })
+  const isolatedRoot = path.join(isolated, path.basename(uiRoot))
+  console.info(`Serving ${path.join(isolatedRoot, 'server.js')}`)
+
+  const uiServer = spawn(process.execPath, [path.join(isolatedRoot, 'server.js')], {
+    cwd: isolatedRoot,
     env: uiEnvironment,
     stdio: ['ignore', 'inherit', 'inherit'],
   })
 
-  let uiExitCode: number | undefined
+  let exitCode: number | undefined
   uiServer.once('exit', code => {
-    uiExitCode = code ?? undefined
+    exitCode = code ?? undefined
   })
 
-  const uiDeadline = Date.now() + READY_TIMEOUT_MS
-  let uiReady = false
-  while (!uiReady && uiExitCode === undefined && Date.now() < uiDeadline) {
-    uiReady = await isAnswering(UI_URL)
-    if (!uiReady) {
+  const deadline = Date.now() + READY_TIMEOUT_MS
+  let ready = false
+  while (!ready && exitCode === undefined && Date.now() < deadline) {
+    ready = await isAnswering(UI_URL)
+    if (!ready) {
       await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
     }
   }
 
-  await stopServer(uiServer, () => uiExitCode !== undefined)
+  await stopServer(uiServer, () => exitCode !== undefined)
+  await rm(isolated, { recursive: true, force: true })
 
-  if (!uiReady) {
-    const reason = uiExitCode === undefined
-      ? `no response from ${UI_URL} within ${READY_TIMEOUT_MS / 1000}s`
-      : `the UI server exited with code ${uiExitCode}`
-    console.error(`Desktop tests failed: ${reason}`)
-    process.exit(1)
-  }
-
-  console.info(`Desktop tests passed: the packaged UI answered on ${UI_URL}.`)
-  process.exit(0)
-}
-
-console.info(`Launching ${executable}`)
-
-// The application appends to its log across launches, so only what follows
-// describes this run.
-const priorLog = await readStartupLog()
-
-// A runner grants the Chromium sandbox helper none of the privileges it needs.
-const application = spawn(executable, process.platform === 'linux' ? ['--no-sandbox'] : [], {
-  stdio: ['ignore', 'inherit', 'inherit'],
-})
-
-let exitCode: number | undefined
-application.once('exit', code => {
-  exitCode = code ?? undefined
-})
-
-const deadline = Date.now() + READY_TIMEOUT_MS
-let failure: string | undefined
-let ready = false
-
-while (!ready && failure === undefined && Date.now() < deadline) {
-  ready = await isAnswering(UI_URL) && await isAnswering(API_HEALTH_URL)
   if (ready) {
-    break
+    console.info(`Desktop tests passed: the packaged UI answered on ${UI_URL}.`)
+    return true
   }
 
-  // A failed launch waits on a modal dialog that nothing will dismiss on a
-  // runner, so the application's own report ends the wait.
-  const runLog = (await readStartupLog()).slice(priorLog.length)
-  failure = runLog.split('\n').find(line => line.includes('startup failed'))
-  if (failure === undefined && exitCode !== undefined) {
-    failure = `the application exited with code ${exitCode}`
-  }
-
-  if (failure === undefined) {
-    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
-  }
+  console.error(`Desktop tests failed: ${exitCode === undefined
+    ? `no response from ${UI_URL} within ${READY_TIMEOUT_MS / 1000}s`
+    : `the UI server exited with code ${exitCode}`}`)
+  return false
 }
 
-console.info((await readStartupLog()).slice(priorLog.length) || 'No startup.log was written.')
+/**
+ * Launch the packaged application and require both managed servers to answer.
+ *
+ * @param executable - Packaged executable to launch.
+ * @returns Whether both servers answered.
+ */
+const checkPackagedApplication = async (executable: string): Promise<boolean> => {
+  console.info(`Launching ${executable}`)
 
-await stopServer(application, () => exitCode !== undefined)
+  // The application appends to its log across launches, so only what follows
+  // describes this run.
+  const priorLog = await readStartupLog()
 
-if (!ready) {
+  // A runner grants the Chromium sandbox helper none of the privileges it needs.
+  const application = spawn(executable, process.platform === 'linux' ? ['--no-sandbox'] : [], {
+    stdio: ['ignore', 'inherit', 'inherit'],
+  })
+
+  let exitCode: number | undefined
+  application.once('exit', code => {
+    exitCode = code ?? undefined
+  })
+
+  const deadline = Date.now() + READY_TIMEOUT_MS
+  let failure: string | undefined
+  let ready = false
+
+  while (!ready && failure === undefined && Date.now() < deadline) {
+    ready = await isAnswering(UI_URL) && await isAnswering(API_HEALTH_URL)
+    if (ready) {
+      break
+    }
+
+    // A failed launch waits on a modal dialog that nothing will dismiss on a
+    // runner, so the application's own report ends the wait.
+    const runLog = (await readStartupLog()).slice(priorLog.length)
+    failure = runLog.split('\n').find(line => line.includes('startup failed'))
+    if (failure === undefined && exitCode !== undefined) {
+      failure = `the application exited with code ${exitCode}`
+    }
+
+    if (failure === undefined) {
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
+    }
+  }
+
+  console.info((await readStartupLog()).slice(priorLog.length) || 'No startup.log was written.')
+  await stopServer(application, () => exitCode !== undefined)
+
+  if (ready) {
+    console.info(`Desktop tests passed: ${UI_URL} and ${API_HEALTH_URL} both answered.`)
+    return true
+  }
+
   const timedOut = `no response from ${UI_URL} or ${API_HEALTH_URL} within ${READY_TIMEOUT_MS / 1000}s`
   console.error(`Desktop tests failed: ${failure ?? timedOut}`)
-  process.exit(1)
+  return false
 }
 
-console.info(`Desktop tests passed: ${UI_URL} and ${API_HEALTH_URL} both answered.`)
+const { executable, resourcesPath } = await resolvePackagedApplication(
+  path.resolve(import.meta.dirname, '..', 'release'),
+)
+
+const passed = process.argv.includes('--ui-only')
+  ? await checkPackagedUi(resourcesPath)
+  : await checkPackagedApplication(executable)
+
+// Setting the code rather than exiting lets the runtime tear its own handles
+// down, which Windows faults on when the process is forced to exit.
+if (!passed) {
+  process.exitCode = 1
+}
