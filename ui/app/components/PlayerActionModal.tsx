@@ -175,18 +175,16 @@ const PlayerActionModal: React.FC<ItemActionModalProps> = ({ isOpen, onClose, is
           <label className="uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" htmlFor="role">
                 Role
           </label>
-          {playerState.role && (
-            <DropdownSelect
-              dropdownName={'role'}
-              items={Object.values(PlayerRole).map(value => ({ value }))}
-              selectedItems={playerState.role ? [{value: playerState.role}] : []}
-              onSelect={handleRoleSelect}
-              displayKey="value"
-              placeholder="Select a type"
-              styleCssOnValue={(value) => `p-1 rounded text-white ${getRoleBgColor(value as PlayerRole)}`}
-              isMultiSelect={false} 
-            />
-          )}
+          <DropdownSelect
+            dropdownName={'role'}
+            items={Object.values(PlayerRole).map(value => ({ value }))}
+            selectedItems={playerState.role ? [{value: playerState.role}] : []}
+            onSelect={handleRoleSelect}
+            displayKey="value"
+            placeholder="Select a type"
+            styleCssOnValue={(value) => `p-1 rounded text-white ${getRoleBgColor(value as PlayerRole)}`}
+            isMultiSelect={false}
+          />
         </div>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
