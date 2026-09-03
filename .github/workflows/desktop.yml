@@ -110,8 +110,9 @@ jobs:
           path: release
           merge-multiple: true
 
+      # --repo keeps this working without inferring the remote from a checkout.
       - name: Upload installers to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$RELEASE_TAG" release/* --clobber
+        run: gh release upload "$RELEASE_TAG" release/* --repo "$GITHUB_REPOSITORY" --clobber
