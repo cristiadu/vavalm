@@ -103,21 +103,20 @@ Desktop builds use `127.0.0.1:13000` for the bundled UI and
 port automatically and is started and stopped with the app.
 
 Installers are written to `desktop/release/`. Build each target on its native
-operating system; the desktop GitHub Actions workflow produces macOS, Linux,
-and Windows artifacts in parallel.
+operating system; CI and CD build macOS, Linux, and Windows in parallel.
 
 ### Releasing
 
-Every merge to `main` builds the installers and refreshes the GitHub release
-for the version `package.json` currently carries, so its downloads always come
-from the newest commit.
+Every merge to `main` runs **CD**, which builds the installers and refreshes
+the GitHub release for the version `package.json` currently carries, so its
+downloads always come from the newest commit.
 
-To move to a new version, run the **Open Release Version PR** workflow and
-choose `patch`, `minor` or `major`. It raises the version across every package
+To move to a new version, run the **Version** workflow and choose `patch`,
+`minor` or `major`. It raises the version across every package
 and opens a pull request. Merging that pull request publishes the new release,
 like any other merge. Nothing needs editing by hand.
 
-That workflow needs a `RELEASE_TOKEN` repository secret: a personal access
+**Version** needs a `RELEASE_TOKEN` repository secret: a personal access
 token with `contents: write` and `pull-requests: write`. A pull request opened
 with the default workflow token starts no checks, so the ones `main` requires
 would never report and it could not be merged.

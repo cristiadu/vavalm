@@ -1,8 +1,7 @@
-name: Open Release Version PR
+name: Version
 
 # Raises the application version and opens a pull request with it. Merging that
-# pull request is what publishes the new version, through the release job in
-# desktop.yml.
+# pull request publishes the new version through CD.
 on:
   workflow_dispatch:
     inputs:

@@ -1,0 +1,74 @@
+name: Package desktop app
+description: Builds the desktop installer for the current runner, launches it, and uploads it.
+
+# Local action: the calling job checks the repository out first. A composite
+# action cannot read secrets, so the caller passes the key.
+inputs:
+  rest-countries-api-key:
+    description: 'Key the build uses to capture the country dataset.'
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      with:
+        package_json_file: package.json
+        run_install: false
+
+    - name: Use Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version-file: '.nvmrc'
+        cache: pnpm
+        cache-dependency-path: 'pnpm-lock.yaml'
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Build installer
+      shell: bash
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        # The build captures the country dataset, so the key never ships.
+        REST_COUNTRIES_API_KEY: ${{ inputs.rest-countries-api-key }}
+      run: pnpm desktop:dist
+
+    # Packaging succeeds even when the packaged servers cannot start. A Linux
+    # runner has no display, and PostgreSQL refuses the elevated account a
+    # Windows runner provides, so Windows checks the packaged UI alone.
+    - name: Desktop tests
+      shell: bash
+      run: |
+        case "$RUNNER_OS" in
+          Linux) xvfb-run --auto-servernum pnpm desktop:test ;;
+          Windows) pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged:ui ;;
+          *) pnpm desktop:test ;;
+        esac
+
+    - name: Resolve the installers
+      id: installers
+      shell: bash
+      run: |
+        case "$RUNNER_OS" in
+          macOS) paths='desktop/release/*.dmg' ;;
+          Windows) paths='desktop/release/*.exe' ;;
+          *) paths=$'desktop/release/*.AppImage\ndesktop/release/*.deb' ;;
+        esac
+        {
+          echo 'paths<<INSTALLERS'
+          echo "$paths"
+          echo 'INSTALLERS'
+        } >> "$GITHUB_OUTPUT"
+
+    # Uploaded on failure too, so a broken package can be inspected.
+    - name: Upload installer
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: vavalm-${{ runner.os }}-${{ runner.arch }}
+        path: ${{ steps.installers.outputs.paths }}
+        if-no-files-found: error

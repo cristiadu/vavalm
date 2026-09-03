@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run per branch: pushing again cancels the run still in flight, since its
+# result is already out of date.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Named "build" because main requires a status check by that name.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          package_json_file: package.json
+          run_install: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          cache-dependency-path: 'pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Create env files
+        run: pnpm create-env-file
+
+      - name: Start Docker stack
+        env:
+          REST_COUNTRIES_API_KEY: ${{ secrets.REST_COUNTRIES_API_KEY }}
+        run: pnpm dev:docker:up
+
+      - name: Test
+        run: pnpm test
+
+      - name: Check for unused code and dependencies
+        run: pnpm knip
+
+      - name: Bundle Docker logs on failure
+        if: ${{ failure() }}
+        continue-on-error: true
+        run: pnpm dev:docker:logs
+
+      - name: Upload Docker logs artifact on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vavalm-docker-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/*.zip
+          if-no-files-found: ignore
+
+      # Last, so a failing run still has its container logs bundled above.
+      - name: Stop Docker stack
+        if: ${{ always() }}
+        run: pnpm dev:docker:down
+
+  desktop:
+    name: desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/package-desktop
+        with:
+          rest-countries-api-key: ${{ secrets.REST_COUNTRIES_API_KEY }}

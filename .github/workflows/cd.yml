@@ -1,45 +1,38 @@
-name: Build Desktop Apps
+name: CD
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'api/**'
-      - 'desktop/**'
-      - 'ui/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/desktop.yml'
-      - '.github/workflows/desktop-package.yml'
-  pull_request:
-    paths:
-      - 'api/**'
-      - 'desktop/**'
-      - 'ui/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - '.github/workflows/desktop.yml'
-      - '.github/workflows/desktop-package.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-jobs:
-  package:
-    name: desktop
-    uses: ./.github/workflows/desktop-package.yml
-    secrets: inherit
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
-  # Every merge refreshes the release for the version main currently carries,
-  # so its installers always come from the newest commit. A version bump lands
-  # like any other merge and publishes a new release.
+jobs:
+  desktop:
+    name: desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/package-desktop
+        with:
+          rest-countries-api-key: ${{ secrets.REST_COUNTRIES_API_KEY }}
+
+  # Every merge refreshes the release for the version main carries, so its
+  # downloads come from the newest commit. A version bump merges like anything
+  # else and publishes a new release.
   release:
     name: publish the release
-    if: github.event_name == 'push'
-    needs: package
+    needs: desktop
     permissions:
       contents: write
     runs-on: ubuntu-latest
