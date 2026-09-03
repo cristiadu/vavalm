@@ -108,16 +108,19 @@ and Windows artifacts in parallel.
 
 ### Releasing
 
-Run the **Release Desktop App** workflow and choose `patch`, `minor` or
-`major`. It raises the version across every package, opens a pull request with
-that change, merges it once the required checks pass, builds the installers
-from the merged commit, and publishes the release with them attached. Nothing
-needs editing by hand.
+Every merge to `main` builds the installers and refreshes the GitHub release
+for the version `package.json` currently carries, so its downloads always come
+from the newest commit.
 
-The workflow needs a `RELEASE_TOKEN` repository secret: a personal access token
-with `contents: write` and `pull-requests: write`. A pull request opened with
-the default workflow token does not start any checks, so the ones `main`
-requires would never report and the release would wait forever.
+To move to a new version, run the **Open Release Version PR** workflow and
+choose `patch`, `minor` or `major`. It raises the version across every package
+and opens a pull request. Merging that pull request publishes the new release,
+like any other merge. Nothing needs editing by hand.
+
+That workflow needs a `RELEASE_TOKEN` repository secret: a personal access
+token with `contents: write` and `pull-requests: write`. A pull request opened
+with the default workflow token starts no checks, so the ones `main` requires
+would never report and it could not be merged.
 
 ## Game Simulation
 

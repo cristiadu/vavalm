@@ -1,5 +1,8 @@
-name: Release Desktop App
+name: Open Release Version PR
 
+# Raises the application version and opens a pull request with it. Merging that
+# pull request is what publishes the new version, through the release job in
+# desktop.yml.
 on:
   workflow_dispatch:
     inputs:
@@ -15,24 +18,20 @@ on:
 permissions:
   contents: read
 
-# Concurrent runs would race for the same version.
-concurrency: release-desktop
+concurrency: release-version
 
 jobs:
   version:
-    name: raise the version
+    name: open the version pull request
     permissions:
       contents: write
       pull-requests: write
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.raise.outputs.version }}
-      sha: ${{ steps.merge.outputs.sha }}
     steps:
-      # main only takes changes through a reviewed pull request, and a pull
-      # request opened with the default token does not start any checks, so the
-      # required ones would never report. RELEASE_TOKEN is a personal access
-      # token with contents and pull-requests write.
+      # A pull request opened with the default token starts no checks, so the
+      # ones main requires would never report and it could not be merged.
+      # RELEASE_TOKEN is a personal access token with contents and
+      # pull-requests write.
       - name: Require a release token
         env:
           RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -60,97 +59,24 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Raise the application version
-        id: raise
+      - name: Open the version pull request
         env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           BUMP: ${{ inputs.bump }}
         run: |
           # Recursive covers the root manifest too, and skips git entirely.
           pnpm version "$BUMP" --recursive
-
           version="$(node -p "require('./package.json').version")"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "Raised every package to $version"
 
-      - name: Open the version pull request
-        id: pull-request
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          VERSION: ${{ steps.raise.outputs.version }}
-        run: |
-          branch="release/v$VERSION"
+          branch="release/v$version"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout -b "$branch"
-          git commit -am "chore: release v$VERSION"
+          git commit -am "chore: release v$version"
           git push origin "$branch"
 
           gh pr create \
             --base main \
             --head "$branch" \
-            --title "chore: release v$VERSION" \
-            --body "Raises every package to v$VERSION. Opened by the release workflow; merging it starts the installer build."
-          echo "branch=$branch" >> "$GITHUB_OUTPUT"
-
-      # Waits for the checks main requires, then merges. Auto-merge is off for
-      # this repository, so the merge is made here rather than queued.
-      - name: Merge the version pull request
-        id: merge
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          BRANCH: ${{ steps.pull-request.outputs.branch }}
-        run: |
-          for _ in $(seq 1 12); do
-            gh pr checks "$BRANCH" --required > /dev/null 2>&1 && break
-            sleep 15
-          done
-          gh pr checks "$BRANCH" --required --watch --fail-fast --interval 20
-
-          # Code scanning reports outside the checks above and can lag behind it.
-          for attempt in $(seq 1 10); do
-            gh pr merge "$BRANCH" --squash --delete-branch && break
-            if [ "$attempt" = 10 ]; then
-              echo "Could not merge the version pull request" >&2
-              exit 1
-            fi
-            sleep 20
-          done
-
-          echo "sha=$(gh pr view "$BRANCH" --json mergeCommit --jq .mergeCommit.oid)" >> "$GITHUB_OUTPUT"
-
-  package:
-    name: build
-    needs: version
-    uses: ./.github/workflows/desktop-package.yml
-    secrets: inherit
-    with:
-      ref: ${{ needs.version.outputs.sha }}
-      expected-version: ${{ needs.version.outputs.version }}
-
-  publish:
-    name: publish the release
-    needs: [version, package]
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download installers
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: vavalm-*
-          path: release
-          merge-multiple: true
-
-      # Tags the merged commit and attaches the installers in one step, so a
-      # failed build leaves no tag behind.
-      - name: Publish the release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.version.outputs.version }}
-          SHA: ${{ needs.version.outputs.sha }}
-        run: |
-          gh release create "v$VERSION" release/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$SHA" \
-            --title "VaValM v$VERSION" \
-            --generate-notes
+            --title "chore: release v$version" \
+            --body "Raises every package to v$version. Merging this publishes the release."

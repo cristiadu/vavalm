@@ -2,6 +2,17 @@ name: Build Desktop Apps
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'desktop/**'
+      - 'ui/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/desktop.yml'
+      - '.github/workflows/desktop-package.yml'
   pull_request:
     paths:
       - 'api/**'
@@ -21,3 +32,42 @@ jobs:
     name: desktop
     uses: ./.github/workflows/desktop-package.yml
     secrets: inherit
+
+  # Every merge refreshes the release for the version main currently carries,
+  # so its installers always come from the newest commit. A version bump lands
+  # like any other merge and publishes a new release.
+  release:
+    name: publish the release
+    if: github.event_name == 'push'
+    needs: package
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download installers
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: vavalm-*
+          path: release
+          merge-multiple: true
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag="v$version"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Refreshing $tag with the installers from $GITHUB_SHA"
+            gh release upload "$tag" release/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            echo "Publishing $tag from $GITHUB_SHA"
+            gh release create "$tag" release/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "VaValM $tag" \
+              --generate-notes
+          fi

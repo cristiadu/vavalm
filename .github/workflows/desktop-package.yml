@@ -3,17 +3,6 @@ name: Package Desktop Apps
 # Called by desktop.yml and release-desktop.yml.
 on:
   workflow_call:
-    inputs:
-      ref:
-        description: 'Commit to build. Defaults to the ref the caller ran on.'
-        type: string
-        required: false
-        default: ''
-      expected-version:
-        description: 'Version every package must already carry, checked before building.'
-        type: string
-        required: false
-        default: ''
 
 permissions:
   contents: read
@@ -36,8 +25,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -51,21 +38,6 @@ jobs:
           node-version-file: '.nvmrc'
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
-
-      # Every package shares the release version.
-      - name: Verify release version
-        if: inputs.expected-version != ''
-        env:
-          EXPECTED_VERSION: ${{ inputs.expected-version }}
-        shell: bash
-        run: |
-          for manifest in package.json api/package.json ui/package.json desktop/package.json; do
-            package_version="$(node -p "require('./$manifest').version")"
-            if [ "$EXPECTED_VERSION" != "$package_version" ]; then
-              echo "$manifest is at $package_version but the release is $EXPECTED_VERSION" >&2
-              exit 1
-            fi
-          done
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
