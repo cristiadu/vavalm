@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { createWriteStream, existsSync, mkdirSync, type WriteStream } from 'node:fs'
 import { createServer } from 'node:net'
 import path from 'node:path'
 import asyncExitHook from 'async-exit-hook'
@@ -7,14 +7,19 @@ import { app, BrowserWindow, dialog, shell, utilityProcess, type UtilityProcess 
 import EmbeddedPostgres from 'embedded-postgres'
 import {
   createDesktopServerConfig,
+  redactSecrets,
   resolveDesktopServerPaths,
+  STARTUP_LOG_NAME,
 } from '@/runtime-config'
 
 const LOOPBACK_HOST = '127.0.0.1'
 const DATABASE_NAME = 'vavalm'
 const DATABASE_USER = 'vavalm'
 const DATABASE_PASSWORD = 'vavalm-desktop'
-const STARTUP_TIMEOUT_MS = 60000
+
+// A first launch seeds the database before the API listens, so this covers a
+// cold start. A server that dies is reported without waiting it out.
+const STARTUP_TIMEOUT_MS = 180000
 
 // Electron owns the final exit event after the managed services have stopped.
 asyncExitHook.unhookEvent('exit')
@@ -23,7 +28,41 @@ let apiProcess: UtilityProcess | undefined
 let uiProcess: UtilityProcess | undefined
 let postgres: EmbeddedPostgres | undefined
 let desktopUiUrl: string | undefined
+let startupLog: WriteStream | undefined
 let isQuitting = false
+
+// A packaged build has no console, so this file is the only record of a failed
+// launch. The secrets reach those processes as environment variables.
+const redactedValues = new Set<string>([DATABASE_PASSWORD])
+
+/**
+ * Path of the log file collecting managed service output.
+ *
+ * Never redacted: it contains the application name, which can match a redacted
+ * value and would name a file that does not exist.
+ */
+const startupLogPath = (): string => path.join(app.getPath('logs'), STARTUP_LOG_NAME)
+
+/**
+ * Record managed service output, with per-launch secrets removed.
+ *
+ * @param source - Service the message came from.
+ * @param message - Text to record.
+ */
+const writeStartupLog = (source: string, message: string): void => {
+  const redacted = redactSecrets(message, redactedValues)
+
+  try {
+    if (!startupLog) {
+      const logPath = startupLogPath()
+      mkdirSync(path.dirname(logPath), { recursive: true })
+      startupLog = createWriteStream(logPath, { flags: 'a' })
+    }
+    startupLog.write(`[${new Date().toISOString()}] [${source}] ${redacted.trimEnd()}\n`)
+  } catch {
+    // The error dialog still reports the failure without a writable log.
+  }
+}
 
 /** Find an available loopback port for the embedded database. */
 const reserveAvailablePort = async (): Promise<number> => {
@@ -65,13 +104,65 @@ const assertPortAvailable = async (port: number): Promise<void> => {
 }
 
 /**
- * Wait until a local server returns a successful response.
+ * A managed server process and the exit code it reported, if it has stopped.
+ */
+type ManagedServer = {
+  name: string
+  process: UtilityProcess
+  exitCode?: number
+}
+
+/**
+ * Start a managed server and capture its output for troubleshooting.
+ *
+ * @param name - Service name used in log lines and startup errors.
+ * @param modulePath - Server entrypoint to run.
+ * @param cwd - Working directory for the server.
+ * @param env - Environment for the server.
+ * @returns The managed server, tracking the process and its exit code.
+ */
+const startServerProcess = (
+  name: string,
+  modulePath: string,
+  cwd: string,
+  env: NodeJS.ProcessEnv,
+): ManagedServer => {
+  const serverProcess = utilityProcess.fork(modulePath, [], { cwd, env, stdio: 'pipe' })
+  const server: ManagedServer = { name, process: serverProcess }
+
+  /**
+   * Record a chunk of server output.
+   *
+   * @param chunk - Output emitted by the server.
+   */
+  const recordOutput = (chunk: Buffer): void => writeStartupLog(name, chunk.toString())
+
+  serverProcess.stdout?.on('data', recordOutput)
+  serverProcess.stderr?.on('data', recordOutput)
+  serverProcess.once('exit', code => {
+    server.exitCode = code
+  })
+
+  return server
+}
+
+/**
+ * Wait until a managed server returns a successful response.
+ *
+ * A server that exits is reported as soon as it stops.
  *
  * @param url - Health URL to poll.
+ * @param server - Managed server expected to answer that URL.
  */
-const waitForUrl = async (url: string): Promise<void> => {
+const waitForServer = async (url: string, server: ManagedServer): Promise<void> => {
   const deadline = Date.now() + STARTUP_TIMEOUT_MS
   while (Date.now() < deadline) {
+    if (server.exitCode !== undefined) {
+      throw new Error(
+        `The ${server.name} server stopped during startup with exit code ${server.exitCode}.`,
+      )
+    }
+
     try {
       const response = await fetch(url)
       if (response.ok) {
@@ -122,12 +213,20 @@ const startDatabase = async (): Promise<string> => {
     password: DATABASE_PASSWORD,
     port: databasePort,
     persistent: true,
+    onLog: (message: string): void => writeStartupLog('database', message),
+    onError: (messageOrError): void => writeStartupLog('database', String(messageOrError)),
   })
 
   if (!isInitialized) {
     await postgres.initialise()
   }
-  await postgres.start()
+
+  // The cluster rejects without a reason, so the log holds the cause.
+  try {
+    await postgres.start()
+  } catch {
+    throw new Error('The embedded database stopped before it was ready.')
+  }
   await ensureDatabaseExists(postgres)
 
   return `postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${LOOPBACK_HOST}:${databasePort}/${DATABASE_NAME}`
@@ -146,24 +245,28 @@ const startApplicationServers = async (databaseUrl: string): Promise<string> => 
     import.meta.dirname,
   )
   const jwtSecret = randomUUID()
+  redactedValues.add(jwtSecret)
   const serverConfig = createDesktopServerConfig(process.env, databaseUrl, jwtSecret)
   await Promise.all(serverConfig.ports.map(assertPortAvailable))
 
-  apiProcess = utilityProcess.fork(path.join(apiRoot, 'dist', 'bundle.js'), [], {
-    cwd: apiRoot,
-    env: serverConfig.apiEnvironment,
-    stdio: 'inherit',
-  })
+  const api = startServerProcess(
+    'api',
+    path.join(apiRoot, 'dist', 'bundle.js'),
+    apiRoot,
+    serverConfig.apiEnvironment,
+  )
+  apiProcess = api.process
+  await waitForServer(serverConfig.apiHealthUrl, api)
 
-  await waitForUrl(serverConfig.apiHealthUrl)
+  const ui = startServerProcess(
+    'ui',
+    path.join(uiRoot, 'server.js'),
+    uiRoot,
+    serverConfig.uiEnvironment,
+  )
+  uiProcess = ui.process
+  await waitForServer(serverConfig.uiUrl, ui)
 
-  uiProcess = utilityProcess.fork(path.join(uiRoot, 'server.js'), [], {
-    cwd: uiRoot,
-    env: serverConfig.uiEnvironment,
-    stdio: 'inherit',
-  })
-
-  await waitForUrl(serverConfig.uiUrl)
   return serverConfig.uiUrl
 }
 
@@ -232,9 +335,13 @@ const runApplication = async (): Promise<void> => {
   } catch (error) {
     await stopApplication()
     const message = error instanceof Error ? error.message : 'An unexpected startup error occurred.'
-    const sanitizedMessage = message.replaceAll(DATABASE_PASSWORD, '[redacted]')
-    process.stderr.write(`VaValM startup failed: ${sanitizedMessage}\n`)
-    dialog.showErrorBox('VaValM could not start', sanitizedMessage)
+    // No usable stderr in a packaged build. The path is appended after
+    // redaction so it stays readable.
+    writeStartupLog('startup', `VaValM startup failed: ${message}`)
+    dialog.showErrorBox(
+      'VaValM could not start',
+      `${redactSecrets(message, redactedValues)}\n\nDetails are in ${startupLogPath()}`,
+    )
     isQuitting = true
     app.exit(1)
   }

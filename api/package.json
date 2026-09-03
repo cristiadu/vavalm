@@ -15,7 +15,7 @@
     "dev:built": "npm-run-all --parallel build start",
     "create-env-file": "cp .env.template .env",
     "build": "cross-env NODE_ENV=production pnpm generate:routes && pnpm generate:client && pnpm webpack --config webpack.config.js --mode production",
-    "build:desktop": "cross-env VAVALM_DESKTOP_BUILD=true pnpm build",
+    "build:desktop": "cross-env VAVALM_DESKTOP_BUILD=true pnpm build && pnpm save:countries",
     "start": "wait-on dist/bundle.js && node dist/bundle.js",
     "test": "vitest run --exclude tests/api/pagination.test.ts && vitest run tests/api/pagination.test.ts",
     "check-health": "wait-on -t 60000 http://localhost:8000/api/health",
@@ -27,7 +27,8 @@
     "upgrade:dependencies": "pnpm upgrade --latest",
     "generate:spec": "pnpm tsoa spec",
     "generate:routes": "pnpm tsoa routes",
-    "generate:client": "pnpm openapi --input ./docs/openapi.yaml --output ./tests/generated/api --client fetch --name VavalMApi --indent 2"
+    "generate:client": "pnpm openapi --input ./docs/openapi.yaml --output ./tests/generated/api --client fetch --name VavalMApi --indent 2",
+    "save:countries": "tsx scripts/save-countries.ts"
   },
   "dependencies": {
     "body-parser": "^2.3.0",
@@ -74,6 +75,7 @@
     "typescript": "^7.0.2",
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11",
+    "tsx": "^4.23.13",
     "wait-on": "^9.1.0",
     "webpack": "^5.110.1",
     "webpack-cli": "^7.2.3",

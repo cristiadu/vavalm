@@ -1,0 +1,107 @@
+name: Release Desktop App
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version part to raise'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+permissions:
+  contents: write
+  
+# Concurrent runs would race for the same version.
+concurrency: release-desktop
+
+jobs:
+  version:
+    name: raise the version
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.raise.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          package_json_file: package.json
+          run_install: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Raise the application version
+        id: raise
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          # Recursive covers the root manifest too, and skips git entirely.
+          pnpm version "$BUMP" --recursive
+
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Raised every package to $version"
+
+      # Pushed before the build so the installers carry the released version.
+      - name: Commit the version
+        id: commit
+        env:
+          VERSION: ${{ steps.raise.outputs.version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "chore: release v$VERSION"
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  package:
+    name: build
+    needs: version
+    uses: ./.github/workflows/desktop-package.yml
+    secrets: inherit
+    with:
+      ref: ${{ needs.version.outputs.sha }}
+      expected-version: ${{ needs.version.outputs.version }}
+
+  publish:
+    name: publish the release
+    needs: [version, package]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: vavalm-*
+          path: release
+          merge-multiple: true
+
+      # Tags the built commit and attaches the installers in one step, so a
+      # failed build leaves no tag behind.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+          SHA: ${{ needs.version.outputs.sha }}
+        run: |
+          gh release create "v$VERSION" release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$SHA" \
+            --title "VaValM v$VERSION" \
+            --generate-notes

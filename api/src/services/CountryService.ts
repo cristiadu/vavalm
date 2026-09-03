@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
 import { CountryApiModel } from '@/models/contract/CountryApiModel'
 import {
   REST_COUNTRIES_CACHE_KEY,
@@ -8,6 +11,7 @@ import {
   REST_COUNTRIES_RESPONSE_FIELDS,
   REST_COUNTRIES_URL,
   RestCountriesResponse,
+  SAVED_COUNTRIES_FILE,
 } from '@/models/RestCountries'
 import CacheService from '@/services/CacheService'
 
@@ -40,7 +44,7 @@ const fetchCountryPage = async (apiKey: string, offset: number): Promise<RestCou
 }
 
 /** Fetches and maps every page from REST Countries v5. */
-const fetchAllCountries = async (apiKey: string): Promise<CountryApiModel[]> => {
+export const fetchAllCountries = async (apiKey: string): Promise<CountryApiModel[]> => {
   const countries: CountryApiModel[] = []
   let offset = 0
   let hasMore = true
@@ -71,6 +75,27 @@ const fetchAllCountries = async (apiKey: string): Promise<CountryApiModel[]> => 
   return countries
 }
 
+/**
+ * Read the country dataset the build saved beside the bundle.
+ *
+ * The build holds the API key and saves the dataset; a distributed
+ * application cannot carry the key itself.
+ *
+ * @returns The saved countries, or undefined when the build saved none.
+ */
+export const readSavedCountries = (): CountryApiModel[] | undefined => {
+  try {
+    const saved = JSON.parse(
+      readFileSync(path.join(__dirname, SAVED_COUNTRIES_FILE), 'utf8'),
+    ) as CountryApiModel[]
+
+    return saved.length > 0 ? saved : undefined
+  } catch {
+    // A build without the key saves nothing; the key path covers it.
+    return undefined
+  }
+}
+
 /** Fetches and caches all countries exposed by REST Countries v5. */
 export const getCountries = async (): Promise<CountryApiModel[]> => {
   const cachedCountries = CacheService.get<CountryApiModel[]>(REST_COUNTRIES_CACHE_KEY)
@@ -78,9 +103,9 @@ export const getCountries = async (): Promise<CountryApiModel[]> => {
     return cachedCountries
   }
 
-  let countries: CountryApiModel[] = []
+  let countries = readSavedCountries() ?? []
   const apiKey = process.env.REST_COUNTRIES_API_KEY
-  if (apiKey) {
+  if (countries.length === 0 && apiKey) {
     try {
       countries = await fetchAllCountries(apiKey)
     } catch {

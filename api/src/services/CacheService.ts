@@ -43,7 +43,7 @@ class MemoryCache {
     this.cache.clear()
   }
 
-  // Clean up expired items periodically
+  // Unreferenced, so housekeeping never keeps a process alive on its own.
   startCleanupInterval(intervalMs = 60000): NodeJS.Timeout {
     return setInterval(() => {
       const now = Date.now()
@@ -52,7 +52,7 @@ class MemoryCache {
           this.cache.delete(key)
         }
       }
-    }, intervalMs)
+    }, intervalMs).unref()
   }
 
   // Get current cache stats
