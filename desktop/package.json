@@ -14,6 +14,8 @@
     "dist": "pnpm build:resources && pnpm build && electron-builder --publish never",
     "lint": "pnpm eslint . --config eslint.config.js && pnpm tsc --project tsconfig.json --noEmit",
     "test": "vitest run",
+    "test:packaged": "node scripts/desktop-tests.ts",
+    "test:packaged:ui": "node scripts/desktop-tests.ts --ui-only",
     "test:coverage": "vitest run --coverage",
     "clean": "rimraf dist release",
     "create-env-file": "echo 'Desktop configuration is managed by Electron'",
@@ -81,8 +83,8 @@
         "to": "app-server/ui"
       },
       {
-        "from": "../ui/.next/standalone/node_modules/.pnpm",
-        "to": "app-server/ui/node_modules/.pnpm"
+        "from": "../ui/.next/standalone/node_modules",
+        "to": "app-server/ui/node_modules"
       },
       {
         "from": "../ui/.next/static",

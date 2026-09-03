@@ -16,3 +16,8 @@ allowBuilds:
   sharp: true
 # only install package versions published at least 3 days ago (supply-chain protection)
 minimumReleaseAge: 4320
+# Electron packaging copies the traced Next.js server output as plain files, and
+# the Windows installer resolves symlinks into real directories. That detaches a
+# linked package from the virtual-store siblings it resolves against, so the
+# desktop UI must be linked without symlinks.
+nodeLinker: hoisted
