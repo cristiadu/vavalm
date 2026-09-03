@@ -22,3 +22,11 @@ minimumReleaseAge: 4320
 # linked package from the virtual-store siblings it resolves against, so the
 # desktop UI must be linked without symlinks.
 nodeLinker: hoisted
+# typescript-eslint requires typescript <6.1, so --latest must leave TypeScript
+# where it is until a release supports 7. Drop this once one does.
+updateConfig:
+  ignoreDependencies:
+    - typescript
+    # webpack 5.110 mangles undici's private class fields, so the API bundle
+    # throws on load. Drop this once a later release stops doing that.
+    - webpack
