@@ -13,8 +13,8 @@ on:
         default: patch
 
 permissions:
-  contents: write
-  
+  contents: read
+
 # Concurrent runs would race for the same version.
 concurrency: release-desktop
 
@@ -23,14 +23,29 @@ jobs:
     name: raise the version
     permissions:
       contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.raise.outputs.version }}
-      sha: ${{ steps.commit.outputs.sha }}
+      sha: ${{ steps.merge.outputs.sha }}
     steps:
+      # main only takes changes through a reviewed pull request, and a pull
+      # request opened with the default token does not start any checks, so the
+      # required ones would never report. RELEASE_TOKEN is a personal access
+      # token with contents and pull-requests write.
+      - name: Require a release token
+        env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if [ -z "$RELEASE_TOKEN" ]; then
+            echo 'RELEASE_TOKEN is not set. See the release section of the README.' >&2
+            exit 1
+          fi
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -57,17 +72,51 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Raised every package to $version"
 
-      # Pushed before the build so the installers carry the released version.
-      - name: Commit the version
-        id: commit
+      - name: Open the version pull request
+        id: pull-request
         env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           VERSION: ${{ steps.raise.outputs.version }}
         run: |
+          branch="release/v$VERSION"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b "$branch"
           git commit -am "chore: release v$VERSION"
-          git push origin HEAD:main
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git push origin "$branch"
+
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore: release v$VERSION" \
+            --body "Raises every package to v$VERSION. Opened by the release workflow; merging it starts the installer build."
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+      # Waits for the checks main requires, then merges. Auto-merge is off for
+      # this repository, so the merge is made here rather than queued.
+      - name: Merge the version pull request
+        id: merge
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          BRANCH: ${{ steps.pull-request.outputs.branch }}
+        run: |
+          for _ in $(seq 1 12); do
+            gh pr checks "$BRANCH" --required > /dev/null 2>&1 && break
+            sleep 15
+          done
+          gh pr checks "$BRANCH" --required --watch --fail-fast --interval 20
+
+          # Code scanning reports outside the checks above and can lag behind it.
+          for attempt in $(seq 1 10); do
+            gh pr merge "$BRANCH" --squash --delete-branch && break
+            if [ "$attempt" = 10 ]; then
+              echo "Could not merge the version pull request" >&2
+              exit 1
+            fi
+            sleep 20
+          done
+
+          echo "sha=$(gh pr view "$BRANCH" --json mergeCommit --jq .mergeCommit.oid)" >> "$GITHUB_OUTPUT"
 
   package:
     name: build
@@ -92,7 +141,7 @@ jobs:
           path: release
           merge-multiple: true
 
-      # Tags the built commit and attaches the installers in one step, so a
+      # Tags the merged commit and attaches the installers in one step, so a
       # failed build leaves no tag behind.
       - name: Publish the release
         env:

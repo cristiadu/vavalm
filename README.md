@@ -104,14 +104,20 @@ port automatically and is started and stopped with the app.
 
 Installers are written to `desktop/release/`. Build each target on its native
 operating system; the desktop GitHub Actions workflow produces macOS, Linux,
-and Windows artifacts in parallel. Publish a GitHub Release with a tag matching
-`desktop/package.json` (for example, `v1.0.0`) to build and attach those
-installers to the release. The release command creates the tag when it does not
-already exist:
+and Windows artifacts in parallel.
 
-```bash
-gh release create v1.0.0 --generate-notes --title "VaValM v1.0.0"
-```
+### Releasing
+
+Run the **Release Desktop App** workflow and choose `patch`, `minor` or
+`major`. It raises the version across every package, opens a pull request with
+that change, merges it once the required checks pass, builds the installers
+from the merged commit, and publishes the release with them attached. Nothing
+needs editing by hand.
+
+The workflow needs a `RELEASE_TOKEN` repository secret: a personal access token
+with `contents: write` and `pull-requests: write`. A pull request opened with
+the default workflow token does not start any checks, so the ones `main`
+requires would never report and the release would wait forever.
 
 ## Game Simulation
 
