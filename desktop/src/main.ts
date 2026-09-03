@@ -17,10 +17,8 @@ const DATABASE_NAME = 'vavalm'
 const DATABASE_USER = 'vavalm'
 const DATABASE_PASSWORD = 'vavalm-desktop'
 
-// A first launch creates the database schema and downloads the seeded team
-// logos before the API starts listening, so the budget covers a cold start on a
-// slow machine. A managed process that dies is reported as soon as it exits
-// rather than waiting this out.
+// A first launch seeds the database before the API listens, so this covers a
+// cold start. A server that dies is reported without waiting it out.
 const STARTUP_TIMEOUT_MS = 180000
 
 // Electron owns the final exit event after the managed services have stopped.
@@ -33,17 +31,15 @@ let desktopUiUrl: string | undefined
 let startupLog: WriteStream | undefined
 let isQuitting = false
 
-// A packaged desktop build has no console to inspect, so managed process output
-// is the only record of a failed launch. The per-launch secrets travel to those
-// processes as environment variables and must never reach the file.
+// A packaged build has no console, so this file is the only record of a failed
+// launch. The secrets reach those processes as environment variables.
 const redactedValues = new Set<string>([DATABASE_PASSWORD])
 
 /**
  * Path of the log file collecting managed service output.
  *
- * The path is never passed through redaction: it contains the application name,
- * which can itself match a redacted value and would leave the reader chasing a
- * file that does not exist.
+ * Never redacted: it contains the application name, which can match a redacted
+ * value and would name a file that does not exist.
  */
 const startupLogPath = (): string => path.join(app.getPath('logs'), STARTUP_LOG_NAME)
 
@@ -64,8 +60,7 @@ const writeStartupLog = (source: string, message: string): void => {
     }
     startupLog.write(`[${new Date().toISOString()}] [${source}] ${redacted.trimEnd()}\n`)
   } catch {
-    // An install without a writable log directory still reports startup
-    // failures through the error dialog.
+    // The error dialog still reports the failure without a writable log.
   }
 }
 
@@ -154,8 +149,7 @@ const startServerProcess = (
 /**
  * Wait until a managed server returns a successful response.
  *
- * A server that exits during startup is reported as soon as it stops, so a
- * crashed process does not spend the whole startup budget before failing.
+ * A server that exits is reported as soon as it stops.
  *
  * @param url - Health URL to poll.
  * @param server - Managed server expected to answer that URL.
@@ -227,8 +221,7 @@ const startDatabase = async (): Promise<string> => {
     await postgres.initialise()
   }
 
-  // The cluster rejects without a reason when it exits before reporting that it
-  // is ready, so the log is the only place the cause is recorded.
+  // The cluster rejects without a reason, so the log holds the cause.
   try {
     await postgres.start()
   } catch {
@@ -342,8 +335,8 @@ const runApplication = async (): Promise<void> => {
   } catch (error) {
     await stopApplication()
     const message = error instanceof Error ? error.message : 'An unexpected startup error occurred.'
-    // A packaged build has no usable stderr, so the log file carries the report.
-    // The log path is appended after redaction so it stays readable.
+    // No usable stderr in a packaged build. The path is appended after
+    // redaction so it stays readable.
     writeStartupLog('startup', `VaValM startup failed: ${message}`)
     dialog.showErrorBox(
       'VaValM could not start',
