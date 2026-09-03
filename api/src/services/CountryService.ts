@@ -78,10 +78,8 @@ export const fetchAllCountries = async (apiKey: string): Promise<CountryApiModel
 /**
  * Read the country dataset the build saved beside the bundle.
  *
- * REST Countries needs an API key, which a distributed desktop application
- * cannot carry without handing it to everyone who installs it. The build has
- * the key and saves the dataset instead, so the application serves that and
- * only calls out when a build did not save one.
+ * The build holds the API key and saves the dataset; a distributed
+ * application cannot carry the key itself.
  *
  * @returns The saved countries, or undefined when the build saved none.
  */
@@ -93,7 +91,7 @@ export const readSavedCountries = (): CountryApiModel[] | undefined => {
 
     return saved.length > 0 ? saved : undefined
   } catch {
-    // A build without an API key saves nothing, and the API key path covers it.
+    // A build without the key saves nothing; the key path covers it.
     return undefined
   }
 }

@@ -13,15 +13,13 @@ import {
   UI_URL,
 } from '../src/runtime-config.ts'
 
-// Packaging succeeds even when the packaged servers cannot start, so the
-// installer is only trustworthy once the application has actually launched.
+// Packaging succeeds even when the packaged servers cannot start.
 
 const READY_TIMEOUT_MS = 300000
 const POLL_INTERVAL_MS = 2000
 const SHUTDOWN_TIMEOUT_MS = 15000
 
-// Electron derives its log directory from the platform's user data path, which
-// cannot be queried from outside the application.
+// Electron's log directory cannot be queried from outside the application.
 const STARTUP_LOG_PATHS = [
   path.join(process.env.HOME ?? '', 'Library', 'Logs', APPLICATION_NAME, STARTUP_LOG_NAME),
   path.join(process.env.HOME ?? '', '.config', APPLICATION_NAME, 'logs', STARTUP_LOG_NAME),
@@ -81,8 +79,7 @@ const readStartupLog = async (): Promise<string> => {
 /**
  * Report whether a server answers successfully.
  *
- * Probing over `node:http` without a shared agent leaves no pooled socket
- * behind, which keeps the process from faulting as it exits on Windows.
+ * No shared agent, so no pooled socket is left to tear down on exit.
  *
  * @param url - Address to probe.
  * @returns Whether the server answered with a successful status.
@@ -106,8 +103,7 @@ const isAnswering = async (url: string): Promise<boolean> => {
 /**
  * Stop a server and wait for it to release the loopback ports.
  *
- * A later run would otherwise probe the previous server as it dies, and a
- * failed launch waits on a modal dialog that can outlive the term signal.
+ * A failed launch waits on a modal dialog that can outlive the term signal.
  *
  * @param child - Process to stop.
  * @param hasExited - Whether the process has already reported its exit.
@@ -131,10 +127,9 @@ const stopServer = async (child: ChildProcess, hasExited: () => boolean): Promis
 /**
  * Serve the packaged UI and require it to answer.
  *
- * The embedded database refuses to run under an elevated account, which is the
- * only kind a Windows runner offers. Serving the UI on its own needs no
- * database, display or privileges, and still exercises the traced Next.js
- * runtime that packaging rewrites.
+ * PostgreSQL refuses the elevated account a Windows runner provides. Serving
+ * the UI alone needs no database, display or privileges, and still exercises
+ * the traced Next.js runtime.
  *
  * @param resourcesPath - Resources directory of the unpacked build.
  * @returns Whether the packaged UI answered.
@@ -143,10 +138,9 @@ const checkPackagedUi = async (resourcesPath: string): Promise<boolean> => {
   const { uiRoot } = resolveDesktopServerPaths(true, resourcesPath, import.meta.dirname)
   const { uiEnvironment } = createDesktopServerConfig(process.env, 'postgres://unused', randomUUID())
 
-  // The build output sits inside the repository, so Node would resolve a
-  // dependency missing from the package against the repository's own
-  // node_modules and pass regardless. An installed application has no such
-  // parent, so the check only means anything outside the working tree.
+  // Inside the repository, Node resolves anything missing from the package
+  // against the repository's own node_modules and the check passes regardless.
+  // An installed application has no such parent.
   const isolated = path.join(tmpdir(), `vavalm-desktop-tests-${randomUUID()}`)
   await cp(path.dirname(uiRoot), isolated, { recursive: true, verbatimSymlinks: true })
   const isolatedRoot = path.join(isolated, path.basename(uiRoot))
@@ -195,11 +189,10 @@ const checkPackagedUi = async (resourcesPath: string): Promise<boolean> => {
 const checkPackagedApplication = async (executable: string): Promise<boolean> => {
   console.info(`Launching ${executable}`)
 
-  // The application appends to its log across launches, so only what follows
-  // describes this run.
+  // The log is appended across launches.
   const priorLog = await readStartupLog()
 
-  // A runner grants the Chromium sandbox helper none of the privileges it needs.
+  // A runner denies the Chromium sandbox helper the privileges it needs.
   const application = spawn(executable, process.platform === 'linux' ? ['--no-sandbox'] : [], {
     stdio: ['ignore', 'inherit', 'inherit'],
   })
@@ -219,8 +212,8 @@ const checkPackagedApplication = async (executable: string): Promise<boolean> =>
       break
     }
 
-    // A failed launch waits on a modal dialog that nothing will dismiss on a
-    // runner, so the application's own report ends the wait.
+    // Nothing dismisses the modal dialog on a runner, so its own report
+    // ends the wait.
     const runLog = (await readStartupLog()).slice(priorLog.length)
     failure = runLog.split('\n').find(line => line.includes('startup failed'))
     if (failure === undefined && exitCode !== undefined) {
@@ -253,8 +246,7 @@ const passed = process.argv.includes('--ui-only')
   ? await checkPackagedUi(resourcesPath)
   : await checkPackagedApplication(executable)
 
-// Setting the code rather than exiting lets the runtime tear its own handles
-// down, which Windows faults on when the process is forced to exit.
+// Windows faults on a forced exit, so let the runtime unwind its own handles.
 if (!passed) {
   process.exitCode = 1
 }

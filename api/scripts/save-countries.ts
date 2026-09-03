@@ -4,14 +4,8 @@ import path from 'node:path'
 import { SAVED_COUNTRIES_FILE } from '@/models/RestCountries'
 import { fetchAllCountries } from '@/services/CountryService'
 
-/**
- * Capture the REST Countries dataset next to the bundle at build time.
- *
- * The API key belongs to the build, not to the artifact: a distributed desktop
- * application that carried it would hand it to everyone who installs it. A
- * build without the key saves nothing, and the application falls back to
- * calling REST Countries itself.
- */
+// Captures the dataset next to the bundle so the key stays with the build and
+// never ships. Without the key this saves nothing and the application calls out.
 
 const apiKey = process.env.REST_COUNTRIES_API_KEY
 const destination = path.resolve(import.meta.dirname, '..', 'dist', SAVED_COUNTRIES_FILE)
