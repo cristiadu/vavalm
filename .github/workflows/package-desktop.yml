@@ -1,43 +1,21 @@
-name: Package Desktop Apps
+name: Package Desktop
 
-# Called by desktop.yml and release-desktop.yml.
+# Builds an installer per operating system and launches it. Called by CI and CD.
 on:
   workflow_call:
-    inputs:
-      ref:
-        description: 'Commit to build. Defaults to the ref the caller ran on.'
-        type: string
-        required: false
-        default: ''
-      expected-version:
-        description: 'Version every package must already carry, checked before building.'
-        type: string
-        required: false
-        default: ''
 
 permissions:
   contents: read
 
 jobs:
   package:
-    name: package (${{ matrix.os }})
+    name: desktop (${{ matrix.os }})
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - os: macos-latest
-            artifact_path: 'desktop/release/*.dmg'
-          - os: ubuntu-latest
-            artifact_path: |
-              desktop/release/*.AppImage
-              desktop/release/*.deb
-          - os: windows-latest
-            artifact_path: 'desktop/release/*.exe'
+        os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -52,30 +30,18 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      # Every package shares the release version.
-      - name: Verify release version
-        if: inputs.expected-version != ''
-        env:
-          EXPECTED_VERSION: ${{ inputs.expected-version }}
-        shell: bash
-        run: |
-          for manifest in package.json api/package.json ui/package.json desktop/package.json; do
-            package_version="$(node -p "require('./$manifest').version")"
-            if [ "$EXPECTED_VERSION" != "$package_version" ]; then
-              echo "$manifest is at $package_version but the release is $EXPECTED_VERSION" >&2
-              exit 1
-            fi
-          done
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build installer
-        run: pnpm desktop:dist
         env:
+          # Stops electron-builder searching the keychain for a macOS signing
+          # identity. Releases are unsigned, and without this the build fails
+          # on a runner that has no certificate.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           # The build captures the country dataset, so the key never ships.
           REST_COUNTRIES_API_KEY: ${{ secrets.REST_COUNTRIES_API_KEY }}
+        run: pnpm desktop:dist
 
       # Packaging succeeds even when the packaged servers cannot start. A Linux
       # runner has no display, and PostgreSQL refuses the elevated account a
@@ -89,11 +55,26 @@ jobs:
             *) pnpm desktop:test ;;
           esac
 
+      - name: Resolve the installers
+        id: installers
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            macOS) paths='desktop/release/*.dmg' ;;
+            Windows) paths='desktop/release/*.exe' ;;
+            *) paths=$'desktop/release/*.AppImage\ndesktop/release/*.deb' ;;
+          esac
+          {
+            echo 'paths<<INSTALLERS'
+            echo "$paths"
+            echo 'INSTALLERS'
+          } >> "$GITHUB_OUTPUT"
+
       # Uploaded on failure too, so a broken package can be inspected.
       - name: Upload installer
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: vavalm-${{ runner.os }}-${{ runner.arch }}
-          path: ${{ matrix.artifact_path }}
+          path: ${{ steps.installers.outputs.paths }}
           if-no-files-found: error

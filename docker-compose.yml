@@ -20,6 +20,7 @@ services:
       retries: 5
 
   backend:
+    image: ${API_IMAGE:-vavalm-api}:${IMAGE_TAG:-dev}
     build:
       context: .
       dockerfile: api/Dockerfile
@@ -45,6 +46,7 @@ services:
         condition: service_healthy
 
   frontend:
+    image: ${UI_IMAGE:-vavalm-ui}:${IMAGE_TAG:-dev}
     build:
       context: .
       dockerfile: ui/Dockerfile

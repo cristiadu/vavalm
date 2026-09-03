@@ -1,0 +1,75 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Releases are cumulative, so a run in flight finishes rather than being
+# replaced by the next merge.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  docker:
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/package-docker.yml
+    secrets: inherit
+    with:
+      publish: true
+
+  desktop:
+    uses: ./.github/workflows/package-desktop.yml
+    secrets: inherit
+
+  # Every merge refreshes the release for the version main carries, so its
+  # downloads and image references come from the newest commit. A version bump
+  # merges like anything else and publishes a new release.
+  release:
+    name: publish the release
+    needs: [docker, desktop]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Download installers
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: vavalm-*
+          path: release
+          merge-multiple: true
+
+      # The body is rebuilt every run, so refreshing a release neither loses the
+      # changelog nor repeats the image list.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGES: ${{ needs.docker.outputs.images }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag="v$version"
+
+          generated="$(gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f tag_name="$tag" -f target_commitish="$GITHUB_SHA" --jq .body)"
+          notes="$(printf '%s\n\n## Container images\n\n```\n%s\n```\n' "$generated" "$IMAGES")"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Refreshing $tag from $GITHUB_SHA"
+            gh release upload "$tag" release/* --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes "$notes"
+          else
+            echo "Publishing $tag from $GITHUB_SHA"
+            gh release create "$tag" release/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "VaValM $tag" \
+              --notes "$notes"
+          fi

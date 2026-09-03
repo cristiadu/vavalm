@@ -103,15 +103,19 @@ Desktop builds use `127.0.0.1:13000` for the bundled UI and
 port automatically and is started and stopped with the app.
 
 Installers are written to `desktop/release/`. Build each target on its native
-operating system; the desktop GitHub Actions workflow produces macOS, Linux,
-and Windows artifacts in parallel. Publish a GitHub Release with a tag matching
-`desktop/package.json` (for example, `v1.0.0`) to build and attach those
-installers to the release. The release command creates the tag when it does not
-already exist:
+operating system; CI and CD build macOS, Linux, and Windows in parallel.
 
-```bash
-gh release create v1.0.0 --generate-notes --title "VaValM v1.0.0"
-```
+### Releasing
+
+Every merge to `main` runs **CD**, which packages both artifacts — the
+container images and the desktop installers — and refreshes the GitHub release
+for the version `package.json` currently carries. Its downloads and image
+references always come from the newest commit.
+
+To move to a new version, run the **Version** workflow and choose `patch`,
+`minor` or `major`. It raises the version across every package and opens a
+pull request. Merging that pull request publishes the new release, like any
+other merge. Nothing needs editing by hand.
 
 ## Game Simulation
 
@@ -167,7 +171,7 @@ You can deploy the entire stack using Docker Compose:
 
 ```bash
 # Build the containers
-pnpm dev:docker:build
+pnpm docker:build
 
 # Start the containers
 pnpm dev:docker:up
@@ -175,6 +179,11 @@ pnpm dev:docker:up
 # Stop and remove the containers
 pnpm dev:docker:down
 ```
+
+Images are tagged `vavalm-api:dev` and `vavalm-ui:dev` locally. CD builds the
+same images from `docker-compose.yml` and pushes them to
+`ghcr.io/cristiadu/vavalm-api` and `ghcr.io/cristiadu/vavalm-ui`, tagged with
+the workspace version, once the stack built from them has passed its tests.
 
 ## Project Documentation
 

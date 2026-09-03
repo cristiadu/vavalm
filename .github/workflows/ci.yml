@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run per branch: pushing again cancels the run still in flight, since its
+# result is already out of date.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker:
+    uses: ./.github/workflows/package-docker.yml
+    secrets: inherit
+
+  desktop:
+    uses: ./.github/workflows/package-desktop.yml
+    secrets: inherit
