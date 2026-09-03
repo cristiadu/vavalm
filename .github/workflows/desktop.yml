@@ -10,7 +10,6 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
-      - '.github/actions/**'
       - '.github/workflows/desktop.yml'
       - '.github/workflows/desktop-package.yml'
 
