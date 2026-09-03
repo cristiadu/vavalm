@@ -32,6 +32,9 @@ runs:
     - name: Build installer
       shell: bash
       env:
+        # Stops electron-builder searching the keychain for a macOS signing
+        # identity. Releases are unsigned, and without this the build fails on
+        # a runner that has no certificate.
         CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         # The build captures the country dataset, so the key never ships.
         REST_COUNTRIES_API_KEY: ${{ inputs.rest-countries-api-key }}

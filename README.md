@@ -112,14 +112,9 @@ the GitHub release for the version `package.json` currently carries, so its
 downloads always come from the newest commit.
 
 To move to a new version, run the **Version** workflow and choose `patch`,
-`minor` or `major`. It raises the version across every package
-and opens a pull request. Merging that pull request publishes the new release,
-like any other merge. Nothing needs editing by hand.
-
-**Version** needs a `RELEASE_TOKEN` repository secret: a personal access
-token with `contents: write` and `pull-requests: write`. A pull request opened
-with the default workflow token starts no checks, so the ones `main` requires
-would never report and it could not be merged.
+`minor` or `major`. It raises the version across every package and opens a
+pull request. Merging that pull request publishes the new release, like any
+other merge. Nothing needs editing by hand.
 
 ## Game Simulation
 

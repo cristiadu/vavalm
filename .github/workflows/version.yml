@@ -27,23 +27,9 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      # A pull request opened with the default token starts no checks, so the
-      # ones main requires would never report and it could not be merged.
-      # RELEASE_TOKEN is a personal access token with contents and
-      # pull-requests write.
-      - name: Require a release token
-        env:
-          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          if [ -z "$RELEASE_TOKEN" ]; then
-            echo 'RELEASE_TOKEN is not set. See the release section of the README.' >&2
-            exit 1
-          fi
-
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
-          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -60,7 +46,7 @@ jobs:
 
       - name: Open the version pull request
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           BUMP: ${{ inputs.bump }}
         run: |
           # Recursive covers the root manifest too, and skips git entirely.

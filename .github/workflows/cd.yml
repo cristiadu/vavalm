@@ -8,13 +8,25 @@ on:
 permissions:
   contents: read
 
+# Releases are cumulative, so a run in flight finishes rather than being
+# replaced by the next merge.
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/verify-workspace
+        with:
+          rest-countries-api-key: ${{ secrets.REST_COUNTRIES_API_KEY }}
+
   desktop:
     name: desktop (${{ matrix.os }})
+    # One platform failing should not hide whether the others still build.
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +44,9 @@ jobs:
   # else and publishes a new release.
   release:
     name: publish the release
-    needs: desktop
+    needs: [build, desktop]
+    # Creating a release and uploading assets both need contents: write, which
+    # this grants over the read the workflow defaults to.
     permissions:
       contents: write
     runs-on: ubuntu-latest
