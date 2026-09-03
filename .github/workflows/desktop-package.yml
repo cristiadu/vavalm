@@ -1,0 +1,96 @@
+name: Package Desktop Apps
+
+# The desktop build, defined once. Pull request checks call it to find out
+# whether a change still produces a working application, and the release
+# workflow calls the same definition to produce the installers it publishes, so
+# what ships is built by exactly the steps that were tested.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Commit to build. Defaults to the ref the caller ran on.'
+        type: string
+        required: false
+        default: ''
+      expected-version:
+        description: 'Version every package must already carry, checked before building.'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact_path: 'desktop/release/*.dmg'
+          - os: ubuntu-latest
+            artifact_path: |
+              desktop/release/*.AppImage
+              desktop/release/*.deb
+          - os: windows-latest
+            artifact_path: 'desktop/release/*.exe'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: ./.github/actions/setup-workspace
+
+      # One release covers the whole application, so the version has to agree
+      # across every package rather than in the desktop one alone.
+      - name: Verify release version
+        if: inputs.expected-version != ''
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected-version }}
+        shell: bash
+        run: |
+          for manifest in package.json api/package.json ui/package.json desktop/package.json; do
+            package_version="$(node -p "require('./$manifest').version")"
+            if [ "$EXPECTED_VERSION" != "$package_version" ]; then
+              echo "$manifest is at $package_version but the release is $EXPECTED_VERSION" >&2
+              exit 1
+            fi
+          done
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build installer
+        run: pnpm desktop:dist
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          # The installer carries the country dataset rather than the key that
+          # retrieves it, so the key stays with the build.
+          REST_COUNTRIES_API_KEY: ${{ secrets.REST_COUNTRIES_API_KEY }}
+
+      # Packaging succeeds even when the packaged servers cannot start, so the
+      # installer is only uploaded once the application has actually launched.
+      # A Linux runner has no display, and the embedded database refuses to run
+      # under the elevated account a Windows runner provides, so Windows checks
+      # that the packaged UI serves instead of launching the whole application.
+      - name: Desktop tests
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Linux) xvfb-run --auto-servernum pnpm desktop:test ;;
+            Windows) pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged:ui ;;
+            *) pnpm desktop:test ;;
+          esac
+
+      # Kept available when the desktop tests fail so the packaged tree can be
+      # inspected, and it is what the release workflow attaches on success.
+      - name: Upload installer
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: vavalm-${{ runner.os }}-${{ runner.arch }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error

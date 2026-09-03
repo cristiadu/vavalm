@@ -1,9 +1,9 @@
 name: Build Desktop Apps
 
+# Continuous integration for the desktop application. The build itself lives in
+# desktop-package.yml, which the release workflow calls too.
 on:
   workflow_dispatch:
-  release:
-    types: [published]
   pull_request:
     paths:
       - 'api/**'
@@ -12,107 +12,15 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - '.github/actions/**'
       - '.github/workflows/desktop.yml'
+      - '.github/workflows/desktop-package.yml'
 
 permissions:
   contents: read
 
 jobs:
   package:
-    name: package (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            artifact_path: 'desktop/release/*.dmg'
-          - os: ubuntu-latest
-            artifact_path: |
-              desktop/release/*.AppImage
-              desktop/release/*.deb
-          - os: windows-latest
-            artifact_path: 'desktop/release/*.exe'
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        with:
-          package_json_file: package.json
-          run_install: false
-
-      - name: Use Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Verify release version
-        if: github.event_name == 'release'
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        shell: bash
-        run: |
-          package_version="$(node -p "require('./desktop/package.json').version")"
-          test "$RELEASE_TAG" = "v$package_version"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build installer
-        run: pnpm desktop:dist
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-          # The installer carries the country dataset rather than the key that
-          # retrieves it, so the key stays with the build.
-          REST_COUNTRIES_API_KEY: ${{ secrets.REST_COUNTRIES_API_KEY }}
-
-      # Packaging succeeds even when the packaged servers cannot start, so the
-      # installer is only uploaded once the application has actually launched.
-      # A Linux runner has no display, and the embedded database refuses to run
-      # under the elevated account a Windows runner provides, so Windows checks
-      # that the packaged UI serves instead of launching the whole application.
-      - name: Desktop tests
-        shell: bash
-        run: |
-          case "$RUNNER_OS" in
-            Linux) xvfb-run --auto-servernum pnpm desktop:test ;;
-            Windows) pnpm --filter @cristiadu/vavalm-desktop test && pnpm --filter @cristiadu/vavalm-desktop test:packaged:ui ;;
-            *) pnpm desktop:test ;;
-          esac
-
-      # Kept available when the desktop tests fail so the packaged tree can be
-      # inspected. Release assets come from the release job, which only runs
-      # once this one has succeeded.
-      - name: Upload installer
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: vavalm-${{ runner.os }}-${{ runner.arch }}
-          path: ${{ matrix.artifact_path }}
-          if-no-files-found: error
-
-  release:
-    name: upload GitHub Release assets
-    if: github.event_name == 'release'
-    needs: package
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Download installers
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          pattern: vavalm-*
-          path: release
-          merge-multiple: true
-
-      # --repo keeps this working without inferring the remote from a checkout.
-      - name: Upload installers to GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$RELEASE_TAG" release/* --repo "$GITHUB_REPOSITORY" --clobber
+    name: desktop
+    uses: ./.github/workflows/desktop-package.yml
+    secrets: inherit

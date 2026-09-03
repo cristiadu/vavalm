@@ -1,9 +1,9 @@
 name: Release Desktop App
 
-# Cuts a desktop release from the current main: raises the version, tags the
-# commit that carries it, and publishes the release. Publishing is what starts
-# "Build Desktop Apps", which builds the installers from the new tag and
-# attaches them.
+# Cuts a release from the current main: raises the version, builds the
+# installers from the commit carrying it, and publishes the release with those
+# installers attached. The build comes from desktop-package.yml, the same
+# definition pull request checks run.
 on:
   workflow_dispatch:
     inputs:
@@ -19,80 +19,89 @@ on:
 permissions:
   contents: read
 
-# Two releases raising the version at once would tag the same commit twice.
+# Two releases raising the version at once would race for the same number.
 concurrency: release-desktop
 
 jobs:
-  release:
-    name: tag and publish
+  version:
+    name: raise the version
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.raise.outputs.version }}
+      sha: ${{ steps.commit.outputs.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
 
-      - name: Use Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: '.nvmrc'
+      - uses: ./.github/actions/setup-workspace
 
-      # The desktop package version is what electron-builder stamps on the
-      # installers, so it is the one the release tag has to agree with.
-      - name: Raise the desktop version
-        id: version
+      # One release covers the whole application, so every package moves to the
+      # same version together.
+      - name: Raise the application version
+        id: raise
         env:
           BUMP: ${{ inputs.bump }}
         run: |
-          next="$(node -e '
-            const { readFileSync, writeFileSync } = require("node:fs")
-            const manifestPath = "desktop/package.json"
-            const manifest = JSON.parse(readFileSync(manifestPath, "utf8"))
-            const [major, minor, patch] = manifest.version.split(".").map(Number)
-            const raised = process.env.BUMP === "major"
-              ? [major + 1, 0, 0]
-              : process.env.BUMP === "minor"
-                ? [major, minor + 1, 0]
-                : [major, minor, patch + 1]
-            manifest.version = raised.join(".")
-            writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
-            console.log(manifest.version)
-          ')"
-          echo "next=$next" >> "$GITHUB_OUTPUT"
-          echo "Raised the desktop version to $next"
+          pnpm version "$BUMP" \
+            --workspaces \
+            --include-workspace-root \
+            --no-git-tag-version \
+            --no-workspaces-update
 
-      - name: Verify the version is not already released
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NEXT: ${{ steps.version.outputs.next }}
-        run: |
-          if gh release view "v$NEXT" >/dev/null 2>&1; then
-            echo "v$NEXT is already released" >&2
-            exit 1
-          fi
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Raised every package to $version"
 
-      - name: Commit and tag the version
+      # The commit is pushed before the build so the installers are built from
+      # the version they will be published under. The tag comes later, with the
+      # release, so a failed build leaves nothing tagged to clean up.
+      - name: Commit the version
+        id: commit
         env:
-          NEXT: ${{ steps.version.outputs.next }}
+          VERSION: ${{ steps.raise.outputs.version }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add desktop/package.json
-          git commit -m "chore(desktop): release v$NEXT"
-          git tag "v$NEXT"
+          git commit -am "chore: release v$VERSION"
           git push origin HEAD:main
-          git push origin "v$NEXT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      # Publishing last means the installer build always starts from a tag that
-      # already carries the raised version.
+  package:
+    name: build
+    needs: version
+    uses: ./.github/workflows/desktop-package.yml
+    secrets: inherit
+    with:
+      ref: ${{ needs.version.outputs.sha }}
+      expected-version: ${{ needs.version.outputs.version }}
+
+  publish:
+    name: publish the release
+    needs: [version, package]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: vavalm-*
+          path: release
+          merge-multiple: true
+
+      # Creating the release tags the built commit and attaches the installers
+      # in one step, so a published release always has something to download.
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-          NEXT: ${{ steps.version.outputs.next }}
+          VERSION: ${{ needs.version.outputs.version }}
+          SHA: ${{ needs.version.outputs.sha }}
         run: |
-          gh release create "v$NEXT" \
+          gh release create "v$VERSION" release/* \
             --repo "$GITHUB_REPOSITORY" \
-            --title "VaValM v$NEXT" \
-            --generate-notes \
-            --verify-tag
+            --target "$SHA" \
+            --title "VaValM v$VERSION" \
+            --generate-notes

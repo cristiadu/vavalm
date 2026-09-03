@@ -1,0 +1,25 @@
+name: Set up workspace
+description: Installs the pnpm and Node.js versions the repository pins.
+
+# Every workflow needs the same toolchain before it can run anything, and the
+# pinned action digests have to move together. Installing dependencies is left
+# to the caller, since a build needs the whole workspace and a release only
+# needs the package manager.
+#
+# This is a local action, so a job has to check the repository out before it
+# can be used.
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      with:
+        package_json_file: package.json
+        run_install: false
+
+    - name: Use Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version-file: '.nvmrc'
+        cache: pnpm
+        cache-dependency-path: 'pnpm-lock.yaml'
