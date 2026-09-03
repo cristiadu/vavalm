@@ -1,0 +1,67 @@
+name: Version
+
+# Raises the application version and opens a pull request with it. Merging that
+# pull request publishes the new version through CD.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version part to raise'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+permissions:
+  contents: read
+
+concurrency: release-version
+
+jobs:
+  version:
+    name: open the version pull request
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          package_json_file: package.json
+          run_install: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Open the version pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUMP: ${{ inputs.bump }}
+        run: |
+          # Recursive covers the root manifest too, and skips git entirely.
+          pnpm version "$BUMP" --recursive
+          version="$(node -p "require('./package.json').version")"
+
+          branch="release/v$version"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -b "$branch"
+          git commit -am "chore: release v$version"
+          git push origin "$branch"
+
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore: release v$version" \
+            --body "Raises every package to v$version. Merging this publishes the release."
