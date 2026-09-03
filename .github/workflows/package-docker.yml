@@ -15,15 +15,11 @@ on:
         description: 'The images the run built, one reference per line.'
         value: ${{ jobs.package.outputs.images }}
 
-permissions:
-  contents: read
-
+# Permissions come from the caller: CI grants read, CD adds the package write
+# the push needs. Declaring them here would cap what CD can grant.
 jobs:
   package:
     name: docker
-    permissions:
-      contents: read
-      packages: write
     runs-on: ubuntu-latest
     outputs:
       images: ${{ steps.images.outputs.references }}
