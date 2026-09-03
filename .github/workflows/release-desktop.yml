@@ -50,11 +50,8 @@ jobs:
         env:
           BUMP: ${{ inputs.bump }}
         run: |
-          pnpm version "$BUMP" \
-            --workspaces \
-            --include-workspace-root \
-            --no-git-tag-version \
-            --no-workspaces-update
+          # Recursive covers the root manifest too, and skips git entirely.
+          pnpm version "$BUMP" --recursive
 
           version="$(node -p "require('./package.json').version")"
           echo "version=$version" >> "$GITHUB_OUTPUT"
