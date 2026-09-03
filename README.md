@@ -107,9 +107,10 @@ operating system; CI and CD build macOS, Linux, and Windows in parallel.
 
 ### Releasing
 
-Every merge to `main` runs **CD**, which builds the installers and refreshes
-the GitHub release for the version `package.json` currently carries, so its
-downloads always come from the newest commit.
+Every merge to `main` runs **CD**, which packages both artifacts — the
+container images and the desktop installers — and refreshes the GitHub release
+for the version `package.json` currently carries. Its downloads and image
+references always come from the newest commit.
 
 To move to a new version, run the **Version** workflow and choose `patch`,
 `minor` or `major`. It raises the version across every package and opens a
@@ -170,7 +171,7 @@ You can deploy the entire stack using Docker Compose:
 
 ```bash
 # Build the containers
-pnpm dev:docker:build
+pnpm docker:build
 
 # Start the containers
 pnpm dev:docker:up
@@ -178,6 +179,11 @@ pnpm dev:docker:up
 # Stop and remove the containers
 pnpm dev:docker:down
 ```
+
+Images are tagged `vavalm-api:dev` and `vavalm-ui:dev` locally. CD builds the
+same images from `docker-compose.yml` and pushes them to
+`ghcr.io/cristiadu/vavalm-api` and `ghcr.io/cristiadu/vavalm-ui`, tagged with
+the workspace version, once the stack built from them has passed its tests.
 
 ## Project Documentation
 

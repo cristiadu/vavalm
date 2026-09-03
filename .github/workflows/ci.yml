@@ -15,27 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Named "build" because main requires a status check by that name.
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: ./.github/actions/verify-workspace
-        with:
-          rest-countries-api-key: ${{ secrets.REST_COUNTRIES_API_KEY }}
+  docker:
+    uses: ./.github/workflows/package-docker.yml
+    secrets: inherit
 
   desktop:
-    name: desktop (${{ matrix.os }})
-    # One platform failing should not hide whether the others still build.
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: ./.github/actions/package-desktop
-        with:
-          rest-countries-api-key: ${{ secrets.REST_COUNTRIES_API_KEY }}
+    uses: ./.github/workflows/package-desktop.yml
+    secrets: inherit
