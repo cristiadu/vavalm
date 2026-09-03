@@ -10,6 +10,8 @@ export const REST_COUNTRIES_REQUEST_TIMEOUT_MS = 5_000
 export const REST_COUNTRIES_CACHE_KEY = 'rest-countries-v5'
 /** Cache lifetime for a successful REST Countries response. */
 export const REST_COUNTRIES_CACHE_TTL_SECONDS = 24 * 60 * 60
+/** File the build writes the mapped country dataset to, beside the bundle. */
+export const SAVED_COUNTRIES_FILE = 'countries.json'
 /** REST Countries fields required by the VaValM country contract. */
 export const REST_COUNTRIES_RESPONSE_FIELDS = 'names.common,codes.alpha_2'
 

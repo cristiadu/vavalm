@@ -12,6 +12,7 @@ allowBuilds:
   '@embedded-postgres/linux-x64': true
   '@embedded-postgres/windows-x64': true
   '@scarf/scarf': false
+  esbuild: true
   electron-winstaller: true
   sharp: true
 # only install package versions published at least 3 days ago (supply-chain protection)
