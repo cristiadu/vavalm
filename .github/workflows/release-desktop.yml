@@ -13,8 +13,8 @@ on:
         default: patch
 
 permissions:
-  contents: read
-
+  contents: write
+  
 # Concurrent runs would race for the same version.
 concurrency: release-desktop
 
