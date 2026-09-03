@@ -1,9 +1,6 @@
 name: Package Desktop Apps
 
-# The desktop build, defined once. Pull request checks call it to find out
-# whether a change still produces a working application, and the release
-# workflow calls the same definition to produce the installers it publishes, so
-# what ships is built by exactly the steps that were tested.
+# Called by desktop.yml and release-desktop.yml.
 on:
   workflow_call:
     inputs:
@@ -44,8 +41,7 @@ jobs:
 
       - uses: ./.github/actions/setup-workspace
 
-      # One release covers the whole application, so the version has to agree
-      # across every package rather than in the desktop one alone.
+      # Every package shares the release version.
       - name: Verify release version
         if: inputs.expected-version != ''
         env:
@@ -67,15 +63,12 @@ jobs:
         run: pnpm desktop:dist
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-          # The installer carries the country dataset rather than the key that
-          # retrieves it, so the key stays with the build.
+          # The build captures the country dataset, so the key never ships.
           REST_COUNTRIES_API_KEY: ${{ secrets.REST_COUNTRIES_API_KEY }}
 
-      # Packaging succeeds even when the packaged servers cannot start, so the
-      # installer is only uploaded once the application has actually launched.
-      # A Linux runner has no display, and the embedded database refuses to run
-      # under the elevated account a Windows runner provides, so Windows checks
-      # that the packaged UI serves instead of launching the whole application.
+      # Packaging succeeds even when the packaged servers cannot start. A Linux
+      # runner has no display, and PostgreSQL refuses the elevated account a
+      # Windows runner provides, so Windows checks the packaged UI alone.
       - name: Desktop tests
         shell: bash
         run: |
@@ -85,8 +78,7 @@ jobs:
             *) pnpm desktop:test ;;
           esac
 
-      # Kept available when the desktop tests fail so the packaged tree can be
-      # inspected, and it is what the release workflow attaches on success.
+      # Uploaded on failure too, so a broken package can be inspected.
       - name: Upload installer
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

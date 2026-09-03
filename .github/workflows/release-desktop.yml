@@ -1,9 +1,5 @@
 name: Release Desktop App
 
-# Cuts a release from the current main: raises the version, builds the
-# installers from the commit carrying it, and publishes the release with those
-# installers attached. The build comes from desktop-package.yml, the same
-# definition pull request checks run.
 on:
   workflow_dispatch:
     inputs:
@@ -19,7 +15,7 @@ on:
 permissions:
   contents: read
 
-# Two releases raising the version at once would race for the same number.
+# Concurrent runs would race for the same version.
 concurrency: release-desktop
 
 jobs:
@@ -38,8 +34,6 @@ jobs:
 
       - uses: ./.github/actions/setup-workspace
 
-      # One release covers the whole application, so every package moves to the
-      # same version together.
       - name: Raise the application version
         id: raise
         env:
@@ -55,9 +49,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Raised every package to $version"
 
-      # The commit is pushed before the build so the installers are built from
-      # the version they will be published under. The tag comes later, with the
-      # release, so a failed build leaves nothing tagged to clean up.
+      # Pushed before the build so the installers carry the released version.
       - name: Commit the version
         id: commit
         env:
@@ -92,8 +84,8 @@ jobs:
           path: release
           merge-multiple: true
 
-      # Creating the release tags the built commit and attaches the installers
-      # in one step, so a published release always has something to download.
+      # Tags the built commit and attaches the installers in one step, so a
+      # failed build leaves no tag behind.
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}

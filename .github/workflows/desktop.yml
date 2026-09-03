@@ -1,7 +1,5 @@
 name: Build Desktop Apps
 
-# Continuous integration for the desktop application. The build itself lives in
-# desktop-package.yml, which the release workflow calls too.
 on:
   workflow_dispatch:
   pull_request:
