@@ -11,6 +11,8 @@ const config = {
     },
     'desktop': {
       project: ['src/**/*.ts', 'tests/**/*.test.ts'],
+      // Windows ships runas, so no package provides it.
+      ignoreBinaries: ['runas'],
     },
     'ui': {
       project: ['**/*.{ts,js,tsx,jsx}'],
