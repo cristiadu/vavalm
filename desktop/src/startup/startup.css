@@ -1,0 +1,43 @@
+:root {
+  color-scheme: dark;
+  --startup-background: #16161a;
+  --startup-foreground: #e7e7ea;
+  --startup-phase: #a0a0ab;
+  --startup-note: #6f6f7b;
+}
+
+body {
+  margin: 0;
+  background: var(--startup-background);
+  color: var(--startup-foreground);
+  font: 15px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.startup {
+  box-sizing: border-box;
+  height: 100vh;
+  padding: 2rem;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.startup__name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.startup__phase {
+  margin: 0.5rem 0 0;
+  color: var(--startup-phase);
+}
+
+.startup__note {
+  margin: 1.5rem 0 0;
+  max-width: 32rem;
+  font-size: 13px;
+  color: var(--startup-note);
+}
