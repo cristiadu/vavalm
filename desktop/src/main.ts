@@ -30,10 +30,16 @@ const DATABASE_INITIALISE_TIMEOUT_MS = 300000
 const DATABASE_START_TIMEOUT_MS = 120000
 const DATABASE_CONNECT_TIMEOUT_MS = 30000
 
+// Binding a loopback port is the one startup step that runs before anything is
+// logged, so a bind that never completes leaves neither a window message nor a
+// log line. Security software on Windows can hold a bind open indefinitely.
+const PORT_TIMEOUT_MS = 15000
+
 // Layout shown while the managed services start. The window paints the layout's
 // own background so the first frame does not flash white.
 const STARTUP_PAGE_NAME = 'startup.html'
 const STARTUP_PHASE_ELEMENT_ID = 'phase'
+const STARTUP_DETAIL_ELEMENT_ID = 'detail'
 const STARTUP_BACKGROUND_COLOR = '#16161a'
 
 // Electron owns the final exit event after the managed services have stopped.
@@ -45,6 +51,13 @@ let postgres: EmbeddedPostgres | undefined
 let desktopUiUrl: string | undefined
 let startupLog: WriteStream | undefined
 let isQuitting = false
+
+// Held so the startup layout can be repainted after a reload, which would
+// otherwise leave its placeholder text on screen for the rest of the launch.
+// Cleared once the UI itself is loaded, which is what stops the repaint.
+let mainWindow: BrowserWindow | undefined
+let startupPhase: string | undefined
+let startupDetail: string | undefined
 
 // A packaged build has no console, so this file is the only record of a failed
 // launch. The secrets reach those processes as environment variables.
@@ -59,14 +72,49 @@ const redactedValues = new Set<string>([DATABASE_PASSWORD])
 const startupLogPath = (): string => path.join(app.getPath('logs'), STARTUP_LOG_NAME)
 
 /**
- * Format a log line with per-launch secrets removed.
+ * Format a log line that already has its secrets removed.
  *
  * @param source - Service the message came from.
- * @param message - Text to record.
+ * @param redacted - Text to record, with secrets already replaced.
  * @returns The line to append to the startup log.
  */
-const startupLogLine = (source: string, message: string): string =>
-  `[${new Date().toISOString()}] [${source}] ${redactSecrets(message, redactedValues).trimEnd()}\n`
+const startupLogLine = (source: string, redacted: string): string =>
+  `[${new Date().toISOString()}] [${source}] ${redacted.trimEnd()}\n`
+
+/**
+ * Build a statement assigning text to one element of the startup layout.
+ *
+ * Both values are encoded, so a service message cannot alter the layout.
+ *
+ * @param elementId - Element to assign to.
+ * @param text - Text to show.
+ * @returns The statement to evaluate in the startup layout.
+ */
+const assignStartupText = (elementId: string, text: string): string =>
+  `document.getElementById(${JSON.stringify(elementId)}).textContent = ${JSON.stringify(text)};`
+
+/**
+ * Repaint the startup layout with the phase and the latest service message.
+ *
+ * Reapplied on every load of the layout, so a reload does not strand the
+ * placeholder text, and a launch that stalls still shows where it stopped.
+ */
+const renderStartupProgress = async (): Promise<void> => {
+  const window = mainWindow
+  if (startupPhase === undefined || !window || window.isDestroyed()) {
+    return
+  }
+
+  try {
+    await window.webContents.executeJavaScript(
+      assignStartupText(STARTUP_PHASE_ELEMENT_ID, startupPhase)
+      + assignStartupText(STARTUP_DETAIL_ELEMENT_ID, startupDetail ?? ''),
+    )
+  } catch {
+    // The window navigated or closed while the phase was being painted, and
+    // every caller reports progress rather than depending on it.
+  }
+}
 
 /**
  * Record managed service output.
@@ -77,13 +125,23 @@ const startupLogLine = (source: string, message: string): string =>
  * @param message - Text to record.
  */
 const writeStartupLog = (source: string, message: string): void => {
+  const redacted = redactSecrets(message, redactedValues)
+
+  // The last line of the chunk is the service's most recent word on its own
+  // progress, which is what a stalled launch needs to show.
+  const lastLine = redacted.split('\n').map(line => line.trim()).filter(Boolean).at(-1)
+  if (lastLine !== undefined) {
+    startupDetail = `${source}: ${lastLine}`
+    void renderStartupProgress()
+  }
+
   try {
     if (!startupLog) {
       const logPath = startupLogPath()
       mkdirSync(path.dirname(logPath), { recursive: true })
       startupLog = createWriteStream(logPath, { flags: 'a' })
     }
-    startupLog.write(startupLogLine(source, message))
+    startupLog.write(startupLogLine(source, redacted))
   } catch {
     // The error dialog still reports the failure without a writable log.
   }
@@ -102,7 +160,10 @@ const writeStartupFailure = (message: string): void => {
   try {
     const logPath = startupLogPath()
     mkdirSync(path.dirname(logPath), { recursive: true })
-    appendFileSync(logPath, startupLogLine('startup', `VaValM ${STARTUP_FAILURE_MARKER}: ${message}`))
+    appendFileSync(
+      logPath,
+      startupLogLine('startup', `VaValM ${STARTUP_FAILURE_MARKER}: ${redactSecrets(message, redactedValues)}`),
+    )
   } catch {
     // The error dialog still reports the failure without a writable log.
   }
@@ -279,7 +340,11 @@ const ensureDatabaseExists = async (database: EmbeddedPostgres): Promise<void> =
 
 /** Start the managed PostgreSQL instance and return its connection URL. */
 const startDatabase = async (): Promise<string> => {
-  const databasePort = await reserveAvailablePort()
+  const databasePort = await withTimeout(
+    'Reserving a local database port',
+    PORT_TIMEOUT_MS,
+    reserveAvailablePort,
+  )
   const databaseDir = path.join(app.getPath('userData'), 'postgres')
   const isInitialized = existsSync(path.join(databaseDir, 'PG_VERSION'))
   const database = new EmbeddedPostgres({
@@ -337,7 +402,11 @@ const startApplicationServers = async (databaseUrl: string): Promise<string> => 
   const jwtSecret = randomUUID()
   redactedValues.add(jwtSecret)
   const serverConfig = createDesktopServerConfig(process.env, databaseUrl, jwtSecret)
-  await Promise.all(serverConfig.ports.map(assertPortAvailable))
+  await withTimeout(
+    'Checking the local server ports',
+    PORT_TIMEOUT_MS,
+    () => Promise.all(serverConfig.ports.map(assertPortAvailable)),
+  )
 
   const api = startServerProcess(
     'api',
@@ -389,6 +458,11 @@ const createMainWindow = async (): Promise<BrowserWindow> => {
     return { action: 'deny' }
   })
 
+  window.webContents.on('did-finish-load', () => {
+    void renderStartupProgress()
+  })
+
+  mainWindow = window
   await window.loadFile(path.join(import.meta.dirname, 'startup', STARTUP_PAGE_NAME))
   return window
 }
@@ -396,19 +470,13 @@ const createMainWindow = async (): Promise<BrowserWindow> => {
 /**
  * Report the current startup phase in the window.
  *
- * Assigned as text, so the message cannot alter the layout.
+ * Assigned as text, so a service message cannot alter the layout.
  *
- * @param window - Window showing the startup layout.
  * @param message - Phase to report.
  */
-const reportStartupPhase = async (window: BrowserWindow, message: string): Promise<void> => {
-  if (window.isDestroyed()) {
-    return
-  }
-
-  await window.webContents.executeJavaScript(
-    `document.getElementById('${STARTUP_PHASE_ELEMENT_ID}').textContent = ${JSON.stringify(message)}`,
-  )
+const reportStartupPhase = async (message: string): Promise<void> => {
+  startupPhase = message
+  await renderStartupProgress()
 }
 
 /**
@@ -439,11 +507,15 @@ const stopApplication = async (): Promise<void> => {
 const startApplication = async (): Promise<void> => {
   const window = await createMainWindow()
 
-  await reportStartupPhase(window, 'Preparing the local database…')
+  await reportStartupPhase('Preparing the local database…')
   const databaseUrl = await startDatabase()
 
-  await reportStartupPhase(window, 'Starting the game servers…')
+  await reportStartupPhase('Starting the game servers…')
   desktopUiUrl = await startApplicationServers(databaseUrl)
+
+  // Stops the startup layout being repainted over the UI itself.
+  startupPhase = undefined
+  startupDetail = undefined
 
   if (!window.isDestroyed()) {
     await window.loadURL(desktopUiUrl)
