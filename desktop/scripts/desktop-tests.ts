@@ -9,6 +9,7 @@ import {
   APPLICATION_NAME,
   createDesktopServerConfig,
   resolveDesktopServerPaths,
+  STARTUP_FAILURE_MARKER,
   STARTUP_LOG_NAME,
   UI_URL,
 } from '../src/runtime-config.ts'
@@ -18,6 +19,11 @@ import {
 const READY_TIMEOUT_MS = 300000
 const POLL_INTERVAL_MS = 2000
 const SHUTDOWN_TIMEOUT_MS = 15000
+
+// PostgreSQL declines any account holding the Administrators SID, and a Windows
+// runner only offers one. The Basic User trust level drops that SID on the same
+// interactive desktop, which the embedded database needs and the window needs.
+const WINDOWS_BASIC_USER_TRUST_LEVEL = '0x20000'
 
 // Electron's log directory cannot be queried from outside the application.
 const STARTUP_LOG_PATHS = [
@@ -181,6 +187,53 @@ const checkPackagedUi = async (resourcesPath: string): Promise<boolean> => {
 }
 
 /**
+ * Start the packaged application, without administrator rights on Windows.
+ *
+ * @param executable - Packaged executable to launch.
+ * @returns The started process, which on Windows is the launcher rather than
+ * the application itself.
+ */
+const spawnApplication = (executable: string): ChildProcess => {
+  if (process.platform === 'win32') {
+    return spawn(
+      'runas',
+      [`/trustlevel:${WINDOWS_BASIC_USER_TRUST_LEVEL}`, `${executable} --no-sandbox`],
+      { stdio: ['ignore', 'inherit', 'inherit'] },
+    )
+  }
+
+  // A runner denies the Chromium sandbox helper the privileges it needs.
+  return spawn(executable, process.platform === 'linux' ? ['--no-sandbox'] : [], {
+    stdio: ['ignore', 'inherit', 'inherit'],
+  })
+}
+
+/**
+ * Stop the packaged application and every process it started.
+ *
+ * @param launcher - Process the launch returned.
+ * @param hasExited - Whether that process has already reported its exit.
+ * @param executable - Packaged executable, which names the Windows image.
+ */
+const stopApplication = async (
+  launcher: ChildProcess,
+  hasExited: () => boolean,
+  executable: string,
+): Promise<void> => {
+  // The launcher has already exited, so the application is only reachable by
+  // the name it runs under.
+  if (process.platform === 'win32') {
+    const taskkill = spawn('taskkill', ['/im', path.basename(executable), '/t', '/f'], {
+      stdio: ['ignore', 'inherit', 'inherit'],
+    })
+    await new Promise<void>(resolve => taskkill.once('close', () => resolve()))
+    return
+  }
+
+  await stopServer(launcher, hasExited)
+}
+
+/**
  * Launch the packaged application and require both managed servers to answer.
  *
  * @param executable - Packaged executable to launch.
@@ -191,11 +244,12 @@ const checkPackagedApplication = async (executable: string): Promise<boolean> =>
 
   // The log is appended across launches.
   const priorLog = await readStartupLog()
+  const application = spawnApplication(executable)
 
-  // A runner denies the Chromium sandbox helper the privileges it needs.
-  const application = spawn(executable, process.platform === 'linux' ? ['--no-sandbox'] : [], {
-    stdio: ['ignore', 'inherit', 'inherit'],
-  })
+  // A Windows launch reports the launcher's exit, which happens as soon as it
+  // has handed the application its own token, so only a failure to launch says
+  // anything about the application.
+  const reportsApplicationExit = process.platform !== 'win32'
 
   let exitCode: number | undefined
   application.once('exit', code => {
@@ -214,10 +268,12 @@ const checkPackagedApplication = async (executable: string): Promise<boolean> =>
 
     // Nothing dismisses the modal dialog on a runner, so its own report
     // ends the wait.
-    const runLog = (await readStartupLog()).slice(priorLog.length)
-    failure = runLog.split('\n').find(line => line.includes('startup failed'))
-    if (failure === undefined && exitCode !== undefined) {
-      failure = `the application exited with code ${exitCode}`
+    const pendingLog = (await readStartupLog()).slice(priorLog.length)
+    failure = pendingLog.split('\n').find(line => line.includes(STARTUP_FAILURE_MARKER))
+    if (failure === undefined && exitCode !== undefined && (reportsApplicationExit || exitCode !== 0)) {
+      failure = reportsApplicationExit
+        ? `the application exited with code ${exitCode}`
+        : `the launcher could not start the application, exiting with code ${exitCode}`
     }
 
     if (failure === undefined) {
@@ -226,7 +282,7 @@ const checkPackagedApplication = async (executable: string): Promise<boolean> =>
   }
 
   console.info((await readStartupLog()).slice(priorLog.length) || 'No startup.log was written.')
-  await stopServer(application, () => exitCode !== undefined)
+  await stopApplication(application, () => exitCode !== undefined, executable)
 
   if (ready) {
     console.info(`Desktop tests passed: ${UI_URL} and ${API_HEALTH_URL} both answered.`)

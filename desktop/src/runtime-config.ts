@@ -14,6 +14,9 @@ export const UI_URL = `http://${UI_HOST}:${UI_PORT}`
 /** Log file collecting managed service output. */
 export const STARTUP_LOG_NAME = 'startup.log'
 
+/** Marker the application records when a launch fails, so a watcher can stop waiting. */
+export const STARTUP_FAILURE_MARKER = 'startup failed'
+
 /**
  * Application name Electron derives its user data and log directories from.
  *
