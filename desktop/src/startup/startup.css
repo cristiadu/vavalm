@@ -4,6 +4,7 @@
   --startup-foreground: #e7e7ea;
   --startup-phase: #a0a0ab;
   --startup-note: #6f6f7b;
+  --startup-detail: #8a8a96;
 }
 
 body {
@@ -40,4 +41,14 @@ body {
   max-width: 32rem;
   font-size: 13px;
   color: var(--startup-note);
+}
+
+.startup__detail {
+  margin: 1rem 0 0;
+  max-width: 44rem;
+  min-height: 1.6em;
+  font-family: ui-monospace, 'Cascadia Mono', 'Consolas', monospace;
+  font-size: 12px;
+  color: var(--startup-detail);
+  overflow-wrap: anywhere;
 }
