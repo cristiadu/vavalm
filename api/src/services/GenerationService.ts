@@ -33,6 +33,14 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
     || !Number.isInteger(request.tournamentCount) || request.tournamentCount < 0 || request.tournamentCount > 10) {
     throw new ValidateError({ request: { message: 'Choose 2–32 teams and 0–10 tournaments' } }, 'Invalid generation counts')
   }
+  const start = new Date(request.start_date ?? '')
+  const end = new Date(request.end_date ?? '')
+  if (request.tournamentCount > 0 && (!Number.isFinite(start.getTime())
+    || !Number.isFinite(end.getTime()) || end <= start)) {
+    throw new ValidateError({
+      dates: { message: 'Valid start and end dates are required, with the end after the start' },
+    }, 'Invalid tournament dates')
+  }
   return db.sequelize.transaction(async transaction => {
     const result: GenerateDataResult = { teamIds: [], playerIds: [], tournamentIds: [] }
     for (let index = 0; index < request.teamCount; index++) {
@@ -57,16 +65,14 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
       result.playerIds.push(...players.map(player => player.id))
     }
 
-    const day = 24 * 60 * 60 * 1000
     for (let index = 0; index < request.tournamentCount; index++) {
-      const start = Date.now() + (index * 8 + 1) * day
       const tournament = await Tournament.create({
         name: `${pick(adjectives)} Cup ${randomUUID().slice(0, 8)}`,
         description: 'Generated round-robin tournament.',
         country: pick(countries),
         type: TournamentType.SINGLE_GROUP,
-        start_date: new Date(start),
-        end_date: new Date(start + 7 * day),
+        start_date: start,
+        end_date: end,
         started: false,
         ended: false,
       }, { transaction })

@@ -14,12 +14,12 @@ describe('Data generation', () => {
   })
 
   it('creates complete rosters, tournament membership, standings and playable games', async () => {
-    const result = await apiClient.default.generateData({ teamCount: 2, tournamentCount: 1 })
+    const result = await apiClient.default.generateData({ teamCount: 2, tournamentCount: 2, start_date: '2100-06-01T10:00:00.000Z', end_date: '2100-06-08T18:00:00.000Z' })
     batches.push(result)
 
     expect(result.teamIds).toHaveLength(2)
     expect(result.playerIds).toHaveLength(10)
-    expect(result.tournamentIds).toHaveLength(1)
+    expect(result.tournamentIds).toHaveLength(2)
     for (const id of result.teamIds) {
       const team = await apiClient.default.getTeam(id)
       expect(team.players).toHaveLength(5)
@@ -50,7 +50,13 @@ describe('Data generation', () => {
     expect(games).toHaveLength(3)
     expect(tournament.started).toBe(false)
     expect(tournament.ended).toBe(false)
-    expect(new Date(tournament.end_date).getTime()).toBeGreaterThan(new Date(tournament.start_date).getTime())
+    expect(tournament.start_date).toBe('2100-06-01T10:00:00.000Z')
+    expect(tournament.end_date).toBe('2100-06-08T18:00:00.000Z')
+    const secondTournament = await apiClient.default.getTournament(result.tournamentIds[1])
+    expect(secondTournament.start_date).toBe(tournament.start_date)
+    expect(secondTournament.end_date).toBe(tournament.end_date)
+    expect(new Date(schedule.items[0].date).getTime()).toBeGreaterThanOrEqual(new Date(tournament.start_date).getTime())
+    expect(new Date(schedule.items[0].date).getTime()).toBeLessThanOrEqual(new Date(tournament.end_date).getTime())
   })
 
   it('allows repeated generation without changing earlier batches', async () => {

@@ -854,6 +854,12 @@ components:
           format: int32
           minimum: 0
           maximum: 10
+        start_date:
+          type: string
+          description: Start of every tournament in the batch, as an ISO date-time.
+        end_date:
+          type: string
+          description: End of every tournament in the batch, as an ISO date-time.
       required:
         - teamCount
         - tournamentCount

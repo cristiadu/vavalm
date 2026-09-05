@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { randomInt } from 'node:crypto'
-import { generatePlayerAttributes } from '@/services/GenerationService'
+import { generateData, generatePlayerAttributes } from '@/services/GenerationService'
 
 const { randomIntMock } = vi.hoisted(() => ({ randomIntMock: vi.fn<(max: number) => number>() }))
 
@@ -28,5 +28,22 @@ describe('Generated attributes', () => {
     })
     expect(randomInt).toHaveBeenCalledTimes(16)
     expect(randomInt).toHaveBeenCalledWith(4)
+  })
+})
+
+describe('Tournament date validation', () => {
+  it.each([
+    {},
+    { start_date: '2100-06-01T10:00:00.000Z' },
+    { end_date: '2100-06-08T18:00:00.000Z' },
+    { start_date: 'invalid', end_date: '2100-06-08T18:00:00.000Z' },
+    { start_date: '2100-06-01T10:00:00.000Z', end_date: 'invalid' },
+    { start_date: '2100-06-08T18:00:00.000Z', end_date: '2100-06-01T10:00:00.000Z' },
+    { start_date: '2100-06-01T10:00:00.000Z', end_date: '2100-06-01T10:00:00.000Z' },
+  ])('rejects invalid dates before writing any records: %j', async dates => {
+    await expect(generateData({ teamCount: 2, tournamentCount: 1, ...dates })).rejects.toMatchObject({
+      status: 400,
+      fields: { dates: { message: 'Valid start and end dates are required, with the end after the start' } },
+    })
   })
 })

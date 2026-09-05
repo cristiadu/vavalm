@@ -10,6 +10,8 @@ export const GenerateDataAction = ({ onGenerated }: { onGenerated: () => void })
   const [isOpen, setIsOpen] = useState(false)
   const [teamCount, setTeamCount] = useState(8)
   const [tournamentCount, setTournamentCount] = useState(1)
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const submitting = useRef(false)
   const [error, setError] = useState('')
@@ -22,12 +24,23 @@ export const GenerateDataAction = ({ onGenerated }: { onGenerated: () => void })
   const generate = async (event: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
     if (submitting.current) return
+    if (tournamentCount > 0 && (!startDate || !endDate || new Date(endDate) <= new Date(startDate))) {
+      setError('Choose an end date and time after the start.')
+      return
+    }
     submitting.current = true
     setIsGenerating(true)
     setError('')
     setSuccess('')
     try {
-      const result = await VavalMApiClient.default.generateData({ teamCount, tournamentCount })
+      const result = await VavalMApiClient.default.generateData({
+        teamCount,
+        tournamentCount,
+        ...(tournamentCount > 0 ? {
+          start_date: new Date(startDate).toISOString(),
+          end_date: new Date(endDate).toISOString(),
+        } : {}),
+      })
       invalidatePlayerCache()
       setSuccess(`Created ${result.tournamentIds.length} tournaments, ${result.teamIds.length} teams and ${result.playerIds.length} players.`)
       setIsOpen(false)
@@ -57,7 +70,20 @@ export const GenerateDataAction = ({ onGenerated }: { onGenerated: () => void })
             Tournaments (0–10)
             <input type="number" min={0} max={10} step={1} required value={tournamentCount} disabled={isGenerating} onChange={event => setTournamentCount(event.target.valueAsNumber)} className="block w-full border rounded p-2" />
           </label>
-          <p>Each team gets five players. Each tournament includes all generated teams, standings and best-of-three matches. The first tournament starts tomorrow; later tournaments follow every eight days. Set tournaments to 0 to generate only teams and players.</p>
+          {tournamentCount > 0 && (
+            <fieldset className="space-y-4" disabled={isGenerating}>
+              <legend>Tournament dates (your local time)</legend>
+              <label className="block">
+                Start date and time
+                <input type="datetime-local" required value={startDate} onChange={event => setStartDate(event.target.value)} className="block w-full border rounded p-2" />
+              </label>
+              <label className="block">
+                End date and time
+                <input type="datetime-local" required min={startDate || undefined} value={endDate} onChange={event => setEndDate(event.target.value)} className="block w-full border rounded p-2" />
+              </label>
+            </fieldset>
+          )}
+          <p>Each team gets five players. Each tournament includes all generated teams, standings and best-of-three matches. All tournaments use the selected start and end dates. Set tournaments to 0 to generate only teams and players.</p>
           <p className="font-semibold">{Number.isFinite(teamCount) ? teamCount * 5 : 0} players will be created.</p>
           {error && <p role="alert" className="text-red-700">{error}</p>}
           <button type="submit" disabled={isGenerating} className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50">

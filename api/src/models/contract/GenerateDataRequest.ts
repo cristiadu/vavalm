@@ -12,6 +12,10 @@ export interface GenerateDataRequest {
    * @maximum 10
    */
   tournamentCount: number
+  /** Start of every tournament in the batch, as an ISO date-time. */
+  start_date?: string
+  /** End of every tournament in the batch, as an ISO date-time. */
+  end_date?: string
 }
 
 /** Identifiers of every record created by a generation request. */
