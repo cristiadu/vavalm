@@ -1,5 +1,6 @@
 "use client"
 
+import { GenerateDataAction } from '@/components/GenerateDataAction'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 import { fetchCountries } from '@/api/CountryApi'
@@ -124,6 +125,7 @@ export default function ListPlayers(): React.ReactNode {
           action={openNewPlayerModal} 
           actionText="New Player" 
         />
+        <GenerateDataAction onGenerated={() => { void closeActionPlayerModal() }} />
         
         <div className="w-full overflow-x-auto rounded-lg shadow">
           <table className="w-full min-w-[1200px] table-fixed">
