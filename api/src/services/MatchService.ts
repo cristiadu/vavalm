@@ -220,6 +220,7 @@ const MatchService = {
     teamIds: number[],
     tournament: Tournament,
     matchType: MatchType,
+    transaction?: Transaction,
   ): Promise<void> => {
     // Create matches for the tournament, all teams play against each other
     // Create only needed matches, however, if a match already exists, it will not be created again
@@ -229,6 +230,7 @@ const MatchService = {
       for (const team2Id of teamIds.slice(index + 1)) {
         // Check if the match already exists
         const existingMatch = await Match.findOne({
+          transaction,
           where: {
             tournament_id: tournament.id,
             [Op.or]: [
@@ -260,12 +262,12 @@ const MatchService = {
           standings_processed: false,
           started: false,
           finished: false,
-        })
+        }, { transaction })
 
         // Create the games
         const bestOf = MatchService.numberOfGamesForMatchType(matchType)
         for (let i = 0; i < bestOf; i++) {
-          await GameService.createGameForMatch(match, GameService.getRandomMap())
+          await GameService.createGameForMatch(match, GameService.getRandomMap(), transaction)
         }
       }
     }

@@ -1,4 +1,4 @@
-import { Op } from "sequelize"
+import { Op, Transaction } from "sequelize"
 
 import Tournament from '@/models/Tournament'
 import Standings from '@/models/Standings'
@@ -55,9 +55,11 @@ const TournamentService = {
   createStandingsForTeamsIfNeeded: async (
     teamIds: number[],
     tournamentId: number,
+    transaction?: Transaction,
   ): Promise<void> => {
     for (const teamId of teamIds) {
       const standings = await Standings.findOne({
+        transaction,
         where: { tournament_id: tournamentId, team_id: teamId },
       })
       if (!standings) {
@@ -70,7 +72,7 @@ const TournamentService = {
           maps_lost: 0,
           rounds_won: 0,
           rounds_lost: 0,
-        })
+        }, { transaction })
       }
     }
   },

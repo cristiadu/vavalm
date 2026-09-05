@@ -817,6 +817,48 @@ components:
         - indicators
       type: object
       additionalProperties: false
+    GenerateDataResult:
+      description: Identifiers of every record created by a generation request.
+      properties:
+        teamIds:
+          items:
+            type: number
+            format: double
+          type: array
+        playerIds:
+          items:
+            type: number
+            format: double
+          type: array
+        tournamentIds:
+          items:
+            type: number
+            format: double
+          type: array
+      required:
+        - teamIds
+        - playerIds
+        - tournamentIds
+      type: object
+      additionalProperties: false
+    GenerateDataRequest:
+      description: Options for creating a batch of teams, players, and optional tournaments.
+      properties:
+        teamCount:
+          type: integer
+          format: int32
+          minimum: 2
+          maximum: 32
+        tournamentCount:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 10
+      required:
+        - teamCount
+        - tournamentCount
+      type: object
+      additionalProperties: false
     CountryApiModel:
       description: Country option returned by the API.
       properties:
@@ -1797,6 +1839,26 @@ paths:
       description: Get API health status
       security: []
       parameters: []
+  /generation:
+    post:
+      operationId: generateData
+      responses:
+        "201":
+          description: Data generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateDataResult"
+      description: Generates teams with random players and optional scheduled tournaments.
+      security:
+        - BearerAuth: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateDataRequest"
   /games/{gameId}:
     get:
       operationId: getGame

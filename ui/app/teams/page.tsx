@@ -1,6 +1,7 @@
 
 "use client"
 
+import { GenerateDataAction } from '@/components/GenerateDataAction'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { fetchCountries, mapCountryFlagsByName } from '@/api/CountryApi'
@@ -97,6 +98,7 @@ export default function ListTeams(): React.ReactNode {
       <TeamActionModal isOpen={teamActionModalOpened} onClose={closeTeamActionModal} isEdit={isEditActionOpened} object={teamToEdit} />
       <div className="flex min-h-screen flex-col items-center p-24">
         <SectionHeader title="Teams" action={openNewTeamModal} actionText="New Team" />
+        <GenerateDataAction onGenerated={() => { void fetchTeamsList() }} />
         <div className="w-full overflow-x-auto rounded-lg shadow">
           <table className="w-full min-w-[1000px] table-fixed">
             <colgroup>

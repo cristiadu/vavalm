@@ -28,8 +28,8 @@ const withCache = async <T>(
   return data
 }
 
-// Invalidate cache when modifying data
-const invalidatePlayerCache = (): void => {
+/** Clears cached player lists and stats after mutations. */
+export const invalidatePlayerCache = (): void => {
   Object.keys(playerCache).forEach(key => {
     if (key.startsWith('player') || key.startsWith('team')) {
       delete playerCache[key]
