@@ -2,16 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { randomInt } from 'node:crypto'
 import { generatePlayerAttributes } from '@/services/GenerationService'
 
+const { randomIntMock } = vi.hoisted(() => ({ randomIntMock: vi.fn<(max: number) => number>() }))
+
 vi.mock('node:crypto', async importOriginal => {
   const original = await importOriginal<typeof import('node:crypto')>()
-  return { ...original, randomInt: vi.fn() }
+  return { ...original, randomInt: randomIntMock }
 })
 
 describe('Generated attributes', () => {
   beforeEach(() => {
-    vi.mocked(randomInt).mockReset()
+    randomIntMock.mockReset()
     for (let index = 0; index < 16; index++) {
-      vi.mocked(randomInt).mockReturnValueOnce(index % 4)
+      randomIntMock.mockReturnValueOnce(index % 4)
     }
   })
 
