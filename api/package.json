@@ -72,11 +72,11 @@
     "ts-loader": "^9.6.2",
     "tsoa": "7.0.0-alpha.0",
     "tsx": "^4.23.13",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.11",
     "wait-on": "^9.1.0",
-    "webpack": "5.109.2",
+    "webpack": "5.110.2",
     "webpack-cli": "^7.2.3",
     "worker-plugin": "^5.0.1"
   },
