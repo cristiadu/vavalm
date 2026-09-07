@@ -22,6 +22,14 @@ describe('Data generation', () => {
     expect(result.tournamentIds).toHaveLength(2)
     for (const id of result.teamIds) {
       const team = await apiClient.default.getTeam(id)
+      expect(team.short_name).toMatch(new RegExp(`^${team.full_name!.split(' ').at(-1)}[0-9]+$`))
+      const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:8000/api'}/teams/${id}/logo`)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('content-type')).toContain('image/svg+xml')
+      expect(response.headers.get('content-security-policy')).toBe("sandbox; default-src 'none'")
+      const logo = await response.text()
+      expect(logo).toContain('<svg xmlns="http://www.w3.org/2000/svg"')
+      expect(logo).not.toContain('{primary_color}')
       expect(team.players).toHaveLength(5)
       expect(new Set(team.players?.map(player => player.role)).size).toBe(5)
       for (const player of team.players ?? []) {

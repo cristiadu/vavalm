@@ -115,7 +115,7 @@ export class TeamsController extends Controller {
   @Get("{teamId}/logo")
   @NoSecurity()
   @OperationId("getTeamLogo")
-  @Produces("image/png")
+  @Produces("image/*")
   public async getTeamLogo(@Path() teamId: number): Promise<Readable> {
     const logo = await fetchTeamLogo(teamId).catch(() => null)
 
@@ -128,6 +128,8 @@ export class TeamsController extends Controller {
     }
 
     this.setHeader('Content-Type', detectImageMimeType(logo))
+    this.setHeader('Content-Security-Policy', "sandbox; default-src 'none'")
+    this.setHeader('X-Content-Type-Options', 'nosniff')
     this.setHeader('Cache-Control', `public, max-age=${LOGO_CACHE_SECONDS}`)
     return Readable.from(logo)
   }

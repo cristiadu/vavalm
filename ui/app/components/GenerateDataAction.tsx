@@ -61,7 +61,7 @@ export const GenerateDataAction = ({ onGenerated }: { onGenerated: () => void })
       {success && <p role="status" className="mt-2 text-green-700">{success}</p>}
       <Modal isOpen={isOpen} onClose={close} title="Generate tournaments, teams and players">
         <form onSubmit={generate} className="space-y-4 text-gray-900" aria-busy={isGenerating}>
-          <p>Create a fresh batch with generated names, countries, ages and random player attributes from 0 to 3. Existing data stays intact.</p>
+          <p>Create a fresh batch with readable names, team logos, countries and ages. Players get balanced attributes from 0 to 3 with one or two signature strengths. Existing data stays intact.</p>
           <label className="block">
             Teams (2–32)
             <input type="number" min={2} max={32} step={1} required value={teamCount} disabled={isGenerating} onChange={event => setTeamCount(event.target.valueAsNumber)} className="block w-full border rounded p-2" />
