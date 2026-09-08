@@ -1,31 +1,35 @@
-import { randomInt, randomUUID } from 'node:crypto'
+import { randomInt } from 'node:crypto'
 import { ValidateError } from '@tsoa/runtime'
 import db from '@/models/db'
 import Team from '@/models/Team'
-import Player, { PlayerAttributes } from '@/models/Player'
+import Player, { PlayerAttributes, PlayerAttributesContract } from '@/models/Player'
 import Tournament from '@/models/Tournament'
 import { MatchType, PlayerRole, TournamentType } from '@/models/enums'
 import { GenerateDataRequest, GenerateDataResult } from '@/models/contract/GenerateDataRequest'
 import TournamentService from '@/services/TournamentService'
 import MatchService from '@/services/MatchService'
+import data from '@/models/generation-data.json'
+import { getCountries } from '@/services/CountryService'
+import { generatePlayerNickname, generateTeamLogo, generateTeamName, generateTeamShortName, generateTournamentName, pickGenerationValue, reserveGeneratedName } from '@/services/GenerationIdentityService'
 
-const countries = ['Brazil', 'Canada', 'France', 'Japan', 'Portugal', 'United States']
-const adjectives = ['Crimson', 'Azure', 'Silent', 'Lunar', 'Golden', 'Neon']
-const mascots = ['Falcons', 'Wolves', 'Dragons', 'Vipers', 'Titans', 'Foxes']
-const firstNames = ['Alex', 'Sam', 'Kai', 'Morgan', 'Robin', 'Jordan']
-const lastNames = ['Silva', 'Martin', 'Costa', 'Sato', 'Lee', 'Taylor']
 const roles = [PlayerRole.DUELIST, PlayerRole.INITIATOR, PlayerRole.CONTROLLER, PlayerRole.SENTINEL, PlayerRole.IGL]
 
-/** Picks one value from a nonempty collection. */
-const pick = (values: string[]): string => values[randomInt(values.length)]
-
-/** Generates all sixteen attributes independently in the inclusive range 0–3. */
-export const generatePlayerAttributes = (): PlayerAttributes => new PlayerAttributes(
-  randomInt(4), randomInt(4), randomInt(4), randomInt(4),
-  randomInt(4), randomInt(4), randomInt(4), randomInt(4),
-  randomInt(4), randomInt(4), randomInt(4), randomInt(4),
-  randomInt(4), randomInt(4), randomInt(4), randomInt(4),
-)
+/** Gives each player one or two signature strengths, matching generate_data.py. */
+export const generatePlayerAttributes = (): PlayerAttributes => {
+  const attributes = new PlayerAttributes(
+    randomInt(3), randomInt(3), randomInt(3), randomInt(3),
+    randomInt(3), randomInt(3), randomInt(3), randomInt(3),
+    randomInt(3), randomInt(3), randomInt(3), randomInt(3),
+    randomInt(3), randomInt(3), randomInt(3), randomInt(3),
+  )
+  const remaining = Object.keys(attributes) as (keyof PlayerAttributesContract)[]
+  const signatureCount = randomInt(1, 3)
+  for (let index = 0; index < signatureCount; index++) {
+    const [key] = remaining.splice(randomInt(remaining.length), 1)
+    attributes[key] = randomInt(2, 4)
+  }
+  return attributes
+}
 
 /** Creates complete five-player rosters and round-robin tournaments atomically. */
 export const generateData = async (request: GenerateDataRequest): Promise<GenerateDataResult> => {
@@ -41,21 +45,32 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
       dates: { message: 'Valid start and end dates are required, with the end after the start' },
     }, 'Invalid tournament dates')
   }
+  const countries = (await getCountries()).map(country => country.name).filter(name => name.trim().length > 0)
+  if (countries.length === 0) {
+    throw new ValidateError({ countries: { message: 'No countries are available for generation' } }, 'Countries unavailable')
+  }
   return db.sequelize.transaction(async transaction => {
     const result: GenerateDataResult = { teamIds: [], playerIds: [], tournamentIds: [] }
+    const existingTeams = await Team.findAll({ attributes: ['short_name', 'full_name'], transaction })
+    const shortNames = new Set(existingTeams.map(team => team.short_name))
+    const teamNames = new Set(existingTeams.map(team => team.full_name))
+    const nicknames = new Set((await Player.findAll({ attributes: ['nickname'], transaction })).map(player => player.nickname))
+    const tournamentNames = new Set((await Tournament.findAll({ attributes: ['name'], transaction })).map(tournament => tournament.name))
     for (let index = 0; index < request.teamCount; index++) {
-      const country = pick(countries)
+      const country = pickGenerationValue(countries)
+      const fullName = reserveGeneratedName(generateTeamName, teamNames)
       const team = await Team.create({
-        short_name: `GEN-${randomUUID().slice(0, 8)}`,
-        full_name: `${pick(adjectives)} ${pick(mascots)}`,
-        description: 'Generated team with a five-player roster.',
+        short_name: reserveGeneratedName(() => generateTeamShortName(fullName), shortNames),
+        full_name: fullName,
+        description: `${fullName} is a professional esports organization.`,
+        logo_image_file: generateTeamLogo(),
         country,
       }, { transaction })
       if (!team.id) throw new Error('Generated team has no ID')
       result.teamIds.push(team.id)
       const players = await Player.bulkCreate(roles.map(role => ({
-        nickname: `${pick(adjectives)}-${randomUUID().slice(0, 8)}`,
-        full_name: `${pick(firstNames)} ${pick(lastNames)}`,
+        nickname: reserveGeneratedName(generatePlayerNickname, nicknames),
+        full_name: `${pickGenerationValue(data.FIRST_NAMES)} ${pickGenerationValue(data.LAST_NAMES)}`,
         age: randomInt(18, 36),
         country,
         team_id: team.id,
@@ -67,9 +82,9 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
 
     for (let index = 0; index < request.tournamentCount; index++) {
       const tournament = await Tournament.create({
-        name: `${pick(adjectives)} Cup ${randomUUID().slice(0, 8)}`,
+        name: reserveGeneratedName(() => generateTournamentName(start.getUTCFullYear()), tournamentNames),
         description: 'Generated round-robin tournament.',
-        country: pick(countries),
+        country: pickGenerationValue(countries),
         type: TournamentType.SINGLE_GROUP,
         start_date: start,
         end_date: end,
