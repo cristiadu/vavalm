@@ -72,7 +72,7 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
         nickname: reserveGeneratedName(generatePlayerNickname, nicknames),
         full_name: `${pickGenerationValue(data.FIRST_NAMES)} ${pickGenerationValue(data.LAST_NAMES)}`,
         age: randomInt(18, 36),
-        country,
+        country: pickGenerationValue(countries),
         team_id: team.id,
         role,
         player_attributes: generatePlayerAttributes(),

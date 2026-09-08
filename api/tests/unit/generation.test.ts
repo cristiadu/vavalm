@@ -61,44 +61,28 @@ describe('Readable generated identities', () => {
     randomIntMock.mockReset().mockReturnValue(0)
   })
 
-  it('uses the shared script vocabulary for team and tournament names', () => {
+  it('uses common words with separate team and tournament suffixes', () => {
+    randomIntMock.mockReturnValueOnce(99)
+    expect(generateTeamName()).toBe('Nova Gaming')
+    expect(generateTournamentName(2100)).toBe('Nova Cup 2100')
+    randomIntMock.mockReturnValueOnce(0).mockReturnValueOnce(0).mockReturnValueOnce(99)
+    expect(generateTournamentName(2100)).toBe('Nova Cup')
+  })
+
+  it('keeps occasional numbers tied to round wins or roster size', () => {
     expect(generateTeamName()).toBe('Round13 Gaming')
-    expect(generateTournamentName(2100)).toBe('Ultimate Red Bull Global Masters 2100 Showdown')
-    expect(generatePlayerNickname()).toBe('Ace')
+    randomIntMock.mockReturnValueOnce(0).mockReturnValueOnce(1)
+    expect(generateTeamName()).toBe('Stack5 Gaming')
+    randomIntMock.mockReturnValueOnce(10)
+    expect(generateTeamName()).toBe('Nova Gaming')
   })
 
-  it.each([
-    [0, 'Force'], [1, 'Elite Force'], [2, 'Force Gaming'],
-    [3, 'Elite Rogue Force'], [4, 'Elite Force Gaming'], [5, 'Force Gaming'],
-  ] as [number, string][])('supports natural team name pattern %i', (pattern, expected) => {
-    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(99).mockReturnValueOnce(pattern)
-    expect(generateTeamName()).toBe(expected)
-  })
-
-  it.each(data.TEAM_PREFIXES.map((prefix, index) => [prefix, index] as [string, number]))('keeps prefix "%s" available', (prefix, index) => {
-    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(0).mockReturnValueOnce(index)
-    expect(generateTeamName()).toBe([prefix, 'Force'].filter(Boolean).join(' '))
-  })
-
-  it('limits numeric brands to ten percent of the decision space and uses meaningful word tokens', () => {
-    const names = Array.from({ length: 100 }, (_, roll) => {
-      randomIntMock.mockReturnValueOnce(roll)
-      return generateTeamName()
-    })
-    expect(names.filter(name => /[0-9]/.test(name))).toHaveLength(10)
-    expect(names.slice(0, 10)).toEqual(Array(10).fill('Round13 Gaming'))
-    expect(names.slice(10)).toEqual(Array(90).fill('Team Force'))
-    expect(data.TEAM_NUMBER_NAMES).toEqual(['Round13', 'Stack5'])
-    for (const name of names) expect(name.split(' ').every(word => /[A-Za-z]/.test(word))).toBe(true)
-  })
-
-  it.each([
-    [1, 'Ace42'], [2, 'xAcex'], [3, 'AceBlaze'], [4, '4c3'],
-  ] as [number, string][])('supports nickname pattern %i', (pattern, expected) => {
-    randomIntMock.mockReturnValueOnce(pattern).mockReturnValueOnce(0)
-    if (pattern === 1) randomIntMock.mockReturnValueOnce(42)
-    expect(generatePlayerNickname()).toBe(expected)
-  })
+  it.each([[1, 'Ace'], [2, 'AceClutch'], [3, 'AceClutchFlash']] as [number, string][])(
+    'combines %i distinct nickname terms', (count, expected) => {
+      randomIntMock.mockReturnValueOnce(count)
+      expect(generatePlayerNickname()).toBe(expected)
+    },
+  )
 
   it.each([
     ['Team Crimson Wolves', 'CrimsonWolves'],
