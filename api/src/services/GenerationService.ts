@@ -9,6 +9,7 @@ import { GenerateDataRequest, GenerateDataResult } from '@/models/contract/Gener
 import TournamentService from '@/services/TournamentService'
 import MatchService from '@/services/MatchService'
 import data from '@/models/generation-data.json'
+import { getCountries } from '@/services/CountryService'
 import { generatePlayerNickname, generateTeamLogo, generateTeamName, generateTeamShortName, generateTournamentName, pickGenerationValue, reserveGeneratedName } from '@/services/GenerationIdentityService'
 
 const roles = [PlayerRole.DUELIST, PlayerRole.INITIATOR, PlayerRole.CONTROLLER, PlayerRole.SENTINEL, PlayerRole.IGL]
@@ -44,6 +45,10 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
       dates: { message: 'Valid start and end dates are required, with the end after the start' },
     }, 'Invalid tournament dates')
   }
+  const countries = (await getCountries()).map(country => country.name).filter(name => name.trim().length > 0)
+  if (countries.length === 0) {
+    throw new ValidateError({ countries: { message: 'No countries are available for generation' } }, 'Countries unavailable')
+  }
   return db.sequelize.transaction(async transaction => {
     const result: GenerateDataResult = { teamIds: [], playerIds: [], tournamentIds: [] }
     const existingTeams = await Team.findAll({ attributes: ['short_name', 'full_name'], transaction })
@@ -52,7 +57,7 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
     const nicknames = new Set((await Player.findAll({ attributes: ['nickname'], transaction })).map(player => player.nickname))
     const tournamentNames = new Set((await Tournament.findAll({ attributes: ['name'], transaction })).map(tournament => tournament.name))
     for (let index = 0; index < request.teamCount; index++) {
-      const country = pickGenerationValue(data.COUNTRIES)
+      const country = pickGenerationValue(countries)
       const fullName = reserveGeneratedName(generateTeamName, teamNames)
       const team = await Team.create({
         short_name: reserveGeneratedName(() => generateTeamShortName(fullName), shortNames),
@@ -79,7 +84,7 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
       const tournament = await Tournament.create({
         name: reserveGeneratedName(() => generateTournamentName(start.getUTCFullYear()), tournamentNames),
         description: 'Generated round-robin tournament.',
-        country: pickGenerationValue(data.COUNTRIES),
+        country: pickGenerationValue(countries),
         type: TournamentType.SINGLE_GROUP,
         start_date: start,
         end_date: end,

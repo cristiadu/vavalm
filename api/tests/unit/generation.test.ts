@@ -2,9 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { generateData, generatePlayerAttributes } from '@/services/GenerationService'
 import { generateTeamName, generateTeamShortName, generatePlayerNickname, generateTournamentName, generateTeamLogo, reserveGeneratedName } from '@/services/GenerationIdentityService'
 import data from '@/models/generation-data.json'
+import { getCountries } from '@/services/CountryService'
 import { detectImageMimeType } from '@/base/FileUtils'
 
 const { randomIntMock } = vi.hoisted(() => ({ randomIntMock: vi.fn<(max: number) => number>() }))
+
+vi.mock('@/services/CountryService', () => ({ getCountries: vi.fn() }))
 
 vi.mock('node:crypto', async importOriginal => {
   const original = await importOriginal<typeof import('node:crypto')>()
@@ -97,5 +100,15 @@ describe('Readable generated identities', () => {
     expect(logo.toString()).toBe(data.SVG_LOGOS[0].replaceAll('{primary_color}', '#FF0000').replaceAll('{secondary_color}', '#0000FF'))
     expect(detectImageMimeType(logo)).toBe('image/svg+xml')
     expect(detectImageMimeType(Buffer.from([0x89, 0x50, 0x4e, 0x47]))).toBe('image/png')
+  })
+})
+
+describe('Generation country availability', () => {
+  it('rejects an empty fetched list before creating a batch', async () => {
+    vi.mocked(getCountries).mockResolvedValueOnce([])
+    await expect(generateData({ teamCount: 2, tournamentCount: 0 })).rejects.toMatchObject({
+      status: 400,
+      fields: { countries: { message: 'No countries are available for generation' } },
+    })
   })
 })

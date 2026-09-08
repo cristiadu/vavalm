@@ -84,7 +84,7 @@ TEAM_ADJECTIVES = GENERATION_DATA["TEAM_ADJECTIVES"]
 TEAM_NOUNS = GENERATION_DATA["TEAM_NOUNS"]
 
 # Countries
-COUNTRIES = GENERATION_DATA["COUNTRIES"]
+COUNTRIES = []
 
 # First names and last names for player generation
 FIRST_NAMES = GENERATION_DATA["FIRST_NAMES"]
@@ -100,6 +100,15 @@ LOGO_COLORS = GENERATION_DATA["LOGO_COLORS"]
 
 # Collection of SVG logos that are free to use (public domain or open licensed)
 SVG_LOGOS = GENERATION_DATA["SVG_LOGOS"]
+
+def fetch_countries():
+    """Use the same country options as the app, including saved desktop countries."""
+    response = requests.get(f"{API_BASE_URL}/countries", headers=get_auth_headers(), timeout=30)
+    response.raise_for_status()
+    countries = [country["name"] for country in response.json() if country.get("name", "").strip()]
+    if not countries:
+        raise ValueError("No countries are available for generation")
+    return countries
 
 def generate_random_date_range(start_date=None, end_date=None):
     """
@@ -194,6 +203,9 @@ def distribute_nationalities(players_count=5):
     
     Returns a list of country names for each player
     """
+    if len(COUNTRIES) < 3:
+        return random.choices(COUNTRIES, k=players_count)
+
     # Define probability weights for different nationality distributions
     distribution_types = [
         {"name": "all_same", "probability": 0.3},  # All players from same country
@@ -855,6 +867,9 @@ def main():
         token = jwt.encode({'username': 'admin'}, os.getenv('JWT_SECRET'), algorithm='HS256')
         set_jwt_token(token)
     
+    global COUNTRIES
+    COUNTRIES = fetch_countries()
+
     if args.type == "tournament":
         create_tournament(args.count, args.start_date, args.end_date, args.teams)
     elif args.type == "team":

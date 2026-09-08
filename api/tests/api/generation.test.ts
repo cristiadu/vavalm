@@ -20,8 +20,10 @@ describe('Data generation', () => {
     expect(result.teamIds).toHaveLength(2)
     expect(result.playerIds).toHaveLength(10)
     expect(result.tournamentIds).toHaveLength(2)
+    const countryNames = (await apiClient.default.getCountries()).map(country => country.name)
     for (const id of result.teamIds) {
       const team = await apiClient.default.getTeam(id)
+      expect(countryNames).toContain(team.country)
       expect(team.short_name).toMatch(new RegExp(`^${team.full_name!.split(' ').at(-1)}[0-9]+$`))
       const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:8000/api'}/teams/${id}/logo`)
       expect(response.status).toBe(200)
@@ -33,6 +35,7 @@ describe('Data generation', () => {
       expect(team.players).toHaveLength(5)
       expect(new Set(team.players?.map(player => player.role)).size).toBe(5)
       for (const player of team.players ?? []) {
+        expect(countryNames).toContain(player.country)
         expect(player.team_id).toBe(id)
         expect(result.playerIds).toContain(player.id)
         expect(Object.values(player.player_attributes)).toHaveLength(16)
@@ -56,6 +59,7 @@ describe('Data generation', () => {
     })
     const games = await apiClient.default.getGamesByMatch(schedule.items[0].id!)
     expect(games).toHaveLength(3)
+    expect(countryNames).toContain(tournament.country)
     expect(tournament.started).toBe(false)
     expect(tournament.ended).toBe(false)
     expect(tournament.start_date).toBe('2100-06-01T10:00:00.000Z')
