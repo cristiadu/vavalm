@@ -1,0 +1,71 @@
+import { randomInt } from 'node:crypto'
+import data from '@/models/generation-data.json'
+
+/** Picks an entry from the shared generator vocabulary. */
+export const pickGenerationValue = (values: string[]): string => values[randomInt(values.length)]
+
+/** Reserves a readable name, retrying collisions before adding a numeric suffix. */
+export const reserveGeneratedName = (generate: () => string, existing: Set<string>): string => {
+  let name = generate()
+  for (let attempt = 0; existing.has(name) && attempt < 10; attempt++) name = generate()
+  const base = name
+  for (let suffix = 2; existing.has(name); suffix++) name = `${base}${suffix}`
+  existing.add(name)
+  return name
+}
+
+/** Generates team names with the same five word patterns as generate_data.py. */
+export const generateTeamName = (): string => {
+  const words: string[] = []
+  if (randomInt(100) < 70) words.push(pickGenerationValue(data.TEAM_PREFIXES))
+  const pattern = randomInt(5)
+  if (pattern === 1 || pattern === 3 || pattern === 4) {
+    const adjective = pickGenerationValue(data.TEAM_ADJECTIVES)
+    words.push(adjective)
+    if (pattern === 3) words.push(pickGenerationValue(data.TEAM_ADJECTIVES.filter(value => value !== adjective)))
+  }
+  const noun = pickGenerationValue(data.TEAM_NOUNS)
+  words.push(noun)
+  if (pattern === 2 || pattern === 4) words.push(pickGenerationValue(data.TEAM_NOUNS.filter(value => value !== noun)))
+  return words.filter(Boolean).join(' ')
+}
+
+/** Derives the script's recognizable team tag from the final word of its full name. */
+export const generateTeamShortName = (fullName: string): string => `${fullName.split(' ').at(-1)}${randomInt(1, 1000)}`
+
+/** Uses the script's simple, numeric, stylized, combined and leetspeak nicknames. */
+export const generatePlayerNickname = (): string => {
+  const pattern = randomInt(5)
+  let nickname = pickGenerationValue(data.NICKNAMES)
+  if (pattern === 1) return `${nickname}${randomInt(1, 100)}`
+  if (pattern === 2) return `${pickGenerationValue(['x', 'i', 'o', 'v', 's1', 'The', 'Mr', 'Sir', ''])}${nickname}${pickGenerationValue(['x', 'z', 'y', 'TTV', 'YT', 'Pro', 'TV', ''])}`
+  if (pattern === 3) return nickname + pickGenerationValue(data.NICKNAMES.filter(value => value !== nickname))
+  if (pattern === 4 && randomInt(100) < 50) {
+    for (const [letter, digit] of [['a', '4'], ['e', '3'], ['i', '1'], ['o', '0'], ['s', '5'], ['t', '7']]) {
+      if (nickname.toLowerCase().includes(letter) && randomInt(100) < 70) nickname = nickname.replace(new RegExp(letter, 'gi'), digit)
+    }
+  }
+  return nickname
+}
+
+/** Composes tournament names from the script's sponsors, regions and event titles. */
+export const generateTournamentName = (year: number): string => {
+  const words: string[] = []
+  if (randomInt(100) < 40) words.push(pickGenerationValue(data.TOURNAMENT_PREFIXES))
+  if (randomInt(100) < 70) words.push(pickGenerationValue(data.SPONSORS))
+  if (randomInt(100) < 80) words.push(pickGenerationValue(data.REGIONS))
+  words.push(pickGenerationValue(data.TOURNAMENT_TYPES))
+  if (randomInt(100) < 30) words.push(String(year))
+  if (randomInt(100) < 20) words.push(pickGenerationValue(data.TOURNAMENT_SUFFIXES))
+  return words.join(' ')
+}
+
+/** Colors the script's SVG emblems using distinct palette colors, without external services. */
+export const generateTeamLogo = (): Buffer => {
+  const colors = [...new Set(Object.values(data.LOGO_COLOR_HEX))]
+  const primary = pickGenerationValue(colors)
+  const secondary = pickGenerationValue(colors.filter(color => color !== primary))
+  return Buffer.from(pickGenerationValue(data.SVG_LOGOS)
+    .replaceAll('{primary_color}', primary)
+    .replaceAll('{secondary_color}', secondary), 'utf8')
+}

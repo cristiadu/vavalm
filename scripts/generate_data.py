@@ -61,271 +61,54 @@ PLAYER_ROLES = [
 # Match types from API
 MATCH_TYPES = ["BO1", "BO3", "BO5"]
 
+# Shared with the API generator; loaded relative to this script for any working directory.
+with open(os.path.join(os.path.dirname(__file__), "../api/src/models/generation-data.json"), encoding="utf-8") as generation_data_file:
+    GENERATION_DATA = json.load(generation_data_file)
+
 # Tournament name components
-REGIONS = [
-    "Global", "NA", "EU", "APAC", "LATAM", "BR", "KR", "JP", "OCE", "MENA", "CIS", "SEA", "SA",
-    "Nordic", "Benelux", "DACH", "Iberia", "Balkans", "ANZ", "Mediterranean", "Baltic", "CEE",
-    "West EU", "East EU", "South EU", "North EU", "East Asia", "South Asia", "Pan-American",
-    "North Africa", "South Africa", "Middle East", "Caribbean", "Pacific", "Central America"
-]
+REGIONS = GENERATION_DATA["REGIONS"]
 
-SPONSORS = [
-    "Red Bull", "Intel", "Logitech", "HyperX", "Razer", "SteelSeries", "ZOWIE", "Alienware", "Corsair", 
-    "ASUS ROG", "MSI", "Acer Predator", "Monster Energy", "G FUEL", "Mercedes-Benz", "Mastercard", "Visa",
-    "Mountain Dew", "DHL", "Honda", "BMW", "Shell", "T-Mobile", "Verizon", "AT&T", "PepsiCo", "Coca-Cola",
-    "Spotify", "Twitch", "Discord", "Microsoft", "Google", "Amazon", "LG", "Samsung", "Sony", "Panasonic",
-    "Lenovo", "NordVPN", "ExpressVPN", "Subway", "KFC", "McDonald's", "Burger King", "Nike", "Adidas",
-    "Puma", "Under Armour", "Cisco", "Oracle", "IBM", "Uber", "Lyft", "Airbnb", "State Farm", "Progressive",
-    "Geico", "Qatar Airways", "Emirates", "American Airlines", "Delta", "FedEx", "UPS", "PayPal", "Venmo"
-]
+SPONSORS = GENERATION_DATA["SPONSORS"]
 
-TOURNAMENT_TYPES = [
-    "Masters", "Champions", "Challengers", "Open", "Invitational", "Cup", "League", "Series", 
-    "Championship", "Finals", "Showdown", "Classic", "Summit", "Circuit", "Arena", "Royale",
-    "Major", "Minor", "Qualifier", "Pro League", "Premier", "Elite", "Clash", "Rumble", "Brawl",
-    "Colosseum", "Gauntlet", "Trophy", "Tour", "Contenders", "Division", "Faceoff", "Grand Slam",
-    "Playoffs", "Wildcard", "Legends", "World Cup", "Nationals", "Continental", "Shootout", "Frenzy",
-    "Mayhem", "Pandemonium", "Surge", "Blitz", "Ignition", "Fusion", "Overdrive", "Uprising", "Conquest"
-]
+TOURNAMENT_TYPES = GENERATION_DATA["TOURNAMENT_TYPES"]
 
-TOURNAMENT_PREFIXES = [
-    "Ultimate", "Grand", "Pro", "Elite", "Premier", "Prestige", "Supreme", "Diamond", "Platinum", "Gold",
-    "Silver", "Bronze", "Radiant", "Immortal", "Ascendant", "Astral", "Celestial", "Cosmic", "Divine",
-    "Summer", "Winter", "Spring", "Fall", "Annual", "Seasonal", "Monthly", "Weekly", "Daily", "Nightly",
-    "Dawn of", "Rise of", "Legacy of", "Path to", "Road to", "Journey to", "Throne of", "Crucible of",
-    "Realm of", "Forge of", "Nexus of", "Pinnacle of", "Summit of", "Zenith of", "Apex of", "Crown of"
-]
+TOURNAMENT_PREFIXES = GENERATION_DATA["TOURNAMENT_PREFIXES"]
 
-TOURNAMENT_SUFFIXES = [
-    "Showdown", "Spectacular", "Extravaganza", "Challenge", "Tour", "Clash", "Confrontation", "Encounter",
-    "Battle", "War", "Conflict", "Exhibition", "Experience", "Explosion", "Rivalry", "Throwdown", 
-    "Faceoff", "Standoff", "Duel", "Melee", "Skirmish", "Joust", "Contest", "Trial", "Proving Ground",
-    "Season", "Split", "Quarter", "Opening", "Closing", "Kickoff", "Finale", "Grand Finale", "Conclusion",
-    "Genesis", "Evolution", "Revolution", "Renaissance", "Reborn", "Resurgence", "Resurrection", "Rebirth"
-]
+TOURNAMENT_SUFFIXES = GENERATION_DATA["TOURNAMENT_SUFFIXES"]
 
 # Team name components
-TEAM_PREFIXES = [
-    "Team", "Squad", "Guild", "Clan", "Legion", "Alliance", "", "Project", "Crew", "Dynasty", "Syndicate", "Collective",
-    "House of", "Brotherhood", "Society", "Assembly", "Corporation", "Incorporated", "LLC", "Union", "Federation",
-    "Network", "Consortium", "Coalition", "Association", "Agency", "Division", "Command", "Task Force", "Initiative",
-    "Operatives", "Organization", "Empire", "Kingdom", "Dominion", "Republic", "State", "Nation", "Tribe", "Horde"
-]
+TEAM_PREFIXES = GENERATION_DATA["TEAM_PREFIXES"]
 
-TEAM_ADJECTIVES = [
-    "Elite", "Rogue", "Phantom", "Shadow", "Thunder", "Mystic", "Venom", "Eternal", "Cosmic", "Apex", 
-    "Radiant", "Primal", "Quantum", "Digital", "Cyber", "Fusion", "Frost", "Inferno", "Lunar", "Prime",
-    "Solar", "Astral", "Celestial", "Divine", "Immortal", "Ethereal", "Spectral", "Arcane", "Enigmatic",
-    "Feral", "Wild", "Savage", "Ferocious", "Relentless", "Merciless", "Ruthless", "Tenacious", "Dauntless",
-    "Fearless", "Valiant", "Gallant", "Heroic", "Noble", "Royal", "Majestic", "Sovereign", "Paramount",
-    "Supreme", "Ultimate", "Absolute", "Perfect", "Flawless", "Pure", "True", "Genuine", "Authentic",
-    "Swift", "Rapid", "Quick", "Agile", "Nimble", "Deft", "Precise", "Accurate", "Exact", "Calculated"
-]
+TEAM_ADJECTIVES = GENERATION_DATA["TEAM_ADJECTIVES"]
 
-TEAM_NOUNS = [
-    "Force", "Gaming", "Esports", "Tactics", "Wolves", "Warriors", "Legends", "Titans", "Dragons", "Phoenix", 
-    "Vipers", "Knights", "Guardians", "Ninjas", "Ghosts", "Sentinels", "Rebels", "Hunters", "Ascension", "Pulse",
-    "Sharks", "Lions", "Tigers", "Bears", "Eagles", "Hawks", "Falcons", "Ravens", "Vultures", "Pythons", "Cobras",
-    "Scorpions", "Spiders", "Wasps", "Hornets", "Mantis", "Wolves", "Foxes", "Jackals", "Wyverns", "Griffins",
-    "Hydras", "Chimeras", "Krakens", "Leviathans", "Behemoths", "Golems", "Gargoyles", "Gorgons", "Minotaurs",
-    "Centaurs", "Cyclops", "Djinns", "Genies", "Angels", "Demons", "Devils", "Imps", "Fiends", "Ghouls", "Wraiths",
-    "Spectres", "Phantoms", "Poltergeists", "Banshees", "Sirens", "Mermaids", "Nymphs", "Dryads", "Fairies", "Elves",
-    "Wizards", "Sorcerers", "Mages", "Enchanters", "Warlocks", "Witches", "Diviners", "Oracles", "Seers", "Prophets",
-    "Samurai", "Ronin", "Shinobi", "Daimyo", "Shogun", "Berserkers", "Vikings", "Valkyries", "Templars", "Crusaders",
-    "Paladins", "Clerics", "Druids", "Monks", "Bards", "Rangers", "Archers", "Snipers", "Gunslingers", "Bandits",
-    "Outlaws", "Pirates", "Corsairs", "Marauders", "Rogues", "Assassins", "Mercenaries", "Commandos", "Operators"
-]
+TEAM_NOUNS = GENERATION_DATA["TEAM_NOUNS"]
 
 # Countries
-COUNTRIES = [
-    "United States", "Canada", "Brazil", "Argentina", "Chile", 
-    "United Kingdom", "France", "Germany", "Spain", "Italy",
-    "Sweden", "Finland", "Denmark", "Norway", "Poland",
-    "South Korea", "Japan", "China", "Thailand", "Indonesia",
-    "Australia", "New Zealand", "South Africa", "Egypt", "Nigeria",
-    "Russia", "Ukraine", "Turkey", "Mexico", "Colombia",
-    "Peru", "Philippines", "Malaysia", "Singapore", "Vietnam",
-    "India", "Pakistan", "Netherlands", "Belgium", "Portugal",
-    "Austria", "Switzerland", "Greece", "Ireland", "Romania",
-    "Bulgaria", "Hungary", "Czech Republic", "Slovakia", "Serbia",
-    "Croatia", "Slovenia", "Lithuania", "Latvia", "Estonia",
-    "Kazakhstan", "Uzbekistan", "Georgia", "Armenia", "Azerbaijan",
-    "Saudi Arabia", "UAE", "Qatar", "Kuwait", "Bahrain",
-    "Israel", "Jordan", "Lebanon", "Morocco", "Tunisia",
-    "Ghana", "Kenya", "Ethiopia", "Senegal", "Ivory Coast",
-    "Taiwan", "Hong Kong", "Macau", "Mongolia", "Nepal",
-    "Sri Lanka", "Bangladesh", "Myanmar", "Cambodia", "Laos"
-]
+COUNTRIES = []
 
 # First names and last names for player generation
-FIRST_NAMES = [
-    "Adam", "Alex", "Benjamin", "Caleb", "Daniel", "David", "Ethan", "Felix", "Gabriel", "Henry",
-    "Isaac", "Jacob", "Kevin", "Liam", "Matthew", "Nathan", "Oliver", "Peter", "Ryan", "Samuel",
-    "Thomas", "William", "Zack", "James", "Michael", "Robert", "John", "Austin", "Tyler", "Jason",
-    "Emma", "Olivia", "Ava", "Isabella", "Sophia", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn",
-    "Carlos", "Maksym", "Yuki", "Jin", "Wei", "Ahmed", "Viktor", "Ivan", "Kim", "Ananya",
-    "Lucas", "Noah", "Juan", "Luis", "Miguel", "Sofia", "Lena", "Anna", "Maria", "Fatima",
-    "Hiroshi", "Takumi", "Ryu", "Daisuke", "Kenji", "Satoshi", "Yusuke", "Akira", "Haruki", "Hayato",
-    "Javier", "Alejandro", "Mateo", "Diego", "Andres", "Pablo", "Roberto", "Eduardo", "Marco", "Antonio",
-    "Alexei", "Dmitri", "Mikhail", "Sergei", "Vladimir", "Nikolai", "Yuri", "Pavel", "Anatoly", "Igor",
-    "Hans", "Klaus", "Lukas", "Josef", "Stefan", "Andreas", "Franz", "Martin", "Wolfgang", "Jürgen",
-    "Pierre", "Jean", "François", "Antoine", "Louis", "Mathieu", "Philippe", "Laurent", "Nicolas", "André",
-    "Rajesh", "Vikram", "Amit", "Arjun", "Sunil", "Anil", "Rahul", "Sanjay", "Vijay", "Rohit",
-    "Mohamed", "Ali", "Hassan", "Mustafa", "Youssef", "Khalid", "Abdullah", "Omar", "Tariq", "Samir",
-    "Cheng", "Ming", "Jian", "Hong", "Tao", "Feng", "Lei", "Xiang", "Yong", "Hao",
-    "Ji-hoon", "Min-ho", "Sung-min", "Jae-sung", "Dong-hyun", "Seung-ho", "Kyung-soo", "Hyun-woo", "Tae-hyun", "Young-ho"
-]
+FIRST_NAMES = GENERATION_DATA["FIRST_NAMES"]
 
-LAST_NAMES = [
-    "Smith", "Johnson", "Brown", "Davis", "Wilson", "Miller", "Moore", "Taylor", "Anderson", "Thomas",
-    "Jackson", "White", "Harris", "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez",
-    "Lewis", "Lee", "Walker", "Hall", "Allen", "Young", "King", "Wright", "Scott", "Green",
-    "Kim", "Park", "Choi", "Wang", "Li", "Zhang", "Chen", "Tanaka", "Suzuki", "Sato",
-    "Ivanov", "Petrov", "Singh", "Patel", "Nguyen", "Tran", "Santos", "Silva", "Fernandez", "Lopez",
-    "Muller", "Weber", "Schmidt", "Fischer", "Hoffmann", "Gomez", "Hernandez", "Diaz", "Torres", "Reyes",
-    "Yamamoto", "Nakamura", "Kobayashi", "Watanabe", "Takahashi", "Ito", "Saito", "Kato", "Nakajima", "Ueda",
-    "Gonzalez", "Rodriguez", "Perez", "Sanchez", "Ramirez", "Flores", "Morales", "Ortiz", "Rivera", "Cruz",
-    "Popov", "Smirnov", "Kuznetsov", "Sokolov", "Lebedev", "Kozlov", "Novikov", "Morozov", "Volkov", "Bogdanov",
-    "Schneider", "Wagner", "Becker", "Koch", "Schulz", "Wolf", "Neumann", "Schwarz", "Zimmermann", "Braun",
-    "Dubois", "Moreau", "Leroy", "Fournier", "Girard", "Morel", "Lefebvre", "Mercier", "Dupont", "Lambert",
-    "Sharma", "Kumar", "Gupta", "Patel", "Das", "Joshi", "Kaur", "Malhotra", "Nair", "Rao",
-    "Al-Farsi", "Al-Said", "Al-Balushi", "Al-Mamari", "El-Masri", "Al-Shamsi", "Al-Zaabi", "Al-Maqbali", "Al-Hajri", "Al-Kindi",
-    "Liu", "Yang", "Huang", "Zhao", "Wu", "Zhou", "Xu", "Sun", "Ma", "Zhu",
-    "Jeong", "Kang", "Song", "Yoon", "Lim", "Kwon", "Choi", "Han", "Jang", "Yoo"
-]
+LAST_NAMES = GENERATION_DATA["LAST_NAMES"]
 
 # Nicknames for players
-NICKNAMES = [
-    "Ace", "Blaze", "Clutch", "Demon", "Eagle", "Flash", "Ghost", "Hero", "Ice", "Joker",
-    "Knight", "Legend", "Mystic", "Ninja", "Omega", "Phantom", "Quake", "Reaper", "Shadow", "Tiger",
-    "Viper", "Wizard", "Xeno", "Yeti", "Zero", "Sniper", "Swift", "Thunder", "Rocket", "Phoenix",
-    "Hawk", "Wolf", "Cobra", "Shark", "Lion", "Titan", "Vector", "Raptor", "Fury", "Bolt",
-    "Pixel", "Crypto", "Matrix", "Nova", "Zenith", "Cypher", "Echo", "Havoc", "Jett", "Mirage",
-    "Neon", "Orion", "Pulse", "Raven", "Sage", "Tempest", "Void", "Wrath", "Spark", "Glitch",
-    "Frost", "Breeze", "Drift", "Specter", "Ember", "Stealth", "Zephyr", "Sova", "Killjoy", "Vanguard",
-    "Astra", "Brim", "Chamber", "KAY/O", "Omen", "Phoenix", "Raze", "Reyna", "Skye", "Yoru",
-    "Harbor", "Deadlock", "Fade", "Iso", "Gekko", "Clove", "s1mple", "ZywOo", "dev1ce", "NiKo", 
-    "coldzera", "Faker", "Shroud", "ScreaM", "kennyS", "GuardiaN", "Zonic", "KrimZ", "GeT_RiGhT", "f0rest",
-    "Neo", "TaZ", "Hiko", "Shox", "apEX", "NBK", "Flusha", "JW", "pasha", "Snax", 
-    "Fallen", "Taco", "rain", "olofmeister", "Elige", "Twistzz", "NAF", "Brehze", "Ethan", "Stewie2k",
-    "autimatic", "nitr0", "Tarik", "jks", "Jame", "Electronic", "Boombl4", "Perfecto", "flamie", "B1t",
-    "huNter", "nexa", "Aleksib", "valde", "Snappi", "Xyp9x", "dupreeh", "k0nfig", "gla1ve", "Magisk",
-    "Bubzkji", "tabseN", "tiziaN", "syrsoN", "Ax1Le", "YEKINDAR", "Jame", "FL1T", "qikert", "SANJI"
-]
+NICKNAMES = GENERATION_DATA["NICKNAMES"]
 
 # Logo elements
 # Collection of SVG logos that are free to use (public domain or open licensed)
-LOGO_COLORS = ["red", "blue", "green", "yellow", "purple", "orange", "black", "white", 
-              "gold", "silver", "crimson", "navy", "emerald", "azure", "violet", "amber"]
+LOGO_COLORS = GENERATION_DATA["LOGO_COLORS"]
 
 # Collection of SVG logos that are free to use (public domain or open licensed)
-SVG_LOGOS = [
-    # Simple shield
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <path fill="{secondary_color}" d="M50 5 L90 20 L90 50 C90 75 70 90 50 95 C30 90 10 75 10 50 L10 20 Z" />
-        <path fill="{primary_color}" d="M50 15 L80 25 L80 50 C80 70 65 80 50 85 C35 80 20 70 20 50 L20 25 Z" />
-        <path fill="{secondary_color}" d="M50 25 L70 35 L70 55 C70 65 60 75 50 80 C40 75 30 65 30 55 L30 35 Z" />
-    </svg>""",
-    
-    # Circle with star
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M50 15 L57 35 L79 35 L61 50 L68 70 L50 58 L32 70 L39 50 L21 35 L43 35 Z"/>
-    </svg>""",
-    
-    # Wolf silhouette
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M25,30 L35,15 L45,30 L55,30 L65,15 L75,30 L80,45 L75,60 L65,70 L55,75 L45,75 L35,70 L25,60 L20,45 Z"/>
-        <circle fill="{secondary_color}" cx="35" cy="40" r="5"/>
-        <circle fill="{secondary_color}" cx="65" cy="40" r="5"/>
-    </svg>""",
-    
-    # Eagle wings
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M20,60 C30,40 40,30 50,25 C60,30 70,40 80,60 L75,65 C65,50 60,45 50,40 C40,45 35,50 25,65 Z"/>
-        <path fill="{secondary_color}" d="M40,65 L50,55 L60,65 L50,80 Z"/>
-    </svg>""",
-    
-    # Dragon
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M30,30 L40,15 L50,25 L60,15 L70,30 L80,50 L70,70 L50,80 L30,70 L20,50 Z"/>
-        <path fill="{secondary_color}" d="M35,40 L45,30 L55,30 L65,40 L65,60 L50,70 L35,60 Z"/>
-    </svg>""",
-    
-    # Letter X emblem
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M30,20 L50,40 L70,20 L80,30 L60,50 L80,70 L70,80 L50,60 L30,80 L20,70 L40,50 L20,30 Z"/>
-    </svg>""",
-    
-    # Mountain peaks
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M20,70 L35,40 L50,60 L65,40 L80,70 Z"/>
-        <path fill="{secondary_color}" d="M30,70 L40,50 L50,65 L60,50 L70,70 Z"/>
-    </svg>""",
-    
-    # Lion head
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M25,25 L35,15 L45,25 L55,25 L65,15 L75,25 L85,40 L75,60 L60,75 L40,75 L25,60 L15,40 Z"/>
-        <circle fill="{secondary_color}" cx="40" cy="45" r="5"/>
-        <circle fill="{secondary_color}" cx="60" cy="45" r="5"/>
-        <path fill="{secondary_color}" d="M45,60 L55,60 L50,70 Z"/>
-    </svg>""",
-    
-    # Geometric hexagon
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M50,20 L75,35 L75,65 L50,80 L25,65 L25,35 Z"/>
-        <path fill="{secondary_color}" d="M50,35 L65,45 L65,65 L50,75 L35,65 L35,45 Z"/>
-    </svg>""",
-    
-    # Crossed swords
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M35,20 L40,25 L25,40 L40,55 L35,60 L20,45 L15,50 L10,45 L35,20 Z"/>
-        <path fill="{primary_color}" d="M65,20 L60,25 L75,40 L60,55 L65,60 L80,45 L85,50 L90,45 L65,20 Z"/>
-        <circle fill="{secondary_color}" cx="50" cy="50" r="10"/>
-    </svg>""",
-    
-    # Phoenix
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M50,15 C60,25 70,25 80,20 C75,35 80,45 90,50 C80,55 75,65 80,80 C70,75 60,75 50,85 C40,75 30,75 20,80 C25,65 20,55 10,50 C20,45 25,35 20,20 C30,25 40,25 50,15 Z"/>
-        <path fill="{secondary_color}" d="M50,25 C55,35 65,35 70,30 C65,45 75,50 70,60 C65,55 55,55 50,65 C45,55 35,55 30,60 C25,50 35,45 30,30 C35,35 45,35 50,25 Z"/>
-    </svg>""",
-    
-    # Lightning bolt
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M55,15 L25,50 L45,55 L35,85 L75,45 L55,40 Z"/>
-    </svg>""",
-    
-    # Abstract Shapes
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <rect fill="{primary_color}" x="25" y="25" width="20" height="20" transform="rotate(45 35 35)"/>
-        <rect fill="{primary_color}" x="55" y="25" width="20" height="20" transform="rotate(45 65 35)"/>
-        <rect fill="{primary_color}" x="40" y="55" width="20" height="20" transform="rotate(45 50 65)"/>
-    </svg>""",
-    
-    # Shark fin
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <circle fill="{secondary_color}" cx="50" cy="50" r="45"/>
-        <path fill="{primary_color}" d="M25,65 C35,60 45,50 50,20 C55,50 65,60 75,65 C65,75 55,80 50,80 C45,80 35,75 25,65 Z"/>
-    </svg>""",
-    
-    # Pentagon shield
-    """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <path fill="{secondary_color}" d="M50,10 L90,30 L80,75 L50,90 L20,75 L10,30 Z"/>
-        <path fill="{primary_color}" d="M50,20 L80,35 L70,70 L50,80 L30,70 L20,35 Z"/>
-        <path fill="{secondary_color}" d="M50,30 L70,40 L65,65 L50,75 L35,65 L30,40 Z"/>
-    </svg>"""
-]
+SVG_LOGOS = GENERATION_DATA["SVG_LOGOS"]
+
+def fetch_countries():
+    """Use the same country options as the app, including saved desktop countries."""
+    response = requests.get(f"{API_BASE_URL}/countries", headers=get_auth_headers(), timeout=30)
+    response.raise_for_status()
+    countries = [country["name"] for country in response.json() if country.get("name", "").strip()]
+    if not countries:
+        raise ValueError("No countries are available for generation")
+    return countries
 
 def generate_random_date_range(start_date=None, end_date=None):
     """
@@ -402,24 +185,7 @@ def generate_team_logo():
     secondary_color = random.choice([c for c in LOGO_COLORS if c != primary_color])
     
     # Convert color names to hex codes
-    color_map = {
-        "red": "#FF0000", 
-        "blue": "#0000FF", 
-        "green": "#008000",
-        "yellow": "#FFFF00", 
-        "purple": "#800080", 
-        "orange": "#FFA500",
-        "black": "#000000", 
-        "white": "#FFFFFF",
-        "gold": "#FFD700", 
-        "silver": "#C0C0C0", 
-        "crimson": "#DC143C",
-        "navy": "#000080", 
-        "emerald": "#008000", 
-        "azure": "#007FFF",
-        "violet": "#8A2BE2", 
-        "amber": "#FFBF00"
-    }
+    color_map = GENERATION_DATA["LOGO_COLOR_HEX"]
     
     # Get hex values for colors
     primary_hex = color_map.get(primary_color, "#" + ''.join([random.choice('0123456789ABCDEF') for _ in range(6)]))
@@ -437,6 +203,9 @@ def distribute_nationalities(players_count=5):
     
     Returns a list of country names for each player
     """
+    if len(COUNTRIES) < 3:
+        return random.choices(COUNTRIES, k=players_count)
+
     # Define probability weights for different nationality distributions
     distribution_types = [
         {"name": "all_same", "probability": 0.3},  # All players from same country
@@ -1098,6 +867,9 @@ def main():
         token = jwt.encode({'username': 'admin'}, os.getenv('JWT_SECRET'), algorithm='HS256')
         set_jwt_token(token)
     
+    global COUNTRIES
+    COUNTRIES = fetch_countries()
+
     if args.type == "tournament":
         create_tournament(args.count, args.start_date, args.end_date, args.teams)
     elif args.type == "team":
@@ -1125,4 +897,4 @@ if __name__ == "__main__":
         print("                                         # Generate a tournament with JWT authentication")
         sys.exit(1)
     
-    main() 
+    main()
