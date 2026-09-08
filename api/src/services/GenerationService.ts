@@ -58,7 +58,7 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
     const tournamentNames = new Set((await Tournament.findAll({ attributes: ['name'], transaction })).map(tournament => tournament.name))
     for (let index = 0; index < request.teamCount; index++) {
       const country = pickGenerationValue(countries)
-      const fullName = reserveGeneratedName(generateTeamName, teamNames)
+      const fullName = reserveGeneratedName(generateTeamName, teamNames, ' ')
       const team = await Team.create({
         short_name: reserveGeneratedName(() => generateTeamShortName(fullName), shortNames),
         full_name: fullName,
@@ -82,7 +82,7 @@ export const generateData = async (request: GenerateDataRequest): Promise<Genera
 
     for (let index = 0; index < request.tournamentCount; index++) {
       const tournament = await Tournament.create({
-        name: reserveGeneratedName(() => generateTournamentName(start.getUTCFullYear()), tournamentNames),
+        name: reserveGeneratedName(() => generateTournamentName(start.getUTCFullYear()), tournamentNames, ' '),
         description: 'Generated round-robin tournament.',
         country: pickGenerationValue(countries),
         type: TournamentType.SINGLE_GROUP,

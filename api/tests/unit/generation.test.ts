@@ -62,17 +62,28 @@ describe('Readable generated identities', () => {
   })
 
   it('uses the shared script vocabulary for team and tournament names', () => {
-    expect(generateTeamName()).toBe('Team Force')
+    expect(generateTeamName()).toBe('Round13 Gaming')
     expect(generateTournamentName(2100)).toBe('Ultimate Red Bull Global Masters 2100 Showdown')
     expect(generatePlayerNickname()).toBe('Ace')
   })
 
   it.each([
-    [0, 'Force'], [1, 'Elite Force'], [2, 'Force Gaming'],
-    [3, 'Elite Rogue Force'], [4, 'Elite Force Gaming'],
-  ] as [number, string][])('supports team name pattern %i', (pattern, expected) => {
-    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(pattern)
+    [0, 'Aurora'], [1, 'Aurora Gaming'], [2, 'Crimson Aurora'], [3, 'Team Aurora'],
+  ] as [number, string][])('supports natural team name pattern %i', (pattern, expected) => {
+    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(0).mockReturnValueOnce(pattern)
     expect(generateTeamName()).toBe(expected)
+  })
+
+  it('limits numeric brands to ten percent of the decision space and uses meaningful word tokens', () => {
+    const names = Array.from({ length: 100 }, (_, roll) => {
+      randomIntMock.mockReturnValueOnce(roll)
+      return generateTeamName()
+    })
+    expect(names.filter(name => /[0-9]/.test(name))).toHaveLength(10)
+    expect(names.slice(0, 10)).toEqual(Array(10).fill('Round13 Gaming'))
+    expect(names.slice(10)).toEqual(Array(90).fill('Aurora'))
+    expect(data.TEAM_NUMBER_NAMES).toEqual(['Round13', 'Stack5'])
+    for (const name of names) expect(name.split(' ').every(word => /[A-Za-z]/.test(word))).toBe(true)
   })
 
   it.each([
@@ -83,16 +94,31 @@ describe('Readable generated identities', () => {
     expect(generatePlayerNickname()).toBe(expected)
   })
 
-  it('derives short names from the team name', () => {
-    randomIntMock.mockReturnValue(42)
-    expect(generateTeamShortName('Team Savage Wolves')).toBe('Wolves42')
+  it.each([
+    ['Team Crimson Wolves', 'CrimsonWolves'],
+    ['Aurora Gaming', 'Aurora'],
+    ['Round13 Gaming', 'Round13'],
+    ['Stack5 Esports', 'Stack5'],
+  ])('derives the tag for %s from its words', (name, expected) => {
+    expect(generateTeamShortName(name)).toBe(expected)
+    expect(randomIntMock).not.toHaveBeenCalled()
   })
 
-  it('resolves existing and within-batch name collisions with readable numbers', () => {
-    const names = new Set(['Ace'])
-    expect(reserveGeneratedName(() => 'Ace', names)).toBe('Ace2')
-    expect(reserveGeneratedName(() => 'Ace', names)).toBe('Ace3')
-    expect([...names]).toEqual(['Ace', 'Ace2', 'Ace3'])
+  it('resolves existing and within-batch name collisions with word suffixes', () => {
+    const names = new Set(['Aurora'])
+    expect(reserveGeneratedName(() => 'Aurora', names, ' ')).toBe('Aurora North')
+    expect(reserveGeneratedName(() => 'Aurora', names, ' ')).toBe('Aurora South')
+    expect([...names]).toEqual(['Aurora', 'Aurora North', 'Aurora South'])
+  })
+
+  it('keeps collision suffixes distinct and word-based after exhausting single words', () => {
+    const names = new Set(['Aurora'])
+    for (let index = 0; index <= data.NAME_VARIANTS.length; index++) {
+      reserveGeneratedName(() => 'Aurora', names)
+    }
+    expect(names.size).toBe(data.NAME_VARIANTS.length + 2)
+    expect(names.has('AuroraNorthNorth')).toBe(true)
+    expect([...names].every(name => /^[A-Za-z]+$/.test(name))).toBe(true)
   })
 
   it('renders the script SVG template with distinct colors and the correct MIME type', () => {

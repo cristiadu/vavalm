@@ -24,7 +24,8 @@ describe('Data generation', () => {
     for (const id of result.teamIds) {
       const team = await apiClient.default.getTeam(id)
       expect(countryNames).toContain(team.country)
-      expect(team.short_name).toMatch(new RegExp(`^${team.full_name!.split(' ').at(-1)}[0-9]+$`))
+      expect(team.short_name).toMatch(/^[A-Za-z]+(?:(?:13|5)[A-Za-z]*)?$/)
+      expect(team.full_name).toMatch(/^(?:[A-Za-z]+|Round13|Stack5)(?: (?:[A-Za-z]+|Round13|Stack5))*$/)
       const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:8000/api'}/teams/${id}/logo`)
       expect(response.status).toBe(200)
       expect(response.headers.get('content-type')).toContain('image/svg+xml')

@@ -4,34 +4,43 @@ import data from '@/models/generation-data.json'
 /** Picks an entry from the shared generator vocabulary. */
 export const pickGenerationValue = (values: string[]): string => values[randomInt(values.length)]
 
-/** Reserves a readable name, retrying collisions before adding a numeric suffix. */
-export const reserveGeneratedName = (generate: () => string, existing: Set<string>): string => {
+/** Reserves a name, retrying collisions before adding distinct word combinations. */
+export const reserveGeneratedName = (generate: () => string, existing: Set<string>, separator = ''): string => {
   let name = generate()
   for (let attempt = 0; existing.has(name) && attempt < 10; attempt++) name = generate()
   const base = name
-  for (let suffix = 2; existing.has(name); suffix++) name = `${base}${suffix}`
+  let collision = 0
+  while (existing.has(name)) {
+    let index = collision++
+    const words: string[] = []
+    do {
+      words.unshift(data.NAME_VARIANTS[index % data.NAME_VARIANTS.length])
+      index = Math.floor(index / data.NAME_VARIANTS.length) - 1
+    } while (index >= 0)
+    name = [base, ...words].join(separator)
+  }
   existing.add(name)
   return name
 }
 
-/** Generates team names with the same five word patterns as generate_data.py. */
+/** Creates esports brands; ten percent reference 13 round wins or a five-player stack. */
 export const generateTeamName = (): string => {
-  const words: string[] = []
-  if (randomInt(100) < 70) words.push(pickGenerationValue(data.TEAM_PREFIXES))
-  const pattern = randomInt(5)
-  if (pattern === 1 || pattern === 3 || pattern === 4) {
-    const adjective = pickGenerationValue(data.TEAM_ADJECTIVES)
-    words.push(adjective)
-    if (pattern === 3) words.push(pickGenerationValue(data.TEAM_ADJECTIVES.filter(value => value !== adjective)))
+  if (randomInt(100) < 10) {
+    return `${pickGenerationValue(data.TEAM_NUMBER_NAMES)} ${pickGenerationValue(data.TEAM_SUFFIXES)}`
   }
-  const noun = pickGenerationValue(data.TEAM_NOUNS)
-  words.push(noun)
-  if (pattern === 2 || pattern === 4) words.push(pickGenerationValue(data.TEAM_NOUNS.filter(value => value !== noun)))
-  return words.filter(Boolean).join(' ')
+  const brand = pickGenerationValue(data.TEAM_NOUNS)
+  switch (randomInt(4)) {
+  case 0: return brand
+  case 1: return `${brand} ${pickGenerationValue(data.TEAM_SUFFIXES)}`
+  case 2: return `${pickGenerationValue(data.TEAM_ADJECTIVES)} ${brand}`
+  default: return `Team ${brand}`
+  }
 }
 
-/** Derives the script's recognizable team tag from the final word of its full name. */
-export const generateTeamShortName = (fullName: string): string => `${fullName.split(' ').at(-1)}${randomInt(1, 1000)}`
+/** Keeps the recognizable words in the team name, without an arbitrary number suffix. */
+export const generateTeamShortName = (fullName: string): string => fullName.split(' ')
+  .filter(word => word !== 'Team' && !data.TEAM_SUFFIXES.includes(word))
+  .join('')
 
 /** Uses the script's simple, numeric, stylized, combined and leetspeak nicknames. */
 export const generatePlayerNickname = (): string => {
