@@ -28,19 +28,27 @@ export const generateTeamName = (): string => {
   if (randomInt(100) < 10) {
     return `${pickGenerationValue(data.TEAM_NUMBER_NAMES)} ${pickGenerationValue(data.TEAM_SUFFIXES)}`
   }
-  const brand = pickGenerationValue(data.TEAM_NOUNS)
-  switch (randomInt(4)) {
-  case 0: return brand
-  case 1: return `${brand} ${pickGenerationValue(data.TEAM_SUFFIXES)}`
-  case 2: return `${pickGenerationValue(data.TEAM_ADJECTIVES)} ${brand}`
-  default: return `Team ${brand}`
+  const words: string[] = []
+  if (randomInt(100) < 70) words.push(pickGenerationValue(data.TEAM_PREFIXES))
+  const pattern = randomInt(6)
+  if (pattern === 1 || pattern === 3 || pattern === 4) {
+    const adjective = pickGenerationValue(data.TEAM_ADJECTIVES)
+    words.push(adjective)
+    if (pattern === 3) words.push(pickGenerationValue(data.TEAM_ADJECTIVES.filter(value => value !== adjective)))
   }
+  const noun = pickGenerationValue(data.TEAM_NOUNS)
+  words.push(noun)
+  if (pattern === 2 || pattern === 4) words.push(pickGenerationValue(data.TEAM_NOUNS.filter(value => value !== noun)))
+  if (pattern === 5) words.push(pickGenerationValue(data.TEAM_SUFFIXES))
+  return words.filter(Boolean).join(' ')
 }
 
 /** Keeps the recognizable words in the team name, without an arbitrary number suffix. */
-export const generateTeamShortName = (fullName: string): string => fullName.split(' ')
-  .filter(word => word !== 'Team' && !data.TEAM_SUFFIXES.includes(word))
-  .join('')
+export const generateTeamShortName = (fullName: string): string => {
+  const words = fullName.split(' ').filter(word => word !== 'Team')
+  const distinctiveWords = words.filter(word => !data.TEAM_SUFFIXES.includes(word))
+  return (distinctiveWords.length > 0 ? distinctiveWords : words).join('')
+}
 
 /** Uses the script's simple, numeric, stylized, combined and leetspeak nicknames. */
 export const generatePlayerNickname = (): string => {

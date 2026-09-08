@@ -77,6 +77,7 @@ TOURNAMENT_PREFIXES = GENERATION_DATA["TOURNAMENT_PREFIXES"]
 TOURNAMENT_SUFFIXES = GENERATION_DATA["TOURNAMENT_SUFFIXES"]
 
 # Team name components
+TEAM_PREFIXES = GENERATION_DATA["TEAM_PREFIXES"]
 TEAM_SUFFIXES = GENERATION_DATA["TEAM_SUFFIXES"]
 TEAM_NUMBER_NAMES = GENERATION_DATA["TEAM_NUMBER_NAMES"]
 NAME_VARIANTS = GENERATION_DATA["NAME_VARIANTS"]
@@ -162,7 +163,9 @@ def reserve_generated_name(generate, existing, separator=""):
 
 def generate_unique_short_name(base_name):
     """Derive the team tag from its recognizable words, without random numbers."""
-    return "".join(word for word in base_name.split() if word != "Team" and word not in TEAM_SUFFIXES)
+    words = [word for word in base_name.split() if word != "Team"]
+    distinctive_words = [word for word in words if word not in TEAM_SUFFIXES]
+    return "".join(distinctive_words or words)
 
 def fetch_teams():
     """Fetch every team from the API.
@@ -322,15 +325,23 @@ def generate_team_name():
     """Generate an esports brand; occasional numbers mean 13 round wins or a five-player stack."""
     if random.randrange(100) < 10:
         return f"{random.choice(TEAM_NUMBER_NAMES)} {random.choice(TEAM_SUFFIXES)}"
-    brand = random.choice(TEAM_NOUNS)
-    pattern = random.randrange(4)
-    if pattern == 0:
-        return brand
-    if pattern == 1:
-        return f"{brand} {random.choice(TEAM_SUFFIXES)}"
-    if pattern == 2:
-        return f"{random.choice(TEAM_ADJECTIVES)} {brand}"
-    return f"Team {brand}"
+    words = []
+    if random.randrange(100) < 70:
+        words.append(random.choice(TEAM_PREFIXES))
+    pattern = random.randrange(6)
+    if pattern in (1, 3, 4):
+        adjective = random.choice(TEAM_ADJECTIVES)
+        words.append(adjective)
+        if pattern == 3:
+            words.append(random.choice([word for word in TEAM_ADJECTIVES if word != adjective]))
+    noun = random.choice(TEAM_NOUNS)
+    words.append(noun)
+    if pattern in (2, 4):
+        words.append(random.choice([word for word in TEAM_NOUNS if word != noun]))
+    if pattern == 5:
+        words.append(random.choice(TEAM_SUFFIXES))
+    return " ".join(word for word in words if word)
+
 
 def generate_player_nickname():
     """Generate a unique player nickname with various patterns"""

@@ -68,10 +68,16 @@ describe('Readable generated identities', () => {
   })
 
   it.each([
-    [0, 'Aurora'], [1, 'Aurora Gaming'], [2, 'Crimson Aurora'], [3, 'Team Aurora'],
+    [0, 'Force'], [1, 'Elite Force'], [2, 'Force Gaming'],
+    [3, 'Elite Rogue Force'], [4, 'Elite Force Gaming'], [5, 'Force Gaming'],
   ] as [number, string][])('supports natural team name pattern %i', (pattern, expected) => {
-    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(0).mockReturnValueOnce(pattern)
+    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(99).mockReturnValueOnce(pattern)
     expect(generateTeamName()).toBe(expected)
+  })
+
+  it.each(data.TEAM_PREFIXES.map((prefix, index) => [prefix, index] as [string, number]))('keeps prefix "%s" available', (prefix, index) => {
+    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(0).mockReturnValueOnce(index)
+    expect(generateTeamName()).toBe([prefix, 'Force'].filter(Boolean).join(' '))
   })
 
   it('limits numeric brands to ten percent of the decision space and uses meaningful word tokens', () => {
@@ -81,7 +87,7 @@ describe('Readable generated identities', () => {
     })
     expect(names.filter(name => /[0-9]/.test(name))).toHaveLength(10)
     expect(names.slice(0, 10)).toEqual(Array(10).fill('Round13 Gaming'))
-    expect(names.slice(10)).toEqual(Array(90).fill('Aurora'))
+    expect(names.slice(10)).toEqual(Array(90).fill('Team Force'))
     expect(data.TEAM_NUMBER_NAMES).toEqual(['Round13', 'Stack5'])
     for (const name of names) expect(name.split(' ').every(word => /[A-Za-z]/.test(word))).toBe(true)
   })
@@ -99,6 +105,8 @@ describe('Readable generated identities', () => {
     ['Aurora Gaming', 'Aurora'],
     ['Round13 Gaming', 'Round13'],
     ['Stack5 Esports', 'Stack5'],
+    ['Team Gaming', 'Gaming'],
+    ['Esports', 'Esports'],
   ])('derives the tag for %s from its words', (name, expected) => {
     expect(generateTeamShortName(name)).toBe(expected)
     expect(randomIntMock).not.toHaveBeenCalled()
