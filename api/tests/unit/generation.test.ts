@@ -61,38 +61,59 @@ describe('Readable generated identities', () => {
     randomIntMock.mockReset().mockReturnValue(0)
   })
 
-  it('uses the shared script vocabulary for team and tournament names', () => {
-    expect(generateTeamName()).toBe('Team Force')
-    expect(generateTournamentName(2100)).toBe('Ultimate Red Bull Global Masters 2100 Showdown')
-    expect(generatePlayerNickname()).toBe('Ace')
+  it('uses common words with separate team and tournament suffixes', () => {
+    randomIntMock.mockReturnValueOnce(99)
+    expect(generateTeamName()).toBe('Nova Gaming')
+    expect(generateTournamentName(2100)).toBe('Nova Cup 2100')
+    randomIntMock.mockReturnValueOnce(0).mockReturnValueOnce(0).mockReturnValueOnce(99)
+    expect(generateTournamentName(2100)).toBe('Nova Cup')
+  })
+
+  it('keeps occasional numbers tied to round wins or roster size', () => {
+    expect(generateTeamName()).toBe('Round13 Gaming')
+    randomIntMock.mockReturnValueOnce(0).mockReturnValueOnce(1)
+    expect(generateTeamName()).toBe('Stack5 Gaming')
+    randomIntMock.mockReturnValueOnce(10)
+    expect(generateTeamName()).toBe('Nova Gaming')
+  })
+
+  it('favors single-term nicknames with a 70/25/5 distribution', () => {
+    const names = Array.from({ length: 100 }, (_, roll) => {
+      randomIntMock.mockReturnValueOnce(roll)
+      return generatePlayerNickname()
+    })
+    expect(names.slice(0, 70)).toEqual(Array(70).fill('Ace'))
+    expect(names.slice(70, 95)).toEqual(Array(25).fill('AceBlaze'))
+    expect(names.slice(95)).toEqual(Array(5).fill('AceBlazeClutch'))
   })
 
   it.each([
-    [0, 'Force'], [1, 'Elite Force'], [2, 'Force Gaming'],
-    [3, 'Elite Rogue Force'], [4, 'Elite Force Gaming'],
-  ] as [number, string][])('supports team name pattern %i', (pattern, expected) => {
-    randomIntMock.mockReturnValueOnce(99).mockReturnValueOnce(pattern)
-    expect(generateTeamName()).toBe(expected)
+    ['Team Crimson Wolves', 'CrimsonWolves'],
+    ['Aurora Gaming', 'Aurora'],
+    ['Round13 Gaming', 'Round13'],
+    ['Stack5 Esports', 'Stack5'],
+    ['Team Gaming', 'Gaming'],
+    ['Esports', 'Esports'],
+  ])('derives the tag for %s from its words', (name, expected) => {
+    expect(generateTeamShortName(name)).toBe(expected)
+    expect(randomIntMock).not.toHaveBeenCalled()
   })
 
-  it.each([
-    [1, 'Ace42'], [2, 'xAcex'], [3, 'AceBlaze'], [4, '4c3'],
-  ] as [number, string][])('supports nickname pattern %i', (pattern, expected) => {
-    randomIntMock.mockReturnValueOnce(pattern).mockReturnValueOnce(0)
-    if (pattern === 1) randomIntMock.mockReturnValueOnce(42)
-    expect(generatePlayerNickname()).toBe(expected)
+  it('resolves existing and within-batch name collisions with word suffixes', () => {
+    const names = new Set(['Aurora'])
+    expect(reserveGeneratedName(() => 'Aurora', names, ' ')).toBe('Aurora North')
+    expect(reserveGeneratedName(() => 'Aurora', names, ' ')).toBe('Aurora South')
+    expect([...names]).toEqual(['Aurora', 'Aurora North', 'Aurora South'])
   })
 
-  it('derives short names from the team name', () => {
-    randomIntMock.mockReturnValue(42)
-    expect(generateTeamShortName('Team Savage Wolves')).toBe('Wolves42')
-  })
-
-  it('resolves existing and within-batch name collisions with readable numbers', () => {
-    const names = new Set(['Ace'])
-    expect(reserveGeneratedName(() => 'Ace', names)).toBe('Ace2')
-    expect(reserveGeneratedName(() => 'Ace', names)).toBe('Ace3')
-    expect([...names]).toEqual(['Ace', 'Ace2', 'Ace3'])
+  it('keeps collision suffixes distinct and word-based after exhausting single words', () => {
+    const names = new Set(['Aurora'])
+    for (let index = 0; index <= data.NAME_VARIANTS.length; index++) {
+      reserveGeneratedName(() => 'Aurora', names)
+    }
+    expect(names.size).toBe(data.NAME_VARIANTS.length + 2)
+    expect(names.has('AuroraNorthNorth')).toBe(true)
+    expect([...names].every(name => /^[A-Za-z]+$/.test(name))).toBe(true)
   })
 
   it('renders the script SVG template with distinct colors and the correct MIME type', () => {
