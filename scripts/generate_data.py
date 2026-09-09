@@ -225,8 +225,10 @@ def generate_team_name():
 
 
 def generate_player_nickname():
-    """Combine one to three distinct gaming terms into a readable handle."""
-    return "".join(random.sample(NICKNAMES, random.randint(1, 3)))
+    """Favor one term (70%) over two (25%) or three (5%)."""
+    roll = random.randrange(100)
+    count = 1 if roll < 70 else 2 if roll < 95 else 3
+    return "".join(random.sample(NICKNAMES, count))
 
 def generate_player_attributes():
     """Generate detailed random player attributes with a signature strength"""

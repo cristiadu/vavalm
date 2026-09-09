@@ -38,10 +38,11 @@ export const generateTeamShortName = (fullName: string): string => {
   return (distinctiveWords.length > 0 ? distinctiveWords : words).join('')
 }
 
-/** Combines one to three distinct gaming terms into a readable handle. */
+/** Combines gaming terms, favoring one term (70%) over two (25%) or three (5%). */
 export const generatePlayerNickname = (): string => {
   const available = [...data.NICKNAMES]
-  const count = randomInt(1, 4)
+  const roll = randomInt(100)
+  const count = roll < 70 ? 1 : roll < 95 ? 2 : 3
   const words: string[] = []
   for (let index = 0; index < count; index++) words.push(available.splice(randomInt(available.length), 1)[0])
   return words.join('')

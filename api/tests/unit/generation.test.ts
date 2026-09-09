@@ -77,12 +77,15 @@ describe('Readable generated identities', () => {
     expect(generateTeamName()).toBe('Nova Gaming')
   })
 
-  it.each([[1, 'Ace'], [2, 'AceClutch'], [3, 'AceClutchFlash']] as [number, string][])(
-    'combines %i distinct nickname terms', (count, expected) => {
-      randomIntMock.mockReturnValueOnce(count)
-      expect(generatePlayerNickname()).toBe(expected)
-    },
-  )
+  it('favors single-term nicknames with a 70/25/5 distribution', () => {
+    const names = Array.from({ length: 100 }, (_, roll) => {
+      randomIntMock.mockReturnValueOnce(roll)
+      return generatePlayerNickname()
+    })
+    expect(names.slice(0, 70)).toEqual(Array(70).fill('Ace'))
+    expect(names.slice(70, 95)).toEqual(Array(25).fill('AceBlaze'))
+    expect(names.slice(95)).toEqual(Array(5).fill('AceBlazeClutch'))
+  })
 
   it.each([
     ['Team Crimson Wolves', 'CrimsonWolves'],
