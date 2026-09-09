@@ -65,25 +65,14 @@ MATCH_TYPES = ["BO1", "BO3", "BO5"]
 with open(os.path.join(os.path.dirname(__file__), "../api/src/models/generation-data.json"), encoding="utf-8") as generation_data_file:
     GENERATION_DATA = json.load(generation_data_file)
 
-# Tournament name components
-REGIONS = GENERATION_DATA["REGIONS"]
-
-SPONSORS = GENERATION_DATA["SPONSORS"]
-
-TOURNAMENT_TYPES = GENERATION_DATA["TOURNAMENT_TYPES"]
-
-TOURNAMENT_PREFIXES = GENERATION_DATA["TOURNAMENT_PREFIXES"]
-
+# Shared name words, with separate team and tournament endings.
+NAME_WORDS = GENERATION_DATA["NAME_WORDS"]
 TOURNAMENT_SUFFIXES = GENERATION_DATA["TOURNAMENT_SUFFIXES"]
+TEAM_SUFFIXES = GENERATION_DATA["TEAM_SUFFIXES"]
+TEAM_NUMBER_NAMES = GENERATION_DATA["TEAM_NUMBER_NAMES"]
+NAME_VARIANTS = GENERATION_DATA["NAME_VARIANTS"]
 
-# Team name components
-TEAM_PREFIXES = GENERATION_DATA["TEAM_PREFIXES"]
-
-TEAM_ADJECTIVES = GENERATION_DATA["TEAM_ADJECTIVES"]
-
-TEAM_NOUNS = GENERATION_DATA["TEAM_NOUNS"]
-
-# Countries
+# Countries are fetched from the API.
 COUNTRIES = []
 
 # First names and last names for player generation
@@ -135,15 +124,34 @@ def generate_random_date_range(start_date=None, end_date=None):
     
     return start.isoformat(), end.isoformat()
 
+def reserve_generated_name(generate, existing, separator=""):
+    """Reserve a readable name; collisions use words rather than numeric suffixes."""
+    name = generate()
+    for _ in range(10):
+        if name not in existing:
+            break
+        name = generate()
+    base = name
+    collision = 0
+    while name in existing:
+        index = collision
+        collision += 1
+        words = []
+        while True:
+            words.insert(0, NAME_VARIANTS[index % len(NAME_VARIANTS)])
+            index = index // len(NAME_VARIANTS) - 1
+            if index < 0:
+                break
+        name = separator.join([base] + words)
+    existing.add(name)
+    return name
+
+
 def generate_unique_short_name(base_name):
-    """Generate a unique short name for a team by adding random suffix"""
-    # Take either the base name or the last word of a multi-word name
-    short_name = base_name.split()[-1] 
-    
-    # Add a random number suffix to make it more unique
-    random_suffix = str(random.randint(1, 999))
-    
-    return f"{short_name}{random_suffix}"
+    """Derive the team tag from its recognizable words, without random numbers."""
+    words = [word for word in base_name.split() if word != "Team"]
+    distinctive_words = [word for word in words if word not in TEAM_SUFFIXES]
+    return "".join(distinctive_words or words)
 
 def fetch_teams():
     """Fetch every team from the API.
@@ -198,187 +206,29 @@ def generate_team_logo():
     return colored_svg.encode('utf-8')
 
 def distribute_nationalities(players_count=5):
-    """
-    Generate a distribution of nationalities for a team
-    
-    Returns a list of country names for each player
-    """
-    if len(COUNTRIES) < 3:
-        return random.choices(COUNTRIES, k=players_count)
+    """Pick each player's nationality independently from the fetched countries."""
+    return random.choices(COUNTRIES, k=players_count)
 
-    # Define probability weights for different nationality distributions
-    distribution_types = [
-        {"name": "all_same", "probability": 0.3},  # All players from same country
-        {"name": "majority", "probability": 0.4},  # Most players (3-4) from one country
-        {"name": "duo_duo", "probability": 0.2},   # Two from one country, two from another
-        {"name": "diverse", "probability": 0.1}    # All or most from different countries
-    ]
-    
-    # Choose distribution type based on probabilities
-    distribution_type = random.choices(
-        [d["name"] for d in distribution_types],
-        weights=[d["probability"] for d in distribution_types]
-    )[0]
-    
-    # Generate nationality distribution based on selected type
-    if distribution_type == "all_same":
-        primary_country = random.choice(COUNTRIES)
-        nationalities = [primary_country] * players_count
-    
-    elif distribution_type == "majority":
-        primary_country = random.choice(COUNTRIES)
-        secondary_countries = random.sample([c for c in COUNTRIES if c != primary_country], 
-                                           players_count - random.randint(3, 4))
-        
-        # How many players get the primary country
-        primary_count = players_count - len(secondary_countries)
-        
-        # Create the distribution
-        nationalities = [primary_country] * primary_count + secondary_countries
-    
-    elif distribution_type == "duo_duo":
-        if players_count >= 4:
-            country1 = random.choice(COUNTRIES)
-            country2 = random.choice([c for c in COUNTRIES if c != country1])
-            
-            # For 5 players, add a third country
-            if players_count == 5:
-                country3 = random.choice([c for c in COUNTRIES if c not in [country1, country2]])
-                nationalities = [country1, country1, country2, country2, country3]
-            else:
-                # For 4 players, just do 2+2
-                nationalities = [country1, country1, country2, country2]
-        else:
-            # Fallback for less than 4 players
-            nationalities = random.choices(COUNTRIES, k=players_count)
-    
-    elif distribution_type == "diverse":
-        # Pick random countries, allow repeats if players_count > len(COUNTRIES)
-        if players_count <= len(COUNTRIES):
-            nationalities = random.sample(COUNTRIES, players_count)
-        else:
-            nationalities = random.choices(COUNTRIES, k=players_count)
-    
-    # Shuffle the nationalities so they're not predictably ordered
-    random.shuffle(nationalities)
-    return nationalities
 
 def generate_tournament_name():
-    """Generate a creative random tournament name with optional components"""
-    components = []
-    
-    # 40% chance to include a prefix
-    if random.random() < 0.4:
-        components.append(random.choice(TOURNAMENT_PREFIXES))
-    
-    # 70% chance to include a sponsor
-    if random.random() < 0.7:
-        components.append(random.choice(SPONSORS))
-    
-    # 80% chance to include a region
-    if random.random() < 0.8:
-        components.append(random.choice(REGIONS))
-    
-    # Always include a tournament type
-    components.append(random.choice(TOURNAMENT_TYPES))
-    
-    # 30% chance to include year
-    if random.random() < 0.3:
-        components.append(str(datetime.now().year))
-    
-    # 20% chance to include a suffix
-    if random.random() < 0.2:
-        components.append(random.choice(TOURNAMENT_SUFFIXES))
-    
-    # Join components to form name, make sure it's not empty
-    name = " ".join(components)
-    
-    # If somehow we got an empty name (very unlikely), use a fallback
-    if not name:
-        name = f"{random.choice(SPONSORS)} {random.choice(TOURNAMENT_TYPES)}"
-    
+    """Use common name words, an event suffix, and an optional year."""
+    name = f"{random.choice(NAME_WORDS)} {random.choice(TOURNAMENT_SUFFIXES)}"
+    if random.randrange(100) < 30:
+        name += f" {datetime.now().year}"
     return name
 
+
 def generate_team_name():
-    """Generate a creative random team name with optional components"""
-    components = []
-    
-    # 70% chance to include a prefix
-    if random.random() < 0.7:
-        prefix = random.choice(TEAM_PREFIXES)
-        if prefix:  # Only add if not empty string
-            components.append(prefix)
-    
-    # Include different combinations of adjectives and nouns
-    name_type = random.randint(1, 5)
-    
-    if name_type == 1:
-        # Just a noun (e.g., "Titans")
-        components.append(random.choice(TEAM_NOUNS))
-    elif name_type == 2:
-        # Adjective + Noun (e.g., "Savage Dragons")
-        components.append(random.choice(TEAM_ADJECTIVES))
-        components.append(random.choice(TEAM_NOUNS))
-    elif name_type == 3:
-        # Two nouns (e.g., "Phoenix Assassins")
-        noun1 = random.choice(TEAM_NOUNS)
-        noun2 = random.choice([n for n in TEAM_NOUNS if n != noun1])
-        components.append(noun1)
-        components.append(noun2)
-    elif name_type == 4:
-        # Two adjectives + Noun (e.g., "Wild Mystic Warriors")
-        adj1 = random.choice(TEAM_ADJECTIVES)
-        adj2 = random.choice([a for a in TEAM_ADJECTIVES if a != adj1])
-        components.append(adj1)
-        components.append(adj2)
-        components.append(random.choice(TEAM_NOUNS))
-    else:
-        # Adjective + Two nouns (e.g., "Phantom Dragon Force")
-        components.append(random.choice(TEAM_ADJECTIVES))
-        noun1 = random.choice(TEAM_NOUNS)
-        noun2 = random.choice([n for n in TEAM_NOUNS if n != noun1])
-        components.append(noun1)
-        components.append(noun2)
-    
-    # Join components to form name
-    team_name = " ".join(components)
-    
-    # If somehow we got an empty name, use a fallback
-    if not team_name:
-        team_name = f"{random.choice(TEAM_ADJECTIVES)} {random.choice(TEAM_NOUNS)}"
-    
-    return team_name
+    """Use common name words with occasional round-win or roster-size references."""
+    words = TEAM_NUMBER_NAMES if random.randrange(100) < 10 else NAME_WORDS
+    return f"{random.choice(words)} {random.choice(TEAM_SUFFIXES)}"
+
 
 def generate_player_nickname():
-    """Generate a unique player nickname with various patterns"""
-    pattern = random.randint(1, 5)
-    
-    if pattern == 1:
-        # Simple nickname (e.g., "Phantom")
-        return random.choice(NICKNAMES)
-    elif pattern == 2:
-        # Nickname with number (e.g., "Phantom42")
-        return f"{random.choice(NICKNAMES)}{random.randint(1, 99)}"
-    elif pattern == 3:
-        # Stylized nickname (e.g., "xPhantomx")
-        nickname = random.choice(NICKNAMES)
-        prefix = random.choice(["x", "i", "o", "v", "s1", "The", "Mr", "Sir", ""])
-        suffix = random.choice(["x", "z", "y", "TTV", "YT", "Pro", "TV", ""])
-        return f"{prefix}{nickname}{suffix}"
-    elif pattern == 4:
-        # Two word nickname (e.g., "Phantom Assassin")
-        nick1 = random.choice(NICKNAMES)
-        nick2 = random.choice([n for n in NICKNAMES if n != nick1])
-        return f"{nick1}{nick2}"
-    else:
-        # Shortened nickname with symbol (e.g., "Ph4nt0m")
-        nickname = random.choice(NICKNAMES)
-        # 50% chance to replace some letters with numbers
-        if random.random() < 0.5:
-            for old, new in [('a', '4'), ('e', '3'), ('i', '1'), ('o', '0'), ('s', '5'), ('t', '7')]:
-                if old in nickname.lower() and random.random() < 0.7:
-                    nickname = nickname.replace(old, new).replace(old.upper(), new)
-        return nickname
+    """Favor one term (70%) over two (25%) or three (5%)."""
+    roll = random.randrange(100)
+    count = 1 if roll < 70 else 2 if roll < 95 else 3
+    return "".join(random.sample(NICKNAMES, count))
 
 def generate_player_attributes():
     """Generate detailed random player attributes with a signature strength"""
@@ -609,46 +459,15 @@ def fetch_players():
         print(f"Error: {e}")
         return []
 
-def is_nickname_unique(nickname, existing_players):
-    """Check if a player nickname is unique"""
-    # Check if any existing player has this nickname
-    for player in existing_players:
-        if player.get("nickname") == nickname:
-            return False
-    return True
-
 def generate_unique_player_nickname(existing_players):
-    """Generate a unique player nickname, checking against existing ones"""
-    # Try up to 10 times to generate a unique nickname
-    for _ in range(10):
-        nickname = generate_player_nickname()
-        if is_nickname_unique(nickname, existing_players):
-            return nickname
-    
-    # If still not unique, add a random suffix
-    base_nickname = generate_player_nickname()
-    return f"{base_nickname}{random.randint(1000, 9999)}"
-
-def is_short_name_unique(short_name, existing_teams):
-    """Check if a team short name is unique"""
-    # Check if any existing team has this short name
-    for team in existing_teams:
-        if team.get("short_name") == short_name:
-            return False
-    return True
+    """Resolve nickname collisions with readable words, matching the API generator."""
+    return reserve_generated_name(generate_player_nickname,
+                                  {player.get("nickname") for player in existing_players})
 
 def generate_truly_unique_short_name(base_name, existing_teams):
-    """Generate a truly unique short name by checking against existing teams"""
-    # Try up to 10 times with different suffixes
-    for _ in range(10):
-        short_name = generate_unique_short_name(base_name)
-        if is_short_name_unique(short_name, existing_teams):
-            return short_name
-    
-    # If still not unique, use a more robust approach with timestamp
-    timestamp = int(datetime.now().timestamp()) % 10000
-    short_name = f"{base_name.split()[-1]}{timestamp}"
-    return short_name
+    """Resolve tag collisions with word suffixes rather than numbers or timestamps."""
+    return reserve_generated_name(lambda: generate_unique_short_name(base_name),
+                                  {team.get("short_name") for team in existing_teams})
 
 def create_team_with_players(count=1, players_per_team=5):
     """Create a random team with players using the API, with proactive unique name checking"""
@@ -660,9 +479,10 @@ def create_team_with_players(count=1, players_per_team=5):
     existing_players = fetch_players()
     print(f"Fetched {len(existing_players)} existing players to ensure unique nicknames")
     
+    team_names = {team.get("full_name") for team in existing_teams}
     for i in range(count):
         # Generate team data with guaranteed unique short name
-        team_name = generate_team_name()
+        team_name = reserve_generated_name(generate_team_name, team_names, " ")
         short_name = generate_truly_unique_short_name(team_name, existing_teams)
         country = random.choice(COUNTRIES)
         

@@ -4,60 +4,54 @@ import data from '@/models/generation-data.json'
 /** Picks an entry from the shared generator vocabulary. */
 export const pickGenerationValue = (values: string[]): string => values[randomInt(values.length)]
 
-/** Reserves a readable name, retrying collisions before adding a numeric suffix. */
-export const reserveGeneratedName = (generate: () => string, existing: Set<string>): string => {
+/** Reserves a name, retrying collisions before adding distinct word combinations. */
+export const reserveGeneratedName = (generate: () => string, existing: Set<string>, separator = ''): string => {
   let name = generate()
   for (let attempt = 0; existing.has(name) && attempt < 10; attempt++) name = generate()
   const base = name
-  for (let suffix = 2; existing.has(name); suffix++) name = `${base}${suffix}`
+  let collision = 0
+  while (existing.has(name)) {
+    let index = collision++
+    const words: string[] = []
+    do {
+      words.unshift(data.NAME_VARIANTS[index % data.NAME_VARIANTS.length])
+      index = Math.floor(index / data.NAME_VARIANTS.length) - 1
+    } while (index >= 0)
+    name = [base, ...words].join(separator)
+  }
   existing.add(name)
   return name
 }
 
-/** Generates team names with the same five word patterns as generate_data.py. */
+/** Creates esports brands; ten percent reference 13 round wins or a five-player stack. */
 export const generateTeamName = (): string => {
-  const words: string[] = []
-  if (randomInt(100) < 70) words.push(pickGenerationValue(data.TEAM_PREFIXES))
-  const pattern = randomInt(5)
-  if (pattern === 1 || pattern === 3 || pattern === 4) {
-    const adjective = pickGenerationValue(data.TEAM_ADJECTIVES)
-    words.push(adjective)
-    if (pattern === 3) words.push(pickGenerationValue(data.TEAM_ADJECTIVES.filter(value => value !== adjective)))
+  if (randomInt(100) < 10) {
+    return `${pickGenerationValue(data.TEAM_NUMBER_NAMES)} ${pickGenerationValue(data.TEAM_SUFFIXES)}`
   }
-  const noun = pickGenerationValue(data.TEAM_NOUNS)
-  words.push(noun)
-  if (pattern === 2 || pattern === 4) words.push(pickGenerationValue(data.TEAM_NOUNS.filter(value => value !== noun)))
-  return words.filter(Boolean).join(' ')
+  return `${pickGenerationValue(data.NAME_WORDS)} ${pickGenerationValue(data.TEAM_SUFFIXES)}`
 }
 
-/** Derives the script's recognizable team tag from the final word of its full name. */
-export const generateTeamShortName = (fullName: string): string => `${fullName.split(' ').at(-1)}${randomInt(1, 1000)}`
+/** Keeps the recognizable words in the team name, without an arbitrary number suffix. */
+export const generateTeamShortName = (fullName: string): string => {
+  const words = fullName.split(' ').filter(word => word !== 'Team')
+  const distinctiveWords = words.filter(word => !data.TEAM_SUFFIXES.includes(word))
+  return (distinctiveWords.length > 0 ? distinctiveWords : words).join('')
+}
 
-/** Uses the script's simple, numeric, stylized, combined and leetspeak nicknames. */
+/** Combines gaming terms, favoring one term (70%) over two (25%) or three (5%). */
 export const generatePlayerNickname = (): string => {
-  const pattern = randomInt(5)
-  let nickname = pickGenerationValue(data.NICKNAMES)
-  if (pattern === 1) return `${nickname}${randomInt(1, 100)}`
-  if (pattern === 2) return `${pickGenerationValue(['x', 'i', 'o', 'v', 's1', 'The', 'Mr', 'Sir', ''])}${nickname}${pickGenerationValue(['x', 'z', 'y', 'TTV', 'YT', 'Pro', 'TV', ''])}`
-  if (pattern === 3) return nickname + pickGenerationValue(data.NICKNAMES.filter(value => value !== nickname))
-  if (pattern === 4 && randomInt(100) < 50) {
-    for (const [letter, digit] of [['a', '4'], ['e', '3'], ['i', '1'], ['o', '0'], ['s', '5'], ['t', '7']]) {
-      if (nickname.toLowerCase().includes(letter) && randomInt(100) < 70) nickname = nickname.replace(new RegExp(letter, 'gi'), digit)
-    }
-  }
-  return nickname
+  const available = [...data.NICKNAMES]
+  const roll = randomInt(100)
+  const count = roll < 70 ? 1 : roll < 95 ? 2 : 3
+  const words: string[] = []
+  for (let index = 0; index < count; index++) words.push(available.splice(randomInt(available.length), 1)[0])
+  return words.join('')
 }
 
-/** Composes tournament names from the script's sponsors, regions and event titles. */
+/** Uses the common name words with event suffixes and an optional year. */
 export const generateTournamentName = (year: number): string => {
-  const words: string[] = []
-  if (randomInt(100) < 40) words.push(pickGenerationValue(data.TOURNAMENT_PREFIXES))
-  if (randomInt(100) < 70) words.push(pickGenerationValue(data.SPONSORS))
-  if (randomInt(100) < 80) words.push(pickGenerationValue(data.REGIONS))
-  words.push(pickGenerationValue(data.TOURNAMENT_TYPES))
-  if (randomInt(100) < 30) words.push(String(year))
-  if (randomInt(100) < 20) words.push(pickGenerationValue(data.TOURNAMENT_SUFFIXES))
-  return words.join(' ')
+  const name = `${pickGenerationValue(data.NAME_WORDS)} ${pickGenerationValue(data.TOURNAMENT_SUFFIXES)}`
+  return randomInt(100) < 30 ? `${name} ${year}` : name
 }
 
 /** Colors the script's SVG emblems using distinct palette colors, without external services. */
