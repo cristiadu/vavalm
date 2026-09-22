@@ -1,5 +1,6 @@
 "use client"
 
+import { GenerateDataAction } from '@/components/GenerateDataAction'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { fetchTournaments, deleteTournament } from '@/api/TournamentsApi'
@@ -92,6 +93,7 @@ export default function ListTournaments(): React.ReactNode {
       <TournamentActionModal isOpen={tournamentActionModalOpened} onClose={closeTournamentActionModal} isEdit={isEditActionOpened} object={tournamentToEdit} />
       <div className="flex min-h-screen flex-col items-center p-24">
         <SectionHeader title="Tournaments" action={openNewTournamentModal} actionText="New Tournament" />
+        <GenerateDataAction onGenerated={() => { void closeTournamentActionModal() }} />
         <div className="w-full overflow-x-auto rounded-lg shadow">
           <table className="w-full min-w-[1000px] table-fixed">
             <colgroup>

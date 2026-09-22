@@ -1,4 +1,4 @@
-import { Association, DataTypes, Model } from 'sequelize'
+import { Association, DataTypes, Model, Transaction } from 'sequelize'
 
 import db from '@/models/db'
 
@@ -34,7 +34,7 @@ class Tournament extends Model implements BaseEntityModel {
   declare started: boolean
   declare ended: boolean
 
-  declare addTeams: (teamIds: number[]) => Promise<void>
+  declare addTeams: (teamIds: number[], options?: { transaction?: Transaction }) => Promise<void>
   declare setTeams: (teamIds: number[]) => Promise<void>
 
   static associations: {

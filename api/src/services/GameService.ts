@@ -1,3 +1,4 @@
+import { Transaction } from "sequelize"
 import { getRandomTimeBetweenHourInterval } from "@/base/DateUtils"
 
 import Team, { TEAM_ATTRIBUTES_WITHOUT_LOGO } from "@/models/Team"
@@ -106,7 +107,7 @@ const GameService = {
    * @param {Match} match - The match to create a game for.
    * @returns {Promise<Game>} A promise that resolves to the created game.
    */
-  createGameForMatch: async (match: Match, map: GameMap): Promise<Game> => {
+  createGameForMatch: async (match: Match, map: GameMap, transaction?: Transaction): Promise<Game> => {
     return await Game.create({
       date: getRandomTimeBetweenHourInterval(match.date, 1),
       map: map,
@@ -119,6 +120,7 @@ const GameService = {
         standings_processed: false,
       },
     }, {
+      transaction,
       include: [
         { model: GameStats, as: 'stats', include: [{ model: PlayerGameStats, as: 'players_stats_team1' }, { model: PlayerGameStats, as: 'players_stats_team2' }] },
       ],

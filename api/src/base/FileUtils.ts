@@ -18,7 +18,7 @@ export const downloadPNGImage = async (url: string): Promise<Buffer | null> => {
   }
 }
 
-export type ImageMimeType = 'image/gif' | 'image/jpeg' | 'image/png' | 'image/webp'
+export type ImageMimeType = 'image/svg+xml' | 'image/gif' | 'image/jpeg' | 'image/png' | 'image/webp'
 
 /**
  * Detects the MIME type of stored image bytes.
@@ -26,6 +26,9 @@ export type ImageMimeType = 'image/gif' | 'image/jpeg' | 'image/png' | 'image/we
  * @returns MIME type suitable for an HTTP Content-Type header
  */
 export const detectImageMimeType = (image: Buffer): ImageMimeType => {
+  if (/^<svg[\s>]/.test(image.toString('utf8', 0, 256).trimStart())) {
+    return 'image/svg+xml'
+  }
   if (image.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) {
     return 'image/jpeg'
   }
