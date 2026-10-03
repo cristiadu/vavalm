@@ -42,8 +42,8 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       multer:
-        specifier: ^2.3.0
-        version: 2.3.0
+        specifier: ^2.4.0
+        version: 2.4.0
       pg:
         specifier: ^8.23.0
         version: 8.23.0
@@ -2800,10 +2800,6 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  concat-stream@2.0.0:
-    resolution: {integrity: sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==}
-    engines: {'0': node >= 6.0}
-
   config-chain@1.1.13:
     resolution: {integrity: sha512-qj+f8APARXHrM0hraqXYb2/bOVSV4PvJQlNZ/DVj0QrmNM2q2euizkeuVckQ57J+W0mRH6Hvi+k50M4Jul2VRQ==}
 
@@ -4369,8 +4365,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  multer@2.3.0:
-    resolution: {integrity: sha512-cjNbm3sttszgZeGfJR124D+jFEfkXCVAsoPBmFn9X7UxmDSFHWqE2CoEj0vrmSpuAFnqWR1Szcm9QTsiHr60Xw==}
+  multer@2.4.0:
+    resolution: {integrity: sha512-7dqa0ZcFfzbefdTuIkzOSMvZWC0J7FLqBOjJUZvDCXShIURWKxAyTT1wHhnE5q19c7jOJf43IYYKjBmZVZmvhg==}
     engines: {node: '>= 10.16.0'}
 
   mylas@2.1.14:
@@ -4862,10 +4858,6 @@ packages:
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
 
-  readable-stream@3.6.2:
-    resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
-    engines: {node: '>= 6'}
-
   readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
@@ -5274,9 +5266,6 @@ packages:
   string_decoder@1.1.1:
     resolution: {integrity: sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==}
 
-  string_decoder@1.3.0:
-    resolution: {integrity: sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==}
-
   strip-ansi@6.0.1:
     resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
     engines: {node: '>=8'}
@@ -5482,9 +5471,6 @@ packages:
   typed-array-length@1.0.8:
     resolution: {integrity: sha512-phPGCwqr2+Qo0fwniCE8e4pKnGu/yFb5nD5Y8bf0EEeiI5GklnACYA9GFy/DrAeRrKHXvHn+1SUsOWgJp6RO+g==}
     engines: {node: '>= 0.4'}
-
-  typedarray@0.0.6:
-    resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
 
   typescript-eslint@8.69.0:
     resolution: {integrity: sha512-B3MltX0VqjUBNEe3b3sSuiRbfa6XrfHFtBiPamjT5AsW/dfq+y+bc0wyuS9DxAS1LyzCxRp2+rxzpLUvqM2BvA==}
@@ -8486,13 +8472,6 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  concat-stream@2.0.0:
-    dependencies:
-      buffer-from: 1.1.2
-      inherits: 2.0.4
-      readable-stream: 3.6.2
-      typedarray: 0.0.6
-
   config-chain@1.1.13:
     dependencies:
       ini: 1.3.8
@@ -10325,11 +10304,10 @@ snapshots:
 
   ms@2.1.3: {}
 
-  multer@2.3.0:
+  multer@2.4.0:
     dependencies:
       append-field: 1.0.0
       busboy: 1.6.0
-      concat-stream: 2.0.0
       type-is: 1.6.18
 
   mylas@2.1.14: {}
@@ -10867,12 +10845,6 @@ snapshots:
       string_decoder: 1.1.1
       util-deprecate: 1.0.2
 
-  readable-stream@3.6.2:
-    dependencies:
-      inherits: 2.0.4
-      string_decoder: 1.3.0
-      util-deprecate: 1.0.2
-
   readdirp@3.6.0:
     dependencies:
       picomatch: 2.3.2
@@ -11380,10 +11352,6 @@ snapshots:
     dependencies:
       safe-buffer: 5.1.2
 
-  string_decoder@1.3.0:
-    dependencies:
-      safe-buffer: 5.2.1
-
   strip-ansi@6.0.1:
     dependencies:
       ansi-regex: 5.0.1
@@ -11601,8 +11569,6 @@ snapshots:
       is-typed-array: 1.1.15
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
-
-  typedarray@0.0.6: {}
 
   typescript-eslint@8.69.0(eslint@10.9.1(jiti@2.7.0)(supports-color@5.5.0))(supports-color@5.5.0)(typescript@6.0.3):
     dependencies:
