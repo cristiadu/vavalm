@@ -21,6 +21,12 @@ export interface PlayerStatsTotals {
   kills: number
   deaths: number
   assists: number
+  /** Kills plus assists per death, rounded in SQL so it matches the leaderboard order. */
+  kda: number
+  /** Match win percentage, rounded in SQL so it matches the leaderboard order. */
+  matchWinrate: number
+  /** Map win percentage, rounded in SQL so it matches the leaderboard order. */
+  mapWinrate: number
 }
 
 /**
@@ -35,6 +41,9 @@ interface PlayerTotalsRow {
   kills: string
   deaths: string
   assists: string
+  kda: string
+  match_winrate: string
+  map_winrate: string
 }
 
 
@@ -143,6 +152,9 @@ export const fetchPlayerStatsTotals = async (playerId?: number): Promise<PlayerS
     kills: Number(row.kills),
     deaths: Number(row.deaths),
     assists: Number(row.assists),
+    kda: Number(row.kda),
+    matchWinrate: Number(row.match_winrate),
+    mapWinrate: Number(row.map_winrate),
   }))
 }
 
@@ -214,21 +226,11 @@ const hydratePlayerStatsPage = async (totals: PlayerStatsTotals[], limit: number
  * @returns {AllPlayerStats} - The player statistics.
  */
 const buildPlayerStats = (player: Player, totals: PlayerStatsTotals): AllPlayerStats => {
-  const kda = totals.deaths === 0
-    ? 0
-    : parseFloat(((totals.kills + totals.assists) / totals.deaths).toFixed(2))
-  const winrate = totals.matchesPlayed === 0
-    ? 0
-    : parseFloat(((totals.matchesWon / totals.matchesPlayed) * 100).toFixed(2))
-  const mapWinrate = totals.mapsPlayed === 0
-    ? 0
-    : parseFloat(((totals.mapsWon / totals.mapsPlayed) * 100).toFixed(2))
-
   return new AllPlayerStats(
     player.toApiModel(),
-    kda,
-    winrate,
-    mapWinrate,
+    totals.kda,
+    totals.matchWinrate,
+    totals.mapWinrate,
     totals.matchesPlayed,
     totals.matchesWon,
     totals.matchesPlayed - totals.matchesWon,
