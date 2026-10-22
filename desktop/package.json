@@ -38,7 +38,7 @@
     "@eslint/js": "10.0.1",
     "@types/async-exit-hook": "^2.0.2",
     "@types/node": "26.6.3",
-    "@vitest/coverage-v8": "5.0.2",
+    "@vitest/coverage-v8": "5.0.5",
     "cross-env": "10.1.0",
     "electron": "44.4.5",
     "electron-builder": "26.15.3",
@@ -50,7 +50,7 @@
     "tsc-alias": "1.9.5",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.0",
-    "vitest": "5.0.2"
+    "vitest": "5.0.5"
   },
   "build": {
     "appId": "com.cristiadu.vavalm",
