@@ -12,6 +12,24 @@ export const HOOK_TIMEOUT_MS = {
 }
 
 /**
+ * Scales a ratio and rounds it to two decimals, halves away from zero, the way
+ * Postgres ROUND does. Rounding the cents as an integer avoids toFixed's binary
+ * float artefacts, where 1.325 becomes 1.32.
+ *
+ * @param value - The part, for example kills plus assists.
+ * @param total - The whole, for example deaths. Zero yields 0.
+ * @param scale - Multiplier applied before rounding, such as 100 for percents.
+ * @returns The scaled ratio, rounded to at most two decimals.
+ */
+export const roundScaledRatio = (value: number, total: number, scale: number): number => {
+  if (total === 0) {
+    return 0
+  }
+
+  return Math.round((value * scale * 100) / total) / 100
+}
+
+/**
  * Scales a ratio to a percentage rounded to two decimals — the form the API
  * reports winrates in.
  *
@@ -20,11 +38,7 @@ export const HOOK_TIMEOUT_MS = {
  * @returns The percentage, rounded to at most two decimals.
  */
 export const formatPercentage = (value: number, total: number): number => {
-  if (total === 0) {
-    return 0
-  }
-
-  return parseFloat(((value / total) * 100).toFixed(2))
+  return roundScaledRatio(value, total, 100)
 }
 
 /**
