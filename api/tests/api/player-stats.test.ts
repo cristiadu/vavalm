@@ -7,7 +7,7 @@ import {
   splitByMatchResult,
   PlayedMatchFixture,
 } from '@tests/api/common-stats'
-import { formatPercentage, HOOK_TIMEOUT_MS } from '@tests/api/common-utils'
+import { formatPercentage, HOOK_TIMEOUT_MS, roundScaledRatio } from '@tests/api/common-utils'
 
 /** Every fixture player took part in exactly one match: the one that was played. */
 const MATCHES_PLAYED = 1
@@ -155,10 +155,7 @@ describe('GET /players/:id/stats', () => {
       for (const player of allPlayers) {
         const stats = statsFor(player)
 
-        const expected = stats.totalDeaths === 0
-          ? 0
-          : parseFloat(((stats.totalKills + stats.totalAssists) / stats.totalDeaths).toFixed(2))
-        expect(stats.kda).toBe(expected)
+        expect(stats.kda).toBe(roundScaledRatio(stats.totalKills + stats.totalAssists, stats.totalDeaths, 1))
       }
     })
   })
