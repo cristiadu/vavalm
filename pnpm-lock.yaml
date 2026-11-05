@@ -1283,8 +1283,8 @@ packages:
   '@hapi/catbox@12.1.1':
     resolution: {integrity: sha512-hDqYB1J+R0HtZg4iPH3LEnldoaBsar6bYp0EonBmNQ9t5CO+1CqgCul2ZtFveW1ReA5SQuze9GPSU7/aecERhw==}
 
-  '@hapi/content@6.0.2':
-    resolution: {integrity: sha512-OKyCOTjNR1hftwSjk9ueyAQTw8AwapvzBrPIWMGn39vhR5PmqLdYFmLc35bsSBye7gSMnlkXfc679bUdMIcRyQ==}
+  '@hapi/content@6.0.3':
+    resolution: {integrity: sha512-ksXemMNZAwPq/mu1a9TZ7LDUSgMR9sexBgpalF3nrP6SM42ARlnBZs58IS5Ay+o4o7y6tFNXL+rMJkQ5ghvCSw==}
 
   '@hapi/cryptiles@6.0.3':
     resolution: {integrity: sha512-r6VKalpbMHz4ci3gFjFysBmhwCg70RpYZy6OkjEpdXzAYnYFX5XsW7n4YMJvuIYpnMwLxGUjK/cBhA7X3JDvXw==}
@@ -1316,8 +1316,8 @@ packages:
     resolution: {integrity: sha512-uv3dtYuB4IsNaha+tigWmN8mQw/O9Qzl5U26Gm4ZcJVtDdB1AVJOwX3X5wOX+A07qzpEZnOMBAm8jjSqGsU6Nw==}
     engines: {node: '>=14.0.0'}
 
-  '@hapi/pez@6.1.1':
-    resolution: {integrity: sha512-yg2OS1tC0S1sHXvhUtWsfRn6lrKl9jKtRhZ+EI0woOW/gqX5vM2PZ1459ypCvCYDRLJ9nIyueeEH5MJV1ZDqIg==}
+  '@hapi/pez@6.1.2':
+    resolution: {integrity: sha512-JvfdAw+9iVzS9VYRimi9BIvmSUZPrdgtJ/devt2XujwD67MmW5KJPNJQ+F20uZfHj3cUsva8u1khscI376zDZA==}
 
   '@hapi/pinpoint@2.0.1':
     resolution: {integrity: sha512-EKQmr16tM8s16vTT3cA5L0kZZcTMU5DUOZTuvpnY738m+jyP3JIUj+Mm1xc1rsLkGBQ/gVnfKYPwOmPg1tUR4Q==}
@@ -1334,8 +1334,8 @@ packages:
   '@hapi/statehood@8.2.1':
     resolution: {integrity: sha512-xf72TG/QINW26jUu+uL5H+crE1o8GplIgfPWwPZhnAGJzetIVAQEQYvzq+C0aEVHg5/lMMtQ+L9UryuSa5Yjkg==}
 
-  '@hapi/subtext@8.1.3':
-    resolution: {integrity: sha512-WTpEZQjBP3UJ3gGunNl3w5Ao1EOJsuu2vttZ2KEcG+csSLxc0dI6VIkl2md2jDlHiQ2ARAoqdSUScy05A/NHtA==}
+  '@hapi/subtext@8.1.5':
+    resolution: {integrity: sha512-VSoL75dYqMfs2URprWPu9RXdL/+c5pZ5L0siSa3ZKg0VQKGQn2Yncd05Jl/154VvVYO/ymrOW3TR/a9psp1+kA==}
 
   '@hapi/teamwork@6.0.1':
     resolution: {integrity: sha512-52OXRslUfYwXAOG8k58f2h2ngXYQGP0x5RPOo+eWA/FtyLgHjGMrE3+e9LSXP/0q2YfHAK5wj9aA9DTy1K+kyQ==}
@@ -1354,8 +1354,8 @@ packages:
   '@hapi/vise@5.0.1':
     resolution: {integrity: sha512-XZYWzzRtINQLedPYlIkSkUr7m5Ddwlu99V9elh8CSygXstfv3UnWIXT0QD+wmR0VAG34d2Vx3olqcEhRRoTu9A==}
 
-  '@hapi/wreck@18.1.2':
-    resolution: {integrity: sha512-3dMnV2pfhQiyEqu8DL3VBmxkdLiRDiiUDuG79Dp+UK1gL9ZxAfDOUhB6k3D5MLqcgJJ1IARyGFhwoc1NITr/pg==}
+  '@hapi/wreck@18.1.3':
+    resolution: {integrity: sha512-PZ1FQpk5DWbEFFYiHu/kCkWeSHwUhAxDSUdv6Zsp1qi2coUP22cnYQlp647KCSsCc4uFB4LOTsHo9f5k7vgtHg==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -5640,6 +5640,9 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
+  tslib@2.9.1:
+    resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
+
   tsoa@7.0.0-alpha.0:
     resolution: {integrity: sha512-o5h2DD1IKa2GF728BHYDL2uSX57a44sX8BLFScR4KbD0xlOmgsSDECneJmouDxf9MJdjHHWc+I1S3sGK82B6kQ==}
     engines: {node: '>=18.0.0', yarn: '>=1.9.4'}
@@ -7135,7 +7138,7 @@ snapshots:
       '@hapi/podium': 5.0.2
       '@hapi/validate': 2.0.1
 
-  '@hapi/content@6.0.2':
+  '@hapi/content@6.0.3':
     dependencies:
       '@hapi/boom': 10.0.1
 
@@ -7163,7 +7166,7 @@ snapshots:
       '@hapi/shot': 6.0.3
       '@hapi/somever': 4.1.1
       '@hapi/statehood': 8.2.1
-      '@hapi/subtext': 8.1.3
+      '@hapi/subtext': 8.1.5
       '@hapi/teamwork': 6.0.1
       '@hapi/topo': 6.0.2
       '@hapi/validate': 2.0.1
@@ -7194,11 +7197,11 @@ snapshots:
       '@hapi/hoek': 11.0.7
       '@hapi/vise': 5.0.1
 
-  '@hapi/pez@6.1.1':
+  '@hapi/pez@6.1.2':
     dependencies:
       '@hapi/b64': 6.0.1
       '@hapi/boom': 10.0.1
-      '@hapi/content': 6.0.2
+      '@hapi/content': 6.0.3
       '@hapi/hoek': 11.0.7
       '@hapi/nigel': 5.0.1
 
@@ -7230,15 +7233,15 @@ snapshots:
       '@hapi/iron': 7.0.1
       '@hapi/validate': 2.0.1
 
-  '@hapi/subtext@8.1.3':
+  '@hapi/subtext@8.1.5':
     dependencies:
       '@hapi/boom': 10.0.1
       '@hapi/bourne': 3.0.0
-      '@hapi/content': 6.0.2
+      '@hapi/content': 6.0.3
       '@hapi/file': 3.0.0
       '@hapi/hoek': 11.0.7
-      '@hapi/pez': 6.1.1
-      '@hapi/wreck': 18.1.2
+      '@hapi/pez': 6.1.2
+      '@hapi/wreck': 18.1.3
 
   '@hapi/teamwork@6.0.1': {}
 
@@ -7257,7 +7260,7 @@ snapshots:
     dependencies:
       '@hapi/hoek': 11.0.7
 
-  '@hapi/wreck@18.1.2':
+  '@hapi/wreck@18.1.3':
     dependencies:
       '@hapi/boom': 10.0.1
       '@hapi/bourne': 3.0.0
@@ -7631,22 +7634,22 @@ snapshots:
     dependencies:
       '@peculiar/utils': 2.0.3
       asn1js: 3.1.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@peculiar/json-schema@1.1.12':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@peculiar/utils@2.0.3':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@peculiar/webcrypto@1.7.2':
     dependencies:
       '@peculiar/asn1-schema': 2.11.1
       '@peculiar/json-schema': 1.1.12
       '@peculiar/utils': 2.0.3
-      tslib: 2.8.1
+      tslib: 2.9.1
       webcrypto-core: 1.9.2
 
   '@pkgjs/parseargs@0.11.0':
@@ -8466,7 +8469,7 @@ snapshots:
     dependencies:
       pvtsutils: 1.3.6
       pvutils: 1.2.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   assertion-error@2.0.1: {}
 
@@ -9891,7 +9894,7 @@ snapshots:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.8.5
+      semver: 7.7.4
       serialize-error: 7.0.1
     optional: true
 
@@ -10678,11 +10681,11 @@ snapshots:
 
   node-abi@4.40.0:
     dependencies:
-      semver: 7.8.5
+      semver: 7.7.4
 
   node-api-version@0.2.1:
     dependencies:
-      semver: 7.8.5
+      semver: 7.7.4
 
   node-gyp@12.4.0:
     dependencies:
@@ -10691,7 +10694,7 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.8.5
+      semver: 7.7.4
       tar: 7.5.22
       tinyglobby: 0.2.17
       undici: 6.29.1
@@ -10996,7 +10999,7 @@ snapshots:
       bytestreamjs: 2.0.1
       pvtsutils: 1.3.6
       pvutils: 1.2.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   plimit-lit@1.6.1:
     dependencies:
@@ -11076,7 +11079,7 @@ snapshots:
 
   pvtsutils@1.3.6:
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   pvutils@1.2.0: {}
 
@@ -11823,6 +11826,8 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  tslib@2.9.1: {}
+
   tsoa@7.0.0-alpha.0:
     dependencies:
       '@tsoa/cli': 7.0.0-alpha.0
@@ -12087,7 +12092,7 @@ snapshots:
       '@peculiar/json-schema': 1.1.12
       '@peculiar/utils': 2.0.3
       asn1js: 3.1.0
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   webpack-cli@7.2.3(js-yaml@5.5.0)(json5@2.2.3)(webpack@5.112.2):
     dependencies:
